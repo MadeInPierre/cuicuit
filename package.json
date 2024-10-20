@@ -27,6 +27,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.36.0",
 		"globals": "^15.0.0",
+		"lucide-svelte": "^0.453.0",
 		"mode-watcher": "^0.4.1",
 		"postcss": "^8.4.47",
 		"prettier": "^3.1.1",
@@ -42,8 +43,5 @@
 		"vite": "^5.0.3",
 		"vitest": "^2.0.0"
 	},
-	"type": "module",
-	"dependencies": {
-		"lucide-svelte": "^0.453.0"
-	}
+	"type": "module"
 }

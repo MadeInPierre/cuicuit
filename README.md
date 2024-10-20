@@ -1,3 +1,14 @@
+<h1 align="center">
+  <a href="https://github.com/MadeInPierre/cuicuit">
+    <img src="./static/cuicuit_logo_transparent.png" width="200" />
+  </a>
+  <br>Cuicuit<br>
+</h1>
+
+# Trello
+
+See https://trello.com/b/r6u53Si0/cuicuit-v2 for the Trello board.
+
 # create-svelte
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).

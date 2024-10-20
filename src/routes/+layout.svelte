@@ -12,6 +12,4 @@
 <ModeWatcher />
 <Toaster />
 
-<ThemeButton />
-
 {@render children()}
