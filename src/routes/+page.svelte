@@ -1,1 +1,9 @@
-<h1 class="text-3xl font-bold underline">Hello world!</h1>
+<script lang="ts">
+	import { Button } from '$lib/components/ui/button';
+
+	let counter = $state(0);
+</script>
+
+<Button onclick={() => counter++}>
+	{counter} click{counter === 1 ? '' : 's'}
+</Button>
