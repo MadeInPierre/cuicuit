@@ -1,11 +1,11 @@
 <script lang="ts">
-	import * as Sheet from '$lib/components/ui/sheet';
-	import { Button } from '$lib/components/ui/button';
-	import { Icons } from '$lib/icons';
+	import * as Sheet from '$lib/shared/components/ui/sheet';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { Icons } from '$lib/shared/icons';
 	import MobileLink from './NavMobileLink.svelte';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
-	import { navLinksMarketing } from '$lib/config/nav-links';
-	import { siteConfig } from '$lib/config/site-config';
+	import { ScrollArea } from '$lib/shared/components/ui/scroll-area';
+	import { navLinksMarketing } from '$lib/features/marketing/consts/nav-links';
+	import { siteConfig } from '$lib/shared/config/site-config';
 
 	let open = $state(false);
 </script>

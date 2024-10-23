@@ -2,8 +2,7 @@
 	import '../app.css';
 	import Metadata from './Metadata.svelte';
 	import { ModeWatcher } from 'mode-watcher';
-	import { Toaster } from '$lib/components/ui/sonner';
-	import ThemeButton from '$lib/components/common/ThemeButton.svelte';
+	import { Toaster } from '$lib/shared/components/ui/sonner';
 
 	let { children } = $props();
 </script>

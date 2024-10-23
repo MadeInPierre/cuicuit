@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Separator } from '$lib/components/ui/separator';
-	import { Icons } from '$lib/icons';
+	import { Separator } from '$lib/shared/components/ui/separator';
+	import { Icons } from '$lib/shared/icons';
 	import { fly } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { cn } from '$lib/utils';

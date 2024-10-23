@@ -1,6 +1,6 @@
 <script>
-	import SiteHeader from '$lib/components/common/SiteHeader.svelte';
-	import NavContent from '$lib/components/marketing/header/HeaderContent.svelte';
+	import SiteHeader from '$lib/features/marketing/components/SiteHeader.svelte';
+	import NavContent from '$lib/features/marketing/components/navbar/MarketingNavbar.svelte';
 
 	let { children } = $props();
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Announcement from '$lib/components/marketing/Announcement.svelte';
-	import * as PageHeader from '$lib/components/marketing/page-header';
-	import { Button } from '$lib/components/ui/button/index';
+	import Announcement from '$lib/features/marketing/components/Announcement.svelte';
+	import * as PageHeader from '$lib/features/marketing/components/page-title';
+	import { Button } from '$lib/shared/components/ui/button/index';
 	import { cn } from '$lib/utils';
 
 	const gradientColors: Record<string, string> = {

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '$lib/shared/components/ui/button';
 	import { SunMoon, Sun, Moon } from 'lucide-svelte';
 	import { setMode, userPrefersMode } from 'mode-watcher';
 	import { toast } from 'svelte-sonner';
-	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
 
 	function switchMode() {
 		if ($userPrefersMode === 'dark') {

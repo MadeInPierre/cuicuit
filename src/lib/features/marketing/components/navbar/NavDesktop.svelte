@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { CookingPot } from 'lucide-svelte';
 	import NavDesktopLink from './NavDesktopLink.svelte';
-	import { navLinksMarketing } from '$lib/config/nav-links';
-	import { siteConfig } from '$lib/config/site-config';
+	import { navLinksMarketing } from '$lib/features/marketing/consts/nav-links';
+	import { siteConfig } from '$lib/shared/config/site-config';
 </script>
 
 <div class="mr-4 hidden md:flex">

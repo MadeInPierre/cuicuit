@@ -1,10 +1,10 @@
 <script lang="ts">
-	import ThemeButton from '$lib/components/common/ThemeButton.svelte';
-	import NavDesktop from '$lib/components/marketing/header/NavDesktop.svelte';
-	import NavMobile from '$lib/components/marketing/header/NavMobile.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import { siteConfig } from '$lib/config/site-config';
-	import { Icons } from '$lib/icons';
+	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
+	import NavDesktop from '$lib/features/marketing/components/navbar/NavDesktop.svelte';
+	import NavMobile from '$lib/features/marketing/components/navbar/NavMobile.svelte';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import { siteConfig } from '$lib/shared/config/site-config';
+	import { Icons } from '$lib/shared/icons';
 	// import UserFullSignedIn from '$lib/stores/user-full-signed-in.svelte';
 	// import UserFullSignedOut from '$lib/stores/user-full-signed-out.svelte';
 </script>
