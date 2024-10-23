@@ -9,13 +9,16 @@
 			return `${dataTitle} - ${siteConfig.name}`;
 		}
 
-		const routeEnd = $page.route.id?.split('/').pop();
-		if (routeEnd) {
-			let name = routeEnd.replace('(', '').replace(')', '');
-			return `${name[0].toUpperCase() + name.slice(1)} - ${siteConfig.name}`;
-		}
-
 		return siteConfig.name;
+
+		// TODO PUT BACK? Automatically generate the title from the route name
+		// const routeEnd = $page.route.id?.split('/').pop();
+		// if (routeEnd) {
+		// 	let name = routeEnd.replace('(', '').replace(')', '');
+		// 	return `${name[0].toUpperCase() + name.slice(1)} - ${siteConfig.name}`;
+		// }
+
+		// return siteConfig.name;
 	}
 
 	$: title = updateTitle($page.data?.title);
