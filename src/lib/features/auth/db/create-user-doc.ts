@@ -14,7 +14,7 @@ export async function dbCreateUserDoc(credentials: UserCredential): Promise<bool
 	// Create the document (skip if it exists)
 	const docRef = doc(firestore, 'users', credentials.user.uid);
 	const docSnap = await getDoc(docRef);
-	const createUserDoc = !docSnap.exists();
+	const createUserDoc = !docSnap.exists(); // If the document doesn't exist, we need to create it
 
 	if (createUserDoc) {
 		// Generate the initial user document data
@@ -25,7 +25,7 @@ export async function dbCreateUserDoc(credentials: UserCredential): Promise<bool
 		await setDoc(docRef, data);
 	}
 
-	return createUserDoc; // Signal if we created the document (else, user was not new)
+	return createUserDoc; // Tell if we had to create a new document (else, user was not new)
 }
 
 function createDefaultUserDoc(
@@ -33,7 +33,7 @@ function createDefaultUserDoc(
 	lastName: string = '',
 	userName: string = ''
 ): UserDoc {
-	const createdDate = Date.now();
+	const createdDate: Date = new Date();
 
 	const iconsNames = Object.keys(nature_icons);
 	const randomIconName = iconsNames[Math.floor(Math.random() * iconsNames.length)];

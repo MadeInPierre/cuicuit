@@ -3,17 +3,23 @@
 	import UserAuthForm from '../user-auth-form.svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	// import { getUserFullStore } from '$lib/stores/user-full';
+	import { UserDocState } from '$lib/features/auth/state/user-doc.svelte';
 
-	// TODO Redirect the user to dashboard if already logged in (or welcome if not done yet)
-	// let userFull = getUserFullStore();
-	// $: if (browser && !$userFull.isLoading) {
-	// 	if ($userFull.doc && $userFull.doc.checklist.welcome === false) {
-	// 		goto('/welcome');
-	// 	} else if ($userFull.user) {
-	// 		goto('/dashboard');
-	// 	}
-	// }
+	const userDocState = new UserDocState();
+
+	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
+	$effect(() => {
+		// If the user is already logged in...
+		if (browser && userDocState.user && userDocState.doc) {
+			if (userDocState.doc.checklist.welcome === false) {
+				console.warn('User has not finished onboarding, redirect to welcome');
+				goto('/welcome');
+			} else {
+				console.warn('User has finished onboarding, going to dashboard.');
+				goto('/dashboard');
+			}
+		}
+	});
 </script>
 
 <div class="flex flex-col space-y-2 text-center">
