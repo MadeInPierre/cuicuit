@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { CookingPot, Heart } from 'lucide-svelte';
+	import { Heart } from 'lucide-svelte';
 	import Transition from './transition.svelte';
 
 	interface Props {

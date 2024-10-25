@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import {
+	initializeFirestore,
+	persistentLocalCache,
+	persistentMultipleTabManager
+} from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
@@ -15,7 +19,15 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const firestore = getFirestore(app);
+
+export const firestore = initializeFirestore(app, {
+	localCache: persistentLocalCache({
+		tabManager: persistentMultipleTabManager()
+	})
+});
+
 export const auth = getAuth(app);
+
 export const storage = getStorage(app);
+
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : undefined;

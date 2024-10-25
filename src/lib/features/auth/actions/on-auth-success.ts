@@ -51,14 +51,17 @@ export async function onAuthSuccess(
 			});
 		}
 
+		console.warn('User tried to sign in without verifying their email, going to login.');
 		goto('/login');
 		return;
 	}
 
 	// Valid user with verified email, welcome them if they're new or go to dashboard
 	if (createdUserDoc) {
-		goto('/welcome');
+		console.log('New user, going to welcome page.');
+		goto('/welcome'); // If the user is new, go to the welcome page
 	} else {
-		goto('/dashboard');
+		console.log('Existing user, going to dashboard.');
+		goto('/dashboard'); // If the user is not new, go to the dashboard
 	}
 }
