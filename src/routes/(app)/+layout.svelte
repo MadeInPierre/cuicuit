@@ -3,7 +3,7 @@
 	import { Toaster } from '$lib/shared/components/ui/sonner';
 	// import HeaderContent from '$lib/shared/components/app/header/header-content.svelte';
 	// import SiteHeader from '$lib/features/marketing/components/SiteHeader.svelte';
-	import LoadingSplash from './LoadingSplash.svelte';
+	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
