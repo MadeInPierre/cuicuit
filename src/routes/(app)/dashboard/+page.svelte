@@ -11,15 +11,6 @@
 	import SyncStatus from './SyncStatus.svelte';
 
 	const userDocState = new UserDocState();
-
-	$inspect(
-		'page user & userDoc',
-		userDocState.user,
-		userDocState.doc,
-		userDocState.docFromCache,
-		userDocState.docHasPendingWrites,
-		userDocState.syncStatus
-	);
 </script>
 
 <div class="flex gap-2 items-center m-2">
@@ -44,7 +35,9 @@
 
 	<Button href="/settings">Settings</Button>
 
-	<SyncStatus status={userDocState.syncStatus} />
+	{#if userDocState.doc}
+		<SyncStatus status={userDocState.docState?.syncStatus || 'does-not-exist'} />
+	{/if}
 </div>
 
 <pre>{jsonStringify(userDocState.doc)}</pre>
