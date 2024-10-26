@@ -3,7 +3,7 @@
 	import UserAuthForm from '../user-auth-form.svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { UserDocState } from '$lib/features/auth/state/user-doc.svelte';
+	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
 	const userDocState = new UserDocState();
 

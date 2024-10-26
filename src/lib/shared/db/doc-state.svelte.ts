@@ -1,10 +1,15 @@
 import { syncMode } from '$lib/shared/state/sync.svelte';
+import type { PartialWithFieldValue } from 'firebase/firestore';
 import {
 	doc,
 	onSnapshot,
 	type Firestore,
 	DocumentReference,
-	type DocumentData
+	type DocumentData,
+	setDoc,
+	type SetOptions,
+	updateDoc,
+	type UpdateData
 } from 'firebase/firestore';
 import { type FirestoreDataConverter } from 'firebase/firestore';
 import { writable, type Readable, type Writable, get } from 'svelte/store';
@@ -44,19 +49,78 @@ export type DocSyncStatus = (typeof DocSyncStatus)[number];
  * @returns Reactive state properties and a store version of the same properties
  */
 export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<DocT, DBDocT> {
-	// Document properties
-	ref: DocumentReference<DocT, DBDocT>;
-	id: string;
-	isLoading: boolean = $state(true);
-	data: DocT | undefined | null = $state(undefined);
+	// TODO add support for debouncing the setDoc method, maybe a way to cancel it, and an offline mode
+	// scoped to this document that squashes the writes until we come back online (or queue that applies all
+	// the changes when we come back online)
 
-	// Sync properties
+	/** The Firestore document reference */
+	ref: DocumentReference<DocT, DBDocT>;
+
+	/** The document ID */
+	id: string;
+
+	/** True if the document is still loading */
+	isLoading: boolean = $state(true);
+
+	private _data: DocT | undefined | null = $state(undefined);
+
+	/**
+	 * Get the doc from Firestore, returns undefined if loading or null if not found.
+	 * @returns The document data, or undefined if loading, or null if not found
+	 */
+	get data(): DocT | undefined | null {
+		return this._data;
+	}
+
+	/**
+	 * Set the doc in Firestore, merges with the existing document.
+	 * @param value The new data to set, merges with the existing document
+	 */
+	set data(value: Partial<DocT>) {
+		this.setDoc(value);
+	}
+
+	/**
+	 * Alternative to setting the doc directly to update the document in Firestore, more explicit.
+	 * Also allows to control the firestore set options, e.g. merge true/false.
+	 * @param newData The new data to set, merges with the existing document
+	 */
+	setDoc(newData: PartialWithFieldValue<DocT>, options: SetOptions = { merge: true }) {
+		if (!this.data) throw new Error('Document has not been loaded yet');
+		if (!newData) throw new Error('Cannot set doc to null'); // TODO add support?
+		console.log('Setting doc', this.ref.path, newData);
+
+		// Write the data to Firestore, this._data will be updated by the snapshot listener
+		setDoc(this.ref, newData, options);
+	}
+
+	/**
+	 * CAUTION: The update method uses the DBDocT type, not the DocT type.
+	 *
+	 * Alternative to updating the doc directly to update the document in Firestore, more explicit.
+	 * @param newData The new data to update, merges with the existing document
+	 */
+	updateDoc(newData: UpdateData<DBDocT>) {
+		if (!this.data) throw new Error('Document has not been loaded yet');
+		if (!newData) throw new Error('Cannot update doc to null'); // TODO add support?
+		console.log('Updating doc', this.ref.path, newData);
+
+		// Update the data in Firestore, this._data will be updated by the snapshot listener
+		// updateDoc(this.ref, newData);
+	}
+
+	/** True if the available document has been loaded from cache */
 	fromCache: boolean = $state(false);
+
+	/** True if the document has local pending writes */
 	hasPendingWrites: boolean = $state(false);
+
+	/** The sync status of the document */
 	syncStatus: DocSyncStatus = $state('loading');
 
-	// Store version of the properties
 	private _store: Writable<IDocState<DocT, DBDocT>>;
+
+	/** Store version of the properties (read-only) */
 	get store(): Readable<IDocState<DocT, DBDocT>> {
 		return { subscribe: this._store.subscribe };
 	}
@@ -73,14 +137,14 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 		}
 
 		// Initialize the doc state
-		this.data = startWith;
+		this._data = startWith;
 		this.ref = typeof ref === 'string' ? doc(firestore, ref).withConverter(converter) : ref;
 		this.id = this.ref.id;
 
 		// Create a readable store as an alternative to using state
 		this._store = writable({
 			isLoading: true,
-			data: this.data,
+			data: this._data,
 			ref: this.ref,
 			id: this.id,
 			fromCache: this.fromCache,
@@ -110,16 +174,16 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 
 				// Update the document data if it exists
 				if (snapshot.exists()) {
-					this.data = (snapshot.data({ serverTimestamps: 'estimate' }) as DocT) ?? null;
+					this._data = (snapshot.data({ serverTimestamps: 'estimate' }) as DocT) ?? null;
 				} else {
-					this.data = null;
+					this._data = null;
 					this.syncStatus = 'does-not-exist';
 				}
 
 				// Update the store as well
 				this._store.set({
 					isLoading: this.isLoading,
-					data: this.data,
+					data: this._data,
 					ref: this.ref,
 					id: this.id,
 					fromCache: this.fromCache,
@@ -130,6 +194,9 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 		});
 	}
 
+	/**
+	 * Derive the sync status of the document based on the current sync mode
+	 */
 	private getSyncStatus(): DocSyncStatus {
 		if (syncMode.mode === 'offline') {
 			if (this.hasPendingWrites) {

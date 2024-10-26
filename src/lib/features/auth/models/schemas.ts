@@ -25,16 +25,19 @@ export const profileFormSchema = z.object({
 		.string()
 		.trim()
 		.min(2, 'Your name must be longer than 2 characters.')
-		.max(30, 'Your name cannot be longer than 30 characters.'),
+		.max(30, 'Your name cannot be longer than 30 characters.')
+		.refine((s) => !s.includes(' '), 'No spaces allowed in the first name.'),
 	lastName: z
 		.string()
 		.trim()
 		.min(2, 'Your name must be longer than 2 characters.')
-		.max(30, 'Your name cannot be longer than 30 characters.'),
+		.max(30, 'Your name cannot be longer than 30 characters.')
+		.refine((s) => !s.includes(' '), 'No spaces allowed in the last name.'),
 	userName: z
 		.string()
 		.trim()
 		.min(2, 'Your username must be longer than 2 characters.')
 		.max(30, 'Your username cannot be longer than 30 characters.')
+		.refine((s) => !s.includes(' '), 'No spaces allowed in the username.')
 });
 export type ProfileFormSchema = typeof profileFormSchema;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { UserDocState } from '$lib/features/auth/state/user-doc.svelte';
+	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { userState } from '$lib/features/auth/state/user.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -41,6 +41,8 @@
 	>
 		{syncMode.mode}
 	</Button>
+
+	<Button href="/settings">Settings</Button>
 
 	<SyncStatus status={userDocState.syncStatus} />
 </div>

@@ -8,6 +8,7 @@ export interface UserDoc {
 	avatar: {
 		type: string;
 		icon: string;
+		url: string | null;
 		last_change_t: Date;
 	};
 	checklist: {
@@ -27,6 +28,7 @@ export interface DBUserDoc extends DocumentData {
 	avatar: {
 		type: string;
 		icon: string;
+		url: string | null;
 		last_change_t: Timestamp;
 	};
 	checklist: {

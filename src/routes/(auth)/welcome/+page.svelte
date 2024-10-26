@@ -11,7 +11,7 @@
 	import { onMount } from 'svelte';
 	import { auth, firestore } from '$lib/shared/db/firebase-client';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
-	import { UserDocState } from '$lib/features/auth/state/user-doc.svelte';
+	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import type { UserDoc } from '$lib/features/auth/db/types';
 
 	// Require the user to be signed in to get here
