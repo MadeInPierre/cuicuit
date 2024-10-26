@@ -1,7 +1,12 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { ModeWatcher } from 'mode-watcher';
+	import { Toaster } from '$lib/shared/components/ui/sonner';
+	// import HeaderContent from '$lib/shared/components/app/header/header-content.svelte';
+	// import SiteHeader from '$lib/features/marketing/components/SiteHeader.svelte';
+	import LoadingSplash from './LoadingSplash.svelte';
 	import { goto } from '$app/navigation';
-	import { UserDocState } from '$lib/features/auth/state/user-doc.svelte';
+	import { browser } from '$app/environment';
+	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
 	const userDocState = new UserDocState();
 
@@ -24,4 +29,15 @@
 	const { children } = $props();
 </script>
 
-{@render children?.()}
+<ModeWatcher />
+<Toaster />
+
+<!-- Hide the app if the user was not welcomed yet (prevents flickering between state changes) -->
+{#if userDocState.isLoading || (userDocState.doc && userDocState.doc.checklist.welcome === false) || userDocState.user === null}
+	<LoadingSplash />
+{:else}
+	<!-- TODO Add app Navbar or Sidebar -->
+	<!-- <SiteHeader><HeaderContent /></SiteHeader> -->
+
+	{@render children?.()}
+{/if}
