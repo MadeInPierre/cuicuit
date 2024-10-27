@@ -3,7 +3,7 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
-	import { Trash2 } from 'lucide-svelte';
+	import { Trash2, ImageUp, LoaderCircle } from 'lucide-svelte';
 	import IconPicker from './IconPicker.svelte';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
@@ -13,14 +13,34 @@
 
 	const userDocState = getUserDocState();
 
-	/**
-	 * Upload the file to the storage and update the userDoc avatar
-	 */
 	let file: any = $state(undefined);
-	$effect(() => {
+	let loadingUpload = $state(false);
+
+	/** Option 1: Upload the file immediately after it's selected */
+	// $effect(() => {
+	// 	if (!file) return;
+	// 	uploadProfilePicture(userDocState, file);
+	// });
+
+	/**
+	 * Option 2: Upload the file to the storage and update the userDoc avatar
+	 */
+	async function upload() {
 		if (!file) return;
-		uploadProfilePicture(userDocState, file);
-	});
+
+		loadingUpload = true;
+
+		await uploadProfilePicture(userDocState, file);
+
+		// wait 1sec to show the loading spinner for better UX
+		await new Promise((resolve) =>
+			setTimeout(() => {
+				loadingUpload = false;
+				file = undefined;
+				resolve(null);
+			}, 1000)
+		);
+	}
 </script>
 
 {#if userDocState.user && userDocState.doc}
@@ -37,8 +57,20 @@
 				}}
 			/>
 
+			{#if file}
+				<Button variant="default" class="px-3 flex gap-2" onclick={upload} disabled={loadingUpload}>
+					{#if loadingUpload}
+						<LoaderCircle class="h-[1.2rem] w-[1.2rem] animate-spin" />
+						<span>Uploading...</span>
+					{:else}
+						<ImageUp class="h-[1.2rem] w-[1.2rem]" />
+						Upload
+					{/if}
+				</Button>
+			{/if}
+
 			{#key userDocState.doc.avatar.last_change_t}
-				{#if userDocState.doc.avatar.type == 'image' && userDocState.doc.avatar.url}
+				{#if userDocState.doc.avatar.type == 'image' && userDocState.doc.avatar.url && !file}
 					<AlertDialog.Root>
 						<AlertDialog.Trigger>
 							<Button variant="outline" class="px-3">
