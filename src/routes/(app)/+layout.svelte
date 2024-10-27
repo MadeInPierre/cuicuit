@@ -7,6 +7,7 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { createUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import Sidebar from './Sidebar.svelte';
 
 	// Initialize the user doc state at the root app layout, will be used by all children
 	const userDocState = createUserDocState();
@@ -40,5 +41,7 @@
 	<!-- TODO Add app Navbar or Sidebar -->
 	<!-- <SiteHeader><HeaderContent /></SiteHeader> -->
 
-	{@render children?.()}
+	<Sidebar>
+		{@render children?.()}
+	</Sidebar>
 {/if}
