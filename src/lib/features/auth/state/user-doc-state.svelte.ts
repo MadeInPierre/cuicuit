@@ -1,17 +1,24 @@
 import { DocState } from '$lib/shared/db/doc-state.svelte';
 import { auth, firestore } from '$lib/shared/db/firebase-client';
-import { untrack } from 'svelte';
+import { getContext, setContext, untrack } from 'svelte';
 import { userDocConverter, type UserDoc, type DBUserDoc } from '../db/types';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
-export class UserDocState {
+class UserDocState {
 	/** The current auth user, undefined if loading, null if not logged in */
 	user: User | undefined | null = $state(undefined);
 
-	private _doc: UserDoc | undefined | null = $state(undefined);
+	/** The full DocState instance if needed to access all document methods */
+	docState: DocState<UserDoc, DBUserDoc> | undefined = $state(undefined);
 
-	/** True if either the user or the userDoc are still loading */
-	isLoading: boolean = $derived(this.user === undefined || this.doc === undefined);
+	/** The user document, undefined if loading, null if not logged in */
+	private _doc: UserDoc | undefined | null = $derived.by(() => {
+		if (this.user === null || this.user === undefined)
+			return this.user; // null if not logged in or undefined if loading
+		else if (!this.docState)
+			return undefined; // loading
+		else return this.docState?.data;
+	});
 
 	/**
 	 * Get the doc from Firestore, returns undefined if loading or null if not logged in.
@@ -28,14 +35,11 @@ export class UserDocState {
 	set doc(newData: Partial<UserDoc>) {
 		// Forbid setting the doc directly for better code maintainability
 		throw new Error('Do not set doc directly, use docState.setDoc() instead');
-		// this.setDoc(newData); // if we wanted to allow setting the doc directly
+		// this.setDoc(newData); // Uncomment this if we wanted to allow setting the doc directly
 	}
 
-	// Unsubscribe function for the docState
-	private unsub: () => void = () => {};
-
-	/** The full DocState instance if needed to access all document methods */
-	docState: DocState<UserDoc, DBUserDoc> | undefined;
+	/** True if either the user or the userDoc are still loading */
+	isLoading: boolean = $derived(this.user === undefined || this.doc === undefined);
 
 	constructor() {
 		// Track the auth user
@@ -46,26 +50,30 @@ export class UserDocState {
 		// Subscribe to the user document
 		$effect(() => {
 			if (this.user === undefined) {
-				this._doc = undefined; // Loading
-				this.docState = undefined;
+				this.docState = undefined; // this._doc will update through $derived
 			} else if (this.user === null) {
-				this._doc = null; // Not logged in
-				this.docState = undefined;
+				this.docState = undefined; // this._doc will update through $derived
 			} else {
 				// Subscribe to the user document
 				this.docState = untrack(
 					() =>
 						new DocState<UserDoc, DBUserDoc>(firestore, `users/${this.user!.uid}`, userDocConverter)
 				);
-
-				// TODO How to subscribe to the doc without the store (using $state)?
-				this.unsub = this.docState.store.subscribe((doc) => {
-					this._doc = doc.data;
-				});
 			}
-
-			// Unsubscribe when the user changes
-			return this.unsub;
 		});
 	}
+}
+
+// Only export the type to forbid creating new instances.
+// Must use the create/getUserDocState() functions in components
+export type { UserDocState };
+
+const KEY = Symbol('USER_DOC_STATE');
+
+export function createUserDocState(): UserDocState {
+	return setContext(KEY, new UserDocState());
+}
+
+export function getUserDocState(): UserDocState {
+	return getContext<ReturnType<typeof createUserDocState>>(KEY);
 }

@@ -6,9 +6,10 @@
 	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { createUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
-	const userDocState = new UserDocState();
+	// Initialize the user doc state at the root app layout, will be used by all children
+	const userDocState = createUserDocState();
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
 	$effect(() => {

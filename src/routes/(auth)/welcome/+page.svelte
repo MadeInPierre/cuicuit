@@ -9,9 +9,9 @@
 	import { doc, updateDoc } from 'firebase/firestore';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { onMount } from 'svelte';
-	import { auth, firestore } from '$lib/shared/db/firebase-client';
+	import { firestore } from '$lib/shared/db/firebase-client';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import type { UserDoc } from '$lib/features/auth/db/types';
 
 	// Require the user to be signed in to get here
@@ -22,7 +22,7 @@
 		}
 	});
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 
 	// Forbid this zone if the user already finished his onboarding
 	$effect(() => {

@@ -6,7 +6,7 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { Check, Loader2, X } from 'lucide-svelte';
 	import { profileFormSchema, type ProfileFormSchema } from '$lib/features/auth/models/schemas';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { updateUserProfile } from '$lib/features/user-settings/actions/update-user-profile';
 	import ImagePicker from './AvatarForm.svelte';
 
@@ -30,14 +30,14 @@
 	});
 	const { form: formData, enhance, allErrors } = form;
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 
 	async function onSubmit(data: Infer<ProfileFormSchema>) {
 		updateStatus = UpdateStatus.LOADING;
 
 		try {
 			// Write the new user data to the database
-			await updateUserProfile(data);
+			await updateUserProfile(userDocState, data);
 
 			// Notify success to the user
 			updateStatus = UpdateStatus.SUCCESS;
@@ -47,6 +47,7 @@
 		} catch (error: any) {
 			// Notify the user of the error
 			updateStatus = UpdateStatus.FAILED;
+			console.error('Failed to update profile:', error);
 			if (error.message == 'Missing profile information') {
 				toast.error('Missing information', { description: 'Please fill in all the fields.' });
 			} else {

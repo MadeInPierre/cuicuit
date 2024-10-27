@@ -3,9 +3,9 @@
 	import UserAuthForm from '../user-auth-form.svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
 	$effect(() => {

@@ -5,13 +5,13 @@
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Trash2 } from 'lucide-svelte';
 	import IconPicker from './IconPicker.svelte';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { updateUserDocAvatar } from '$lib/features/user-settings/actions/update-user-doc-avatar';
 	import { deleteUserPicture } from '$lib/features/user-settings/actions/delete-user-picture';
 	import { uploadProfilePicture } from '$lib/features/user-settings/actions/upload-profile-picture';
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 
 	/**
 	 * Upload the file to the storage and update the userDoc avatar

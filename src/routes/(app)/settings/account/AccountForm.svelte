@@ -22,7 +22,7 @@
 	import { goto } from '$app/navigation';
 	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
 	import { auth } from '$lib/shared/db/firebase-client';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import UserAuthForm from '../../../(auth)/user-auth-form.svelte';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
 	import { signOut } from 'firebase/auth';
@@ -41,7 +41,7 @@
 	});
 	const { form: formData, enhance } = form;
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 
 	let countProviderChanges = $state(0); // Count the number of provider changes to trigger a UI refresh
 

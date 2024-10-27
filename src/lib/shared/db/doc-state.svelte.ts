@@ -8,11 +8,10 @@ import {
 	type DocumentData,
 	setDoc,
 	type SetOptions,
-	updateDoc,
-	type UpdateData
+	type UpdateData,
+	updateDoc
 } from 'firebase/firestore';
 import { type FirestoreDataConverter } from 'firebase/firestore';
-import { writable, type Readable, type Writable, get } from 'svelte/store';
 
 // Helper interface to make sure the state and store have the same properties
 interface IDocState<DocT, DBDocT extends DocumentData> {
@@ -88,7 +87,7 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 	setDoc(newData: PartialWithFieldValue<DocT>, options: SetOptions = { merge: true }) {
 		if (!this.data) throw new Error('Document has not been loaded yet');
 		if (!newData) throw new Error('Cannot set doc to null'); // TODO add support?
-		console.log('Setting doc', this.ref.path, newData);
+		console.log('Setting doc following type <DocT>', this.ref.path, newData, options);
 
 		// Write the data to Firestore, this._data will be updated by the snapshot listener
 		setDoc(this.ref, newData, options);
@@ -103,10 +102,10 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 	updateDoc(newData: UpdateData<DBDocT>) {
 		if (!this.data) throw new Error('Document has not been loaded yet');
 		if (!newData) throw new Error('Cannot update doc to null'); // TODO add support?
-		console.log('Updating doc', this.ref.path, newData);
+		console.log('Updating doc following type <DBDocT>', this.ref.path, newData);
 
 		// Update the data in Firestore, this._data will be updated by the snapshot listener
-		// updateDoc(this.ref, newData);
+		updateDoc(this.ref, newData);
 	}
 
 	/** True if the available document has been loaded from cache */
@@ -117,13 +116,6 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 
 	/** The sync status of the document */
 	syncStatus: DocSyncStatus = $state('loading');
-
-	private _store: Writable<IDocState<DocT, DBDocT>>;
-
-	/** Store version of the properties (read-only) */
-	get store(): Readable<IDocState<DocT, DBDocT>> {
-		return { subscribe: this._store.subscribe };
-	}
 
 	constructor(
 		firestore: Firestore,
@@ -141,18 +133,7 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 		this.ref = typeof ref === 'string' ? doc(firestore, ref).withConverter(converter) : ref;
 		this.id = this.ref.id;
 
-		// Create a readable store as an alternative to using state
-		this._store = writable({
-			isLoading: true,
-			data: this._data,
-			ref: this.ref,
-			id: this.id,
-			fromCache: this.fromCache,
-			hasPendingWrites: this.hasPendingWrites,
-			syncStatus: this.syncStatus
-		});
-
-		// Subsribe and cleanup the doc subscription when the component is destroyed
+		// Subscribe and cleanup the doc subscription when the component is destroyed
 		$effect(() => {
 			let timeout = 0;
 
@@ -179,17 +160,6 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 					this._data = null;
 					this.syncStatus = 'does-not-exist';
 				}
-
-				// Update the store as well
-				this._store.set({
-					isLoading: this.isLoading,
-					data: this._data,
-					ref: this.ref,
-					id: this.id,
-					fromCache: this.fromCache,
-					hasPendingWrites: this.hasPendingWrites,
-					syncStatus: this.syncStatus
-				});
 			});
 		});
 	}

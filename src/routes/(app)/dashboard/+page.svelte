@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { userState } from '$lib/features/auth/state/user.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -10,7 +10,7 @@
 	import { signOut } from 'firebase/auth';
 	import SyncStatus from './SyncStatus.svelte';
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 </script>
 
 <div class="flex gap-2 items-center m-2">
