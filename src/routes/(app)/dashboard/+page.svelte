@@ -14,8 +14,6 @@
 </script>
 
 <div class="flex gap-2 items-center m-2">
-	<ThemeButton />
-
 	<Button
 		onclick={() => {
 			signOut(auth);
@@ -33,12 +31,10 @@
 		{syncMode.mode}
 	</Button>
 
-	<Button href="/settings">Settings</Button>
-
 	{#if userDocState.doc}
 		<SyncStatus status={userDocState.docState?.syncStatus || 'does-not-exist'} />
 	{/if}
 </div>
 
-<pre>{jsonStringify(userDocState.doc)}</pre>
-<pre>{jsonStringify(userState.user)}</pre>
+<pre class="w-[800px] overflow-hidden">{jsonStringify(userDocState.doc)}</pre>
+<pre class="w-[800px] overflow-hidden">{jsonStringify(userState.user)}</pre>
