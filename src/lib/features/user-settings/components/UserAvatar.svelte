@@ -1,12 +1,12 @@
 <script lang="ts">
 	import * as Avatar from '$lib/shared/components/ui/avatar';
-	import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { nature_icons } from '$lib/shared/icons/nature-icons';
 
 	let className: string | undefined | null = undefined;
 	export { className as class };
 
-	const userDocState = new UserDocState();
+	const userDocState = getUserDocState();
 </script>
 
 {#if userDocState.user && userDocState.doc}

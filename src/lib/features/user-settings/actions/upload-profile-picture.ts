@@ -2,7 +2,7 @@ import { storage } from '$lib/shared/db/firebase-client';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { toast } from 'svelte-sonner';
 import { updateUserDocAvatar } from './update-user-doc-avatar';
-import { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+import { type UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
 /**
  * Upload the profile picture to the storage and update the userDoc avatar

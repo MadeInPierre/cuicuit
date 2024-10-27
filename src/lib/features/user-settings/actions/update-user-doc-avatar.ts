@@ -20,7 +20,7 @@ export function updateUserDocAvatar(
 			...userDocState.doc.avatar,
 			last_change_t: new Date(),
 			type: type,
-			url: imgUrl || userDocState.doc.avatar.url,
+			url: imgUrl || userDocState.doc.avatar.url, // TODO really delete the image and set this field to null if imgUrl is null?
 			icon: iconName || userDocState.doc.avatar.icon
 		}
 	});
