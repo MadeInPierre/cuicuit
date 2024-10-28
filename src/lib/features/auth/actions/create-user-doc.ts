@@ -1,11 +1,11 @@
 import type { UserCredential } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { nature_icons } from '$lib/shared/icons/nature-icons';
-import type { UserDoc } from '../db/types';
+import type { UserDoc } from '../db/user-doc';
 import { firestore } from '$lib/shared/db/firebase-client';
 
 // Create the initial user document in Firestore upon signup
-export async function dbCreateUserDoc(credentials: UserCredential): Promise<boolean> {
+export async function createUserDoc(credentials: UserCredential): Promise<boolean> {
 	if (!firestore) {
 		console.log('Error: Firestore not available.');
 		return false;
@@ -49,6 +49,7 @@ function createDefaultUserDoc(
 		avatar: {
 			type: 'icon',
 			icon: randomIconName,
+			url: '',
 			last_change_t: createdDate
 		},
 		checklist: {

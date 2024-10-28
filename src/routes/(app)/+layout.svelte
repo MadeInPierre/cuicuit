@@ -8,9 +8,11 @@
 	import { browser } from '$app/environment';
 	import { createUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import Sidebar from './Sidebar.svelte';
+	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	// Initialize the user doc state at the root app layout, will be used by all children
 	const userDocState = createUserDocState();
+	const activeSpaceState = createActiveSpaceState();
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
 	$effect(() => {

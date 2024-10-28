@@ -24,17 +24,24 @@
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import { Label } from '$lib/shared/components/ui/label/index.js';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
-	import { LayoutDashboard, Home, LampDesk, Lightbulb } from 'lucide-svelte';
+	import { LayoutDashboard, Home, Share2, Lightbulb } from 'lucide-svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { page } from '$app/stores';
 	import { cn } from '$lib/utils';
+	import SpaceSwitcher from './SpaceSwitcher.svelte';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import SyncStatus from './dashboard/SyncStatus.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
 
 	let { children }: Props = $props();
+
+	const userDocState = getUserDocState();
+	const activeSpace = getActiveSpaceState();
 </script>
 
 <div class="grid h-screen w-full pl-[53px]">
@@ -42,12 +49,9 @@
 		<div class="border-b p-2">
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
-					<Button variant="default" size="icon" aria-label="Home" builders={[builder]}>
-						<!-- <LampDesk class="size-5" /> -->
-						<Home class="size-5" />
-					</Button>
+					<SpaceSwitcher builders={[builder]} />
 				</Tooltip.Trigger>
-				<Tooltip.Content side="right" sideOffset={5}>Office (current space)</Tooltip.Content>
+				<Tooltip.Content side="right" sideOffset={5}>Office (active space)</Tooltip.Content>
 			</Tooltip.Root>
 
 			<!-- <img src="/cuicuit_logo_transparent.png" class="h-8 m-auto my-1" /> -->
@@ -61,7 +65,7 @@
 						variant="ghost"
 						size="icon"
 						class={cn('rounded-lg', $page.url.pathname === '/dashboard' && 'bg-muted')}
-						aria-label="Current space"
+						aria-label="Active space"
 						builders={[builder]}
 					>
 						<LayoutDashboard class="size-5" />
@@ -70,48 +74,6 @@
 				<Tooltip.Content side="right" sideOffset={5}>Home</Tooltip.Content>
 			</Tooltip.Root>
 
-			<!-- <Tooltip.Root>
-				<Tooltip.Trigger asChild let:builder>
-					<Button
-						variant="ghost"
-						size="icon"
-						class="rounded-lg"
-						aria-label="Models"
-						builders={[builder]}
-					>
-						<Bot class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="right" sideOffset={5}>Models</Tooltip.Content>
-			</Tooltip.Root>
-			<Tooltip.Root>
-				<Tooltip.Trigger asChild let:builder>
-					<Button
-						variant="ghost"
-						size="icon"
-						class="rounded-lg"
-						aria-label="API"
-						builders={[builder]}
-					>
-						<CodeXML class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="right" sideOffset={5}>API</Tooltip.Content>
-			</Tooltip.Root>
-			<Tooltip.Root>
-				<Tooltip.Trigger asChild let:builder>
-					<Button
-						variant="ghost"
-						size="icon"
-						class="rounded-lg"
-						aria-label="Documentation"
-						builders={[builder]}
-					>
-						<Book class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="right" sideOffset={5}>Documentation</Tooltip.Content>
-			</Tooltip.Root> -->
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<Button
@@ -126,6 +88,22 @@
 					</Button>
 				</Tooltip.Trigger>
 				<Tooltip.Content side="right" sideOffset={5}>Settings</Tooltip.Content>
+			</Tooltip.Root>
+
+			<Tooltip.Root>
+				<Tooltip.Trigger asChild let:builder>
+					<Button
+						href="/share"
+						variant="ghost"
+						size="icon"
+						class={cn('rounded-lg', $page.url.pathname === '/share' && 'bg-muted')}
+						aria-label="Share"
+						builders={[builder]}
+					>
+						<Share2 class="size-5" />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="right" sideOffset={5}>Share</Tooltip.Content>
 			</Tooltip.Root>
 		</nav>
 		<nav class="mt-auto grid gap-1 p-2">
@@ -164,7 +142,17 @@
 	</aside>
 	<div class="flex flex-col">
 		<header class="bg-background sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b px-4">
-			<h1 class="text-xl font-semibold">Cuicuit</h1>
+			<h1 class="text-xl font-semibold">
+				{#if activeSpace.id && activeSpace.userHeader}
+					{activeSpace.userHeader.name}
+				{:else}
+					Loading...
+				{/if}
+			</h1>
+
+			{#if userDocState.doc}
+				<SyncStatus status={userDocState.docState?.syncStatus || 'does-not-exist'} />
+			{/if}
 
 			<!-- <Drawer.Root>
 				<Drawer.Trigger asChild let:builder>
