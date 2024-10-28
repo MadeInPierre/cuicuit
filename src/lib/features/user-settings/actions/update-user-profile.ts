@@ -29,4 +29,6 @@ export async function updateUserProfile(
 
 	// Update the user profile info in firestore (ignore empty fields)
 	userDocState.docState.updateDoc(newData);
+
+	// TODO also update the profile copy in the user's spaces [firestore space/spaceId]
 }

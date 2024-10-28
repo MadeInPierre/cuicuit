@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { userState } from '$lib/features/auth/state/user.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { auth } from '$lib/shared/db/firebase-client';
 	import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
@@ -9,6 +10,7 @@
 	import { signOut } from 'firebase/auth';
 
 	const userDocState = getUserDocState();
+	const activeSpaceState = getActiveSpaceState();
 </script>
 
 <div class="flex gap-2 items-center m-2">
@@ -30,5 +32,12 @@
 	</Button>
 </div>
 
-<pre class="w-[800px] overflow-hidden">UserDoc {jsonStringify(userDocState.doc)}</pre>
-<pre class="w-[800px] overflow-hidden">User Auth {jsonStringify(userState.user)}</pre>
+<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">Active Space {jsonStringify(
+		activeSpaceState.doc
+	)}</pre>
+<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">UserDoc {jsonStringify(
+		userDocState.doc
+	)}</pre>
+<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Auth {jsonStringify(
+		userState.user
+	)}</pre>

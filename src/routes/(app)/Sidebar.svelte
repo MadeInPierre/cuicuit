@@ -107,7 +107,7 @@
 			</Tooltip.Root>
 		</nav>
 		<nav class="mt-auto grid gap-1 p-2">
-			<ThemeButton class="" />
+			<ThemeButton class="flex-col mx-auto" />
 
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>

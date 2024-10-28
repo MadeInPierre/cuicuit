@@ -41,11 +41,12 @@
   - [ ] Give ideas of recipes "ready to cook", "change of plans" or "groceries needed"
   - [ ] Small badges on the recipe suggestions give the reason (e.g. "This item is about to expire")
   - [ ] On top of the page, an assistant gives suggestions of filters (e.g. Search with soon-to-expire items?)
-- [ ] View your pantry after each planned meals: simulate what your pantry will be after each planned meal
+- [ ] View your pantry anytime in the calendar/between planned meals: simulate what your pantry will be
   - [ ] In the calendar view, hover over a meal to see the pantry status after this meal
   - [ ] Set any of these pantry states as the current pantry state
   - [ ] Recipe suggestions will be based on this pantry states
   - [ ] Useful for changing plans and seeing the consequences on the pantry
+  - [ ] Wizard mode (see below) will use this feature to generate recommendations day-by-day
 
 [Long term features]
 - Supermarket mode: 
@@ -57,13 +58,18 @@
   - Algorithm to suggest the quantity based on habits and past updates
   - Ask the user to update the exact quantity from time to time
 - AI suggestions: 
-  - Propose unique recipes or meals (combining recipes or simple ingredients) based on your pantry.
-  - Radio: input any text that describes your mood, and the AI will suggest recipes based on that.
+  - Propose unique recipes or meals (combining recipes or simple ingredients) based on your pantry
+  - Radio: input any text that describes your mood, and the AI will suggest recipes based on that
 - Notify other users in the home you're going to groceries, do they need something?
 - History mode: see the history of your pantry, meal plans, recipes, etc.
   - Show past ratings and comments on recipes in the recipe suggestions/search/pages
   - Undo changes in the pantry/meal plan
   - View past receipts, log of groceries bought and consumed items/meals, etc.
+- Wizard mode: Cuicuit learns the user's habits and continuously fill the meal plan
+  - For example, if you mostly eat simple meals at dinner, Cuicuit will suggest simple recipes
+  - Suggestions are half-faded in the UI, and the user can click on them to confirm/switch/remove
+  - This will always make the shopping list full of things to buy, should have a setting to disable this?
+  - Settings: Familiar/Mixed/Discover mode, Flexitarian mode, Higher mood than usual, etc.
 - Super long term: Nutrition insights, C02 and water footprint, waste tracking, spending tracking, etc.
 
 

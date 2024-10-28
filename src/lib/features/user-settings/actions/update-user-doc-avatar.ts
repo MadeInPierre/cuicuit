@@ -24,4 +24,6 @@ export function updateUserDocAvatar(
 			icon: iconName || userDocState.doc.avatar.icon
 		}
 	});
+
+	// TODO also update the profile copy in the user's spaces [firestore space/spaceId]
 }
