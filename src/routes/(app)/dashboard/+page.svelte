@@ -30,5 +30,5 @@
 	</Button>
 </div>
 
-<pre class="w-[800px] overflow-hidden">{jsonStringify(userDocState.doc)}</pre>
-<pre class="w-[800px] overflow-hidden">{jsonStringify(userState.user)}</pre>
+<pre class="w-[800px] overflow-hidden">UserDoc {jsonStringify(userDocState.doc)}</pre>
+<pre class="w-[800px] overflow-hidden">User Auth {jsonStringify(userState.user)}</pre>

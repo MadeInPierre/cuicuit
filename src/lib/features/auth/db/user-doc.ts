@@ -1,19 +1,11 @@
+import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
 import { Timestamp, type FirestoreDataConverter, type DocumentData } from 'firebase/firestore';
 
 // TODO Implement interface versioning, see tutorial:
 // https://www.captaincodeman.com/schema-versioning-with-google-firestore
 
-export interface UserDoc {
+export interface UserDoc extends UserProfile {
 	created_t: Date;
-	firstName: string;
-	lastName: string;
-	userName: string;
-	avatar: {
-		type: string;
-		icon: string;
-		url: string | null;
-		last_change_t: Date;
-	};
 	checklist: {
 		welcome: boolean;
 		discoveredDrawer: boolean; // Whether the user has discovered the full drawer height
@@ -21,25 +13,30 @@ export interface UserDoc {
 	spaces: {
 		[id: string]: SpaceUserHeader;
 	};
+}
+
+export interface UserProfile {
+	firstName: string;
+	lastName: string;
+	userName: string;
+	avatar: UserDocAvatar;
+}
+
+export interface UserDocAvatar {
+	type: string;
+	icon: string;
+	url: string | null;
+	last_change_t: Date;
 }
 
 export interface SpaceUserHeader {
 	name: string;
-	icon: string;
-	theme: string;
+	icon: SpaceIconKey;
+	theme: SpaceThemeKey;
 }
 
-export interface DBUserDoc extends DocumentData {
+export interface DBUserDoc extends DBUserProfile, DocumentData {
 	created_t: Timestamp;
-	firstName: string;
-	lastName: string;
-	userName: string;
-	avatar: {
-		type: string;
-		icon: string;
-		url: string | null;
-		last_change_t: Timestamp;
-	};
 	checklist: {
 		welcome: boolean;
 		discoveredDrawer: boolean; // Whether the user has discovered the full drawer height
@@ -47,6 +44,19 @@ export interface DBUserDoc extends DocumentData {
 	spaces: {
 		[id: string]: SpaceUserHeader;
 	};
+}
+export interface DBUserProfile {
+	firstName: string;
+	lastName: string;
+	userName: string;
+	avatar: DBUserDocAvatar;
+}
+
+export interface DBUserDocAvatar {
+	type: string;
+	icon: string;
+	url: string | null;
+	last_change_t: Timestamp;
 }
 
 export const userDocConverter: FirestoreDataConverter<UserDoc, DBUserDoc> = {

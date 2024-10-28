@@ -29,7 +29,7 @@
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { page } from '$app/stores';
 	import { cn } from '$lib/utils';
-	import SpaceSwitcher from './SpaceSwitcher.svelte';
+	import SpaceSwitcher from '../../lib/features/spaces/components/SpaceSwitcher.svelte';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import SyncStatus from './dashboard/SyncStatus.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
