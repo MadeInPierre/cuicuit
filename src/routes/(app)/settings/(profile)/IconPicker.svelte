@@ -25,7 +25,7 @@
 			<AlertDialog.Root>
 				<AlertDialog.Trigger>
 					<Button
-						variant="outline"
+						variant="secondary"
 						class="flex aspect-square h-full w-full items-center justify-center p-0"
 					>
 						{@const SvelteComponent = icon}
@@ -54,7 +54,7 @@
 			</AlertDialog.Root>
 		{:else}
 			<Button
-				variant={isSelected && showSelected ? 'default' : 'outline'}
+				variant={isSelected && showSelected ? 'default' : 'secondary'}
 				disabled={isSelected && showSelected}
 				class="flex aspect-square h-full w-full items-center justify-center p-0"
 				on:click={() => {

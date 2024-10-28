@@ -33,12 +33,15 @@
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import SyncStatus from './dashboard/SyncStatus.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import ShareListDialog from '$lib/features/spaces/components/ShareSpaceDialog.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
 
 	let { children }: Props = $props();
+
+	let openShareDialog = $state(false);
 
 	const userDocState = getUserDocState();
 	const activeSpace = getActiveSpaceState();
@@ -90,21 +93,23 @@
 				<Tooltip.Content side="right" sideOffset={5}>Settings</Tooltip.Content>
 			</Tooltip.Root>
 
-			<Tooltip.Root>
-				<Tooltip.Trigger asChild let:builder>
-					<Button
-						href="/share"
-						variant="ghost"
-						size="icon"
-						class={cn('rounded-lg', $page.url.pathname === '/share' && 'bg-muted')}
-						aria-label="Share"
-						builders={[builder]}
-					>
-						<Share2 class="size-5" />
-					</Button>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="right" sideOffset={5}>Share</Tooltip.Content>
-			</Tooltip.Root>
+			<ShareListDialog bind:open={openShareDialog}>
+				<Tooltip.Root>
+					<Tooltip.Trigger asChild let:builder>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="rounded-lg"
+							aria-label="Share"
+							builders={[builder]}
+							on:click={() => (openShareDialog = true)}
+						>
+							<Share2 class="size-5" />
+						</Button>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right" sideOffset={5}>Share</Tooltip.Content>
+				</Tooltip.Root>
+			</ShareListDialog>
 		</nav>
 		<nav class="mt-auto grid gap-1 p-2">
 			<ThemeButton class="flex-col mx-auto" />
