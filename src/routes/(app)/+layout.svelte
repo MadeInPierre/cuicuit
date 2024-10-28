@@ -12,7 +12,7 @@
 
 	// Initialize the user doc state at the root app layout, will be used by all children
 	const userDocState = createUserDocState();
-	const activeSpaceState = createActiveSpaceState();
+	const activeSpaceState = createActiveSpaceState(userDocState);
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
 	$effect(() => {

@@ -4,7 +4,7 @@
 	import { userState } from '$lib/features/auth/state/user.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { auth } from '$lib/shared/db/firebase-client';
-	import { syncMode } from '$lib/shared/state/sync.svelte';
+	import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
 	import { jsonStringify } from '$lib/utils';
 	import { signOut } from 'firebase/auth';
 

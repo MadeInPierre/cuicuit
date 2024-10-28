@@ -51,7 +51,7 @@
 				<Tooltip.Trigger asChild let:builder>
 					<SpaceSwitcher builders={[builder]} />
 				</Tooltip.Trigger>
-				<Tooltip.Content side="right" sideOffset={5}>Office (active space)</Tooltip.Content>
+				<Tooltip.Content side="right" sideOffset={5}>Change active space</Tooltip.Content>
 			</Tooltip.Root>
 
 			<!-- <img src="/cuicuit_logo_transparent.png" class="h-8 m-auto my-1" /> -->
@@ -141,7 +141,7 @@
 		</nav>
 	</aside>
 	<div class="flex flex-col">
-		<header class="bg-background sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b px-4">
+		<header class="bg-background sticky top-0 z-10 flex h-[57px] items-center gap-2 border-b px-4">
 			<h1 class="text-xl font-semibold">
 				{#if activeSpace.id && activeSpace.userHeader}
 					{activeSpace.userHeader.name}

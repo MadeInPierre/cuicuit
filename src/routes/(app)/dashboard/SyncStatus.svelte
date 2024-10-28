@@ -36,7 +36,7 @@
 	};
 </script>
 
-<div class="group w-min flex items-center gap-2 px-4 whitespace-nowrap text-sm">
+<div class="group w-min flex items-center gap-2 whitespace-nowrap text-sm">
 	{#if status === 'loading'}
 		<Loader2 class="w-4 h-4 animate-spin" />
 	{:else if status === 'does-not-exist'}
