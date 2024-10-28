@@ -1,4 +1,4 @@
-import { syncMode } from '$lib/shared/state/sync.svelte';
+import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
 import type { PartialWithFieldValue } from 'firebase/firestore';
 import {
 	doc,

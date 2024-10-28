@@ -18,9 +18,15 @@ export interface UserDoc {
 		welcome: boolean;
 		discoveredDrawer: boolean; // Whether the user has discovered the full drawer height
 	};
-	listIds: {
-		[id: string]: boolean;
+	spaces: {
+		[id: string]: SpaceUserHeader;
 	};
+}
+
+export interface SpaceUserHeader {
+	name: string;
+	icon: string;
+	theme: string;
 }
 
 export interface DBUserDoc extends DocumentData {
@@ -38,8 +44,8 @@ export interface DBUserDoc extends DocumentData {
 		welcome: boolean;
 		discoveredDrawer: boolean; // Whether the user has discovered the full drawer height
 	};
-	listIds: {
-		[id: string]: boolean;
+	spaces: {
+		[id: string]: SpaceUserHeader;
 	};
 }
 

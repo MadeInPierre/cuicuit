@@ -6,14 +6,15 @@
 	import Cat from 'lucide-svelte/icons/cat';
 	import Loader2 from 'lucide-svelte/icons/loader-circle';
 	import { HousePlus, Share2 } from 'lucide-svelte';
-	import { getActiveSpaceState, spaces } from '$lib/features/spaces/state/active-space.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn } from '$lib/utils';
 
 	const themeClasses: Record<string, string> = {
 		yellow:
-			'bg-yellow-500 dark:text-yellow-950 text-white hover:bg-yellow-600 dark:hover:bg-yellow-400',
-		blue: 'bg-blue-500 dark:text-blue-950 text-white hover:bg-blue-600 dark:hover:bg-blue-400',
-		green: 'bg-green-500 dark:text-green-950 text-white hover:bg-green-600 dark:hover:bg-green-400',
+			'bg-yellow-500 dark:text-yellow-950 text-white hover:text-white hover:bg-yellow-600 dark:hover:bg-yellow-400',
+		blue: 'bg-blue-500 dark:text-blue-950 text-white hover:text-white hover:bg-blue-600 dark:hover:bg-blue-400',
+		green:
+			'bg-green-500 dark:text-green-950 text-white hover:text-white hover:bg-green-600 dark:hover:bg-green-400',
 		black: 'bg-secondary text-white hover:bg-secondary-dark dark:hover:bg-secondary-darker'
 	} as const;
 
@@ -39,7 +40,10 @@
 			size="icon"
 			aria-label="Space switcher"
 			{...others}
-			class={activeSpace.userHeader ? themeClasses[activeSpace.userHeader.theme] : ''}
+			class={cn(
+				'transition-colors',
+				activeSpace.userHeader && themeClasses[activeSpace.userHeader.theme]
+			)}
 		>
 			<ActiveTeamIcon class={cn('size-5', !activeSpace.id && 'animate-spin')}></ActiveTeamIcon>
 		</Button>
@@ -52,20 +56,20 @@
 	>
 		<DropdownMenu.Label class="text-muted-foreground text-xs">
 			{#if activeSpace.id}
-				Your homes
+				Your spaces
 			{:else}
 				Loading...
 			{/if}
 		</DropdownMenu.Label>
 
-		{#each Object.entries(spaces) as [spaceId, space], index (space.name)}
-			{@const TeamIcon = spaceIcons[space.icon]}
+		{#each Object.entries(activeSpace.userHeaders) as [spaceId, spaceHeader], index (spaceHeader.name)}
+			{@const TeamIcon = spaceIcons[spaceHeader.icon]}
 
 			<DropdownMenu.Item on:click={() => (activeSpace.id = spaceId)} class="gap-2 p-2 group">
 				<div class="flex size-6 items-center justify-center rounded-sm border">
 					<TeamIcon class="size-4 shrink-0"></TeamIcon>
 				</div>
-				{space.name}
+				{spaceHeader.name}
 				<DropdownMenu.Shortcut class="group-hover:block hidden">
 					<Button size="icon" class="size-6" variant="ghost">
 						<Share2 class="size-4" />
@@ -78,14 +82,14 @@
 			<div class="bg-background flex size-6 items-center justify-center rounded-md border">
 				<HousePlus class="size-4" />
 			</div>
-			<div class="text-muted-foreground font-medium">Add a home...</div>
+			<div class="text-muted-foreground font-medium">Add a space...</div>
 		</DropdownMenu.Item>
 
 		<!-- <DropdownMenu.Item class="gap-2 p-2">
 			<div class="bg-background flex size-6 items-center justify-center rounded-md border">
 				<Users class="size-4" />
 			</div>
-			<div class="text-muted-foreground font-medium">Join a home...</div>
+			<div class="text-muted-foreground font-medium">Join a space...</div>
 		</DropdownMenu.Item> -->
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
