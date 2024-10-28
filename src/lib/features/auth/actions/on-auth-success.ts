@@ -1,6 +1,6 @@
 import { sendEmailVerification, signOut, type UserCredential } from 'firebase/auth';
 import { AuthMethod } from '../models/auth-method';
-import { dbCreateUserDoc } from '../db/create-user-doc';
+import { createUserDoc } from './create-user-doc';
 import { LogMethod } from '../models/log-method';
 import { goto } from '$app/navigation';
 import { toast } from 'svelte-sonner';
@@ -19,7 +19,7 @@ export async function onAuthSuccess(
 	credentials: UserCredential
 ) {
 	// Create a new user doc if they're a new user
-	const createdUserDoc = await dbCreateUserDoc(credentials);
+	const createdUserDoc = await createUserDoc(credentials);
 
 	// Make sure a non-anonymous user has a verified email
 	if (authMethod !== AuthMethod.ANONYMOUS && !credentials.user.emailVerified) {

@@ -5,7 +5,7 @@
 	import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/shared/db/firebase-client';
-	import { dbCreateUserDoc } from '$lib/features/auth/db/create-user-doc';
+	import { createUserDoc } from '$lib/features/auth/actions/create-user-doc';
 
 	onMount(async () => {
 		if (!auth) {
@@ -39,7 +39,7 @@
 					// You can check if the user is new or existing:
 					// result.additionalUserInfo.isNewUser
 
-					dbCreateUserDoc(credential);
+					createUserDoc(credential);
 					goto('/');
 				})
 				.catch((error) => {

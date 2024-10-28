@@ -32,13 +32,11 @@
 		pending: 'Disabled (Pending)',
 		uploading: 'Updating',
 		downloading: 'Synchronizing',
-		synchronized: 'Synchronized'
+		synchronized: 'Up to date'
 	};
 </script>
 
-<p
-	class="w-min flex items-center gap-2 border-2 border-gray-300 rounded-md px-4 py-1.5 whitespace-nowrap"
->
+<div class="group w-min flex items-center gap-2 px-4 whitespace-nowrap text-sm">
 	{#if status === 'loading'}
 		<Loader2 class="w-4 h-4 animate-spin" />
 	{:else if status === 'does-not-exist'}
@@ -47,5 +45,5 @@
 		{@html statusIcon[status]}
 	{/if}
 
-	{statusLabel[status]}
-</p>
+	<span class="group-hover:block hidden text-muted-foreground">{statusLabel[status]}</span>
+</div>

@@ -1,7 +1,7 @@
 import { DocState } from '$lib/shared/db/doc-state.svelte';
 import { auth, firestore } from '$lib/shared/db/firebase-client';
-import { getContext, setContext, untrack } from 'svelte';
-import { userDocConverter, type UserDoc, type DBUserDoc } from '../db/types';
+import { getContext, setContext } from 'svelte';
+import { userDocConverter, type UserDoc, type DBUserDoc } from '../db/user-doc';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 
 class UserDocState {
@@ -17,7 +17,7 @@ class UserDocState {
 			return this.user; // null if not logged in or undefined if loading
 		else if (!this.docState)
 			return undefined; // loading
-		else return this.docState?.data;
+		else return this.docState.data;
 	});
 
 	/**
@@ -44,21 +44,21 @@ class UserDocState {
 	constructor() {
 		// Track the auth user
 		$effect(() => {
+			// Return the unsubscribe function to stop listening when the component is destroyed
 			return onAuthStateChanged(auth, (user) => (this.user = user));
 		});
 
 		// Subscribe to the user document
 		$effect(() => {
-			if (this.user === undefined) {
-				this.docState = undefined; // this._doc will update through $derived
-			} else if (this.user === null) {
-				this.docState = undefined; // this._doc will update through $derived
-			} else {
-				// Subscribe to the user document
-				this.docState = untrack(
-					() =>
-						new DocState<UserDoc, DBUserDoc>(firestore, `users/${this.user!.uid}`, userDocConverter)
+			if (this.user) {
+				// Subscribe to the user document. DocState will stop listening when its instance is destroyed
+				this.docState = new DocState<UserDoc, DBUserDoc>(
+					firestore,
+					`users/${this.user!.uid}`,
+					userDocConverter
 				);
+			} else {
+				this.docState = undefined; // this._doc will update through $derived
 			}
 		});
 	}

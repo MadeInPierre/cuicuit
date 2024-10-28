@@ -1,5 +1,8 @@
 import { Timestamp, type FirestoreDataConverter, type DocumentData } from 'firebase/firestore';
 
+// TODO Implement interface versioning, see tutorial:
+// https://www.captaincodeman.com/schema-versioning-with-google-firestore
+
 export interface UserDoc {
 	created_t: Date;
 	firstName: string;

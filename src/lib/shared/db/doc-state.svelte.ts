@@ -141,12 +141,13 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 				// Update the sync status
 				this.fromCache = snapshot.metadata.fromCache;
 
+				this.hasPendingWrites = snapshot.metadata.hasPendingWrites;
 				// Debounce the `hasPendingWrites` for a more pleasant UI without flickering
-				if (timeout) window.clearTimeout(timeout);
-				timeout = window.setTimeout(
-					() => (this.hasPendingWrites = snapshot.metadata.hasPendingWrites),
-					snapshot.metadata.hasPendingWrites ? 60 : 240
-				);
+				// if (timeout) window.clearTimeout(timeout);
+				// timeout = window.setTimeout(
+				// 	() => (this.hasPendingWrites = snapshot.metadata.hasPendingWrites),
+				// 	snapshot.metadata.hasPendingWrites ? 60 : 240
+				// );
 
 				this.syncStatus = this.getSyncStatus();
 

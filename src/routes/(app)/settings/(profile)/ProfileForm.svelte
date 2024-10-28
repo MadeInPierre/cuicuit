@@ -42,7 +42,7 @@
 			// Notify success to the user
 			updateStatus = UpdateStatus.SUCCESS;
 			toast.success('Profile updated 🎉', {
-				description: `Nice to meet you, ${data.firstName}!`
+				description: `All good, ${data.firstName}!`
 			});
 		} catch (error: any) {
 			// Notify the user of the error

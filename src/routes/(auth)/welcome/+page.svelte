@@ -12,7 +12,7 @@
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-	import type { UserDoc } from '$lib/features/auth/db/types';
+	import type { UserDoc } from '$lib/features/auth/db/user-doc';
 
 	// Require the user to be signed in to get here
 	$effect(() => {
