@@ -16,9 +16,21 @@
 
 	let { openDialog = $bindable() } = $props();
 
-	const form = superForm(defaults(zod(spaceFormSchema)), {
+	const userDocState = getUserDocState();
+	const activeSpace = getActiveSpaceState();
+
+	// Refine the form schema to make sure the name is not already taken by other spaces
+	const schema = spaceFormSchema.refine(
+		(v) => !Object.values(activeSpace.userHeaders).some((h) => h.name === v.name),
+		{
+			path: ['name'],
+			message: 'Sorry, you already have a space with that name. You could rename the existing one first.'
+		}
+	);
+
+	const form = superForm(defaults(zod(schema)), {
 		SPA: true,
-		validators: zod(spaceFormSchema),
+		validators: zod(schema),
 		clearOnSubmit: 'errors-and-message',
 		onUpdate({ form }) {
 			if (form.valid) onSubmit();
@@ -27,9 +39,6 @@
 	});
 
 	const { form: formData, enhance } = form;
-
-	const userDocState = getUserDocState();
-	const activeSpace = getActiveSpaceState();
 
 	let loading = $state(false);
 	let SelectedIconComponent: any = $derived(
@@ -119,7 +128,10 @@
 								size="icon"
 								variant={c === $formData.color ? 'link' : 'secondary'}
 								on:click={() => ($formData.color = c)}
-								class={cn("w-full size-10 rounded-full", c === $formData.color && `border-2 border-${c}-500`)}
+								class={cn(
+									'w-full size-10 rounded-full',
+									c === $formData.color && `border-2 border-${c}-500`
+								)}
 							>
 								<div class={`size-5 rounded-full bg-${c}-500`}></div>
 							</Button>

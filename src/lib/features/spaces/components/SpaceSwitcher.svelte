@@ -66,12 +66,12 @@
 				</DropdownMenu.Item>
 			{/each}
 			<DropdownMenu.Separator />
-			<Dialog.Trigger asChild>
+			<Dialog.Trigger class="w-full">
 				<!-- <Button on:click={() => (openDialog = true)} class="mt-8">
 					<Plus class="mr-2 size-4" />
 					Create a list
 				</Button> -->
-				<DropdownMenu.Item class="gap-2 p-2" onclick={() => (openDialog = true)}>
+				<DropdownMenu.Item class="gap-2 p-2" on:click={() => (openDialog = true)}>
 					<div class="bg-background flex size-6 items-center justify-center rounded-md border">
 						<HousePlus class="size-4" />
 					</div>
@@ -91,9 +91,7 @@
 	<Dialog.Content class="max-w-[425px]">
 		<Dialog.Header class="w-min whitespace-nowrap">
 			<Dialog.Title>Create a new space</Dialog.Title>
-			<Dialog.Description>
-				Share it on the next step with family and friends!
-			</Dialog.Description>
+			<Dialog.Description>Share it on the next step with family and friends!</Dialog.Description>
 		</Dialog.Header>
 		<CreateSpaceForm bind:openDialog />
 	</Dialog.Content>
