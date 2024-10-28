@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { Button } from '$lib/shared/components/ui/button';
-	import { SunMoon, Sun, Moon } from 'lucide-svelte';
+	import LaptopMinimal from 'lucide-svelte/icons/laptop-minimal';
+	import Moon from 'lucide-svelte/icons/moon';
+	import Sun from 'lucide-svelte/icons/sun';
+	import SunMoon from 'lucide-svelte/icons/sun-moon';
 	import { setMode, userPrefersMode } from 'mode-watcher';
 	import { toast } from 'svelte-sonner';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
@@ -26,7 +29,7 @@
 	const { class: className }: Props = $props();
 </script>
 
-<Tooltip.Root>
+<!-- <Tooltip.Root>
 	<Tooltip.Trigger asChild let:builder>
 		<Button
 			builders={[builder]}
@@ -56,31 +59,43 @@
 			<span>Light</span>
 		{/if}
 	</Tooltip.Content>
-</Tooltip.Root>
+</Tooltip.Root> -->
 
-<!-- {#snippet button(modeIcon: SvelteComponent, label: string, isActive: boolean)}
-	<Tooltip.Root>
-		<Tooltip.Trigger asChild let:builder>
-			<Button
-				builders={[builder]}
-				on:click={switchMode}
-				variant="ghost"
-				class="size-7 px-0 rounded-full"
-			>
-				<modeIcon class="size-3.5 transition-all text-muted-foreground"></modeIcon>
-				<span class="sr-only">{label}</span>
-			</Button>
-		</Tooltip.Trigger>
-		<Tooltip.Content>
-			<span>{label}</span>
-		</Tooltip.Content>
-	</Tooltip.Root>
+{#snippet button(
+	ModeIcon: any,
+	label: string,
+	code: 'light' | 'dark' | 'system',
+	isActive: boolean
+)}
+	<div class={!isActive ? 'group-hover:block hidden' : ''}>
+		<Tooltip.Root>
+			<Tooltip.Trigger asChild let:builder>
+				<Button
+					builders={[builder]}
+					on:click={() => setMode(code)}
+					variant="ghost"
+					class={cn(
+						'size-7 px-0 rounded-full text-muted-foreground hover:text-black dark:hover:text-white',
+						isActive && 'text-black dark:text-white border'
+					)}
+				>
+					<ModeIcon class="size-3.5"></ModeIcon>
+					<span class="sr-only">{label}</span>
+				</Button>
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<span>{label}</span>
+			</Tooltip.Content>
+		</Tooltip.Root>
+	</div>
 {/snippet}
 
-<div class={cn('flex rounded-full border', className)}>
-	{@render button(LaptopMinimal, 'System', $userPrefersMode === 'system')}
+<div class={cn('flex rounded-full border group', className)}>
+	{@render button(SunMoon, 'Auto', 'system', $userPrefersMode === 'system')}
+	{@render button(Moon, 'Dark', 'dark', $userPrefersMode === 'dark')}
+	{@render button(Sun, 'Light', 'light', $userPrefersMode === 'light')}
 
-	<Tooltip.Root>
+	<!-- <Tooltip.Root>
 		<Tooltip.Trigger asChild let:builder>
 			<Button
 				builders={[builder]}
@@ -129,5 +144,5 @@
 		<Tooltip.Content>
 			<span>Light</span>
 		</Tooltip.Content>
-	</Tooltip.Root>
-</div> -->
+	</Tooltip.Root> -->
+</div>

@@ -47,18 +47,18 @@ class ActiveSpaceState {
 		});
 
 		// TODO fetch the space document
-		// 	$effect(() => {
-		// 		if (this.id) {
-		// 			// Subscribe to the space document. DocState will stop listening when its instance is destroyed
-		// 			this.docState = new DocState<SpaceDoc, DBSpaceDoc>(
-		// 				firestore,
-		// 				`spaces/${this.id}`,
-		// 				spaceDocConverter
-		// 			);
-		// 		} else {
-		// 			this.docState = undefined;
-		// 		}
-		// 	});
+		$effect(() => {
+			if (this.id) {
+				// Subscribe to the space document. DocState will stop listening when its instance is destroyed
+				this.docState = new DocState<SpaceDoc, DBSpaceDoc>(
+					firestore,
+					`spaces/${this.id}`,
+					spaceDocConverter
+				);
+			} else {
+				this.docState = undefined;
+			}
+		});
 	}
 }
 

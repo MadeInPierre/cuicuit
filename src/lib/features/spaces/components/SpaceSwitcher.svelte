@@ -88,7 +88,7 @@
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 
-	<Dialog.Content class="max-w-[428px]">
+	<Dialog.Content class="max-w-[425px]">
 		<Dialog.Header class="w-min whitespace-nowrap">
 			<Dialog.Title>Create a new space</Dialog.Title>
 			<Dialog.Description>
