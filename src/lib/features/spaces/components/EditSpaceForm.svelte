@@ -3,25 +3,26 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { toast } from 'svelte-sonner';
-	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import { superForm, defaults } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { createSpaceFormSchema } from '../models/schemas';
-	import { createSpace } from '../actions/create-space';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import { cn } from '$lib/utils';
-
-	let { openDialog = $bindable() } = $props();
+	import { editSpace } from '../actions/edit-space';
 
 	const userDocState = getUserDocState();
 	const activeSpace = getActiveSpaceState();
 
-	// Refine the form schema to make sure the name is not already taken by other spaces
+	// Refine the form schema to make sure the name is not already taken by other spaces,
+	// except if it's the same as the current space (doesn't count when editing the current space)
 	const schema = createSpaceFormSchema.refine(
-		(v) => !Object.values(activeSpace.userHeaders).some((h) => h.name === v.name),
+		(v) =>
+			!Object.values(activeSpace.userHeaders).some(
+				(h) => h.name === v.name && v.name !== activeSpace.userHeader?.name
+			),
 		{
 			path: ['name'],
 			message:
@@ -42,21 +43,34 @@
 	const { form: formData, enhance } = form;
 
 	let loading = $state(false);
-	let SelectedIconComponent: any = $derived(
-		$formData.iconSlug ? spaceIcons[$formData.iconSlug as SpaceIconKey] : null
+
+	// Set the form data to the current space data
+	$effect(() => {
+		if (!activeSpace.userHeader) return;
+		$formData.name = activeSpace.userHeader.name;
+		$formData.theme = activeSpace.userHeader.theme;
+		$formData.iconSlug = activeSpace.userHeader.icon;
+	});
+
+	// Disable the submit button if the form is loading or the data is the same as the current space
+	const disabled = $derived(
+		loading ||
+			!$formData.name ||
+			($formData.name === activeSpace.userHeader?.name &&
+				$formData.theme === activeSpace.userHeader?.theme &&
+				$formData.iconSlug === activeSpace.userHeader?.icon)
 	);
 
 	function onSubmit() {
 		loading = true;
-		createSpace(
+		editSpace(
 			userDocState,
+			activeSpace,
 			$formData.name,
 			$formData.theme as SpaceThemeKey,
 			$formData.iconSlug as SpaceIconKey
 		)
-			.then((newSpaceId: string) => {
-				activeSpace.id = newSpaceId; // Change the active space to the new one
-				openDialog = false;
+			.then(() => {
 				loading = false;
 			})
 			.catch((error: Error) => {
@@ -73,7 +87,7 @@
 	}
 </script>
 
-<form method="POST" use:enhance class="w-min space-y-4">
+<form method="POST" use:enhance class="space-y-6">
 	<div class="space-y-2">
 		<Form.Field {form} name="name">
 			<Form.Control let:attrs>
@@ -85,6 +99,8 @@
 					placeholder="Home, Paris, Parents, Office, John's, ..."
 					bind:value={$formData.name}
 				/>
+
+				<Form.Description>The name is shared with all members.</Form.Description>
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>
@@ -111,6 +127,8 @@
 						</Button>
 					{/each}
 				</div>
+
+				<Form.Description>The icon is shared with all members.</Form.Description>
 			</Form.Control>
 		</Form.Fieldset>
 	</div>
@@ -144,32 +162,16 @@
 	</div>
 
 	<div class="space-y-2">
-		<Dialog.Footer class="mt-4">
-			<Form.Button
-				type="submit"
-				disabled={loading || !$formData.name}
-				class={cn('w-full', $formData.name && themeButtonClasses[$formData.theme as SpaceThemeKey])}
-			>
-				{#if loading}
-					<div class="flex items-center gap-2">
-						<Loader2 class="size-4 animate-spin" />
-						Creating...
-					</div>
-				{:else}
-					<div class="flex gap-2 items-center">
-						Create
-						{#if $formData.name}
-							<SelectedIconComponent class="size-5"></SelectedIconComponent>
-							{$formData.name}
-						{:else}
-							new space
-						{/if}
-					</div>
-				{/if}
-			</Form.Button>
-		</Dialog.Footer>
-		<p class="text-muted-foreground text-xs">
-			The space's name and icon are shared with all members.
-		</p>
+		<!-- TODO check/load/X indicator -->
+		<Form.Button type="submit" {disabled}>
+			{#if loading}
+				<div class="flex items-center gap-2">
+					<Loader2 class="size-4 animate-spin" />
+					Updating...
+				</div>
+			{:else}
+				Update
+			{/if}
+		</Form.Button>
 	</div>
 </form>

@@ -66,14 +66,20 @@
 				{/if}
 			</DropdownMenu.Label>
 
-			{#each Object.entries(activeSpace.userHeaders) as [spaceId, spaceHeader], index (spaceHeader.name)}
-				{@const TeamIcon = spaceIcons[spaceHeader.icon]}
+			<!-- Display the spaces alphabetically -->
+			{#each Object.entries(activeSpace.userHeaders).sort( (a, b) => a[1].name.localeCompare(b[1].name) ) as [spaceId, header], index (header.name)}
+				{@const TeamIcon = spaceIcons[header.icon]}
 
 				<DropdownMenu.Item on:click={() => (activeSpace.id = spaceId)} class="gap-2 p-2 group">
-					<div class="flex size-6 items-center justify-center rounded-sm border">
+					<div
+						class={cn(
+							'flex size-6 items-center justify-center rounded-sm',
+							themeButtonClasses[header.theme]
+						)}
+					>
 						<TeamIcon class="size-4 shrink-0"></TeamIcon>
 					</div>
-					{spaceHeader.name}
+					{header.name}
 					<DropdownMenu.Shortcut class="group-hover:block hidden">
 						<Button size="icon" class="size-6" variant="ghost">
 							<Share2 class="size-4" />

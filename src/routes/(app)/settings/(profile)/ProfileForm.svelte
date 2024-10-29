@@ -9,6 +9,7 @@
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { updateUserProfile } from '$lib/features/user-settings/actions/update-user-profile';
 	import ImagePicker from './AvatarForm.svelte';
+	import { Separator } from '$lib/shared/components/ui/separator';
 
 	// Show a status icon to the user in real-time
 	enum UpdateStatus {
@@ -92,6 +93,8 @@
 	<legend class="text-lg font-medium">Avatar</legend>
 
 	<ImagePicker />
+
+	<Separator />
 
 	<legend class="text-lg font-medium">Display name</legend>
 

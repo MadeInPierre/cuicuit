@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { navLinksAppSettingsSidebar } from '$lib/features/marketing/consts/nav-links';
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import SidebarNav from './SidebarSections.svelte';
+	import SettingsSidebarNav from './SettingsSidebarNav.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -20,7 +20,7 @@
 
 	<div class="flex flex-col space-y-8 pb-16 lg:flex-row lg:space-x-12 lg:space-y-0">
 		<aside class="-mx-4 lg:w-1/5">
-			<SidebarNav items={navLinksAppSettingsSidebar} />
+			<SettingsSidebarNav groups={navLinksAppSettingsSidebar} />
 		</aside>
 
 		<div class="flex-1 lg:max-w-2xl">
