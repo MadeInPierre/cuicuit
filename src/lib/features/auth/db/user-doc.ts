@@ -1,10 +1,22 @@
 import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
+import type { Modify } from '$lib/utils';
 import { Timestamp, type FirestoreDataConverter, type DocumentData } from 'firebase/firestore';
 
 // TODO Implement interface versioning, see tutorial:
 // https://www.captaincodeman.com/schema-versioning-with-google-firestore
 
-export interface UserDoc extends UserProfile {
+/**
+ * App model
+ */
+
+export type UserProfile = {
+	firstName: string;
+	lastName: string;
+	userName: string;
+	avatar: UserDocAvatar;
+};
+
+export type UserDoc = UserProfile & {
 	created_t: Date;
 	checklist: {
 		welcome: boolean;
@@ -13,61 +25,54 @@ export interface UserDoc extends UserProfile {
 	spaces: {
 		[id: string]: SpaceUserHeader;
 	};
-}
+};
 
-export interface UserProfile {
-	firstName: string;
-	lastName: string;
-	userName: string;
-	avatar: UserDocAvatar;
-}
-
-export interface UserDocAvatar {
+export type UserDocAvatar = {
 	type: string;
 	icon: string;
 	url: string | null;
-	last_change_t: Date;
-}
+};
 
-export interface SpaceUserHeader {
+export type SpaceUserHeader = {
 	name: string;
 	icon: SpaceIconKey;
 	theme: SpaceThemeKey;
-}
+};
 
-export interface DBUserDoc extends DBUserProfile, DocumentData {
-	created_t: Timestamp;
-	checklist: {
-		welcome: boolean;
-		discoveredDrawer: boolean; // Whether the user has discovered the full drawer height
-	};
-	spaces: {
-		[id: string]: SpaceUserHeader;
-	};
-}
-export interface DBUserProfile {
+/**
+ * Firestore model
+ */
+
+export type DBUserProfile = {
 	firstName: string;
 	lastName: string;
 	userName: string;
 	avatar: DBUserDocAvatar;
-}
+};
 
-export interface DBUserDocAvatar {
+export type DBUserDoc = Modify<
+	UserDoc,
+	DocumentData &
+		DBUserProfile & {
+			created_t: Timestamp; // Replace Date with Firestore Timestamp
+		}
+>;
+
+export type DBUserDocAvatar = {
 	type: string;
 	icon: string;
 	url: string | null;
-	last_change_t: Timestamp;
-}
+};
+
+/**
+ * Firestore converter
+ */
 
 export const userDocConverter: FirestoreDataConverter<UserDoc, DBUserDoc> = {
 	toFirestore(userDoc: UserDoc) {
 		return {
 			...userDoc,
-			created_t: Timestamp.fromDate(userDoc.created_t),
-			avatar: {
-				...userDoc.avatar,
-				last_change_t: Timestamp.fromDate(userDoc.avatar.last_change_t)
-			}
+			created_t: Timestamp.fromDate(userDoc.created_t)
 		} as DBUserDoc;
 	},
 
@@ -76,11 +81,7 @@ export const userDocConverter: FirestoreDataConverter<UserDoc, DBUserDoc> = {
 
 		return {
 			...dbUserDoc,
-			created_t: dbUserDoc.created_t.toDate(),
-			avatar: {
-				...dbUserDoc.avatar,
-				last_change_t: dbUserDoc.avatar.last_change_t.toDate()
-			}
+			created_t: dbUserDoc.created_t.toDate()
 		} as UserDoc;
 	}
 };

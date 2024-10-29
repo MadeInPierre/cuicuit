@@ -1,3 +1,4 @@
+import type { UserDocAvatar } from '$lib/features/auth/db/user-doc';
 import { type UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 import { firestore } from '$lib/shared/db/firebase-client';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -19,11 +20,10 @@ export async function updateUserDocAvatar(
 
 	const newAvatarData = {
 		...userDocState.doc.avatar,
-		last_change_t: new Date(),
 		type: type,
 		url: imgUrl,
 		icon: iconName || userDocState.doc.avatar.icon
-	};
+	} satisfies UserDocAvatar;
 
 	// Write the new avatar data to the database
 	userDocState.docState.setDoc({

@@ -69,42 +69,40 @@
 				</Button>
 			{/if}
 
-			{#key userDocState.doc.avatar.last_change_t}
-				{#if userDocState.doc.avatar.type == 'image' && userDocState.doc.avatar.url && !file}
-					<AlertDialog.Root>
-						<AlertDialog.Trigger>
-							<Button variant="outline" class="px-3">
-								<Trash2 class="h-[1.2rem] w-[1.2rem]" />
-								<span class="sr-only">Remove picture</span>
-							</Button>
-						</AlertDialog.Trigger>
-						<AlertDialog.Content>
-							<AlertDialog.Header>
-								<AlertDialog.Title>Delete your profile picture?</AlertDialog.Title>
-								<AlertDialog.Description>
-									This action cannot be undone. This will permanently delete your photo from our
-									servers.
-								</AlertDialog.Description>
-							</AlertDialog.Header>
-							<AlertDialog.Footer>
-								<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-								<AlertDialog.Action
-									on:click={() =>
-										deleteUserPicture(userDocState, `users/${userDocState.user?.uid}/profile.png`)}
-								>
-									Delete
-								</AlertDialog.Action>
-							</AlertDialog.Footer>
-						</AlertDialog.Content>
-					</AlertDialog.Root>
+			{#if userDocState.doc.avatar.type == 'image' && userDocState.doc.avatar.url && !file}
+				<AlertDialog.Root>
+					<AlertDialog.Trigger>
+						<Button variant="outline" class="px-3">
+							<Trash2 class="h-[1.2rem] w-[1.2rem]" />
+							<span class="sr-only">Remove picture</span>
+						</Button>
+					</AlertDialog.Trigger>
+					<AlertDialog.Content>
+						<AlertDialog.Header>
+							<AlertDialog.Title>Delete your profile picture?</AlertDialog.Title>
+							<AlertDialog.Description>
+								This action cannot be undone. This will permanently delete your photo from our
+								servers.
+							</AlertDialog.Description>
+						</AlertDialog.Header>
+						<AlertDialog.Footer>
+							<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+							<AlertDialog.Action
+								on:click={() =>
+									deleteUserPicture(userDocState, `users/${userDocState.user?.uid}/profile.png`)}
+							>
+								Delete
+							</AlertDialog.Action>
+						</AlertDialog.Footer>
+					</AlertDialog.Content>
+				</AlertDialog.Root>
 
-					<a href={userDocState.doc.avatar.url} target="_blank" rel="noopener noreferrer">
-						<UserAvatar />
-					</a>
-				{:else}
+				<a href={userDocState.doc.avatar.url} target="_blank" rel="noopener noreferrer">
 					<UserAvatar />
-				{/if}
-			{/key}
+				</a>
+			{:else}
+				<UserAvatar />
+			{/if}
 		</div>
 
 		<p class="text-sm text-muted-foreground">Upload a photo or pick your favorite icon below:</p>
