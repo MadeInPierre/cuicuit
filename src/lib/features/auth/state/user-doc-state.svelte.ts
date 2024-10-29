@@ -51,7 +51,7 @@ class UserDocState {
 		// Subscribe to the user document
 		$effect(() => {
 			if (this.user) {
-				// Subscribe to the user document. DocState will stop listening when its instance is destroyed
+				// Subscribe to the user document
 				this.docState = new DocState<UserDoc, DBUserDoc>(
 					firestore,
 					`users/${this.user!.uid}`,

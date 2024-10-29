@@ -32,12 +32,12 @@
 	</Button>
 </div>
 
-<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">Active Space {jsonStringify(
+<pre
+	class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">active SpaceDoc {activeSpaceState.id} {jsonStringify(
 		activeSpaceState.doc
 	)}</pre>
-<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">UserDoc {jsonStringify(
-		userDocState.doc
-	)}</pre>
+<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">UserDoc {userDocState.user
+		?.uid} {jsonStringify(userDocState.doc)}</pre>
 <pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Auth {jsonStringify(
 		userState.user
 	)}</pre>

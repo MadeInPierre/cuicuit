@@ -1,9 +1,11 @@
 import type { DBUserProfile, UserProfile } from '$lib/features/auth/db/user-doc';
 import { Timestamp, type FirestoreDataConverter, type DocumentData } from 'firebase/firestore';
+import type { SpaceIconKey } from '../consts';
 
 export interface SpaceDoc {
 	// TODO this model comes from V1, anything to change?
 	name: string;
+	icon: SpaceIconKey;
 	created_t: Date;
 	updated_t: Date;
 	memberProfiles: {
@@ -14,6 +16,7 @@ export interface SpaceDoc {
 
 export interface DBSpaceDoc extends DocumentData {
 	name: string;
+	icon: SpaceIconKey;
 	created_t: Timestamp;
 	updated_t: Timestamp;
 	memberProfiles: {

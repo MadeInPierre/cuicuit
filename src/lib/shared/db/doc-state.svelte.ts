@@ -117,6 +117,8 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 	/** The sync status of the document */
 	syncStatus: DocSyncStatus = $state('loading');
 
+	private _unsubscribe: () => void = () => {};
+
 	constructor(
 		firestore: Firestore,
 		ref: DocumentReference<DocT, DBDocT> | string,
@@ -135,13 +137,13 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 
 		// Subscribe and cleanup the doc subscription when the component is destroyed
 		$effect(() => {
-			let timeout = 0;
+			// let timeout = 0;
 
-			return onSnapshot(this.ref, { includeMetadataChanges: true }, (snapshot) => {
+			this._unsubscribe = onSnapshot(this.ref, { includeMetadataChanges: true }, (snapshot) => {
 				// Update the sync status
 				this.fromCache = snapshot.metadata.fromCache;
-
 				this.hasPendingWrites = snapshot.metadata.hasPendingWrites;
+
 				// Debounce the `hasPendingWrites` for a more pleasant UI without flickering
 				// if (timeout) window.clearTimeout(timeout);
 				// timeout = window.setTimeout(
@@ -149,6 +151,7 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 				// 	snapshot.metadata.hasPendingWrites ? 60 : 240
 				// );
 
+				// Update the sync status based on fromCache, hasPendingWrites, and syncMode
 				this.syncStatus = this.getSyncStatus();
 
 				// Update the state
@@ -162,6 +165,13 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 					this.syncStatus = 'does-not-exist';
 				}
 			});
+
+			// Cleanup the subscription when the component is destroyed
+			// (or the effect runs again which shouldn't happen here)
+			return () => {
+				this._unsubscribe();
+				this._unsubscribe = () => {};
+			};
 		});
 	}
 
@@ -184,5 +194,12 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 		} else {
 			throw new Error('Invalid sync mode');
 		}
+	}
+
+	/**
+	 * Unsubscribe from the Firestore document
+	 */
+	destroy() {
+		this._unsubscribe();
 	}
 }

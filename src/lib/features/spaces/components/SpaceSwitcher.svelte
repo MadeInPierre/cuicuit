@@ -2,12 +2,14 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import Loader2 from 'lucide-svelte/icons/loader-circle';
-	import { HousePlus, Share2 } from 'lucide-svelte';
+	import { HousePlus, Share2, UserPlus } from 'lucide-svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn } from '$lib/utils';
+	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import CreateSpaceForm from '$lib/features/spaces/components/CreateSpaceForm.svelte';
 	import { spaceIcons, themeButtonClasses } from '../consts';
+	import JoinSpaceForm from './JoinSpaceForm.svelte';
 
 	const { ...others } = $props();
 
@@ -17,7 +19,21 @@
 	);
 
 	let openDialog = $state(false);
+	let activeTab: 'create' | 'join' = $state('create');
 </script>
+
+{#snippet tabList()}
+	<Tabs.List class="grid w-full grid-cols-2 mt-6 mb-4">
+		<Tabs.Trigger value="create">
+			<HousePlus class="mr-2 size-4" />
+			Create new
+		</Tabs.Trigger>
+		<Tabs.Trigger value="join">
+			<UserPlus class="mr-2 size-4" />
+			Join a space
+		</Tabs.Trigger>
+	</Tabs.List>
+{/snippet}
 
 <Dialog.Root bind:open={openDialog}>
 	<DropdownMenu.Root>
@@ -65,34 +81,69 @@
 					</DropdownMenu.Shortcut>
 				</DropdownMenu.Item>
 			{/each}
+
 			<DropdownMenu.Separator />
+
 			<Dialog.Trigger class="w-full">
-				<!-- <Button on:click={() => (openDialog = true)} class="mt-8">
-					<Plus class="mr-2 size-4" />
-					Create a list
-				</Button> -->
-				<DropdownMenu.Item class="gap-2 p-2" on:click={() => (openDialog = true)}>
+				<DropdownMenu.Item
+					class="gap-2 p-2"
+					on:click={() => {
+						activeTab = 'create';
+						openDialog = true;
+					}}
+				>
 					<div class="bg-background flex size-6 items-center justify-center rounded-md border">
 						<HousePlus class="size-4" />
 					</div>
-					<div class="text-muted-foreground font-medium">Add a space...</div>
+					<div class="text-muted-foreground font-medium">Create a space...</div>
+				</DropdownMenu.Item>
+				<DropdownMenu.Item
+					class="gap-2 p-2"
+					on:click={() => {
+						activeTab = 'join';
+						openDialog = true;
+					}}
+				>
+					<div class="bg-background flex size-6 items-center justify-center rounded-md border">
+						<UserPlus class="size-4" />
+					</div>
+					<div class="text-muted-foreground font-medium">Join a space...</div>
 				</DropdownMenu.Item>
 			</Dialog.Trigger>
-
-			<!-- <DropdownMenu.Item class="gap-2 p-2">
-				<div class="bg-background flex size-6 items-center justify-center rounded-md border">
-					<Users class="size-4" />
-				</div>
-				<div class="text-muted-foreground font-medium">Join a space...</div>
-			</DropdownMenu.Item> -->
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 
 	<Dialog.Content class="max-w-[425px]">
-		<Dialog.Header class="w-min whitespace-nowrap">
-			<Dialog.Title>Create a new space</Dialog.Title>
-			<Dialog.Description>Share it on the next step with family and friends!</Dialog.Description>
-		</Dialog.Header>
-		<CreateSpaceForm bind:openDialog />
+		<Tabs.Root bind:value={activeTab}>
+			<Tabs.Content value="create" class="">
+				<Dialog.Header class="w-min whitespace-nowrap">
+					<Dialog.Title class="flex gap-2 items-center">
+						<HousePlus class="size-5" />
+						Create a new space
+					</Dialog.Title>
+					<Dialog.Description>
+						Share it on the next step with family and friends!
+					</Dialog.Description>
+				</Dialog.Header>
+
+				{@render tabList()}
+
+				<CreateSpaceForm bind:openDialog />
+			</Tabs.Content>
+
+			<Tabs.Content value="join" class="">
+				<Dialog.Header class="w-min whitespace-nowrap">
+					<Dialog.Title class="flex gap-2 items-center">
+						<UserPlus class="size-5" />
+						Join someone's space
+					</Dialog.Title>
+					<Dialog.Description>Enter the invite link to join someone's space.</Dialog.Description>
+				</Dialog.Header>
+
+				{@render tabList()}
+
+				<JoinSpaceForm bind:openDialog />
+			</Tabs.Content>
+		</Tabs.Root>
 	</Dialog.Content>
 </Dialog.Root>
