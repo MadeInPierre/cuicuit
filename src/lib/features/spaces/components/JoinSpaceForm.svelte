@@ -66,7 +66,7 @@
 		}
 
 		loading = true;
-		joinSpace(userDocState, spaceId, $formData.color as SpaceThemeKey)
+		joinSpace(userDocState, spaceId, $formData.theme as SpaceThemeKey)
 			.then(() => {
 				activeSpace.id = spaceId; // Change the active space to the newly joined one
 				openDialog = false;
@@ -117,7 +117,7 @@
 							on:click={() => ($formData.iconSlug = slug)}
 							class={cn(
 								'w-full size-10',
-								slug === $formData.iconSlug && themeButtonClasses[$formData.color as SpaceThemeKey]
+								slug === $formData.iconSlug && themeButtonClasses[$formData.theme as SpaceThemeKey]
 							)}
 						>
 							<Icon class="size-5"></Icon>
@@ -129,20 +129,22 @@
 	</div> -->
 
 	<div class="space-y-2">
-		<Form.Fieldset {form} name="color">
+		<Form.Fieldset {form} name="theme">
 			<Form.Control let:attrs>
-				<Form.Label for="name">Color</Form.Label>
+				<Form.Label for="name">
+					Theme <span class="font-normal text-muted-foreground text-xs"> (for you only) </span>
+				</Form.Label>
 
 				<div class="flex gap-2 items-center w-full">
 					{#each Object.keys(themeButtonClasses) as c}
 						<Button
 							{...attrs}
 							size="icon"
-							variant={c === $formData.color ? 'link' : 'secondary'}
-							on:click={() => ($formData.color = c)}
+							variant={c === $formData.theme ? 'link' : 'secondary'}
+							on:click={() => ($formData.theme = c)}
 							class={cn(
 								'w-full size-10 rounded-full',
-								c === $formData.color && `border-2 border-${c}-500`
+								c === $formData.theme && `border-2 border-${c}-500`
 							)}
 						>
 							<div class={`size-5 rounded-full bg-${c}-500`}></div>
@@ -159,7 +161,7 @@
 			<Form.Button
 				type="submit"
 				disabled={loading || !$formData.url}
-				class={cn('w-full', $formData.url && themeButtonClasses[$formData.color as SpaceThemeKey])}
+				class={cn('w-full', $formData.url && themeButtonClasses[$formData.theme as SpaceThemeKey])}
 			>
 				{#if loading}
 					<div class="flex items-center gap-2">

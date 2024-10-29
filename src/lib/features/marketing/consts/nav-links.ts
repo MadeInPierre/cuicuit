@@ -1,4 +1,4 @@
-import { User, Lock, Users, Scroll, ScanLine, LayoutDashboard, Bell } from 'lucide-svelte';
+import { User, Lock, Users, Scroll, ScanLine, LayoutDashboard, Bell, House } from 'lucide-svelte';
 
 export interface NavLink {
 	href: string; // Link to the page
@@ -40,30 +40,40 @@ export const navLinksApp: NavLink[] = [
 	}
 ];
 
-export const navLinksAppSettingsSidebar: NavLink[] = [
+export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = [
 	{
-		title: 'Profile',
-		href: '/settings',
-		icon: User
+		name: 'Active space',
+		links: [
+			{
+				title: 'General',
+				href: '/settings/space',
+				icon: House
+			},
+			{
+				title: 'Members',
+				href: '/settings/space/members',
+				icon: Users
+			}
+		]
 	},
 	{
-		title: 'Account',
-		href: '/settings/account',
-		icon: Lock
-	},
-	{
-		title: 'Family',
-		href: '/settings/family',
-		icon: Users
-	},
-	{
-		title: 'Notifications',
-		href: '/settings/notifications',
-		icon: Bell
+		name: 'Your account',
+		links: [
+			{
+				title: 'Profile',
+				href: '/settings',
+				icon: User
+			},
+			{
+				title: 'Account',
+				href: '/settings/account',
+				icon: Lock
+			},
+			{
+				title: 'Notifications',
+				href: '/settings/notifications',
+				icon: Bell
+			}
+		]
 	}
-	// {
-	// 	title: 'Lists',
-	// 	href: '/settings/lists',
-	// 	icon: Scroll
-	// }
 ];

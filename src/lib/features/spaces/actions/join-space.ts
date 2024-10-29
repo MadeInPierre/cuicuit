@@ -17,9 +17,7 @@ export async function joinSpace(userDocState: UserDocState, id: string, theme: S
 	// Check if the space exists and get its document
 	const spaceDocRef = doc(firestore, `spaces/${id}`).withConverter(spaceDocConverter);
 	const spaceDoc = await getDoc(spaceDocRef);
-	if (!spaceDoc.exists()) {
-		throw new Error('space-not-found');
-	}
+	if (!spaceDoc.exists()) throw new Error('space-not-found');
 	const data = spaceDoc.data();
 
 	// Add the space id and header to the userDoc's spaces
