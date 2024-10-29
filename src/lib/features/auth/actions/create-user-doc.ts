@@ -49,8 +49,7 @@ function createDefaultUserDoc(
 		avatar: {
 			type: 'icon',
 			icon: randomIconName,
-			url: '',
-			last_change_t: createdDate
+			url: ''
 		},
 		checklist: {
 			welcome: false,

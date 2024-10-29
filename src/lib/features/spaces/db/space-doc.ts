@@ -30,21 +30,7 @@ export const spaceDocConverter: FirestoreDataConverter<SpaceDoc, DBSpaceDoc> = {
 		return {
 			...spaceDoc,
 			created_t: Timestamp.fromDate(spaceDoc.created_t),
-			updated_t: Timestamp.fromDate(spaceDoc.updated_t),
-			...(Object.keys(spaceDoc.memberProfiles).length > 0 && {
-				memberProfiles: Object.fromEntries(
-					Object.entries(spaceDoc.memberProfiles).map(([uid, member]) => [
-						uid,
-						{
-							...member,
-							avatar: {
-								...member.avatar,
-								last_change_t: Timestamp.fromDate(member.avatar.last_change_t)
-							}
-						}
-					])
-				)
-			})
+			updated_t: Timestamp.fromDate(spaceDoc.updated_t)
 		} as DBSpaceDoc;
 	},
 
@@ -54,19 +40,7 @@ export const spaceDocConverter: FirestoreDataConverter<SpaceDoc, DBSpaceDoc> = {
 		return {
 			...dbDoc,
 			created_t: dbDoc.created_t.toDate(),
-			updated_t: dbDoc.updated_t.toDate(),
-			memberProfiles: Object.fromEntries(
-				Object.entries(dbDoc.memberProfiles).map(([uid, member]) => [
-					uid,
-					{
-						...member,
-						avatar: {
-							...member.avatar,
-							last_change_t: member.avatar.last_change_t.toDate()
-						}
-					}
-				])
-			)
+			updated_t: dbDoc.updated_t.toDate()
 		} as SpaceDoc;
 	}
 };
