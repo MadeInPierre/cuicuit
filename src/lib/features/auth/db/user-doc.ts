@@ -2,7 +2,7 @@ import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
 import type { Modify } from '$lib/utils';
 import { Timestamp, type FirestoreDataConverter, type DocumentData } from 'firebase/firestore';
 
-// TODO Implement interface versioning, see tutorial:
+// TODO Implement type versioning, see tutorial:
 // https://www.captaincodeman.com/schema-versioning-with-google-firestore
 
 /**
@@ -43,26 +43,12 @@ export type SpaceUserHeader = {
  * Firestore model
  */
 
-export type DBUserProfile = {
-	firstName: string;
-	lastName: string;
-	userName: string;
-	avatar: DBUserDocAvatar;
-};
-
 export type DBUserDoc = Modify<
 	UserDoc,
-	DocumentData &
-		DBUserProfile & {
-			created_t: Timestamp; // Replace Date with Firestore Timestamp
-		}
+	{
+		created_t: Timestamp; // Replace Date with Firestore Timestamp
+	}
 >;
-
-export type DBUserDocAvatar = {
-	type: string;
-	icon: string;
-	url: string | null;
-};
 
 /**
  * Firestore converter
@@ -73,7 +59,7 @@ export const userDocConverter: FirestoreDataConverter<UserDoc, DBUserDoc> = {
 		return {
 			...userDoc,
 			created_t: Timestamp.fromDate(userDoc.created_t)
-		} as DBUserDoc;
+		} satisfies DBUserDoc;
 	},
 
 	fromFirestore(snapshot, options) {
@@ -82,6 +68,6 @@ export const userDocConverter: FirestoreDataConverter<UserDoc, DBUserDoc> = {
 		return {
 			...dbUserDoc,
 			created_t: dbUserDoc.created_t.toDate()
-		} as UserDoc;
+		} satisfies UserDoc;
 	}
 };
