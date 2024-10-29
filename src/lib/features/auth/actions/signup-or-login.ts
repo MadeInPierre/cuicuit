@@ -15,11 +15,11 @@ import { toast } from 'svelte-sonner';
 import { onAuthSuccess } from './on-auth-success';
 
 /**
- * TODO
- * @param logMethod
- * @param authMethod
- * @param email
- * @param password
+ * Sign up or log in the user with the given email and password.
+ * @param logMethod Action: login, signup or convert anonymous
+ * @param authMethod Method: email/password, email link, google, github or anonymous
+ * @param email: Email if email/password or email link
+ * @param password Password if email/password
  * @returns
  */
 export async function signupOrLogin(

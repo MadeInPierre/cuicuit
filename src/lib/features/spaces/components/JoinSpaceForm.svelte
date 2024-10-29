@@ -41,7 +41,6 @@
 	const form = superForm(defaults(zod(schema)), {
 		SPA: true,
 		validators: zod(schema),
-		clearOnSubmit: 'errors-and-message',
 		onUpdate({ form }) {
 			if (form.valid) onSubmit();
 			else toast.error('Please fix the errors in the form.');
@@ -73,9 +72,9 @@
 				loading = false;
 			})
 			.catch((error: Error) => {
-				if (error.message === 'todo')
-					toast.error('todo', {
-						description: 'todo'
+				if (error.message === 'space-not-found')
+					toast.error('Space not found.', {
+						description: 'Please make sure the invite link is correct.'
 					});
 				else {
 					toast.error('Something went wrong.', { description: 'Please try again later.' });
