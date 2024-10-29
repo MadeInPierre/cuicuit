@@ -90,7 +90,7 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 		console.log('Setting doc following type <DocT>', this.ref.path, newData, options);
 
 		// Write the data to Firestore, this._data will be updated by the snapshot listener
-		setDoc(this.ref, newData, options);
+		return setDoc(this.ref, newData, options);
 	}
 
 	/**
@@ -105,7 +105,7 @@ export class DocState<DocT, DBDocT extends DocumentData> implements IDocState<Do
 		console.log('Updating doc following type <DBDocT>', this.ref.path, newData);
 
 		// Update the data in Firestore, this._data will be updated by the snapshot listener
-		updateDoc(this.ref, newData);
+		return updateDoc(this.ref, newData);
 	}
 
 	/** True if the available document has been loaded from cache */

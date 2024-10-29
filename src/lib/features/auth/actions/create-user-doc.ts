@@ -56,6 +56,6 @@ function createDefaultUserDoc(
 			welcome: false,
 			discoveredDrawer: false
 		},
-		listIds: {}
+		spaces: {}
 	} satisfies UserDoc;
 }
