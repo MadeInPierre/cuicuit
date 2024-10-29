@@ -70,3 +70,13 @@ export function jsonStringify(obj: any, space = 4): string {
 		space
 	);
 }
+
+/**
+ * A type that modifies the properties of type T with the properties of type R.
+ * Useful to override properties of an existing type.
+ * Taken from https://stackoverflow.com/a/55032655/4405684
+ * @example type A = { a: string; b: number; };
+ * type B = { a: number; };
+ * type C = Modify<A, B>; // { a: number; b: number; }
+ */
+export type Modify<T, R> = Omit<T, keyof R> & R;

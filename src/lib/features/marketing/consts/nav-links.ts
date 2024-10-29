@@ -1,6 +1,6 @@
 import { User, Lock, Users, Scroll, ScanLine, LayoutDashboard, Bell, House } from 'lucide-svelte';
 
-export interface NavLink {
+export type NavLink = {
 	href: string; // Link to the page
 	title: string; // Page name displayed on the navbar
 	startsWith?: boolean; // Item is active if the path starts with href (equal otherwise)
