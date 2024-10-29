@@ -5,7 +5,6 @@ import type { SpaceDoc } from '../db/space-doc';
 import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
 
-// TODO better types for theme and icon
 export async function createSpace(
 	userDocState: UserDocState,
 	name: string,
@@ -22,13 +21,14 @@ export async function createSpace(
 		throw new Error('space-already-exists');
 	}
 
-	// Create the list in Firestore
+	// Create the space in Firestore
 	const spaceDocRef = doc(collection(firestore, 'spaces'));
 
 	const now = new Date();
 
 	await setDoc(spaceDocRef, {
 		name,
+		icon,
 		created_t: now,
 		updated_t: now,
 		memberProfiles: {
@@ -47,7 +47,7 @@ export async function createSpace(
 		[`spaces.${spaceDocRef.id}`]: { name, theme, icon } satisfies SpaceUserHeader
 	});
 
-	// Create list content doc
+	// Create space content doc
 	// const contentDocRef = doc(firestore, spaceDocRef.path, 'data', 'content');
 
 	// await setDoc(contentDocRef, {

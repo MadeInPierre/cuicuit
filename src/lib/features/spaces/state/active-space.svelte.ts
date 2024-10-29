@@ -46,7 +46,7 @@ class ActiveSpaceState {
 			}
 		});
 
-		// TODO fetch the space document
+		// Fetch the space document whenever the active space id changes
 		$effect(() => {
 			if (this.id) {
 				// Subscribe to the space document. DocState will stop listening when its instance is destroyed
@@ -57,6 +57,28 @@ class ActiveSpaceState {
 				);
 			} else {
 				this.docState = undefined;
+			}
+		});
+
+		// Update the userDoc headers whenever the space's name/icon changes (e.g. edited by another member)
+		$effect(() => {
+			if (
+				this.docState &&
+				this.docState.data &&
+				this.userHeader &&
+				(this.docState.data.name !== this.userHeader.name ||
+					this.docState.data.icon !== this.userHeader.icon)
+			) {
+				console.log(
+					'Switched active space with new name/icon, updating userDoc:',
+					this._id,
+					this.docState?.data
+				);
+
+				this._userDocState?.docState?.updateDoc({
+					[`spaces.${this._id}.name`]: this.docState.data.name,
+					[`spaces.${this._id}.icon`]: this.docState.data.icon
+				});
 			}
 		});
 	}
