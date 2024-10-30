@@ -35,5 +35,5 @@ export async function editSpace(
 	// Update the theme in the userDoc's space header
 	userDocState.docState.updateDoc({
 		[`spaces.${activeSpace.id}.theme`]: theme
-	} as DBUserDoc);
+	});
 }
