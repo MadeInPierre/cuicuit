@@ -80,7 +80,7 @@
 			<Tooltip.Root>
 				<Tooltip.Trigger asChild let:builder>
 					<Button
-						href="/settings"
+						href="/settings/space"
 						variant="ghost"
 						size="icon"
 						class={cn('rounded-lg', $page.url.pathname === '/settings' && 'bg-muted')}
