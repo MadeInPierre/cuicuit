@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { userState } from '$lib/features/auth/state/user.svelte';
+	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
 	import { auth } from '$lib/shared/db/firebase-client';
 	import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
 	import { jsonStringify } from '$lib/utils';
@@ -14,22 +14,22 @@
 </script>
 
 <div class="flex gap-2 items-center m-2">
-	<Button
+	<ButtonThemed
 		onclick={() => {
 			signOut(auth);
 			goto('/');
 		}}
 	>
 		Sign out
-	</Button>
+	</ButtonThemed>
 
-	<Button
+	<ButtonThemed
 		onclick={() => {
 			syncMode.toggle();
 		}}
 	>
 		{syncMode.mode}
-	</Button>
+	</ButtonThemed>
 </div>
 
 <pre

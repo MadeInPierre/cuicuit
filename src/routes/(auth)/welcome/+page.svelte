@@ -26,7 +26,12 @@
 
 	// Forbid this zone if the user already finished his onboarding
 	$effect(() => {
-		if (browser && userDocState.doc && userDocState.doc.checklist.welcome === true) {
+		if (
+			browser &&
+			userDocState &&
+			userDocState.doc &&
+			userDocState.doc.checklist.welcome === true
+		) {
 			console.log('User has finished onboarding, going to dashboard.');
 			goto('/dashboard');
 		}
@@ -76,7 +81,7 @@
 	});
 </script>
 
-{#if userDocState.doc && userDocState.doc.checklist.welcome == false}
+{#if userDocState?.doc && userDocState?.doc.checklist.welcome == false}
 	<div class="flex flex-col space-y-2 text-center">
 		<h1 class="text-2xl font-semibold tracking-tight">Welcome to Cuicuit!</h1>
 		<p class="text-sm text-muted-foreground">Let's get to know each other a little!</p>
@@ -134,4 +139,9 @@
 	</form>
 
 	<!-- <p class="px-8 text-center text-sm text-muted-foreground"></p> -->
+{:else}
+	<div class="flex flex-col space-y-2 text-center">
+		<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>
+		<p class="text-sm text-muted-foreground">You've already finished the welcome step.</p>
+	</div>
 {/if}
