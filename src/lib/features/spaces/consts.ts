@@ -23,8 +23,9 @@ export const spaceIcons = {
 export type SpaceIconKey = keyof typeof spaceIcons;
 
 export const themeButtonClasses = {
-	slate:
-		'bg-slate-500 dark:text-slate-950 text-white hover:text-white hover:bg-slate-600 dark:hover:bg-slate-400 dark:bg-slate-400',
+	default: '',
+	// slate:
+	// 	'bg-slate-500 dark:text-slate-950 text-white hover:text-white hover:bg-slate-600 dark:hover:bg-slate-400 dark:bg-slate-400',
 	red: 'bg-red-500 dark:text-red-950 text-white hover:text-white hover:bg-red-600 dark:hover:bg-red-400',
 	orange:
 		'bg-orange-500 dark:text-orange-950 text-white hover:text-white hover:bg-orange-600 dark:hover:bg-orange-400',
