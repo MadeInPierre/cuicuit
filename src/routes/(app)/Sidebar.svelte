@@ -1,30 +1,9 @@
 <script lang="ts">
-	import Triangle from 'lucide-svelte/icons/triangle';
-	import Bot from 'lucide-svelte/icons/bot';
-	import SquareTerminal from 'lucide-svelte/icons/square-terminal';
-	import CodeXML from 'lucide-svelte/icons/code-xml';
 	import Settings2 from 'lucide-svelte/icons/settings-2';
-	import LifeBuoy from 'lucide-svelte/icons/life-buoy';
-	import Book from 'lucide-svelte/icons/book';
-	import SquareUser from 'lucide-svelte/icons/square-user';
-	import Settings from 'lucide-svelte/icons/settings';
-	import Rabbit from 'lucide-svelte/icons/rabbit';
-	import Bird from 'lucide-svelte/icons/bird';
-	import Turtle from 'lucide-svelte/icons/turtle';
-	import Share from 'lucide-svelte/icons/share';
-	import Paperclip from 'lucide-svelte/icons/paperclip';
-	import Mic from 'lucide-svelte/icons/mic';
-	import CornerDownLeft from 'lucide-svelte/icons/corner-down-left';
-
-	import { Badge } from '$lib/shared/components/ui/badge/index.js';
+	import ChefHat from 'lucide-svelte/icons/chef-hat';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
-	import * as Drawer from '$lib/shared/components/ui/drawer/index.js';
-	import { Input } from '$lib/shared/components/ui/input/index.js';
-	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
-	import { Label } from '$lib/shared/components/ui/label/index.js';
-	import * as Select from '$lib/shared/components/ui/select/index.js';
-	import { LayoutDashboard, Home, Share2, Lightbulb } from 'lucide-svelte';
+	import { LayoutDashboard, Share2, Lightbulb } from 'lucide-svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { page } from '$app/stores';
@@ -72,6 +51,25 @@
 						builders={[builder]}
 					>
 						<LayoutDashboard class="size-5" />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="right" sideOffset={5}>Home</Tooltip.Content>
+			</Tooltip.Root>
+
+			<Tooltip.Root>
+				<Tooltip.Trigger asChild let:builder>
+					<Button
+						href="/recipes"
+						variant="ghost"
+						size="icon"
+						class={cn(
+							'rounded-lg',
+							$page.url.pathname.toString().startsWith('/recipes') && 'bg-muted'
+						)}
+						aria-label="Active space"
+						builders={[builder]}
+					>
+						<ChefHat class="size-5" />
 					</Button>
 				</Tooltip.Trigger>
 				<Tooltip.Content side="right" sideOffset={5}>Home</Tooltip.Content>
@@ -272,7 +270,7 @@
 
 			<!-- <ThemeButton class="ml-auto" /> -->
 		</header>
-		<main class="overflow-auto p-4">
+		<main class="overflow-auto">
 			{@render children?.()}
 
 			<!-- <form class="grid w-full items-start gap-6">

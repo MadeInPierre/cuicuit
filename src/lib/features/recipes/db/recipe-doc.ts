@@ -18,7 +18,6 @@ export type RecipeDoc = {
 	};
 	// Cover info
 	title: string;
-	subtitle: string; // Short description
 	imageUrls: string[]; // Cover image first
 	ratings: {
 		1: number;
