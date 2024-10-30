@@ -2,6 +2,10 @@
 	import { page } from '$app/stores';
 	import { Heart } from 'lucide-svelte';
 	import Transition from './transition.svelte';
+	import { createUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+
+	// Make the user and userDoc available to auth pages, e.g. used by /welcome
+	const userDocState = createUserDocState();
 
 	interface Props {
 		data: { url: string };

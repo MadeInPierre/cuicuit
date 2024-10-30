@@ -37,7 +37,7 @@
 
 <Dialog.Root bind:open={openDialog}>
 	<DropdownMenu.Root>
-		<DropdownMenu.Trigger disabled={!activeSpace.id}>
+		<DropdownMenu.Trigger>
 			<Button
 				variant={activeSpace.id ? 'ghost' : 'default'}
 				disabled={!activeSpace.id}

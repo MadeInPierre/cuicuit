@@ -57,4 +57,6 @@ function createDefaultUserDoc(
 		},
 		spaces: {}
 	} satisfies UserDoc;
+
+	// TODO create a default space, probably ask user for a name during onboarding
 }

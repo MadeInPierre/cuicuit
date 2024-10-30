@@ -28,20 +28,26 @@
 	<legend class="text-lg font-medium">Members</legend>
 
 	<div class="grid gap-4 grid-cols-2">
-		<div class="border rounded-lg p-3 flex items-center gap-4 shadow-sm">
-			{#each Object.entries(activeSpace.doc?.memberProfiles || {}) as [memderUid, profile] (memderUid)}
+		{#each Object.entries(activeSpace.doc?.memberProfiles || {}).sort((a, b) => {
+			if (a[1].firstName === b[1].firstName) {
+				return a[1].lastName.localeCompare(b[1].lastName);
+			} else {
+				return a[1].firstName.localeCompare(b[1].firstName);
+			}
+		}) as [memderUid, profile] (memderUid)}
+			<div class="border rounded-lg p-3 flex items-center gap-4 shadow-sm">
 				<UserAvatar {profile} class="size-12" />
 				<div class="grid">
 					<div class="flex items-center text-sm font-medium">
 						{profile.firstName}
 						{profile.lastName}
 
-						<div
+						<!-- <div
 							class="ml-2 flex items-center text-yellow-500 text-xs gap-1 rounded-full border-yellow-500 border-2 px-2 py-0.5"
 						>
 							<Star class="size-3.5" fill="#eab308" />
 							Admin
-						</div>
+						</div> -->
 					</div>
 					<p class="text-sm text-muted-foreground">@{profile.userName}</p>
 				</div>
@@ -55,7 +61,7 @@
 						<LogOut class="size-4 text-red-600" />
 					</Button>
 				</div>
-			{/each}
-		</div>
+			</div>
+		{/each}
 	</div>
 </div>
