@@ -58,34 +58,21 @@
 
 		// Update the form placeholders with the new profile data
 		setTimeout(() => (updateStatus = UpdateStatus.STANDBY), 3000);
-		updateFormFields();
 	}
-
-	// Set the input values & placeholders with the
-	// current user data when entering the page
-	let initialUserData: any = $state(undefined);
 
 	// This effect runs when the userDocState changes to fill the form fields
 	$effect(() => {
-		if (userDocState.doc) {
-			initialUserData = userDocState.doc;
-			updateFormFields();
-		}
+		$formData.firstName = userDocState.doc?.firstName || '';
+		$formData.lastName = userDocState.doc?.lastName || '';
+		$formData.userName = userDocState.doc?.userName || '';
 	});
-
-	// Update the form fields with the current user doc's data
-	function updateFormFields() {
-		$formData.firstName = initialUserData?.firstName;
-		$formData.lastName = initialUserData?.lastName;
-		$formData.userName = initialUserData?.userName;
-	}
 
 	// Disable submit button if the values are identical to the placeholders
 	const buttonDisabled = $derived(
 		$allErrors.length > 0 ||
-			($formData.firstName == initialUserData?.firstName &&
-				$formData.lastName == initialUserData?.lastName &&
-				$formData.userName == initialUserData?.userName)
+			($formData.firstName == userDocState.doc?.firstName &&
+				$formData.lastName == userDocState.doc?.lastName &&
+				$formData.userName == userDocState.doc?.userName)
 	);
 </script>
 
@@ -103,11 +90,7 @@
 			<Form.Field {form} name="firstName" class="w-full">
 				<Form.Control let:attrs>
 					<Form.Label>First name</Form.Label>
-					<Input
-						{...attrs}
-						bind:value={$formData.firstName}
-						placeholder={initialUserData?.firstName || 'John'}
-					/>
+					<Input {...attrs} bind:value={$formData.firstName} placeholder="John" />
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
@@ -115,11 +98,7 @@
 			<Form.Field {form} name="lastName" class="w-full">
 				<Form.Control let:attrs>
 					<Form.Label>Last name</Form.Label>
-					<Input
-						{...attrs}
-						bind:value={$formData.lastName}
-						placeholder={initialUserData?.lastName || 'Doe'}
-					/>
+					<Input {...attrs} bind:value={$formData.lastName} placeholder="Carrot" />
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
@@ -131,11 +110,7 @@
 	<Form.Field {form} name="userName">
 		<Form.Control let:attrs>
 			<Form.Label>Username</Form.Label>
-			<Input
-				{...attrs}
-				bind:value={$formData.userName}
-				placeholder={initialUserData?.userName || 'johndoe'}
-			/>
+			<Input {...attrs} bind:value={$formData.userName} placeholder="johncarrot" />
 		</Form.Control>
 		<Form.Description>
 			This is your public display name. You can only change this once every 30 days.

@@ -40,7 +40,7 @@
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, allErrors } = form;
 
 	let loading = $state(false);
 
@@ -55,6 +55,7 @@
 	// Disable the submit button if the form is loading or the data is the same as the current space
 	const disabled = $derived(
 		loading ||
+			$allErrors.length > 0 ||
 			!$formData.name ||
 			($formData.name === activeSpace.userHeader?.name &&
 				$formData.theme === activeSpace.userHeader?.theme &&
