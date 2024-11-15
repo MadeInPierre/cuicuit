@@ -52,6 +52,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@huggingface/inference": "^2.8.1",
 		"firebase": "^11.0.1",
 		"firebase-admin": "^12.6.0",
 		"svelte-copy": "^2.0.0"
