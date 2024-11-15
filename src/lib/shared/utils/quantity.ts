@@ -1,4 +1,8 @@
 /// Single-file library that converts any cooking unit to any other cooking unit using a food density value as input.
+// Command to run this file only for unit test: npx tsx src/lib/shared/utils/quantity.ts
+// TODO use this library in the rest of the app
+
+import { ingredientDensities, type IngredientDensityKey } from '$lib/data/ingredient-densities';
 
 // Define the conversion rates for each unit in a map (separately for volume and weight):
 const volumeConversionRates = {
@@ -101,17 +105,12 @@ abstract class VolumeWeightQuantity {
 		density: number | undefined = undefined,
 		region: UnitRegion = 'EU'
 	) {
-		// TODO Add support for whole ingredients (e.g. 1 egg to grams)
 		this.value = value;
 		this.originUnitInput = unit;
 		this.originUnitKey = this._parseUnit(unit, region);
 		this.originUnitType = this._detectUnitType(this.originUnitKey);
 		this.density = density;
 		this.region = region;
-
-		console.log(
-			`New quantity: ${this.value} ${this.originUnitKey} ("${this.originUnitInput}", ${this.region}, ${this.density} g/ml)`
-		);
 	}
 
 	/**
@@ -211,8 +210,6 @@ abstract class VolumeWeightQuantity {
 	}
 }
 
-// Command to run this file only: npx tsx src/lib/shared/utils/quantity.ts
-
 export type MinMidMax = {
 	min: number;
 	mid: number;
@@ -238,18 +235,73 @@ const wholeAliases = [
 	'u'
 ];
 
+type WholeVolumeWeightQuantityOptions = {
+	region: UnitRegion;
+	density: IngredientDensityKey | number | undefined;
+	gramsPerWhole: GramsPerWhole | undefined;
+};
+
 class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
+	densityIngredient: IngredientDensityKey | undefined;
 	gramsPerWhole: GramsPerWhole | undefined;
 
-	constructor(
+	/**
+	 * Create a new WholeVolumeWeightQuantity object from a free input for the density ingredient.
+	 * This method fetches the density value from an external API using the density ingredient name.
+	 * @param value the value of the quantity
+	 * @param unit the unit of the quantity
+	 * @param options the options for the quantity
+	 * @returns a WholeVolumeWeightQuantity object
+	 *
+	 * @example
+	 * const quantity = await Quantity.freeDensity(1, 'whole', 'sugar', {
+	 *     region: 'EU',
+	 *     gramsPerWhole: { min: 200, mid: 250, max: 300 }
+	 *     // density: 0.81 NOT PERMITTED
+	 * });
+	 */
+	static async freeDensity(
 		value: number,
 		unit: string,
-		region: UnitRegion = 'EU',
-		density: number | undefined = undefined,
-		gramsPerWhole: GramsPerWhole | undefined = undefined
+		densityIngredient: string,
+		options?: Partial<Omit<WholeVolumeWeightQuantityOptions, 'density'>>
 	) {
-		super(value, unit, density, region);
-		this.gramsPerWhole = gramsPerWhole;
+		// Set default options
+		options = { region: 'EU', gramsPerWhole: undefined, ...options };
+
+		// Fetch the density value from the API (uses vector embeddings)
+		const response = await fetch('http://localhost:5173/api/demo/embed/density', {
+			headers: { 'search-query': densityIngredient }
+		});
+		const data = await response.json();
+
+		// Create the quantity object
+		return new WholeVolumeWeightQuantity(value, unit, {
+			region: options.region,
+			density: data.name,
+			gramsPerWhole: options.gramsPerWhole
+		});
+	}
+
+	constructor(value: number, unit: string, options?: Partial<WholeVolumeWeightQuantityOptions>) {
+		// Set default options
+		options = { region: 'EU', density: undefined, gramsPerWhole: undefined, ...options };
+
+		// Get the density value if it's a string representing a food item
+		let ingredient = undefined;
+		if (typeof options.density === 'string') {
+			ingredient = options.density; // Save here first as densityIngredient can only be initialized after super()
+			if (options.density in ingredientDensities)
+				options.density = ingredientDensities[options.density];
+			else throw new Error(`Invalid density ingredient: ${options.density}`);
+		}
+
+		// Call the base class constructor
+		super(value, unit, options.density, options.region);
+
+		// Initialize the whole-specific properties
+		this.gramsPerWhole = options.gramsPerWhole;
+		this.densityIngredient = ingredient;
 	}
 
 	// Override the to method to handle whole ingredients
@@ -319,56 +371,79 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 		}
 	}
 
-	// Override the _detectUnitType method to add support for whole ingredients
+	// Add the whole unit type
 	protected _detectUnitType(unit: Unit): UnitType {
 		if (wholeAliases.includes(unit)) return 'whole' as UnitType;
 		else return super._detectUnitType(unit);
 	}
 
-	// Override the _parseUnit method to add support for whole ingredients
+	// Add the whole unit type
 	protected _parseUnit(text: string, region: UnitRegion): Unit {
 		if (wholeAliases.includes(text) || !text) return 'whole' as Unit;
-		else return super._parseUnit(text, region);
+
+		try {
+			return super._parseUnit(text, region);
+		} catch {
+			return 'whole' as Unit; // Consider any other invalid unit as a whole unit
+		}
 	}
 
 	toString() {
-		return `${this.value} ${this.originUnitInput} (${this.density} g/ml, ${this.region}, ${this.gramsPerWhole?.min}/${this.gramsPerWhole?.mid}/${this.gramsPerWhole?.max} g/u)`;
+		const strIngredient = this.densityIngredient ? ` of ${this.densityIngredient}` : '';
+		return `${this.value} ${this.originUnitInput}${strIngredient} (${this.region}, ${this.density || '-'} g/ml, ${this.gramsPerWhole?.min || '-'}/${this.gramsPerWhole?.mid || '-'}/${this.gramsPerWhole?.max || '-'} g/u)`;
 	}
 }
 
 // Export the Quantity class using a simpler name
 export const Quantity = WholeVolumeWeightQuantity;
+export type QuantityOptions = WholeVolumeWeightQuantityOptions;
 
 // Test all unit & region combinations using nested loops
-const allUnits = Object.keys(volumeAliases).concat(Object.keys(weightAliases)).concat('whole');
+// const allUnits = Object.keys(volumeAliases).concat(Object.keys(weightAliases)).concat('whole');
 
-for (const originUnit of allUnits) {
-	for (const region of ['EU', 'US', 'UK', 'AU'] as UnitRegion[]) {
-		try {
-			const quantity = new Quantity(100, originUnit, region, 0.8, {
-				min: 50,
-				mid: 60,
-				max: 70
-			});
+// for (const originUnit of allUnits) {
+// 	for (const region of ['EU', 'US', 'UK', 'AU'] as UnitRegion[]) {
+// 		try {
+// 			const quantity = new Quantity(100, originUnit, {
+// 				region,
+// 				density: 'sugar, granulated',
+// 				gramsPerWhole: {
+// 					min: 50,
+// 					mid: 60,
+// 					max: 70
+// 				}
+// 			});
 
-			for (const newUnit of allUnits) {
-				for (const newRegion of ['EU', 'US', 'UK', 'AU'] as UnitRegion[]) {
-					try {
-						const result = quantity.to(newUnit, newRegion);
-						const min = Math.round(result.min * 100) / 100;
-						const mid = Math.round(result.mid * 100) / 100;
-						const max = Math.round(result.max * 100) / 100;
+// 			for (const newUnit of allUnits) {
+// 				for (const newRegion of ['EU', 'US', 'UK', 'AU'] as UnitRegion[]) {
+// 					try {
+// 						const result = quantity.to(newUnit, newRegion);
+// 						const min = Math.round(result.min * 100) / 100;
+// 						const mid = Math.round(result.mid * 100) / 100;
+// 						const max = Math.round(result.max * 100) / 100;
 
-						console.log(quantity.toString(), '=', min, mid, max, newUnit, newRegion);
-					} catch (error: any) {
-						console.error(newUnit, error.message);
-					}
-				}
-			}
+// 						console.log(quantity.toString(), '=', min, mid, max, newUnit, newRegion);
+// 					} catch (error: any) {
+// 						console.error(newUnit, error.message);
+// 					}
+// 				}
+// 			}
 
-			console.log('---');
-		} catch (error: any) {
-			console.error(originUnit, error.message);
-		}
+// 			console.log('---');
+// 		} catch (error: any) {
+// 			console.error(originUnit, error.message);
+// 		}
+// 	}
+// }
+
+// Test the Quantity class with a real ingredient name
+const quantity = await Quantity.freeDensity(1, 'u', 'pomme', {
+	region: 'EU',
+	gramsPerWhole: {
+		min: 30,
+		mid: 33,
+		max: 36
 	}
-}
+});
+
+console.log(quantity.toString(), 'is', quantity.to('ml').mid, 'ml');

@@ -8,9 +8,9 @@
 # Features:
 
 - [X] Create one or more "home" spaces (e.g. home, work, parents' house...)
-- [ ] Share homes with other users to collaborate in real-time
-- [ ] View recipes from other users (random recipes, search by name, search by category)
+- [X] Share homes with other users to collaborate in real-time
 - [ ] Create recipes
+- [ ] View recipes from other users (random recipes, search by name, search by category)
 - [ ] Like recipes, organize them in categories, rate them, customize them
 - [ ] Create a meal plan (with no dates for now) by adding recipes into planned meals
 - [ ] Generate a shopping list from the meal plan
@@ -22,11 +22,11 @@
 - [ ] Create a pantry with:
   - [ ] Items (ingredients, home articles...)
   - [ ] Categories (fruits, spices...)
-  - [ ] Quantities (amount, unit)
+  - [ ] Quantities (amount, unit with conversions)
   - [ ] Expiration dates
   - [ ] Location (fridge, freezer, pantry...)
   - [ ] Tags (opened, to buy...)
-  - [ ] Habits (e.g. 100g cereals for breakfast)
+  - [ ] Habits (e.g. 100g cereals or eggs for breakfast) to auto-consume items
   - [ ] Minimum quantity (e.g. 1L milk) to auto-add to the shopping list even without planned meals
 - [ ] Reserve pantry items to the meals of the meal plan
   - [ ] Reserve from top to bottom of the list, notify the user if there are missing items
@@ -71,6 +71,8 @@
   - This will always make the shopping list full of things to buy, should have a setting to disable this?
   - Settings: Familiar/Mixed/Discover mode, Flexitarian mode, Higher mood than usual, etc.
 - Super long term: Nutrition insights, C02 and water footprint, waste tracking, spending tracking, etc.
+  - Nutritionists can help you generate a meal plan based on your goals (they add recipes to your meal plan or share custom-made cookbooks)
+  - Search for local producers to buy from them, also auto recommended in the shopping list page alongside the supermarket drive mode
 
 
 
