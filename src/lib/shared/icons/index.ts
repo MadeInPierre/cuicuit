@@ -36,6 +36,7 @@ import Yarn from './yarn.svelte';
 import Twitter from './twitter.svelte';
 import Hamburger from './hamburger.svelte';
 import type { SvelteComponent } from 'svelte';
+import CloudCheck from './cloud-check.svelte';
 
 export type Icon = SvelteComponent;
 
@@ -76,5 +77,6 @@ export const Icons = {
 	google: Google,
 	apple: Apple,
 	paypal: PayPal,
-	Hamburger: Hamburger
+	Hamburger: Hamburger,
+	cloudCheck: CloudCheck
 };
