@@ -275,6 +275,10 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 		});
 		const data = await response.json();
 
+		if (response.status !== 200) {
+			throw new Error(`Density ingredient not found: '${densityIngredient}'`);
+		}
+
 		// Create the quantity object
 		return new WholeVolumeWeightQuantity(value, unit, {
 			region: options.region,
@@ -437,13 +441,13 @@ export type QuantityOptions = WholeVolumeWeightQuantityOptions;
 // }
 
 // Test the Quantity class with a real ingredient name
-const quantity = await Quantity.freeDensity(1, 'u', 'pomme', {
-	region: 'EU',
-	gramsPerWhole: {
-		min: 30,
-		mid: 33,
-		max: 36
-	}
-});
+// const quantity = await Quantity.freeDensity(1, 'u', 'pomme', {
+// 	region: 'EU',
+// 	gramsPerWhole: {
+// 		min: 30,
+// 		mid: 33,
+// 		max: 36
+// 	}
+// });
 
-console.log(quantity.toString(), 'is', quantity.to('ml').mid, 'ml');
+// console.log(quantity.toString(), 'is', quantity.to('ml').mid, 'ml');
