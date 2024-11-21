@@ -1,3 +1,5 @@
+// Data taken from: https://www.convert-me.com/en/convert/cooking
+
 export const ingredientDensities = {
 	allspice: 0.42,
 	'almonds, ground': 0.36,
