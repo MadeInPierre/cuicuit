@@ -11,13 +11,16 @@ import { Timestamp, type FirestoreDataConverter } from 'firebase/firestore';
 
 export type RecipeDoc = {
 	// Metadata
+	status: 'draft' | 'published';
 	created_t: Date;
+	modified_t: Date;
 	author: {
 		uid: string;
 		profile: UserProfile;
 	};
 	// Cover info
 	title: string;
+	imageIds: string[]; // Cover image first
 	imageUrls: string[]; // Cover image first
 	ratings: {
 		1: number;
@@ -130,6 +133,7 @@ export type DBRecipeDoc = Modify<
 	RecipeDoc,
 	{
 		created_t: Timestamp; // Override Date with Firestore Timestamp
+		modified_t: Timestamp;
 	}
 >;
 
@@ -141,7 +145,8 @@ export const recipeDocConverter: FirestoreDataConverter<RecipeDoc, DBRecipeDoc> 
 	toFirestore(recipeDoc: RecipeDoc) {
 		return {
 			...recipeDoc,
-			created_t: Timestamp.fromDate(recipeDoc.created_t)
+			created_t: Timestamp.fromDate(recipeDoc.created_t),
+			modified_t: Timestamp.fromDate(recipeDoc.modified_t)
 		} satisfies DBRecipeDoc;
 	},
 
@@ -150,7 +155,8 @@ export const recipeDocConverter: FirestoreDataConverter<RecipeDoc, DBRecipeDoc> 
 
 		return {
 			...dbRecipeDoc,
-			created_t: dbRecipeDoc.created_t.toDate()
+			created_t: dbRecipeDoc.created_t.toDate(),
+			modified_t: dbRecipeDoc.modified_t.toDate()
 		} satisfies RecipeDoc;
 	}
 };

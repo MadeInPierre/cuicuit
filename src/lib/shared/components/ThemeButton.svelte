@@ -91,7 +91,7 @@
 {/snippet}
 
 <div class={cn('flex rounded-full border group', className)}>
-	{@render button(SunMoon, 'Auto', 'system', $userPrefersMode === 'system')}
+	{@render button(SunMoon, 'Follow device', 'system', $userPrefersMode === 'system')}
 	{@render button(Moon, 'Dark', 'dark', $userPrefersMode === 'dark')}
 	{@render button(Sun, 'Light', 'light', $userPrefersMode === 'light')}
 
