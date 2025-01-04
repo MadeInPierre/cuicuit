@@ -108,12 +108,36 @@ export type RecipeInstruction = {
 	ingredients: RecipeIngredient[];
 };
 
-export enum RecipeTool {
-	OVEN = 'oven',
-	STOVE = 'stove',
-	FRYING_PAN = 'frying-pan',
-	POT = 'pot'
-}
+// export enum RecipeTool {
+// 	OVEN = 'oven',
+// 	STOVE = 'stove',
+// 	FRYING_PAN = 'frying-pan',
+// 	POT = 'pot'
+// }
+
+// Oven, Microwave, Stove, Fridge, Freezer, Blender, Mixer, Food processor, Toaster, Grill,
+// Pressure cooker, Slow cooker, Rice cooker, Steamer, Coffee maker, Kettle, Juicer, Scale,
+// Measuring cups, Measuring spoons, Cutting board, Knife, Peeler, Grater, Zester, Slicer,
+// Strainer, Colander, Mixing bowl, Whisk, Spatula, Tongs, Ladle, Slotted spoon, Wooden spoon,
+// Skillet, Saucepan, Pot, Baking dish, Baking sheet, Cake pan, Muffin tin, Pie dish, Casserole
+// dish, Roasting pan, Cooling rack, Parchment paper, Aluminum foil, Plastic wrap, Wax paper,
+// Parchment paper, Kitchen timer, Thermometer, Oven mitts, Pot holders, Apron, Kitchen scale,
+// Blender, Food processor, Stand mixer, Hand mixer, Immersion blender, Toaster, Toaster oven,
+// Coffee maker, Espresso machine, French press, Tea kettle.
+export const recipeTools = [
+	'Oven',
+	'Microwave',
+	'Stove',
+	'Blender',
+	'Fryer',
+	'Grill',
+	'Steamer',
+	'Toaster',
+	'Juicer',
+	'Kettle'
+] as const;
+
+export type RecipeTool = typeof recipeTools[number];
 
 export type RecipeIngredient = {
 	name: string;
@@ -209,7 +233,7 @@ export const recipes = [
 			vegetarian: false,
 			glutenFree: true
 		},
-		tools: [RecipeTool.FRYING_PAN],
+		tools: ['Oven', 'Stove'],
 		description: 'Delicious vegan pancakes for breakfast',
 		servings: 2,
 		ingredients: [

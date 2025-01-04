@@ -31,15 +31,16 @@
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
 	} from '$lib/features/recipes/models/schemas';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import { page } from '$app/stores';
 	import { DocState } from '$lib/shared/db/doc-state.svelte';
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
 		recipeDocConverter,
+		recipeTools,
 		type DBRecipeDoc,
-		type RecipeDoc
+		type RecipeDoc,
+		type RecipeTool
 	} from '$lib/features/recipes/db/recipe-doc';
 
 	// Load the recipe document
@@ -60,8 +61,6 @@
 	});
 	const { form: formData, enhance } = form;
 
-	const userDocState = getUserDocState();
-
 	let searchInput = $state('');
 	let result = $state('');
 
@@ -71,6 +70,7 @@
 
 		$formData.title = recipeDocState.data.title;
 		$formData.description = recipeDocState.data.description;
+		$formData.tools = recipeDocState.data.tools;
 	});
 
 	// Debounce the search input
@@ -103,7 +103,8 @@
 
 		recipeDocState.updateDoc({
 			title: data.title,
-			description: data.description
+			description: data.description,
+			tools: data.tools as RecipeTool[]
 		});
 	}
 </script>
@@ -298,36 +299,23 @@
 							</Card.Header>
 							<Card.Content>
 								<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-									<button
-										class="bg-orange-50 aspect-square rounded-md text-center border-2 border-orange-600 text-orange-600"
-									>
-										Oven
-									</button>
-									<button class="border aspect-square rounded-md text-center">Microwave</button>
-									<button class="border aspect-square rounded-md text-center">Stove</button>
-									<button class="border aspect-square rounded-md text-center">Blender</button>
-									<button class="border aspect-square rounded-md text-center">Fryer</button>
-									<button class="border aspect-square rounded-md text-center">Grill</button>
-									<button class="border aspect-square rounded-md text-center">Steamer</button>
-									<button class="border aspect-square rounded-md text-center">Toaster</button>
-									<button class="border aspect-square rounded-md text-center">Juicer</button>
-									<button class="border aspect-square rounded-md text-center">Kettle</button>
+									{#snippet toolButton(name: string)}
+										<button
+											class={$formData.tools.includes(name)
+												? 'transition-colors bg-orange-50 aspect-square rounded-md text-center border-2 border-orange-600 text-orange-600 font-semibold'
+												: 'transition-colors border aspect-square rounded-md text-center'}
+											onclick={() =>
+												($formData.tools = $formData.tools.includes(name)
+													? $formData.tools.filter((tool) => tool !== name)
+													: [...$formData.tools, name])}
+										>
+											{name}
+										</button>
+									{/snippet}
+									{#each recipeTools as toolName}
+										{@render toolButton(toolName)}
+									{/each}
 								</div>
-
-								<!-- <p>
-									TODO Tools will have a dishwasher-safe property to automatically calculate the
-									dishwasher level.
-
-									Oven, Microwave, Stove, Fridge, Freezer, Blender, Mixer, Food processor, Toaster, Grill,
-									Pressure cooker, Slow cooker, Rice cooker, Steamer, Coffee maker, Kettle, Juicer, Scale,
-									Measuring cups, Measuring spoons, Cutting board, Knife, Peeler, Grater, Zester, Slicer,
-									Strainer, Colander, Mixing bowl, Whisk, Spatula, Tongs, Ladle, Slotted spoon, Wooden spoon,
-									Skillet, Saucepan, Pot, Baking dish, Baking sheet, Cake pan, Muffin tin, Pie dish, Casserole
-									dish, Roasting pan, Cooling rack, Parchment paper, Aluminum foil, Plastic wrap, Wax paper,
-									Parchment paper, Kitchen timer, Thermometer, Oven mitts, Pot holders, Apron, Kitchen scale,
-									Blender, Food processor, Stand mixer, Hand mixer, Immersion blender, Toaster, Toaster oven,
-									Coffee maker, Espresso machine, French press, Tea kettle.
-								</p> -->
 							</Card.Content>
 						</Card.Root>
 						<Card.Root>

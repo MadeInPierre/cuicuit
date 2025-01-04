@@ -3,7 +3,7 @@ import {
 	RecipeHealthyLevel,
 	RecipeMealTime,
 	RecipeMotivationLevel,
-	RecipeTool
+	recipeTools
 } from '../db/recipe-doc';
 
 export const createRecipeFormSchema = z.object({
@@ -11,7 +11,7 @@ export const createRecipeFormSchema = z.object({
 		.string()
 		.min(3, 'Name must be at least 3 characters long.')
 		.max(50, 'Name must be at most 50 characters long.'),
-	description: z.string().max(500, 'Sorry, description must be at most 500 characters long.')
+	description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
 	// timesOfDay: z.enum(RecipeMealTime).array(),
 
@@ -26,7 +26,8 @@ export const createRecipeFormSchema = z.object({
 	// timeCooking: z.number(),
 	// timeTotal: z.number(),
 
-	// tools: z.enum(RecipeTool).array(),
+	// Tools
+	tools: z.array(z.string())
 	// servings: z.number().int().min(1).max(20),
 	// ingredients: z.enum(RecipeIngredient).array(),
 	// instructions: z.enum(RecipeInstruction).array()
