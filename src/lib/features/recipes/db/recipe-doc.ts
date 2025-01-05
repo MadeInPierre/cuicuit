@@ -44,10 +44,10 @@ export type RecipeDoc = {
 		total: DishesLevel;
 	};
 	time: {
+		total: number;
 		prep: number;
 		rest: number;
-		cooking: number;
-		total: number;
+		cook: number;
 	};
 	nutritionFilters: {
 		vegan: boolean;
