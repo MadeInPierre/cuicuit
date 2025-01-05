@@ -21,10 +21,9 @@ export const createRecipeFormSchema = z.object({
 	// dishWasherLevel: z.number().min(1).max(5),
 	// dishHandLevel: z.number().min(1).max(5),
 
-	// timePrep: z.number(),
-	// timeRest: z.number(),
-	// timeCooking: z.number(),
-	// timeTotal: z.number(),
+	timePrep: z.number().int().min(0).max(120),
+	timeRest: z.number().int().min(0).max(120),
+	timeCook: z.number().int().min(0).max(120),
 
 	// Tools
 	tools: z.array(z.string())

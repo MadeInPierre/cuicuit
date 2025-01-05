@@ -71,6 +71,9 @@
 		$formData.title = recipeDocState.data.title;
 		$formData.description = recipeDocState.data.description;
 		$formData.tools = recipeDocState.data.tools;
+		$formData.timePrep = recipeDocState.data.time.prep;
+		$formData.timeCook = recipeDocState.data.time.cook;
+		$formData.timeRest = recipeDocState.data.time.rest;
 	});
 
 	// Debounce the search input
@@ -104,7 +107,11 @@
 		recipeDocState.updateDoc({
 			title: data.title,
 			description: data.description,
-			tools: data.tools as RecipeTool[]
+			tools: data.tools as RecipeTool[],
+			'time.total': data.timeCook + data.timePrep + data.timeRest,
+			'time.cook': data.timeCook,
+			'time.prep': data.timePrep,
+			'time.rest': data.timeRest
 		});
 	}
 </script>
@@ -207,7 +214,7 @@
 									id="name"
 									type="text"
 									class="w-full shadow-sm"
-									placeholder="Search for an ingredient..."
+									placeholder="Type to add 3 tomatoes, 200g of flour, ..."
 									bind:value={searchInput}
 								/>
 
@@ -329,11 +336,11 @@
 								<div class="grid gap-3">
 									<div class="flex items-end">
 										<Label for="description">Step 1</Label>
-										<Button variant="ghost" size="icon" class="size-6 ml-auto">
+										<!-- <Button variant="ghost" size="icon" class="size-6 ml-auto">
 											<ChevronUp class="size-4" />
 											<span class="sr-only">Move up</span>
-										</Button>
-										<Button variant="ghost" size="icon" class="size-6 ml-2">
+										</Button> -->
+										<Button variant="ghost" size="icon" class="size-6 ml-auto">
 											<ChevronDown class="size-4" />
 											<span class="sr-only">Move down</span>
 										</Button>
@@ -392,7 +399,7 @@
 								<div class="flex flex-col space-y-1.5">
 									<div class="flex items-center">
 										<Label for="description" class="text-yellow-600 flex gap-2 items-center">
-											Unlinked ingredients
+											4 unlinked ingredients
 											<TriangleAlert class="size-4" />
 										</Label>
 										<Button variant="ghost" size="icon" class="size-6 ml-auto">
@@ -454,8 +461,8 @@
 									<div class="grid gap-3">
 										<Label for="motivationLevel">Motivation needed</Label>
 										<Select.Root>
-											<Select.Trigger id="motivationLevel" aria-label="Select level">
-												<Select.Value placeholder="Select level" />
+											<Select.Trigger id="motivationLevel" aria-label="Select...">
+												<Select.Value placeholder="Select..." />
 											</Select.Trigger>
 											<Select.Content>
 												<Select.Item value="0" label="None" />
@@ -470,8 +477,8 @@
 									<div class="grid gap-3">
 										<Label for="healtyLevel">Healthy level</Label>
 										<Select.Root>
-											<Select.Trigger id="healtyLevel" aria-label="Select level">
-												<Select.Value placeholder="Select level" />
+											<Select.Trigger id="healtyLevel" aria-label="Select...">
+												<Select.Value placeholder="Select..." />
 											</Select.Trigger>
 											<Select.Content>
 												<Select.Item value="0" label="Terrible" />
@@ -488,8 +495,8 @@
 										<div class="grid gap-3">
 											<Label for="dishwasherLevel">Dishwasher</Label>
 											<Select.Root>
-												<Select.Trigger id="dishwasherLevel" aria-label="Select level">
-													<Select.Value placeholder="Select level" />
+												<Select.Trigger id="dishwasherLevel" aria-label="Select...">
+													<Select.Value placeholder="Select..." />
 												</Select.Trigger>
 												<Select.Content>
 													<Select.Item value="0" label="None" />
@@ -505,8 +512,8 @@
 										<div class="grid gap-3">
 											<Label for="handwashingLevel">Hand washing</Label>
 											<Select.Root>
-												<Select.Trigger id="handwashingLevel" aria-label="Select level">
-													<Select.Value placeholder="Select level" />
+												<Select.Trigger id="handwashingLevel" aria-label="Select...">
+													<Select.Value placeholder="Select..." />
 												</Select.Trigger>
 												<Select.Content>
 													<Select.Item value="0" label="None" />
@@ -521,39 +528,52 @@
 									</div>
 
 									<div class="grid gap-3">
-										<Label for="dishwasherLevel">Time</Label>
-										<div class="ml-2 flex items-center gap-3">
-											<Label class="font-normal text-muted-foreground" for="dishwasherLevel">
-												Prep
-											</Label>
-											<Input placeholder="10" type="number" class="w-20 ml-auto" />
-											<ToggleGroup.Root type="single" value="m" variant="outline">
-												<ToggleGroup.Item value="m">min</ToggleGroup.Item>
-												<ToggleGroup.Item value="h">h</ToggleGroup.Item>
-											</ToggleGroup.Root>
-										</div>
+										<Label>Time</Label>
 
-										<div class="ml-2 flex items-center gap-3">
-											<Label class="font-normal text-muted-foreground" for="handwashingLevel">
-												Cook
-											</Label>
-											<Input placeholder="10" type="number" class="w-20 ml-auto" />
-											<ToggleGroup.Root type="single" value="m" variant="outline">
-												<ToggleGroup.Item value="m">min</ToggleGroup.Item>
-												<ToggleGroup.Item value="h">h</ToggleGroup.Item>
-											</ToggleGroup.Root>
-										</div>
+										<Form.Field {form} name="timePrep" class="pl-4 flex items-center gap-3">
+											<Form.Control let:attrs>
+												<Form.Label class="font-normal text-muted-foreground">Prep</Form.Label>
+												<Input
+													{...attrs}
+													placeholder="10"
+													type="number"
+													class="w-24 ml-auto"
+													bind:value={$formData.timePrep}
+												/>
+												<p>min</p>
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 
-										<div class="ml-2 flex items-center gap-3">
-											<Label class="font-normal text-muted-foreground" for="handwashingLevel">
-												Rest
-											</Label>
-											<Input placeholder="10" type="number" class="w-20 ml-auto" />
-											<ToggleGroup.Root type="single" value="m" variant="outline">
-												<ToggleGroup.Item value="m">min</ToggleGroup.Item>
-												<ToggleGroup.Item value="h">h</ToggleGroup.Item>
-											</ToggleGroup.Root>
-										</div>
+										<Form.Field {form} name="timeCook" class="pl-4 flex items-center gap-3">
+											<Form.Control let:attrs>
+												<Form.Label class="font-normal text-muted-foreground">Cook</Form.Label>
+												<Input
+													{...attrs}
+													placeholder="10"
+													type="number"
+													class="w-24 ml-auto"
+													bind:value={$formData.timeCook}
+												/>
+												<p>min</p>
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+
+										<Form.Field {form} name="timeRest" class="pl-4 flex items-center gap-3">
+											<Form.Control let:attrs>
+												<Form.Label class="font-normal text-muted-foreground">Rest</Form.Label>
+												<Input
+													{...attrs}
+													placeholder="10"
+													type="number"
+													class="w-24 ml-auto"
+													bind:value={$formData.timeRest}
+												/>
+												<p>min</p>
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
 								</div>
 							</Card.Content>
