@@ -33,9 +33,12 @@ export type RecipeDoc = {
 	};
 	// Search
 	embedding: number[];
-	// Filters
 	// tags: string[]; // E.g. 'breakfast, vegan, gluten-free, party, birthday'
-	timesOfDay: RecipeMealTime[]; // E.g. 'breakfast, lunch, dinner'
+	// Categories
+	timeOfDay: RecipeTimeOfDayKey;
+	foodType: RecipeFoodTypeKey;
+	cuisine: RecipeCuisineKey;
+	// Filters
 	motivationLevel: RecipeMotivationLevel;
 	healthyLevel: RecipeHealthyLevel;
 	dishesLevels: {
@@ -55,7 +58,7 @@ export type RecipeDoc = {
 		glutenFree: boolean;
 		// TODO more filters
 	};
-	tools: RecipeTool[];
+	tools: RecipeToolKey[];
 	// Recipe
 	description: string;
 	servings: number; // Number of servings for the quantities in the ingredients
@@ -107,13 +110,6 @@ export type RecipeInstruction = {
 	ingredients: RecipeIngredient[];
 };
 
-// export enum RecipeTool {
-// 	OVEN = 'oven',
-// 	STOVE = 'stove',
-// 	FRYING_PAN = 'frying-pan',
-// 	POT = 'pot'
-// }
-
 // Oven, Microwave, Stove, Fridge, Freezer, Blender, Mixer, Food processor, Toaster, Grill,
 // Pressure cooker, Slow cooker, Rice cooker, Steamer, Coffee maker, Kettle, Juicer, Scale,
 // Measuring cups, Measuring spoons, Cutting board, Knife, Peeler, Grater, Zester, Slicer,
@@ -123,20 +119,72 @@ export type RecipeInstruction = {
 // Parchment paper, Kitchen timer, Thermometer, Oven mitts, Pot holders, Apron, Kitchen scale,
 // Blender, Food processor, Stand mixer, Hand mixer, Immersion blender, Toaster, Toaster oven,
 // Coffee maker, Espresso machine, French press, Tea kettle.
-export const recipeTools = [
-	'oven',
-	'microwave',
-	'stove',
-	'blender',
-	'fryer',
-	'scale',
-	'mixer',
-	'toaster',
-	'juicer',
-	'kettle'
-] as const;
+export const recipeTools = {
+	oven: 'Oven',
+	microwave: 'Microwave',
+	stove: 'Stove',
+	blender: 'Blender',
+	fryer: 'Fryer',
+	scale: 'Scale',
+	mixer: 'Mixer',
+	toaster: 'Toaster',
+	juicer: 'Juicer',
+	kettle: 'Kettle'
+} as const;
+export type RecipeToolKey = keyof typeof recipeTools;
 
-export type RecipeTool = (typeof recipeTools)[number];
+export const recipeTimesOfDay = {
+	breakfast: 'Breakfast & Brunch',
+	main: 'Lunch & Dinner',
+	snack: 'Snacks & Appetizers',
+	dessert: 'Desserts',
+	drink: 'Drinks'
+} as const;
+export type RecipeTimeOfDayKey = keyof typeof recipeTimesOfDay;
+
+export const recipeCuisines = {
+	french: 'French',
+	italian: 'Italian',
+	mexican: 'Mexican',
+	japanese: 'Japanese',
+	chinese: 'Chinese',
+	indian: 'Indian',
+	thai: 'Thai',
+	greek: 'Greek',
+	mediterranean: 'Mediterranean',
+	american: 'American',
+	spanish: 'Spanish',
+	german: 'German',
+	brazilian: 'Brazilian',
+	portuguese: 'Portuguese',
+	russian: 'Russian',
+	turkish: 'Turkish',
+	korean: 'Korean',
+	vietnamese: 'Vietnamese'
+} as const;
+export type RecipeCuisineKey = keyof typeof recipeCuisines;
+
+export const recipeFoodTypes = {
+	breakfast: 'Breakfast and Brunch',
+	lunch: 'Lunch',
+	salads: 'Salads',
+	appetizers: 'Appetizers',
+	soups: 'Soups',
+	main: 'Main Dishes',
+	side: 'Side Dishes',
+	beverages: 'Beverages',
+	breads: 'Breads',
+	desserts: 'Desserts',
+	cocktails: 'Cocktails',
+	condiments: 'Condiments and Sauces',
+	snacks: 'Snacks',
+	nonfood: 'Non-Food',
+	dressings: 'Dressings and Marinades',
+	sauces: 'Sauces and Gravies',
+	smoothies: 'Smoothies',
+	burgers: 'Burgers and Sandwiches'
+} as const;
+export type RecipeFoodTypeKey = keyof typeof recipeFoodTypes;
 
 export type RecipeIngredient = {
 	name: string;

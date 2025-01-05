@@ -3,7 +3,10 @@ import {
 	RecipeHealthyLevel,
 	RecipeMealTime,
 	RecipeMotivationLevel,
-	recipeTools
+	recipeCuisines,
+	recipeTimesOfDay,
+	recipeTools,
+	recipeFoodTypes
 } from '../db/recipe-doc';
 
 export const createRecipeFormSchema = z.object({
@@ -13,7 +16,16 @@ export const createRecipeFormSchema = z.object({
 		.max(50, 'Name must be at most 50 characters long.'),
 	description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
-	// timesOfDay: z.enum(RecipeMealTime).array(),
+	timeOfDay: z.string().refine((value) => Object.keys(recipeTimesOfDay).includes(value), {
+		message: 'Invalid meal time.'
+	}),
+	foodType: z.string().refine((value) => Object.keys(recipeFoodTypes).includes(value), {
+		message: 'Invalid food type.'
+	}),
+	cuisine: z.string().refine((value) => Object.keys(recipeCuisines).includes(value), {
+		message: 'Invalid cuisine.'
+	}),
+
 
 	motivationLevel: z.number().int().min(1).max(5),
 	healthyLevel: z.number().int().min(1).max(5),
@@ -24,8 +36,9 @@ export const createRecipeFormSchema = z.object({
 	timeRest: z.number().int().min(0).max(120),
 	timeCook: z.number().int().min(0).max(120),
 
-	// Tools
-	tools: z.array(z.string())
+	tools: z.array(
+		z.string().refine((value) => Object.keys(recipeTools).includes(value), { message: 'Invalid tool.' })
+	)
 	// servings: z.number().int().min(1).max(20),
 	// ingredients: z.enum(RecipeIngredient).array(),
 	// instructions: z.enum(RecipeInstruction).array()

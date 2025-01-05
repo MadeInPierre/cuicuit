@@ -9,7 +9,6 @@
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
-	import * as ToggleGroup from '$lib/shared/components/ui/toggle-group/index.js';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
@@ -37,13 +36,19 @@
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
 		DishesLevel,
+		recipeCuisines,
 		recipeDocConverter,
+		recipeFoodTypes,
 		RecipeHealthyLevel,
 		RecipeMotivationLevel,
+		recipeTimesOfDay,
 		recipeTools,
 		type DBRecipeDoc,
+		type RecipeCuisineKey,
 		type RecipeDoc,
-		type RecipeTool
+		type RecipeFoodTypeKey,
+		type RecipeTimeOfDayKey,
+		type RecipeToolKey
 	} from '$lib/features/recipes/db/recipe-doc';
 	import { capitalize } from '$lib/utils';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
@@ -66,7 +71,7 @@
 			if (form.valid) onSubmit(form.data);
 		}
 	});
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, errors } = form;
 
 	let searchInput = $state('');
 	let result = $state('');
@@ -85,6 +90,9 @@
 		$formData.healthyLevel = recipeDocState.data.healthyLevel || 3;
 		$formData.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher || 3;
 		$formData.dishHandLevel = recipeDocState.data.dishesLevels?.hand || 3;
+		$formData.timeOfDay = recipeDocState.data.timeOfDay || undefined;
+		$formData.foodType = recipeDocState.data.foodType || undefined;
+		$formData.cuisine = recipeDocState.data.cuisine || undefined;
 	});
 
 	// Debounce the search input
@@ -118,7 +126,7 @@
 		recipeDocState.updateDoc({
 			title: data.title,
 			description: data.description,
-			tools: data.tools as RecipeTool[],
+			tools: data.tools as RecipeToolKey[],
 			'time.total': data.timeCook + data.timePrep + data.timeRest,
 			'time.cook': data.timeCook,
 			'time.prep': data.timePrep,
@@ -127,7 +135,10 @@
 			healthyLevel: data.healthyLevel,
 			'dishesLevels.dishwasher': data.dishWasherLevel,
 			'dishesLevels.hand': data.dishHandLevel,
-			'dishesLevels.total': data.dishWasherLevel + data.dishHandLevel
+			'dishesLevels.total': data.dishWasherLevel + data.dishHandLevel,
+			timeOfDay: data.timeOfDay as RecipeTimeOfDayKey,
+			foodType: data.foodType as RecipeFoodTypeKey,
+			cuisine: data.cuisine as RecipeCuisineKey
 		});
 	}
 
@@ -163,6 +174,33 @@
 			? {
 					label: capitalize(DishesLevel[$formData.dishHandLevel]).replace('_', ' '),
 					value: $formData.dishHandLevel
+				}
+			: undefined
+	);
+
+	let selectedTimeOfDay = $derived(
+		$formData.timeOfDay
+			? {
+					label: recipeTimesOfDay[$formData.timeOfDay as RecipeTimeOfDayKey],
+					value: $formData.timeOfDay
+				}
+			: undefined
+	);
+
+	let selectedFoodType = $derived(
+		$formData.foodType
+			? {
+					label: recipeFoodTypes[$formData.foodType as RecipeFoodTypeKey],
+					value: $formData.foodType
+				}
+			: undefined
+	);
+
+	let selectedCuisine = $derived(
+		$formData.cuisine
+			? {
+					label: recipeCuisines[$formData.cuisine as RecipeCuisineKey],
+					value: $formData.cuisine
 				}
 			: undefined
 	);
@@ -358,23 +396,25 @@
 							</Card.Header>
 							<Card.Content>
 								<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-									{#snippet toolButton(name: string)}
+									{#snippet toolButton(key: RecipeToolKey, label: string)}
 										<button
-											class={recipeDocState.data?.tools.includes(name as RecipeTool)
+											class={$formData.tools.includes(key)
 												? 'aspect-square rounded-md text-center border-2 font-semibold ' +
 													`border-${activeSpace!.userHeader!.theme}-600 text-${activeSpace!.userHeader!.theme}-600`
 												: 'border-2 aspect-square rounded-md text-center'}
-											onclick={() =>
-												($formData.tools = $formData.tools.includes(name)
-													? $formData.tools.filter((tool) => tool !== name)
-													: [...$formData.tools, name])}
+											onclick={(e) => {
+												e.preventDefault(); // Don't submit the form
+												$formData.tools = $formData.tools.includes(key)
+													? $formData.tools.filter((tool) => tool !== key)
+													: [...$formData.tools, key];
+											}}
 										>
-											<img src={`/appliances/${name}.jpg`} alt="" class="size-12 mx-auto mb-1" />
-											{capitalize(name)}
+											<img src={`/appliances/${key}.jpg`} alt="" class="size-12 mx-auto mb-1" />
+											{label}
 										</button>
 									{/snippet}
-									{#each recipeTools as toolName}
-										{@render toolButton(toolName)}
+									{#each Object.entries(recipeTools) as [key, label]}
+										{@render toolButton(key as RecipeToolKey, label)}
 									{/each}
 								</div>
 							</Card.Content>
@@ -683,76 +723,78 @@
 							<Card.Content>
 								<div class="grid gap-6">
 									<div class="grid gap-3">
-										<Label for="timeOfDay">Time of day</Label>
-										<Select.Root>
-											<Select.Trigger id="timeOfDay" aria-label="Select time of day">
-												<Select.Value placeholder="Select time of day" />
-											</Select.Trigger>
-											<Select.Content>
-												<Select.Item value="appetizers" label="Appetizers" />
-												<Select.Item value="main" label="Main Dishes" />
-												<Select.Item value="side" label="Side Dishes" />
-												<Select.Item value="salads" label="Salads" />
-												<Select.Item value="breads" label="Breads" />
-												<Select.Item value="desserts" label="Desserts" />
-												<Select.Item value="breakfast" label="Breakfast and Brunch" />
-												<Select.Item value="soups" label="Soups" />
-												<Select.Item value="beverages" label="Beverages" />
-												<Select.Item value="lunch" label="Lunch" />
-												<Select.Item value="cocktails" label="Cocktails" />
-												<Select.Item value="condiments" label="Condiments and Sauces" />
-												<Select.Item value="snacks" label="Snacks" />
-												<Select.Item value="nonfood" label="Non-Food" />
-												<Select.Item value="dressings" label="Dressings and Marinades" />
-												<Select.Item value="sauces" label="Sauces and Gravies" />
-												<Select.Item value="smoothies" label="Smoothies" />
-												<Select.Item value="burgers" label="Burgers and Sandwiches" />
-											</Select.Content>
-										</Select.Root>
+										<Form.Field {form} name="timeOfDay">
+											<Form.Control let:attrs>
+												<Form.Label>Time of day</Form.Label>
+												<Select.Root
+													selected={selectedTimeOfDay}
+													onSelectedChange={(v) => {
+														v && ($formData.timeOfDay = v.value);
+													}}
+												>
+													<Select.Trigger {...attrs}>
+														<Select.Value placeholder="Select..." />
+													</Select.Trigger>
+													<Select.Content>
+														{#each Object.entries(recipeTimesOfDay) as [key, label]}
+															<Select.Item value={key} {label} />
+														{/each}
+													</Select.Content>
+												</Select.Root>
+												<input hidden bind:value={$formData.timeOfDay} name={attrs.name} />
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
+
 									<div class="grid gap-3">
-										<Label for="cuisine">Cuisine</Label>
-										<Select.Root>
-											<Select.Trigger id="cuisine" aria-label="Select cuisine">
-												<Select.Value placeholder="Select cuisine" />
-											</Select.Trigger>
-											<Select.Content>
-												<Select.Item value="italian" label="Italian" />
-												<Select.Item value="mexican" label="Mexican" />
-												<Select.Item value="french" label="French" />
-												<Select.Item value="japanese" label="Japanese" />
-												<Select.Item value="chinese" label="Chinese" />
-												<Select.Item value="indian" label="Indian" />
-												<Select.Item value="thai" label="Thai" />
-												<Select.Item value="greek" label="Greek" />
-												<Select.Item value="mediterranean" label="Mediterranean" />
-												<Select.Item value="american" label="American" />
-												<Select.Item value="spanish" label="Spanish" />
-												<Select.Item value="german" label="German" />
-												<Select.Item value="brazilian" label="Brazilian" />
-												<Select.Item value="portuguese" label="Portuguese" />
-												<Select.Item value="russian" label="Russian" />
-												<Select.Item value="turkish" label="Turkish" />
-												<Select.Item value="korean" label="Korean" />
-												<Select.Item value="vietnamese" label="Vietnamese" />
-											</Select.Content>
-										</Select.Root>
+										<Form.Field {form} name="foodType">
+											<Form.Control let:attrs>
+												<Form.Label>Food type</Form.Label>
+												<Select.Root
+													selected={selectedFoodType}
+													onSelectedChange={(v) => {
+														v && ($formData.foodType = v.value);
+													}}
+												>
+													<Select.Trigger {...attrs}>
+														<Select.Value placeholder="Select..." />
+													</Select.Trigger>
+													<Select.Content>
+														{#each Object.entries(recipeFoodTypes) as [key, label]}
+															<Select.Item value={key} {label} />
+														{/each}
+													</Select.Content>
+												</Select.Root>
+												<input hidden bind:value={$formData.foodType} name={attrs.name} />
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
+
 									<div class="grid gap-3">
-										<Label for="foodType">Food type</Label>
-										<Select.Root>
-											<Select.Trigger id="foodType" aria-label="Select food type">
-												<Select.Value placeholder="Select food type" />
-											</Select.Trigger>
-											<Select.Content>
-												<Select.Item value="appetizer" label="Appetizer">Appetizer</Select.Item>
-												<Select.Item value="main" label="Main">Main</Select.Item>
-												<Select.Item value="dessert" label="Dessert">Dessert</Select.Item>
-												<Select.Item value="drink" label="Drink">Drink</Select.Item>
-												<Select.Item value="side" label="Side">Side</Select.Item>
-												<Select.Item value="salad" label="Salad">Salad</Select.Item>
-											</Select.Content>
-										</Select.Root>
+										<Form.Field {form} name="cuisine">
+											<Form.Control let:attrs>
+												<Form.Label>Cuisine</Form.Label>
+												<Select.Root
+													selected={selectedCuisine}
+													onSelectedChange={(v) => {
+														v && ($formData.cuisine = v.value);
+													}}
+												>
+													<Select.Trigger {...attrs}>
+														<Select.Value placeholder="Select..." />
+													</Select.Trigger>
+													<Select.Content>
+														{#each Object.entries(recipeCuisines) as [key, label]}
+															<Select.Item value={key} {label} />
+														{/each}
+													</Select.Content>
+												</Select.Root>
+												<input hidden bind:value={$formData.cuisine} name={attrs.name} />
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
 								</div>
 							</Card.Content>
@@ -781,10 +823,10 @@
 							</Card.Content>
 						</Card.Root>
 
-						<p class="text-xs text-muted-foreground text-center">
-							Recipe id: {pageRecipeId}
-							{recipeDocState.data?.status}
-						</p>
+						<div class="flex-1 gap-2 text-center text-xs text-muted-foreground">
+							<p>Recipe id: {pageRecipeId}</p>
+							<p>Status: {recipeDocState.data?.status}</p>
+						</div>
 					</div>
 				</div>
 				<div class="flex items-center justify-center gap-2 md:hidden">
