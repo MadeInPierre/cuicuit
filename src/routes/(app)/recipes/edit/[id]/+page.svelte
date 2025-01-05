@@ -36,12 +36,17 @@
 	import { DocState } from '$lib/shared/db/doc-state.svelte';
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
+		DishesLevel,
 		recipeDocConverter,
+		RecipeHealthyLevel,
+		RecipeMotivationLevel,
 		recipeTools,
 		type DBRecipeDoc,
 		type RecipeDoc,
 		type RecipeTool
 	} from '$lib/features/recipes/db/recipe-doc';
+	import { capitalize } from '$lib/utils';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = $page.params.id;
@@ -50,6 +55,8 @@
 		`recipes/${pageRecipeId}`,
 		recipeDocConverter
 	);
+
+	const activeSpace = getActiveSpaceState();
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(createRecipeFormSchema)), {
@@ -67,13 +74,17 @@
 	// Update the form data with the recipe document data
 	$effect(() => {
 		if (!recipeDocState.data) return;
-
 		$formData.title = recipeDocState.data.title;
 		$formData.description = recipeDocState.data.description;
 		$formData.tools = recipeDocState.data.tools;
 		$formData.timePrep = recipeDocState.data.time.prep;
 		$formData.timeCook = recipeDocState.data.time.cook;
 		$formData.timeRest = recipeDocState.data.time.rest;
+		$formData.tools = recipeDocState.data.tools;
+		$formData.motivationLevel = recipeDocState.data.motivationLevel || 3;
+		$formData.healthyLevel = recipeDocState.data.healthyLevel || 3;
+		$formData.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher || 3;
+		$formData.dishHandLevel = recipeDocState.data.dishesLevels?.hand || 3;
 	});
 
 	// Debounce the search input
@@ -111,9 +122,50 @@
 			'time.total': data.timeCook + data.timePrep + data.timeRest,
 			'time.cook': data.timeCook,
 			'time.prep': data.timePrep,
-			'time.rest': data.timeRest
+			'time.rest': data.timeRest,
+			motivationLevel: data.motivationLevel,
+			healthyLevel: data.healthyLevel,
+			'dishesLevels.dishwasher': data.dishWasherLevel,
+			'dishesLevels.hand': data.dishHandLevel,
+			'dishesLevels.total': data.dishWasherLevel + data.dishHandLevel
 		});
 	}
+
+	let selectedMotivation = $derived(
+		$formData.motivationLevel
+			? {
+					label: capitalize(RecipeMotivationLevel[$formData.motivationLevel]).replace('_', ' '),
+					value: $formData.motivationLevel
+				}
+			: undefined
+	);
+
+	let selectedHealthy = $derived(
+		$formData.healthyLevel
+			? {
+					label: capitalize(RecipeHealthyLevel[$formData.healthyLevel]).replace('_', ' '),
+					value: $formData.healthyLevel
+				}
+			: undefined
+	);
+
+	let selectedDishWasher = $derived(
+		$formData.dishWasherLevel
+			? {
+					label: capitalize(DishesLevel[$formData.dishWasherLevel]).replace('_', ' '),
+					value: $formData.dishWasherLevel
+				}
+			: undefined
+	);
+
+	let selectedDishHand = $derived(
+		$formData.dishHandLevel
+			? {
+					label: capitalize(DishesLevel[$formData.dishHandLevel]).replace('_', ' '),
+					value: $formData.dishHandLevel
+				}
+			: undefined
+	);
 </script>
 
 <form method="POST" use:enhance class="space-y-8">
@@ -300,23 +352,25 @@
 						<Card.Root>
 							<Card.Header>
 								<Card.Title>Tools</Card.Title>
-								<Card.Description
-									>Please select the tools needed to make this recipe</Card.Description
-								>
+								<Card.Description>
+									Please select the tools needed to make this recipe
+								</Card.Description>
 							</Card.Header>
 							<Card.Content>
 								<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
 									{#snippet toolButton(name: string)}
 										<button
-											class={$formData.tools.includes(name)
-												? 'transition-colors bg-orange-50 aspect-square rounded-md text-center border-2 border-orange-600 text-orange-600 font-semibold'
-												: 'transition-colors border aspect-square rounded-md text-center'}
+											class={recipeDocState.data?.tools.includes(name as RecipeTool)
+												? 'aspect-square rounded-md text-center border-2 font-semibold ' +
+													`border-${activeSpace!.userHeader!.theme}-600 text-${activeSpace!.userHeader!.theme}-600`
+												: 'border-2 aspect-square rounded-md text-center'}
 											onclick={() =>
 												($formData.tools = $formData.tools.includes(name)
 													? $formData.tools.filter((tool) => tool !== name)
 													: [...$formData.tools, name])}
 										>
-											{name}
+											<img src={`/appliances/${name}.jpg`} alt="" class="size-12 mx-auto mb-1" />
+											{capitalize(name)}
 										</button>
 									{/snippet}
 									{#each recipeTools as toolName}
@@ -459,75 +513,118 @@
 							<Card.Content>
 								<div class="grid gap-6">
 									<div class="grid gap-3">
-										<Label for="motivationLevel">Motivation needed</Label>
-										<Select.Root>
-											<Select.Trigger id="motivationLevel" aria-label="Select...">
-												<Select.Value placeholder="Select..." />
-											</Select.Trigger>
-											<Select.Content>
-												<Select.Item value="0" label="None" />
-												<Select.Item value="1" label="Very low" />
-												<Select.Item value="2" label="Low" />
-												<Select.Item value="3" label="Medium" />
-												<Select.Item value="4" label="High" />
-												<Select.Item value="5" label="Very high" />
-											</Select.Content>
-										</Select.Root>
+										<Form.Field {form} name="motivationLevel">
+											<Form.Control let:attrs>
+												<Form.Label>Motivation needed</Form.Label>
+												<Select.Root
+													selected={selectedMotivation}
+													onSelectedChange={(v) => {
+														v && ($formData.motivationLevel = v.value);
+													}}
+												>
+													<Select.Trigger {...attrs}>
+														<Select.Value placeholder="Select..." />
+													</Select.Trigger>
+													<Select.Content>
+														<Select.Item value={1} label="Very low" />
+														<Select.Item value={2} label="Low" />
+														<Select.Item value={3} label="Medium" />
+														<Select.Item value={4} label="High" />
+														<Select.Item value={5} label="Very high" />
+													</Select.Content>
+												</Select.Root>
+												<input hidden bind:value={$formData.motivationLevel} name={attrs.name} />
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
+
 									<div class="grid gap-3">
-										<Label for="healtyLevel">Healthy level</Label>
-										<Select.Root>
-											<Select.Trigger id="healtyLevel" aria-label="Select...">
-												<Select.Value placeholder="Select..." />
-											</Select.Trigger>
-											<Select.Content>
-												<Select.Item value="0" label="Terrible" />
-												<Select.Item value="1" label="Bad" />
-												<Select.Item value="2" label="Okay" />
-												<Select.Item value="3" label="Good" />
-												<Select.Item value="4" label="Great" />
-												<Select.Item value="5" label="Excellent" />
-											</Select.Content>
-										</Select.Root>
+										<Form.Field {form} name="healthyLevel">
+											<Form.Control let:attrs>
+												<Form.Label>Healthy level</Form.Label>
+												<Select.Root
+													selected={selectedHealthy}
+													onSelectedChange={(v) => {
+														v && ($formData.healthyLevel = v.value);
+													}}
+												>
+													<Select.Trigger {...attrs}>
+														<Select.Value placeholder="Select..." />
+													</Select.Trigger>
+													<Select.Content>
+														<Select.Item value={1} label="Bad" />
+														<Select.Item value={2} label="Ok" />
+														<Select.Item value={3} label="Good" />
+														<Select.Item value={4} label="Great" />
+														<Select.Item value={5} label="Excellent" />
+													</Select.Content>
+												</Select.Root>
+												<input hidden bind:value={$formData.healthyLevel} name={attrs.name} />
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
 
 									<div class="grid grid-cols-2 gap-3">
 										<div class="grid gap-3">
-											<Label for="dishwasherLevel">Dishwasher</Label>
-											<Select.Root>
-												<Select.Trigger id="dishwasherLevel" aria-label="Select...">
-													<Select.Value placeholder="Select..." />
-												</Select.Trigger>
-												<Select.Content>
-													<Select.Item value="0" label="None" />
-													<Select.Item value="1" label="Very Low" />
-													<Select.Item value="2" label="Low" />
-													<Select.Item value="3" label="Medium" />
-													<Select.Item value="4" label="High" />
-													<Select.Item value="5" label="Very High" />
-												</Select.Content>
-											</Select.Root>
+											<Form.Field {form} name="dishWasherLevel">
+												<Form.Control let:attrs>
+													<Form.Label>Dish washer</Form.Label>
+													<Select.Root
+														selected={selectedDishWasher}
+														onSelectedChange={(v) => {
+															v && ($formData.dishWasherLevel = v.value);
+														}}
+													>
+														<Select.Trigger {...attrs}>
+															<Select.Value placeholder="Select..." />
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value={0} label="None" />
+															<Select.Item value={1} label="Very Low" />
+															<Select.Item value={2} label="Low" />
+															<Select.Item value={3} label="Medium" />
+															<Select.Item value={4} label="High" />
+															<Select.Item value={5} label="Very High" />
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.dishWasherLevel} name={attrs.name} />
+												</Form.Control>
+												<Form.FieldErrors />
+											</Form.Field>
 										</div>
 
 										<div class="grid gap-3">
-											<Label for="handwashingLevel">Hand washing</Label>
-											<Select.Root>
-												<Select.Trigger id="handwashingLevel" aria-label="Select...">
-													<Select.Value placeholder="Select..." />
-												</Select.Trigger>
-												<Select.Content>
-													<Select.Item value="0" label="None" />
-													<Select.Item value="1" label="Very Low" />
-													<Select.Item value="2" label="Low" />
-													<Select.Item value="3" label="Medium" />
-													<Select.Item value="4" label="High" />
-													<Select.Item value="5" label="Very High" />
-												</Select.Content>
-											</Select.Root>
+											<Form.Field {form} name="dishHandLevel">
+												<Form.Control let:attrs>
+													<Form.Label>Hand washing</Form.Label>
+													<Select.Root
+														selected={selectedDishHand}
+														onSelectedChange={(v) => {
+															v && ($formData.dishHandLevel = v.value);
+														}}
+													>
+														<Select.Trigger {...attrs}>
+															<Select.Value placeholder="Select..." />
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value={0} label="None" />
+															<Select.Item value={1} label="Very Low" />
+															<Select.Item value={2} label="Low" />
+															<Select.Item value={3} label="Medium" />
+															<Select.Item value={4} label="High" />
+															<Select.Item value={5} label="Very High" />
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.dishHandLevel} name={attrs.name} />
+												</Form.Control>
+												<Form.FieldErrors />
+											</Form.Field>
 										</div>
 									</div>
 
-									<div class="grid gap-3">
+									<div class="grid gap-2">
 										<Label>Time</Label>
 
 										<Form.Field {form} name="timePrep" class="pl-4 flex items-center gap-3">

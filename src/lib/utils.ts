@@ -101,3 +101,14 @@ export function cosineSimilarity(A: number[], B: number[]) {
 
 	return similarity;
 }
+
+/**
+ * Transform a string to capitalize the first letter
+ * @param s The string to capitalize
+ * @returns The capitalized string
+ */
+export function capitalize(s: string) {
+	if (typeof s !== 'string') return '';
+	if (s.length === 0) return s;
+	return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}

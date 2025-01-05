@@ -15,11 +15,10 @@ export const createRecipeFormSchema = z.object({
 
 	// timesOfDay: z.enum(RecipeMealTime).array(),
 
-	// motivationLevel: z.enum(RecipeMotivationLevel),
-	// healthyLevel: z.enum(RecipeHealthyLevel),
-
-	// dishWasherLevel: z.number().min(1).max(5),
-	// dishHandLevel: z.number().min(1).max(5),
+	motivationLevel: z.number().int().min(1).max(5),
+	healthyLevel: z.number().int().min(1).max(5),
+	dishWasherLevel: z.number().min(1).max(5),
+	dishHandLevel: z.number().min(1).max(5),
 
 	timePrep: z.number().int().min(0).max(120),
 	timeRest: z.number().int().min(0).max(120),

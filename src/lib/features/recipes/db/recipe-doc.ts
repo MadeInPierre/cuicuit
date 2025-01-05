@@ -77,29 +77,28 @@ export enum RecipeMealTime {
 }
 
 export enum RecipeHealthyLevel {
-	TERRIBLE = 1,
-	BAD = 2,
-	OK = 3,
-	GOOD = 4,
+	BAD = 1,
+	OK = 2,
+	GOOD = 3,
+	GREAT = 4,
 	EXCELLENT = 5
 }
 
 export enum RecipeMotivationLevel {
-	NONE = 0,
-	LOW = 1,
-	MEDIUM = 2,
-	HIGH = 3,
-	VERY_HIGH = 4,
-	EXTREME = 5
+	VERY_LOW = 1,
+	LOW = 2,
+	MEDIUM = 3,
+	HIGH = 4,
+	VERY_HIGH = 5
 }
 
 export enum DishesLevel {
 	NONE = 0,
-	LOW = 1,
-	MEDIUM = 2,
-	HIGH = 3,
-	VERY_HIGH = 4,
-	EXTREME = 5
+	VERY_LOW = 1,
+	LOW = 2,
+	MEDIUM = 3,
+	HIGH = 4,
+	VERY_HIGH = 5
 }
 
 export type RecipeInstruction = {
@@ -125,19 +124,19 @@ export type RecipeInstruction = {
 // Blender, Food processor, Stand mixer, Hand mixer, Immersion blender, Toaster, Toaster oven,
 // Coffee maker, Espresso machine, French press, Tea kettle.
 export const recipeTools = [
-	'Oven',
-	'Microwave',
-	'Stove',
-	'Blender',
-	'Fryer',
-	'Grill',
-	'Steamer',
-	'Toaster',
-	'Juicer',
-	'Kettle'
+	'oven',
+	'microwave',
+	'stove',
+	'blender',
+	'fryer',
+	'scale',
+	'mixer',
+	'toaster',
+	'juicer',
+	'kettle'
 ] as const;
 
-export type RecipeTool = typeof recipeTools[number];
+export type RecipeTool = (typeof recipeTools)[number];
 
 export type RecipeIngredient = {
 	name: string;
@@ -308,8 +307,8 @@ export const recipes = [
 		healthyLevel: RecipeHealthyLevel.EXCELLENT,
 		dishesLevels: {
 			dishwasher: DishesLevel.LOW,
-			hand: DishesLevel.NONE,
-			total: DishesLevel.NONE
+			hand: DishesLevel.LOW,
+			total: DishesLevel.LOW
 		},
 		time: {
 			prep: 10,
