@@ -2,14 +2,21 @@
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
-	import { Plus, SquarePen, Download } from 'lucide-svelte';
+	import { Plus, SquarePen, Download, CalendarPlus, Users } from 'lucide-svelte';
 	import { createDraftRecipe } from '$lib/features/recipes/actions/create-draft-recipe';
 	import { goto } from '$app/navigation';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { collection, getDocs, query, where } from 'firebase/firestore';
 	import { firestore } from '$lib/shared/db/firebase-client';
-	import { recipeDocConverter, type RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
+	import {
+		recipeDocConverter,
+		recipeTimesOfDay,
+		type RecipeDoc
+	} from '$lib/features/recipes/db/recipe-doc';
+	import { cn } from '$lib/utils';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -37,9 +44,11 @@
 		const recipeId = await createDraftRecipe(userDocState);
 		goto('/recipes/edit/' + recipeId);
 	}
+
+	let activeSpace = getActiveSpaceState();
 </script>
 
-<div class="space-y-6 p-10 pb-16">
+<div class={cn('space-y-6 p-10 pb-16 min-h-full', `bg-${activeSpace.userHeader?.theme}-100/10`)}>
 	<div class="flex items-center">
 		<div class="space-y-0.5">
 			<h2 class="text-2xl font-bold tracking-tight">Recipes</h2>
@@ -71,27 +80,54 @@
 
 	<Separator class="my-6" />
 
-	<div class="w-full grid grid-cols-6 gap-2">
+	<div
+		class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
+	>
 		{#each recipes as recipe}
-			<a
-				class="flex flex-col items-start bg-white rounded-md border"
-				href={'/recipes/edit/' + recipe.id}
+			<div
+				class="flex flex-col items-start bg-white rounded-md border shadow-sm hover:shadow-lg transition-shadow"
 			>
 				{#if recipe.doc.imageUrls && recipe.doc.imageUrls.length > 0}
-					<img
-						src={recipe.doc.imageUrls[0]}
-						alt="Recipe"
-						class="aspect-square rounded-md object-cover"
-					/>
+					<a href={'/recipes/edit/' + recipe.id} class="relative">
+						<img
+							src={recipe.doc.imageUrls[0]}
+							alt="Recipe"
+							class="aspect-[1.618] rounded-md object-cover"
+						/>
+
+						<!-- <UserAvatar
+							profile={recipe.doc.author.profile}
+							class="absolute bottom-2 right-2 size-5"
+						/> -->
+
+						<CardBookmark class="absolute -top-[12px] right-[8px] size-10" />
+					</a>
 				{:else}
-					<div class="w-full aspect-square bg-gray-200 rounded-md"></div>
+					<div class="w-full aspect-[1.618] bg-gray-200 rounded-md"></div>
 				{/if}
-				<div class="flex px-4 py-2 w-full h-full">
-					<h3 class="text-md font-semibold">{recipe.doc.title}</h3>
-					<!-- <p class="text-sm text-muted-foreground">{recipe.id}</p> -->
-					<UserAvatar profile={recipe.doc.author.profile} class="ml-auto my-auto size-6" />
+				<div class="flex items-center gap-2 p-2 w-full h-full">
+					<a class="grid" href={'/recipes/edit/' + recipe.id}>
+						<h3 class="text-sm font-semibold line-clamp-1">{recipe.doc.title}</h3>
+						<p class="text-xs text-muted-foreground flex items-center">
+							<span class="mr-4">{recipeTimesOfDay[recipe.doc.timeOfDay]}</span>
+
+							<!-- <span>{recipe.doc.servings}</span>
+							<Users class="size-3 inline-block ml-0.5" /> -->
+						</p>
+					</a>
+					<ButtonThemed
+						class="ml-auto rounded-full size-7 mr-2"
+						size="icon"
+						type="outline"
+						aria-label="Add to plan"
+						onclick={() => {
+							console.log('Add to plan', recipe.id);
+						}}
+					>
+						<CalendarPlus class="size-4" />
+					</ButtonThemed>
 				</div>
-			</a>
+			</div>
 		{/each}
 	</div>
 

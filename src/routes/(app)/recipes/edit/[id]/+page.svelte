@@ -61,6 +61,8 @@
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import * as Table from '$lib/shared/components/ui/table';
 	import * as ToggleGroup from '$lib/shared/components/ui/toggle-group';
+	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
+	import { Badge } from '$lib/shared/components/ui/badge';
 
 	// Load the recipe document
 	const pageRecipeId = $page.params.id;
@@ -86,7 +88,7 @@
 		}
 	});
 	const { form: formData, enhance, errors } = form;
-	$inspect($errors);
+	$inspect($errors, JSON.stringify($formData));
 
 	let searchInput = $state('');
 	let result = $state('');
@@ -236,6 +238,9 @@
 				}
 			: undefined
 	);
+
+	let showDismissDialog = $state(false);
+	let dismissDialogMode: 'discard' | 'delete' = $state('discard');
 </script>
 
 <form method="POST" use:enhance class="space-y-8">
@@ -247,13 +252,14 @@
 						variant="outline"
 						size="icon"
 						class="h-7 w-7"
-						href="/recipes"
 						onclick={() => {
-							if (recipeDocState.data && recipeDocState.data.status === 'draft') {
-								alert('Are you sure you want to discard this recipe?');
-								deleteRecipe(recipeDocState);
+							if (recipeDocState.data?.status == 'draft') dismissDialogMode = 'delete';
+							else {
+								// TODO Check if the form is dirty before showing the dialog when dismissing only
+								// if (!dirty) goto('/recipes');
+								dismissDialogMode = 'discard';
 							}
-							goto('/recipes');
+							showDismissDialog = true;
 						}}
 					>
 						<ChevronLeft class="h-4 w-4" />
@@ -262,18 +268,33 @@
 					<h1
 						class="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0"
 					>
-						New Recipe
+						{#if recipeDocState.data?.status == 'draft'}
+							New recipe
+						{:else}
+							Edit recipe
+						{/if}
 					</h1>
-					<!-- <Badge variant="outline" class="ml-auto sm:ml-0">In stock</Badge> -->
+
+					{#if recipeDocState.data?.status == 'draft'}
+						<Badge class="ml-auto sm:ml-0 bg-yellow-600 text-white dark:bg-yellow-900">Draft</Badge>
+					{/if}
+
 					<div class="hidden items-center gap-2 md:ml-auto md:flex">
-						<Button variant="outline" size="sm" disabled={loading}>
-							{#if recipeDocState.data?.status == 'draft'}
-								Discard
-							{:else}
+						{#if recipeDocState.data?.status == 'published'}
+							<Button
+								variant="outline"
+								size="sm"
+								disabled={loading}
+								onclick={() => {
+									showDismissDialog = true;
+									dismissDialogMode = 'delete';
+								}}
+							>
 								<Trash2 class="size-3.5 mr-2" />
 								Delete
-							{/if}
-						</Button>
+							</Button>
+						{/if}
+
 						<ButtonThemed size="sm" type="submit" class="w-14 flex gap-2" disabled={loading}>
 							{#if loading}
 								<Loader2 class="h-4 w-4 animate-spin" />
@@ -423,73 +444,9 @@
 												<Label for="item">Tomatoes</Label>
 											</Table.Cell>
 										</Table.Row>
-
-										<!-- <Table.Row>
-											<Table.Cell class="font-semibold">Tomatoes</Table.Cell>
-											<Table.Cell class="flex gap-2">
-												<Label for="stock-1" class="sr-only">Stock</Label>
-												<Input id="stock-1" type="number" value="100" />
-												<Input id="stock-1" value="g" class="w-16" />
-											</Table.Cell>
-											<Table.Cell>
-												<Label for="price-1" class="sr-only">Price</Label>
-												<Input id="price-1" placeholder="Fresh" />
-											</Table.Cell>
-											<Table.Cell>
-												<ToggleGroup.Root type="single" value="s" variant="outline">
-													<ToggleGroup.Item value="s">S</ToggleGroup.Item>
-													<ToggleGroup.Item value="m">M</ToggleGroup.Item>
-													<ToggleGroup.Item value="l">L</ToggleGroup.Item>
-												</ToggleGroup.Root>
-											</Table.Cell>
-										</Table.Row>
-										<Table.Row>
-											<Table.Cell class="font-semibold">Garlic</Table.Cell>
-											<Table.Cell class="flex gap-2">
-												<Label for="stock-1" class="sr-only">Stock</Label>
-												<Input id="stock-1" type="number" value="100" class="w-16" />
-												<Input id="stock-1" value="g" class="w-16" />
-											</Table.Cell>
-											<Table.Cell>
-												<Label for="price-2" class="sr-only">Price</Label>
-												<Input id="price-2" placeholder="Fresh" />
-											</Table.Cell>
-											<Table.Cell>
-												<ToggleGroup.Root type="single" value="m" variant="outline">
-													<ToggleGroup.Item value="s">S</ToggleGroup.Item>
-													<ToggleGroup.Item value="m">M</ToggleGroup.Item>
-													<ToggleGroup.Item value="l">L</ToggleGroup.Item>
-												</ToggleGroup.Root>
-											</Table.Cell>
-										</Table.Row>
-										<Table.Row>
-											<Table.Cell class="font-semibold">Flour</Table.Cell>
-											<Table.Cell class="flex gap-2">
-												<Label for="stock-1" class="sr-only">Stock</Label>
-												<Input id="stock-1" type="number" value="100" />
-												<Input id="stock-1" value="g" class="w-16" />
-											</Table.Cell>
-											<Table.Cell>
-												<Label for="price-3" class="sr-only">Stock</Label>
-												<Input id="price-3" placeholder="Fresh" />
-											</Table.Cell>
-											<Table.Cell>
-												<ToggleGroup.Root type="single" value="s" variant="outline">
-													<ToggleGroup.Item value="s">S</ToggleGroup.Item>
-													<ToggleGroup.Item value="m">M</ToggleGroup.Item>
-													<ToggleGroup.Item value="l">L</ToggleGroup.Item>
-												</ToggleGroup.Root>
-											</Table.Cell>
-										</Table.Row> -->
 									</Table.Body>
 								</Table.Root>
 							</Card.Content>
-							<!-- <Card.Footer class="justify-center border-t p-4">
-								<Button size="sm" variant="ghost" class="gap-1" disabled={loading}>
-									<CirclePlus class="h-3.5 w-3.5" />
-									Add Ingredient
-								</Button>
-							</Card.Footer> -->
 						</Card.Root>
 						<Card.Root>
 							<Card.Header>
@@ -590,7 +547,7 @@
 													class="min-h-20"
 													bind:value={$formData.stepDescriptions[i]}
 												/>
-												<div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+												<!-- <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
 													<div class="bg-muted w-full aspect-square rounded-md"></div>
 													<div
 														class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
@@ -599,7 +556,7 @@
 														<span class="text-xs">Link</span>
 														<span class="text-xs">ingredient</span>
 													</div>
-												</div>
+												</div> -->
 											</div>
 										</Form.Control>
 										<Form.FieldErrors />
@@ -970,3 +927,36 @@
 		</main>
 	</div>
 </form>
+
+<AlertDialog.Root bind:open={showDismissDialog}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>
+				{#if dismissDialogMode == 'delete'}
+					Delete recipe?
+				{:else}
+					Discard changes?
+				{/if}
+			</AlertDialog.Title>
+			<AlertDialog.Description>
+				Are you sure you want to discard the changes you made to this recipe?
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+			<AlertDialog.Action
+				class={dismissDialogMode == 'delete' ? 'bg-destructive' : ''}
+				onclick={() => {
+					if (dismissDialogMode == 'delete') deleteRecipe(recipeDocState);
+					goto('/recipes');
+				}}
+			>
+				{#if dismissDialogMode == 'delete'}
+					Delete
+				{:else}
+					Discard
+				{/if}
+			</AlertDialog.Action>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>

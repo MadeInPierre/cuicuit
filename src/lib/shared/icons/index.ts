@@ -37,10 +37,12 @@ import Twitter from './twitter.svelte';
 import Hamburger from './hamburger.svelte';
 import type { SvelteComponent } from 'svelte';
 import CloudCheck from './cloud-check.svelte';
+import CardBookmark from './card-bookmark.svelte';
 
 export type Icon = SvelteComponent;
 
 export const Icons = {
+	cardBookmark: CardBookmark,
 	logo: Logo,
 	close: X,
 	spinner: LoaderCircle,
