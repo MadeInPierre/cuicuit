@@ -270,7 +270,7 @@
 
 			<!-- <ThemeButton class="ml-auto" /> -->
 		</header>
-		<main class="overflow-auto">
+		<main class="overflow-auto h-full">
 			{@render children?.()}
 
 			<!-- <form class="grid w-full items-start gap-6">

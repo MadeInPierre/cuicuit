@@ -45,8 +45,8 @@
 </script>
 
 {#if url}
-	<div class="relative w-full aspect-square group">
-		<img src={url} alt="Recipe" class="aspect-square w-full rounded-md object-cover" />
+	<div class="relative w-full aspect-[1.618] group">
+		<img src={url} alt="Recipe" class="aspect-[1.618] w-full rounded-md object-cover" />
 		<button
 			class="absolute -top-2 -right-2 bg-black rounded-full p-1 hidden group-hover:block"
 			onclick={deleteImage}
@@ -56,7 +56,7 @@
 	</div>
 {:else if loading}
 	<div
-		class="flex flex-col gap-2 aspect-square w-full items-center justify-center rounded-md border border-dashed cursor-not-allowed"
+		class="flex flex-col gap-2 aspect-[1.618] w-full items-center justify-center rounded-md border border-dashed cursor-not-allowed"
 	>
 		<Loader2
 			class={cn('text-muted-foreground animate-spin', size == 'big' ? 'size-8' : 'size-4')}
@@ -64,7 +64,7 @@
 	</div>
 {:else}
 	<label
-		class="flex flex-col gap-2 aspect-square w-full items-center justify-center rounded-md border border-dashed cursor-pointer"
+		class="flex flex-col gap-2 aspect-[1.618] w-full items-center justify-center rounded-md border border-dashed cursor-pointer"
 		for={`upload-button-${position}`}
 	>
 		<Upload class={cn('text-muted-foreground', size == 'big' ? 'size-8' : 'size-4')} />
