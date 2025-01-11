@@ -63,7 +63,7 @@ export type RecipeDoc = {
 	description: string;
 	servings: number; // Number of servings for the quantities in the ingredients
 	ingredients: RecipeIngredient[];
-	instructions: RecipeInstruction[];
+	steps: RecipeStep[];
 	// Community
 	// TODO nutrition stats, allergens, etc.
 	// TODO reviews, comments, etc. but in a separate collection?
@@ -104,8 +104,7 @@ export enum DishesLevel {
 	VERY_HIGH = 5
 }
 
-export type RecipeInstruction = {
-	step: number;
+export type RecipeStep = {
 	description: string;
 	ingredients: RecipeIngredient[];
 };
@@ -165,24 +164,19 @@ export const recipeCuisines = {
 export type RecipeCuisineKey = keyof typeof recipeCuisines;
 
 export const recipeFoodTypes = {
-	breakfast: 'Breakfast and Brunch',
-	lunch: 'Lunch',
 	salads: 'Salads',
 	appetizers: 'Appetizers',
 	soups: 'Soups',
 	main: 'Main Dishes',
 	side: 'Side Dishes',
 	beverages: 'Beverages',
+	smoothies: 'Smoothies',
 	breads: 'Breads',
 	desserts: 'Desserts',
 	cocktails: 'Cocktails',
-	condiments: 'Condiments and Sauces',
 	snacks: 'Snacks',
-	nonfood: 'Non-Food',
-	dressings: 'Dressings and Marinades',
-	sauces: 'Sauces and Gravies',
-	smoothies: 'Smoothies',
-	burgers: 'Burgers and Sandwiches'
+	condiments: 'Condiments and Sauces',
+	dressings: 'Dressings and Marinades'
 } as const;
 export type RecipeFoodTypeKey = keyof typeof recipeFoodTypes;
 

@@ -23,7 +23,10 @@
 		TriangleAlert,
 		X,
 		Globe,
-		Trash2
+		Trash2,
+		Loader2,
+		Users,
+		Minus
 	} from 'lucide-svelte';
 	import { Quantity } from '$lib/shared/utils/quantity';
 	import {
@@ -47,11 +50,17 @@
 		type RecipeCuisineKey,
 		type RecipeDoc,
 		type RecipeFoodTypeKey,
+		type RecipeStep,
 		type RecipeTimeOfDayKey,
 		type RecipeToolKey
 	} from '$lib/features/recipes/db/recipe-doc';
 	import { capitalize } from '$lib/utils';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { toast } from 'svelte-sonner';
+	import { goto } from '$app/navigation';
+	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
+	import * as Table from '$lib/shared/components/ui/table';
+	import * as ToggleGroup from '$lib/shared/components/ui/toggle-group';
 
 	// Load the recipe document
 	const pageRecipeId = $page.params.id;
@@ -67,11 +76,17 @@
 	const form = superForm(defaults(zod(createRecipeFormSchema)), {
 		SPA: true,
 		validators: zod(createRecipeFormSchema),
-		onUpdate({ form }) {
-			if (form.valid) onSubmit(form.data);
+		async onUpdate({ form }) {
+			if (form.valid) {
+				await onSubmit(form.data);
+				toast.success('Recipe saved! 👨‍🍳');
+			} else {
+				toast.error('Please fix the errors in the form.');
+			}
 		}
 	});
 	const { form: formData, enhance, errors } = form;
+	$inspect($errors);
 
 	let searchInput = $state('');
 	let result = $state('');
@@ -82,10 +97,10 @@
 		$formData.title = recipeDocState.data.title;
 		$formData.description = recipeDocState.data.description;
 		$formData.tools = recipeDocState.data.tools;
-		$formData.timePrep = recipeDocState.data.time.prep;
-		$formData.timeCook = recipeDocState.data.time.cook;
-		$formData.timeRest = recipeDocState.data.time.rest;
-		$formData.tools = recipeDocState.data.tools;
+		$formData.timePrep = recipeDocState.data.time?.prep || 0;
+		$formData.timeCook = recipeDocState.data.time?.cook || 0;
+		$formData.timeRest = recipeDocState.data.time?.rest || 0;
+		$formData.tools = recipeDocState.data.tools || [];
 		$formData.motivationLevel = recipeDocState.data.motivationLevel || 3;
 		$formData.healthyLevel = recipeDocState.data.healthyLevel || 3;
 		$formData.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher || 3;
@@ -93,6 +108,8 @@
 		$formData.timeOfDay = recipeDocState.data.timeOfDay || undefined;
 		$formData.foodType = recipeDocState.data.foodType || undefined;
 		$formData.cuisine = recipeDocState.data.cuisine || undefined;
+		$formData.stepDescriptions = recipeDocState.data.steps?.map((step) => step.description) || [''];
+		$formData.servings = recipeDocState.data.servings || 4;
 	});
 
 	// Debounce the search input
@@ -120,10 +137,14 @@
 		}, 1000);
 	});
 
-	function onSubmit(data: Infer<CreateRecipeFormSchema>) {
+	let loading = $state(false);
+
+	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
 		if (!recipeDocState.data) return;
 
-		recipeDocState.updateDoc({
+		loading = true;
+		await recipeDocState.updateDoc({
+			status: 'published',
 			title: data.title,
 			description: data.description,
 			tools: data.tools as RecipeToolKey[],
@@ -138,8 +159,19 @@
 			'dishesLevels.total': data.dishWasherLevel + data.dishHandLevel,
 			timeOfDay: data.timeOfDay as RecipeTimeOfDayKey,
 			foodType: data.foodType as RecipeFoodTypeKey,
-			cuisine: data.cuisine as RecipeCuisineKey
+			cuisine: data.cuisine as RecipeCuisineKey,
+			steps: Object.values(data.stepDescriptions.filter((d) => d.trim() != '')).map(
+				(d) =>
+					({
+						description: d,
+						ingredients: [] // TODO ingredients
+					}) as RecipeStep
+			),
+			servings: data.servings || 4
 		});
+
+		// Wait for 1 second for the loading spinner to show
+		loading = false;
 	}
 
 	let selectedMotivation = $derived(
@@ -211,7 +243,19 @@
 		<main class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
 			<div class="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
 				<div class="flex items-center gap-4">
-					<Button variant="outline" size="icon" class="h-7 w-7" href="/recipes">
+					<Button
+						variant="outline"
+						size="icon"
+						class="h-7 w-7"
+						href="/recipes"
+						onclick={() => {
+							if (recipeDocState.data && recipeDocState.data.status === 'draft') {
+								alert('Are you sure you want to discard this recipe?');
+								deleteRecipe(recipeDocState);
+							}
+							goto('/recipes');
+						}}
+					>
 						<ChevronLeft class="h-4 w-4" />
 						<span class="sr-only">Back</span>
 					</Button>
@@ -222,15 +266,21 @@
 					</h1>
 					<!-- <Badge variant="outline" class="ml-auto sm:ml-0">In stock</Badge> -->
 					<div class="hidden items-center gap-2 md:ml-auto md:flex">
-						<Button variant="outline" size="sm">
+						<Button variant="outline" size="sm" disabled={loading}>
 							{#if recipeDocState.data?.status == 'draft'}
 								Discard
 							{:else}
-								<Trash2 class="h-4 w-4" />
+								<Trash2 class="size-3.5 mr-2" />
 								Delete
 							{/if}
 						</Button>
-						<ButtonThemed size="sm" type="submit">Save</ButtonThemed>
+						<ButtonThemed size="sm" type="submit" class="w-14 flex gap-2" disabled={loading}>
+							{#if loading}
+								<Loader2 class="h-4 w-4 animate-spin" />
+							{:else}
+								Save
+							{/if}
+						</ButtonThemed>
 					</div>
 				</div>
 				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
@@ -243,14 +293,14 @@
 								</div>
 								<DropdownMenu.Root>
 									<DropdownMenu.Trigger asChild let:builder>
-										<ButtonThemed builders={[builder]} class="ml-auto" size="sm">
-											<Download class="mr-2 h-4 w-4" />
+										<ButtonThemed builders={[builder]} class="ml-auto" size="sm" disabled={loading}>
+											<Download class="mx-2 h-4 w-4" />
 											<span>Import</span>
 										</ButtonThemed>
 										<!-- <Button builders={[builder]} variant="outline">Open</Button> -->
 									</DropdownMenu.Trigger>
 									<DropdownMenu.Content class="w-44" align="start">
-										<DropdownMenu.Item href="/recipes/new">
+										<DropdownMenu.Item>
 											<Globe class="mr-2 h-4 w-4" />
 											<span>From the web...</span>
 										</DropdownMenu.Item>
@@ -271,6 +321,7 @@
 										<Form.Control let:attrs>
 											<Form.Label>Title</Form.Label>
 											<Input
+												disabled={loading}
 												{...attrs}
 												bind:value={$formData.title}
 												placeholder="Chocolate cookies"
@@ -282,6 +333,7 @@
 										<Form.Control let:attrs>
 											<Form.Label>Description</Form.Label>
 											<Textarea
+												disabled={loading}
 												{...attrs}
 												bind:value={$formData.description}
 												placeholder="A delicious recipe for chocolate cookies that will make your day! It is easy to make and will be ready in no time."
@@ -295,12 +347,49 @@
 						</Card.Root>
 						<Card.Root>
 							<Card.Header>
-								<Card.Title>Ingredients</Card.Title>
-								<Card.Description>List all the ingredients required for the recipe</Card.Description
-								>
+								<div class="flex">
+									<div class="flex flex-col space-y-1.5">
+										<Card.Title>Ingredients</Card.Title>
+										<Card.Description>
+											List all the ingredients required for the recipe
+										</Card.Description>
+									</div>
+									<div class="flex gap-2 items-center ml-auto p-2 bg-muted rounded-md">
+										<Button
+											variant="outline"
+											size="icon"
+											class="size-8 rounded-full"
+											disabled={loading}
+											onclick={() => ($formData.servings = Math.max(1, $formData.servings - 1))}
+										>
+											<Minus class="size-4" />
+											<span class="sr-only">Decrease servings</span>
+										</Button>
+										<div class="w-12 flex flex-col">
+											<div class="flex justify-center text-center text-xl font-bold h-6">
+												{$formData.servings}
+												<Users class="ml-2 size-4" />
+											</div>
+											<span class="text-[7pt] text-muted-foreground text-center font-bold">
+												SERVING{$formData.servings > 1 ? 'S' : ''}
+											</span>
+										</div>
+										<Button
+											variant="outline"
+											size="icon"
+											class="size-8 rounded-full"
+											disabled={loading}
+											onclick={() => ($formData.servings = Math.min(20, $formData.servings + 1))}
+										>
+											<Plus class="size-4" />
+											<span class="sr-only">Increase servings</span>
+										</Button>
+									</div>
+								</div>
 							</Card.Header>
 							<Card.Content class="grid gap-3">
 								<Input
+									disabled={loading}
 									id="name"
 									type="text"
 									class="w-full shadow-sm"
@@ -310,82 +399,97 @@
 
 								<p>{result}</p>
 
-								<!-- <Table.Root>
-								<Table.Header>
-									<Table.Row>
-										<Table.Head class="w-[100px]">Item</Table.Head>
-										<Table.Head>Quantity</Table.Head>
-										<Table.Head>Details</Table.Head>
-										<Table.Head class="w-[100px]">Size</Table.Head>
-									</Table.Row>
-								</Table.Header>
-								<Table.Body>
-									<Table.Row>
-										<Table.Cell class="font-semibold">Tomatoes</Table.Cell>
-										<Table.Cell class="flex gap-2">
-											<Label for="stock-1" class="sr-only">Stock</Label>
-											<Input id="stock-1" type="number" value="100" />
-											<Input id="stock-1" value="g" class="w-16" />
-										</Table.Cell>
-										<Table.Cell>
-											<Label for="price-1" class="sr-only">Price</Label>
-											<Input id="price-1" placeholder="Fresh" />
-										</Table.Cell>
-										<Table.Cell>
-											<ToggleGroup.Root type="single" value="s" variant="outline">
-												<ToggleGroup.Item value="s">S</ToggleGroup.Item>
-												<ToggleGroup.Item value="m">M</ToggleGroup.Item>
-												<ToggleGroup.Item value="l">L</ToggleGroup.Item>
-											</ToggleGroup.Root>
-										</Table.Cell>
-									</Table.Row>
-									<Table.Row>
-										<Table.Cell class="font-semibold">Garlic</Table.Cell>
-										<Table.Cell class="flex gap-2">
-											<Label for="stock-1" class="sr-only">Stock</Label>
-											<Input id="stock-1" type="number" value="100" class="w-16" />
-											<Input id="stock-1" value="g" class="w-16" />
-										</Table.Cell>
-										<Table.Cell>
-											<Label for="price-2" class="sr-only">Price</Label>
-											<Input id="price-2" placeholder="Fresh" />
-										</Table.Cell>
-										<Table.Cell>
-											<ToggleGroup.Root type="single" value="m" variant="outline">
-												<ToggleGroup.Item value="s">S</ToggleGroup.Item>
-												<ToggleGroup.Item value="m">M</ToggleGroup.Item>
-												<ToggleGroup.Item value="l">L</ToggleGroup.Item>
-											</ToggleGroup.Root>
-										</Table.Cell>
-									</Table.Row>
-									<Table.Row>
-										<Table.Cell class="font-semibold">Flour</Table.Cell>
-										<Table.Cell class="flex gap-2">
-											<Label for="stock-1" class="sr-only">Stock</Label>
-											<Input id="stock-1" type="number" value="100" />
-											<Input id="stock-1" value="g" class="w-16" />
-										</Table.Cell>
-										<Table.Cell>
-											<Label for="price-3" class="sr-only">Stock</Label>
-											<Input id="price-3" placeholder="Fresh" />
-										</Table.Cell>
-										<Table.Cell>
-											<ToggleGroup.Root type="single" value="s" variant="outline">
-												<ToggleGroup.Item value="s">S</ToggleGroup.Item>
-												<ToggleGroup.Item value="m">M</ToggleGroup.Item>
-												<ToggleGroup.Item value="l">L</ToggleGroup.Item>
-											</ToggleGroup.Root>
-										</Table.Cell>
-									</Table.Row>
-								</Table.Body>
-							</Table.Root> -->
+								<Table.Root>
+									<Table.Header>
+										<Table.Row>
+											<Table.Head class="w-[0px]">Amount</Table.Head>
+											<Table.Head class="w-[0px]">Unit</Table.Head>
+											<Table.Head>Item</Table.Head>
+										</Table.Row>
+									</Table.Header>
+									<Table.Body>
+										<Table.Row>
+											<Table.Cell>
+												<Label for="amount" class="sr-only">Amount</Label>
+												<Input id="amount" type="number" class="w-[80px]" value="100" />
+											</Table.Cell>
+											<Table.Cell>
+												<ToggleGroup.Root type="single" value="s" variant="outline">
+													<ToggleGroup.Item value="s">g</ToggleGroup.Item>
+													<ToggleGroup.Item value="m">mL</ToggleGroup.Item>
+												</ToggleGroup.Root>
+											</Table.Cell>
+											<Table.Cell>
+												<Label for="item">Tomatoes</Label>
+											</Table.Cell>
+										</Table.Row>
+
+										<!-- <Table.Row>
+											<Table.Cell class="font-semibold">Tomatoes</Table.Cell>
+											<Table.Cell class="flex gap-2">
+												<Label for="stock-1" class="sr-only">Stock</Label>
+												<Input id="stock-1" type="number" value="100" />
+												<Input id="stock-1" value="g" class="w-16" />
+											</Table.Cell>
+											<Table.Cell>
+												<Label for="price-1" class="sr-only">Price</Label>
+												<Input id="price-1" placeholder="Fresh" />
+											</Table.Cell>
+											<Table.Cell>
+												<ToggleGroup.Root type="single" value="s" variant="outline">
+													<ToggleGroup.Item value="s">S</ToggleGroup.Item>
+													<ToggleGroup.Item value="m">M</ToggleGroup.Item>
+													<ToggleGroup.Item value="l">L</ToggleGroup.Item>
+												</ToggleGroup.Root>
+											</Table.Cell>
+										</Table.Row>
+										<Table.Row>
+											<Table.Cell class="font-semibold">Garlic</Table.Cell>
+											<Table.Cell class="flex gap-2">
+												<Label for="stock-1" class="sr-only">Stock</Label>
+												<Input id="stock-1" type="number" value="100" class="w-16" />
+												<Input id="stock-1" value="g" class="w-16" />
+											</Table.Cell>
+											<Table.Cell>
+												<Label for="price-2" class="sr-only">Price</Label>
+												<Input id="price-2" placeholder="Fresh" />
+											</Table.Cell>
+											<Table.Cell>
+												<ToggleGroup.Root type="single" value="m" variant="outline">
+													<ToggleGroup.Item value="s">S</ToggleGroup.Item>
+													<ToggleGroup.Item value="m">M</ToggleGroup.Item>
+													<ToggleGroup.Item value="l">L</ToggleGroup.Item>
+												</ToggleGroup.Root>
+											</Table.Cell>
+										</Table.Row>
+										<Table.Row>
+											<Table.Cell class="font-semibold">Flour</Table.Cell>
+											<Table.Cell class="flex gap-2">
+												<Label for="stock-1" class="sr-only">Stock</Label>
+												<Input id="stock-1" type="number" value="100" />
+												<Input id="stock-1" value="g" class="w-16" />
+											</Table.Cell>
+											<Table.Cell>
+												<Label for="price-3" class="sr-only">Stock</Label>
+												<Input id="price-3" placeholder="Fresh" />
+											</Table.Cell>
+											<Table.Cell>
+												<ToggleGroup.Root type="single" value="s" variant="outline">
+													<ToggleGroup.Item value="s">S</ToggleGroup.Item>
+													<ToggleGroup.Item value="m">M</ToggleGroup.Item>
+													<ToggleGroup.Item value="l">L</ToggleGroup.Item>
+												</ToggleGroup.Root>
+											</Table.Cell>
+										</Table.Row> -->
+									</Table.Body>
+								</Table.Root>
 							</Card.Content>
-							<Card.Footer class="justify-center border-t p-4">
-								<Button size="sm" variant="ghost" class="gap-1">
+							<!-- <Card.Footer class="justify-center border-t p-4">
+								<Button size="sm" variant="ghost" class="gap-1" disabled={loading}>
 									<CirclePlus class="h-3.5 w-3.5" />
 									Add Ingredient
 								</Button>
-							</Card.Footer>
+							</Card.Footer> -->
 						</Card.Root>
 						<Card.Root>
 							<Card.Header>
@@ -398,6 +502,7 @@
 								<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
 									{#snippet toolButton(key: RecipeToolKey, label: string)}
 										<button
+											disabled={loading}
 											class={$formData.tools.includes(key)
 												? 'aspect-square rounded-md text-center border-2 font-semibold ' +
 													`border-${activeSpace!.userHeader!.theme}-600 text-${activeSpace!.userHeader!.theme}-600`
@@ -427,69 +532,81 @@
 								</Card.Description>
 							</Card.Header>
 							<Card.Content class="grid gap-6">
-								<div class="grid gap-3">
-									<div class="flex items-end">
-										<Label for="description">Step 1</Label>
-										<!-- <Button variant="ghost" size="icon" class="size-6 ml-auto">
-											<ChevronUp class="size-4" />
-											<span class="sr-only">Move up</span>
-										</Button> -->
-										<Button variant="ghost" size="icon" class="size-6 ml-auto">
-											<ChevronDown class="size-4" />
-											<span class="sr-only">Move down</span>
-										</Button>
-										<Button variant="ghost" size="icon" class="size-6 ml-2">
-											<X class="size-4" />
-											<span class="sr-only">Delete</span>
-										</Button>
-									</div>
-									<Textarea
-										id="description"
-										placeholder="Preheat the oven to 350 degrees F (175 degrees C). Grease cookie sheets."
-										class="min-h-20"
-									/>
-									<div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-										<div class="bg-muted w-full aspect-square rounded-md"></div>
-										<div class="bg-muted w-full aspect-square rounded-md"></div>
-										<div class="border w-full aspect-square rounded-md">
-											<Plus class="size-8 m-auto h-full text-muted-foreground" />
-										</div>
-									</div>
-								</div>
-								<div class="grid gap-3">
-									<div class="flex items-end">
-										<Label for="description">Step 2</Label>
-										<Button variant="ghost" size="icon" class="size-6 ml-auto">
-											<ChevronUp class="size-4" />
-											<span class="sr-only">Move up</span>
-										</Button>
-										<Button variant="ghost" size="icon" class="size-6 ml-2">
-											<ChevronDown class="size-4" />
-											<span class="sr-only">Move down</span>
-										</Button>
-										<Button variant="ghost" size="icon" class="size-6 ml-2">
-											<X class="size-4" />
-											<span class="sr-only">Delete</span>
-										</Button>
-									</div>
-									<Textarea
-										id="description"
-										placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
-										class="min-h-20"
-									/>
-									<div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-										<div class="bg-muted w-full aspect-square rounded-md"></div>
-										<div
-											class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
-										>
-											<Plus class="size-8 mb-1" />
-											<span class="text-xs">Link</span>
-											<span class="text-xs">ingredient</span>
-										</div>
-									</div>
-								</div>
+								{#each $formData.stepDescriptions as desc, i}
+									<Form.Field {form} name="stepDescriptions" class="grid">
+										<Form.Control let:attrs>
+											<div class="grid gap-3">
+												<div class="flex items-end">
+													<Form.Label for="description" class="mr-auto">Step {i + 1}</Form.Label>
+													{#if i > 0}
+														<Button
+															variant="ghost"
+															size="icon"
+															class="size-6"
+															onclick={() => {
+																const temp = $formData.stepDescriptions[i];
+																$formData.stepDescriptions[i] = $formData.stepDescriptions[i - 1];
+																$formData.stepDescriptions[i - 1] = temp;
+															}}
+														>
+															<ChevronUp class="size-4" />
+															<span class="sr-only">Move up</span>
+														</Button>
+													{/if}
+													{#if i < $formData.stepDescriptions.length - 1}
+														<Button
+															variant="ghost"
+															size="icon"
+															class="size-6 ml-2"
+															onclick={() => {
+																const temp = $formData.stepDescriptions[i];
+																$formData.stepDescriptions[i] = $formData.stepDescriptions[i + 1];
+																$formData.stepDescriptions[i + 1] = temp;
+															}}
+														>
+															<ChevronDown class="size-4" />
+															<span class="sr-only">Move down</span>
+														</Button>
+													{/if}
+													{#if $formData.stepDescriptions.length > 1}
+														<Button
+															variant="ghost"
+															size="icon"
+															class="size-6 ml-2"
+															onclick={() =>
+																($formData.stepDescriptions = $formData.stepDescriptions.filter(
+																	(_, j) => j !== i
+																))}
+														>
+															<X class="size-4" />
+															<span class="sr-only">Delete</span>
+														</Button>
+													{/if}
+												</div>
+												<Textarea
+													{...attrs}
+													id="description"
+													placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
+													class="min-h-20"
+													bind:value={$formData.stepDescriptions[i]}
+												/>
+												<div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+													<div class="bg-muted w-full aspect-square rounded-md"></div>
+													<div
+														class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
+													>
+														<Plus class="size-8 mb-1" />
+														<span class="text-xs">Link</span>
+														<span class="text-xs">ingredient</span>
+													</div>
+												</div>
+											</div>
+										</Form.Control>
+										<Form.FieldErrors />
+									</Form.Field>
+								{/each}
 							</Card.Content>
-							<Card.Footer class="grid gap-3 border-t p-6">
+							<!-- <Card.Footer class="grid gap-3 border-t p-6">
 								<div class="flex flex-col space-y-1.5">
 									<div class="flex items-center">
 										<Label for="description" class="text-yellow-600 flex gap-2 items-center">
@@ -519,9 +636,15 @@
 										class="w-full aspect-square rounded-md dark:bg-yellow-900/40 bg-yellow-100"
 									></div>
 								</div>
-							</Card.Footer>
+							</Card.Footer> -->
 							<Card.Footer class="justify-center border-t p-4">
-								<Button size="sm" variant="ghost" class="gap-1">
+								<Button
+									size="sm"
+									variant="ghost"
+									class="gap-1"
+									onclick={() => ($formData.stepDescriptions = [...$formData.stepDescriptions, ''])}
+									disabled={$formData.stepDescriptions.length >= 10}
+								>
 									<CirclePlus class="h-3.5 w-3.5" />
 									Add Step
 								</Button>
@@ -538,7 +661,7 @@
 								<div class="grid gap-2">
 									<ImgUploadButton {recipeDocState} />
 									<div class="grid grid-cols-3 gap-2">
-										{#each Array.from( { length: Math.min(recipeDocState.data?.imageIds.length || 0, 3) } ) as _, i}
+										{#each Array.from( { length: Math.min(recipeDocState.data?.imageIds?.length || 0, 3) } ) as _, i}
 											<ImgUploadButton {recipeDocState} size="small" position={i + 1} />
 										{/each}
 									</div>
@@ -828,10 +951,6 @@
 							<p>Status: {recipeDocState.data?.status}</p>
 						</div>
 					</div>
-				</div>
-				<div class="flex items-center justify-center gap-2 md:hidden">
-					<Button variant="outline" size="sm">Discard</Button>
-					<Button size="sm">Save Recipe</Button>
 				</div>
 
 				<div class="text-muted-foreground text-xs justify-center flex items-center gap-0.5">
