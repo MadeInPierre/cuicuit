@@ -106,7 +106,7 @@
 					<div class="w-full aspect-[1.618] bg-gray-200 rounded-md"></div>
 				{/if}
 				<div class="flex items-center gap-2 p-2 w-full h-full">
-					<a class="grid" href={'/recipes/edit/' + recipe.id}>
+					<a class="grid w-full" href={'/recipes/edit/' + recipe.id}>
 						<h3 class="text-sm font-semibold line-clamp-1">{recipe.doc.title}</h3>
 						<p class="text-xs text-muted-foreground flex items-center">
 							<span class="mr-4">{recipeTimesOfDay[recipe.doc.timeOfDay]}</span>
@@ -116,7 +116,7 @@
 						</p>
 					</a>
 					<ButtonThemed
-						class="ml-auto rounded-full size-7 mr-2"
+						class="rounded-full size-7 min-w-7 mr-2"
 						size="icon"
 						type="outline"
 						aria-label="Add to plan"

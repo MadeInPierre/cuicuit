@@ -76,6 +76,25 @@ const weightAliases = {
 	lb: ['pound', 'pounds']
 };
 
+export const unitLabels = {
+	ml: 'mL',
+	cl: 'cL',
+	dl: 'dL',
+	l: 'L',
+	tsp: 'tsp',
+	tbsp: 'tbsp',
+	dstspn: 'dstspn',
+	cup: 'cup',
+	quart: 'quart',
+	gallon: 'gallon',
+	floz: 'floz',
+	pint: 'pint',
+	g: 'g',
+	kg: 'kg',
+	oz: 'oz',
+	lb: 'lb'
+} satisfies Record<keyof typeof volumeAliases | keyof typeof weightAliases, string>;
+
 /**
  * Quantity class: represents a quantity of a food item with a value, a unit and an optional food density.
  * The class has a method to convert the quantity to another unit (weight to/from volume if density is provided).
