@@ -7,7 +7,7 @@
 	import { Input, type FormInputEvent } from '$lib/shared/components/ui/input';
 	import type { DocState } from '$lib/shared/db/doc-state.svelte';
 	import { cn } from '$lib/utils';
-	import { Loader2, Upload, X } from 'lucide-svelte';
+	import { Camera, Loader2, Upload, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
@@ -64,10 +64,10 @@
 	</div>
 {:else}
 	<label
-		class="flex flex-col gap-2 aspect-[1.618] w-full items-center justify-center rounded-md border border-dashed cursor-pointer"
+		class="flex flex-col gap-2 aspect-[1.618] w-full items-center justify-center rounded-md border border-dashed cursor-pointer bg-muted"
 		for={`upload-button-${position}`}
 	>
-		<Upload class={cn('text-muted-foreground', size == 'big' ? 'size-8' : 'size-4')} />
+		<Camera class={cn('text-muted-foreground', size == 'big' ? 'size-8' : 'size-4')} />
 		{#if size === 'big'}
 			<span class="pt-2 text-muted-foreground text-sm font-semibold">Click to upload an image</span>
 			<span class="text-muted-foreground text-xs">PNG, JPEG, or WEBP</span>
