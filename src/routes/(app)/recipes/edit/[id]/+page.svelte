@@ -20,15 +20,15 @@
 		Plus,
 		FileImage,
 		FileText,
-		TriangleAlert,
 		X,
 		Globe,
 		Trash2,
 		Loader2,
 		Users,
-		Minus
+		Minus,
+		GripVertical
 	} from 'lucide-svelte';
-	import { Quantity } from '$lib/shared/utils/quantity';
+	import { Quantity, unitLabels, type Unit } from '$lib/shared/utils/quantity';
 	import {
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
@@ -54,13 +54,11 @@
 		type RecipeTimeOfDayKey,
 		type RecipeToolKey
 	} from '$lib/features/recipes/db/recipe-doc';
-	import { capitalize } from '$lib/utils';
+	import { capitalize, cn } from '$lib/utils';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
-	import * as Table from '$lib/shared/components/ui/table';
-	import * as ToggleGroup from '$lib/shared/components/ui/toggle-group';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
 
@@ -78,6 +76,7 @@
 	const form = superForm(defaults(zod(createRecipeFormSchema)), {
 		SPA: true,
 		validators: zod(createRecipeFormSchema),
+		resetForm: false,
 		async onUpdate({ form }) {
 			if (form.valid) {
 				await onSubmit(form.data);
@@ -88,12 +87,12 @@
 		}
 	});
 	const { form: formData, enhance, errors } = form;
-	$inspect($errors, JSON.stringify($formData));
+	$inspect($errors);
 
 	let searchInput = $state('');
 	let result = $state('');
 
-	// Update the form data with the recipe document data
+	// Update the form data with the recipe document data whenever it changes
 	$effect(() => {
 		if (!recipeDocState.data) return;
 		$formData.title = recipeDocState.data.title;
@@ -112,6 +111,9 @@
 		$formData.cuisine = recipeDocState.data.cuisine || undefined;
 		$formData.stepDescriptions = recipeDocState.data.steps?.map((step) => step.description) || [''];
 		$formData.servings = recipeDocState.data.servings || 4;
+		$formData.ingredientAmounts = recipeDocState.data.ingredients?.map((i) => i.amount) || [1, 1];
+		$formData.ingredientUnits = recipeDocState.data.ingredients?.map((i) => i.unit) || ['g', 'g'];
+		$formData.ingredientNames = recipeDocState.data.ingredients?.map((i) => i.name) || ['', ''];
 	});
 
 	// Debounce the search input
@@ -169,75 +171,17 @@
 						ingredients: [] // TODO ingredients
 					}) as RecipeStep
 			),
-			servings: data.servings || 4
+			servings: data.servings || 4,
+			ingredients: data.ingredientAmounts.map((amount, i) => ({
+				amount,
+				unit: data.ingredientUnits[i] as Unit, // TODO units are wrong in the form, must match the type
+				name: capitalize(data.ingredientNames[i])
+			}))
 		});
 
 		// Wait for 1 second for the loading spinner to show
 		loading = false;
 	}
-
-	let selectedMotivation = $derived(
-		$formData.motivationLevel
-			? {
-					label: capitalize(RecipeMotivationLevel[$formData.motivationLevel]).replace('_', ' '),
-					value: $formData.motivationLevel
-				}
-			: undefined
-	);
-
-	let selectedHealthy = $derived(
-		$formData.healthyLevel
-			? {
-					label: capitalize(RecipeHealthyLevel[$formData.healthyLevel]).replace('_', ' '),
-					value: $formData.healthyLevel
-				}
-			: undefined
-	);
-
-	let selectedDishWasher = $derived(
-		$formData.dishWasherLevel
-			? {
-					label: capitalize(DishesLevel[$formData.dishWasherLevel]).replace('_', ' '),
-					value: $formData.dishWasherLevel
-				}
-			: undefined
-	);
-
-	let selectedDishHand = $derived(
-		$formData.dishHandLevel
-			? {
-					label: capitalize(DishesLevel[$formData.dishHandLevel]).replace('_', ' '),
-					value: $formData.dishHandLevel
-				}
-			: undefined
-	);
-
-	let selectedTimeOfDay = $derived(
-		$formData.timeOfDay
-			? {
-					label: recipeTimesOfDay[$formData.timeOfDay as RecipeTimeOfDayKey],
-					value: $formData.timeOfDay
-				}
-			: undefined
-	);
-
-	let selectedFoodType = $derived(
-		$formData.foodType
-			? {
-					label: recipeFoodTypes[$formData.foodType as RecipeFoodTypeKey],
-					value: $formData.foodType
-				}
-			: undefined
-	);
-
-	let selectedCuisine = $derived(
-		$formData.cuisine
-			? {
-					label: recipeCuisines[$formData.cuisine as RecipeCuisineKey],
-					value: $formData.cuisine
-				}
-			: undefined
-	);
 
 	let showDismissDialog = $state(false);
 	let dismissDialogMode: 'discard' | 'delete' = $state('discard');
@@ -375,7 +319,7 @@
 											List all the ingredients required for the recipe
 										</Card.Description>
 									</div>
-									<div class="flex gap-2 items-center ml-auto p-2 bg-muted rounded-md">
+									<div class="flex gap-2 items-center ml-auto p-2 bg-blue-100/40 rounded-md">
 										<Button
 											variant="outline"
 											size="icon"
@@ -409,7 +353,7 @@
 								</div>
 							</Card.Header>
 							<Card.Content class="grid gap-3">
-								<Input
+								<!-- <Input
 									disabled={loading}
 									id="name"
 									type="text"
@@ -418,9 +362,110 @@
 									bind:value={searchInput}
 								/>
 
-								<p>{result}</p>
+								<p>{result}</p> -->
 
-								<Table.Root>
+								{#each $formData.ingredientAmounts as _, i}
+									<div class="grid gap-3">
+										<div class="grid gap-2">
+											<div class="flex gap-2 items-center">
+												<GripVertical class="size-6 text-muted-foreground cursor-grab" />
+
+												<div class="flex">
+													<Form.Field {form} name="ingredientAmounts" class="space-y-0 w-full">
+														<Form.Control let:attrs>
+															<Input
+																{...attrs}
+																disabled={loading}
+																name="ingredientAmounts"
+																type="number"
+																step=".01"
+																class="w-20 rounded-r-none border-r-0"
+																bind:value={$formData.ingredientAmounts[i]}
+															/>
+														</Form.Control>
+													</Form.Field>
+
+													<Form.Field {form} name="ingredientUnits" class="space-y-0">
+														<Form.Control let:attrs>
+															<Select.Root
+																selected={{
+																	label: $formData.ingredientUnits[i],
+																	value: $formData.ingredientUnits[i]
+																}}
+																onSelectedChange={(v) => {
+																	v && ($formData.ingredientUnits[i] = v.value);
+																}}
+															>
+																<Select.Trigger {...attrs} class="gap-1 bg-muted/40 rounded-l-none">
+																	<Select.Value placeholder="Unit" class="min-w-7" />
+																</Select.Trigger>
+																<Select.Content>
+																	{#each Object.entries(unitLabels) as [key, label]}
+																		<Select.Item value={key} {label} />
+																	{/each}
+																</Select.Content>
+															</Select.Root>
+															<input hidden bind:value={$formData.foodType} name={attrs.name} />
+														</Form.Control>
+														<Form.FieldErrors />
+													</Form.Field>
+												</div>
+
+												<Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
+													<Form.Control let:attrs>
+														<Input
+															{...attrs}
+															disabled={loading}
+															name="ingredientNames"
+															type="text"
+															placeholder="Tomatoes, Flour, ..."
+															bind:value={$formData.ingredientNames[i]}
+														/>
+													</Form.Control>
+												</Form.Field>
+
+												<Button
+													variant="ghost"
+													size="icon"
+													class="h-6 w-6 min-w-6"
+													disabled={loading || $formData.ingredientAmounts.length <= 2}
+													onclick={() => {
+														$formData.ingredientAmounts = $formData.ingredientAmounts.filter(
+															(_, j) => j !== i
+														);
+														$formData.ingredientUnits = $formData.ingredientUnits.filter(
+															(_, j) => j !== i
+														);
+														$formData.ingredientNames = $formData.ingredientNames.filter(
+															(_, j) => j !== i
+														);
+													}}
+												>
+													<X class="size-4" />
+													<span class="sr-only">Delete</span>
+												</Button>
+											</div>
+
+											{#if $errors.ingredientAmounts?.[i]}
+												<p class="ml-6 text-destructive text-sm font-medium">
+													{$errors.ingredientAmounts[i]}
+												</p>
+											{/if}
+											{#if $errors.ingredientUnits?.[i]}
+												<p class="ml-6 text-destructive text-sm font-medium">
+													{$errors.ingredientUnits[i]}
+												</p>
+											{/if}
+											{#if $errors.ingredientNames?.[i]}
+												<p class="ml-6 text-destructive text-sm font-medium">
+													{$errors.ingredientNames[i]}
+												</p>
+											{/if}
+										</div>
+									</div>
+								{/each}
+
+								<!-- <Table.Root>
 									<Table.Header>
 										<Table.Row>
 											<Table.Head class="w-[0px]">Amount</Table.Head>
@@ -445,8 +490,24 @@
 											</Table.Cell>
 										</Table.Row>
 									</Table.Body>
-								</Table.Root>
+								</Table.Root> -->
 							</Card.Content>
+							<Card.Footer class="justify-center border-t p-4">
+								<Button
+									size="sm"
+									variant="ghost"
+									class="gap-1"
+									disabled={loading || $formData.ingredientAmounts.length >= 10}
+									onclick={() => {
+										$formData.ingredientAmounts = [...$formData.ingredientAmounts, 1];
+										$formData.ingredientUnits = [...$formData.ingredientUnits, 'g'];
+										$formData.ingredientNames = [...$formData.ingredientNames, ''];
+									}}
+								>
+									<CirclePlus class="h-3.5 w-3.5" />
+									Add Ingredient
+								</Button>
+							</Card.Footer>
 						</Card.Root>
 						<Card.Root>
 							<Card.Header>
@@ -492,9 +553,15 @@
 								{#each $formData.stepDescriptions as desc, i}
 									<Form.Field {form} name="stepDescriptions" class="grid">
 										<Form.Control let:attrs>
-											<div class="grid gap-3">
-												<div class="flex items-end">
-													<Form.Label for="description" class="mr-auto">Step {i + 1}</Form.Label>
+											<div class="grid gap-1.5">
+												<div class="flex items-center">
+													<Form.Label
+														for="description"
+														class={cn(
+															'mr-auto',
+															$errors.stepDescriptions?.[i] && 'text-destructive'
+														)}>Step {i + 1}</Form.Label
+													>
 													{#if i > 0}
 														<Button
 															variant="ghost"
@@ -557,6 +624,12 @@
 														<span class="text-xs">ingredient</span>
 													</div>
 												</div> -->
+
+												{#if $errors.stepDescriptions?.[i]}
+													<p class="text-destructive text-sm font-medium">
+														{$errors.stepDescriptions[i]}
+													</p>
+												{/if}
 											</div>
 										</Form.Control>
 										<Form.FieldErrors />
@@ -637,7 +710,12 @@
 											<Form.Control let:attrs>
 												<Form.Label>Motivation needed</Form.Label>
 												<Select.Root
-													selected={selectedMotivation}
+													selected={{
+														label: capitalize(
+															RecipeMotivationLevel[$formData.motivationLevel]
+														).replace('_', ' '),
+														value: $formData.motivationLevel
+													}}
 													onSelectedChange={(v) => {
 														v && ($formData.motivationLevel = v.value);
 													}}
@@ -664,7 +742,13 @@
 											<Form.Control let:attrs>
 												<Form.Label>Healthy level</Form.Label>
 												<Select.Root
-													selected={selectedHealthy}
+													selected={{
+														label: capitalize(RecipeHealthyLevel[$formData.healthyLevel]).replace(
+															'_',
+															' '
+														),
+														value: $formData.healthyLevel
+													}}
 													onSelectedChange={(v) => {
 														v && ($formData.healthyLevel = v.value);
 													}}
@@ -692,7 +776,13 @@
 												<Form.Control let:attrs>
 													<Form.Label>Dish washer</Form.Label>
 													<Select.Root
-														selected={selectedDishWasher}
+														selected={{
+															label: capitalize(DishesLevel[$formData.dishWasherLevel]).replace(
+																'_',
+																' '
+															),
+															value: $formData.dishWasherLevel
+														}}
 														onSelectedChange={(v) => {
 															v && ($formData.dishWasherLevel = v.value);
 														}}
@@ -720,7 +810,13 @@
 												<Form.Control let:attrs>
 													<Form.Label>Hand washing</Form.Label>
 													<Select.Root
-														selected={selectedDishHand}
+														selected={{
+															label: capitalize(DishesLevel[$formData.dishHandLevel]).replace(
+																'_',
+																' '
+															),
+															value: $formData.dishHandLevel
+														}}
 														onSelectedChange={(v) => {
 															v && ($formData.dishHandLevel = v.value);
 														}}
@@ -807,7 +903,10 @@
 											<Form.Control let:attrs>
 												<Form.Label>Time of day</Form.Label>
 												<Select.Root
-													selected={selectedTimeOfDay}
+													selected={{
+														label: recipeTimesOfDay[$formData.timeOfDay as RecipeTimeOfDayKey],
+														value: $formData.timeOfDay
+													}}
 													onSelectedChange={(v) => {
 														v && ($formData.timeOfDay = v.value);
 													}}
@@ -832,7 +931,10 @@
 											<Form.Control let:attrs>
 												<Form.Label>Food type</Form.Label>
 												<Select.Root
-													selected={selectedFoodType}
+													selected={{
+														label: recipeFoodTypes[$formData.foodType as RecipeFoodTypeKey],
+														value: $formData.foodType
+													}}
 													onSelectedChange={(v) => {
 														v && ($formData.foodType = v.value);
 													}}
@@ -857,7 +959,10 @@
 											<Form.Control let:attrs>
 												<Form.Label>Cuisine</Form.Label>
 												<Select.Root
-													selected={selectedCuisine}
+													selected={{
+														label: recipeCuisines[$formData.cuisine as RecipeCuisineKey],
+														value: $formData.cuisine
+													}}
 													onSelectedChange={(v) => {
 														v && ($formData.cuisine = v.value);
 													}}

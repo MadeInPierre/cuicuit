@@ -1,4 +1,5 @@
 import type { UserProfile } from '$lib/features/auth/db/user-doc';
+import type { Unit } from '$lib/shared/utils/quantity';
 import type { Modify } from '$lib/utils';
 import { Timestamp, type FirestoreDataConverter } from 'firebase/firestore';
 
@@ -182,12 +183,8 @@ export type RecipeFoodTypeKey = keyof typeof recipeFoodTypes;
 
 export type RecipeIngredient = {
 	name: string;
-	quantity: Quantity;
-};
-
-export type Quantity = {
-	value: number;
-	unit: string; // TODO more complex
+	amount: number;
+	unit: Unit;
 };
 
 /**
