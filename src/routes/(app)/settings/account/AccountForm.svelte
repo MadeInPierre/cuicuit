@@ -201,48 +201,50 @@
 			{#if !userDocState.user.isAnonymous}
 				<form method="POST" use:enhance>
 					<Form.Field {form} name="password">
-						<Form.Control let:attrs>
-							<Form.Label>
-								{#if userDocState.user.providerData.some((item) => item.providerId === 'password')}
-									Change password
-								{:else}
-									Set password
-								{/if}
-							</Form.Label>
+						<Form.Control>
+							{#snippet children({ props })}
+								<Form.Label>
+									{#if userDocState.user!.providerData.some((item) => item.providerId === 'password')}
+										Change password
+									{:else}
+										Set password
+									{/if}
+								</Form.Label>
 
-							<div class="flex gap-2">
-								<div class="relative w-full">
-									<Input
-										{...attrs}
-										class="pr-9"
-										bind:value={$formData.password}
-										placeholder="New password"
-										type={showPassword ? 'text' : 'password'}
-									/>
+								<div class="flex gap-2">
+									<div class="relative w-full">
+										<Input
+											{...props}
+											class="pr-9"
+											bind:value={$formData.password}
+											placeholder="New password"
+											type={showPassword ? 'text' : 'password'}
+										/>
 
-									<Button
-										size="icon"
-										variant="link"
-										class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
-										on:click={() => {
-											showPassword = !showPassword;
-										}}
-									>
-										{#if showPassword}
-											<EyeOff />
-										{:else}
-											<Eye />
-										{/if}
-									</Button>
+										<Button
+											size="icon"
+											variant="link"
+											class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
+											onclick={() => {
+												showPassword = !showPassword;
+											}}
+										>
+											{#if showPassword}
+												<EyeOff />
+											{:else}
+												<Eye />
+											{/if}
+										</Button>
+									</div>
+
+									<Form.Button>Update</Form.Button>
 								</div>
-
-								<Form.Button>Update</Form.Button>
-							</div>
+							{/snippet}
 						</Form.Control>
 						<Form.FieldErrors />
 						<Form.Description>
-							Password must be 8 to 30 characters long and include at least one lowercase letter,
-							one capital letter, one digit, and one special character.
+							You must have logged in recently to change your password, please sign out and log in
+							again if needed. Password must be 8 to 30 characters long.
 						</Form.Description>
 					</Form.Field>
 				</form>
@@ -298,7 +300,7 @@
 											<AlertDialog.Footer>
 												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 												<AlertDialog.Action
-													on:click={() => unlinkProvider(provider.providerId)}
+													onclick={() => unlinkProvider(provider.providerId)}
 													class="bg-destructive"
 												>
 													Delete
@@ -329,7 +331,7 @@
 				<Button
 					variant="link"
 					class="px-0 text-destructive md:ml-auto"
-					on:click={() => (showConfirmDeleteAccountDialog = true)}
+					onclick={() => (showConfirmDeleteAccountDialog = true)}
 				>
 					<Trash2 class="mr-2 h-4 w-4 text-destructive" />
 					Delete my account
@@ -358,14 +360,14 @@
 				<Dialog.Footer class="gap-2">
 					<Button
 						variant="outline"
-						on:click={() => {
+						onclick={() => {
 							showConfirmDeleteAccountDialog = false;
 						}}
 					>
 						Cancel
 					</Button>
 					<Button
-						on:click={() => {
+						onclick={() => {
 							deleteAccount(userDocState.user!);
 							showConfirmDeleteAccountDialog = true;
 						}}
@@ -388,13 +390,13 @@
 				</AlertDialog.Header>
 				<AlertDialog.Footer>
 					<AlertDialog.Cancel
-						on:click={() => {
+						onclick={() => {
 							showReloginDialog = false;
 						}}
 					>
 						Cancel
 					</AlertDialog.Cancel>
-					<AlertDialog.Action on:click={() => signOut(auth)}>Sign out</AlertDialog.Action>
+					<AlertDialog.Action onclick={() => signOut(auth)}>Sign out</AlertDialog.Action>
 				</AlertDialog.Footer>
 			</AlertDialog.Content>
 		</AlertDialog.Root>

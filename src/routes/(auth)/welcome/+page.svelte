@@ -93,25 +93,29 @@
 		<div class="flex flex-col">
 			<div class="flex w-full gap-4">
 				<Form.Field {form} name="firstName" class="w-full">
-					<Form.Control let:attrs>
-						<Form.Label>First name</Form.Label>
-						<Input
-							{...attrs}
-							bind:value={$formData.firstName}
-							placeholder={$formData.firstName || 'John'}
-						/>
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>First name</Form.Label>
+							<Input
+								{...props}
+								bind:value={$formData.firstName}
+								placeholder={$formData.firstName || 'John'}
+							/>
+						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
 
 				<Form.Field {form} name="lastName" class="w-full">
-					<Form.Control let:attrs>
-						<Form.Label>Last name</Form.Label>
-						<Input
-							{...attrs}
-							bind:value={$formData.lastName}
-							placeholder={$formData.lastName || 'Doe'}
-						/>
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Last name</Form.Label>
+							<Input
+								{...props}
+								bind:value={$formData.lastName}
+								placeholder={$formData.lastName || 'Doe'}
+							/>
+						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
@@ -121,13 +125,15 @@
 		</div>
 
 		<Form.Field {form} name="userName">
-			<Form.Control let:attrs>
-				<Form.Label>Username</Form.Label>
-				<Input
-					{...attrs}
-					bind:value={$formData.userName}
-					placeholder={$formData.userName || 'CuiCarrot'}
-				/>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Username</Form.Label>
+					<Input
+						{...props}
+						bind:value={$formData.userName}
+						placeholder={$formData.userName || 'CuiCarrot'}
+					/>
+				{/snippet}
 			</Form.Control>
 			<Form.Description>This is your public display name.</Form.Description>
 			<Form.FieldErrors />

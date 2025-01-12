@@ -76,15 +76,16 @@
 <form method="POST" use:enhance class="w-min space-y-4">
 	<div class="space-y-2">
 		<Form.Field {form} name="name">
-			<Form.Control let:attrs>
-				<Form.Label for="name">Name</Form.Label>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Name</Form.Label>
 
-				<Input
-					{...attrs}
-					id="name"
-					placeholder="Home, Paris, Parents, Office, John's, ..."
-					bind:value={$formData.name}
-				/>
+					<Input
+						{...props}
+						placeholder="Home, Paris, Parents, Office, John's, ..."
+						bind:value={$formData.name}
+					/>
+				{/snippet}
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>
@@ -92,52 +93,57 @@
 
 	<div class="space-y-2">
 		<Form.Fieldset {form} name="iconSlug" class="space-y-3">
-			<Form.Control let:attrs>
-				<Form.Label for="name">Icon</Form.Label>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Icon</Form.Label>
 
-				<div class="flex gap-2 items-center w-full">
-					{#each Object.entries(spaceIcons) as [slug, Icon] (slug)}
-						<Button
-							{...attrs}
-							size="icon"
-							variant={slug === $formData.iconSlug ? 'default' : 'secondary'}
-							on:click={() => ($formData.iconSlug = slug)}
-							class={cn(
-								'w-full size-10',
-								slug === $formData.iconSlug && themeButtonClasses[$formData.theme as SpaceThemeKey]
-							)}
-						>
-							<Icon class="size-5"></Icon>
-						</Button>
-					{/each}
-				</div>
+					<div class="flex gap-2 items-center w-full">
+						{#each Object.entries(spaceIcons) as [slug, Icon] (slug)}
+							<Button
+								{...props}
+								size="icon"
+								variant={slug === $formData.iconSlug ? 'default' : 'secondary'}
+								onclick={() => ($formData.iconSlug = slug)}
+								class={cn(
+									'w-full size-10',
+									slug === $formData.iconSlug &&
+										themeButtonClasses[$formData.theme as SpaceThemeKey]
+								)}
+							>
+								<Icon class="size-5"></Icon>
+							</Button>
+						{/each}
+					</div>
+				{/snippet}
 			</Form.Control>
 		</Form.Fieldset>
 	</div>
 
 	<div class="space-y-2">
 		<Form.Fieldset {form} name="theme">
-			<Form.Control let:attrs>
-				<Form.Label for="name">
-					Theme <span class="font-normal text-muted-foreground text-xs"> (for you only) </span>
-				</Form.Label>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>
+						Theme <span class="font-normal text-muted-foreground text-xs"> (for you only) </span>
+					</Form.Label>
 
-				<div class="flex gap-2 items-center w-full">
-					{#each Object.keys(themeButtonClasses) as c}
-						<Button
-							{...attrs}
-							size="icon"
-							variant={c === $formData.theme ? 'link' : 'secondary'}
-							on:click={() => ($formData.theme = c)}
-							class={cn(
-								'w-full size-10 rounded-full',
-								c === $formData.theme && `border-2 border-${c}-500`
-							)}
-						>
-							<div class={`size-5 rounded-full bg-${c}-500`}></div>
-						</Button>
-					{/each}
-				</div>
+					<div class="flex gap-2 items-center w-full">
+						{#each Object.keys(themeButtonClasses) as c}
+							<Button
+								{...props}
+								size="icon"
+								variant={c === $formData.theme ? 'link' : 'secondary'}
+								onclick={() => ($formData.theme = c)}
+								class={cn(
+									'w-full size-10 rounded-full',
+									c === $formData.theme && `border-2 border-${c}-500`
+								)}
+							>
+								<div class={`size-5 rounded-full bg-${c}-500`}></div>
+							</Button>
+						{/each}
+					</div>
+				{/snippet}
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Fieldset>

@@ -53,11 +53,13 @@
 		</div>
 
 		<DropdownMenu.Root>
-			<DropdownMenu.Trigger asChild let:builder>
-				<ButtonThemed builders={[builder]} class="ml-auto">
-					<Plus class="size-4 mr-2" />
-					Add
-				</ButtonThemed>
+			<DropdownMenu.Trigger>
+				{#snippet child({ props })}
+					<ButtonThemed {...props} class="ml-auto">
+						<Plus class="size-4 mr-2" />
+						Add
+					</ButtonThemed>
+				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content class="w-52" align="end">
 				<DropdownMenu.Item onclick={onNewRecipe}>

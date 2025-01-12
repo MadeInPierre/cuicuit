@@ -31,10 +31,10 @@ export const createRecipeFormSchema = z
 				message: 'Please select a value.'
 			}),
 
-		motivationLevel: z.number().int().min(1, 'Please select a value.').max(5),
-		healthyLevel: z.number().int().min(1, 'Please select a value.').max(5),
-		dishWasherLevel: z.number().min(1, 'Please select a value.').max(5),
-		dishHandLevel: z.number().min(1, 'Please select a value.').max(5),
+		motivationLevel: z.string().min(1, 'Please select a value.').max(5),
+		healthyLevel: z.string().min(1, 'Please select a value.').max(5),
+		dishWasherLevel: z.string().min(1, 'Please select a value.').max(5),
+		dishHandLevel: z.string().min(1, 'Please select a value.').max(5),
 
 		timePrep: z.number().int().min(0).max(120),
 		timeRest: z.number().int().min(0).max(120),

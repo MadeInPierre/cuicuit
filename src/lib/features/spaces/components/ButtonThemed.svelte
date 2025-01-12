@@ -19,6 +19,6 @@
 	);
 </script>
 
-<Button {...others} class={cn(themeClasses, "dark:text-white", className)} on:click={() => onclick()}>
+<Button {...others} class={cn(themeClasses, "dark:text-white", className)} onclick={() => onclick()}>
 	{@render children?.()}
 </Button>

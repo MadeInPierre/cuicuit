@@ -4,7 +4,7 @@
 		uploadRecipeImage
 	} from '$lib/features/recipes/actions/upload-recipe-image';
 	import type { DBRecipeDoc, RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
-	import { Input, type FormInputEvent } from '$lib/shared/components/ui/input';
+	import { Input } from '$lib/shared/components/ui/input';
 	import type { DocState } from '$lib/shared/db/doc-state.svelte';
 	import { cn } from '$lib/utils';
 	import { Camera, Loader2, Upload, X } from 'lucide-svelte';
@@ -77,7 +77,7 @@
 		id={`upload-button-${position}`}
 		type="file"
 		class="w-full hidden"
-		onchange={(e: FormInputEvent) => {
+		onchange={(e) => {
 			const imageFile = (e.target as HTMLInputElement)?.files?.[0];
 
 			if (imageFile) {

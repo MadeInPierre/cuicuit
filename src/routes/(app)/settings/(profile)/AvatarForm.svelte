@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Input, type FormInputEvent } from '$lib/shared/components/ui/input';
+	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
@@ -45,14 +45,13 @@
 
 {#if userDocState.user && userDocState.doc}
 	<div class="flex w-full flex-col gap-2">
-		<Label for="picture">Picture or icon</Label>
+		<Label>Picture or icon</Label>
 
 		<div class="flex items-center gap-2">
 			<Input
-				id="picture"
 				type="file"
 				class="w-full"
-				onchange={(e: FormInputEvent) => {
+				onchange={(e) => {
 					file = (e.target as HTMLInputElement)?.files?.[0];
 				}}
 			/>
@@ -88,7 +87,7 @@
 						<AlertDialog.Footer>
 							<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 							<AlertDialog.Action
-								on:click={() =>
+								onclick={() =>
 									deleteUserPicture(userDocState, `users/${userDocState.user?.uid}/profile.png`)}
 							>
 								Delete
