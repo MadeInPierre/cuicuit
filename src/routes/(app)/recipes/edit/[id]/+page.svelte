@@ -108,10 +108,10 @@
 				f.timeCook = recipeDocState.data.time?.cook || 0;
 				f.timeRest = recipeDocState.data.time?.rest || 0;
 				f.tools = recipeDocState.data.tools || [];
-				f.motivationLevel = recipeDocState.data.motivationLevel || 3;
-				f.healthyLevel = recipeDocState.data.healthyLevel || 3;
-				f.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher || 3;
-				f.dishHandLevel = recipeDocState.data.dishesLevels?.hand || 3;
+				f.motivationLevel = recipeDocState.data.motivationLevel.toString() || '3';
+				f.healthyLevel = recipeDocState.data.healthyLevel.toString() || '3';
+				f.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher.toString() || '3';
+				f.dishHandLevel = recipeDocState.data.dishesLevels?.hand.toString() || '3';
 				f.timeOfDay = recipeDocState.data.timeOfDay || undefined;
 				f.foodType = recipeDocState.data.foodType || undefined;
 				f.cuisine = recipeDocState.data.cuisine || undefined;
@@ -166,11 +166,11 @@
 			'time.cook': data.timeCook,
 			'time.prep': data.timePrep,
 			'time.rest': data.timeRest,
-			motivationLevel: data.motivationLevel,
-			healthyLevel: data.healthyLevel,
-			'dishesLevels.dishwasher': data.dishWasherLevel,
-			'dishesLevels.hand': data.dishHandLevel,
-			'dishesLevels.total': data.dishWasherLevel + data.dishHandLevel,
+			motivationLevel: parseInt(data.motivationLevel),
+			healthyLevel: parseInt(data.healthyLevel),
+			'dishesLevels.dishwasher': parseInt(data.dishWasherLevel),
+			'dishesLevels.hand': parseInt(data.dishHandLevel),
+			'dishesLevels.total': parseInt(data.dishWasherLevel + data.dishHandLevel),
 			timeOfDay: data.timeOfDay as RecipeTimeOfDayKey,
 			foodType: data.foodType as RecipeFoodTypeKey,
 			cuisine: data.cuisine as RecipeCuisineKey,
@@ -267,12 +267,13 @@
 									<Card.Description>This is the main information about the recipe</Card.Description>
 								</div>
 								<DropdownMenu.Root>
-									<DropdownMenu.Trigger asChild let:builder>
-										<ButtonThemed builders={[builder]} class="ml-auto" size="sm" disabled={loading}>
-											<Download class="mx-2 h-4 w-4" />
-											<span>Import</span>
-										</ButtonThemed>
-										<!-- <Button builders={[builder]} variant="outline">Open</Button> -->
+									<DropdownMenu.Trigger>
+										{#snippet child({ props })}
+											<ButtonThemed {...props} class="ml-auto" size="sm" disabled={loading}>
+												<Download class="mx-2 h-4 w-4" />
+												<span>Import</span>
+											</ButtonThemed>
+										{/snippet}
 									</DropdownMenu.Trigger>
 									<DropdownMenu.Content class="w-44" align="start">
 										<DropdownMenu.Item>
@@ -293,27 +294,31 @@
 							<Card.Content>
 								<div class="grid gap-6">
 									<Form.Field {form} name="title" class="grid">
-										<Form.Control let:attrs>
-											<Form.Label>Title</Form.Label>
-											<Input
-												disabled={loading}
-												{...attrs}
-												bind:value={$formData.title}
-												placeholder="Chocolate cookies"
-											/>
+										<Form.Control>
+											{#snippet children({ props })}
+												<Form.Label>Title</Form.Label>
+												<Input
+													disabled={loading}
+													{...props}
+													bind:value={$formData.title}
+													placeholder="Chocolate cookies"
+												/>
+											{/snippet}
 										</Form.Control>
 										<Form.FieldErrors />
 									</Form.Field>
 									<Form.Field {form} name="description" class="grid">
-										<Form.Control let:attrs>
-											<Form.Label>Description</Form.Label>
-											<Textarea
-												disabled={loading}
-												{...attrs}
-												bind:value={$formData.description}
-												placeholder="A delicious recipe for chocolate cookies that will make your day! It is easy to make and will be ready in no time."
-												class="min-h-32 text-wrap"
-											/>
+										<Form.Control>
+											{#snippet children({ props })}
+												<Form.Label>Description</Form.Label>
+												<Textarea
+													disabled={loading}
+													{...props}
+													bind:value={$formData.description}
+													placeholder="A delicious recipe for chocolate cookies that will make your day! It is easy to make and will be ready in no time."
+													class="min-h-32 text-wrap"
+												/>
+											{/snippet}
 										</Form.Control>
 										<Form.FieldErrors />
 									</Form.Field>
@@ -382,56 +387,60 @@
 
 												<div class="flex">
 													<Form.Field {form} name="ingredientAmounts" class="space-y-0 w-full">
-														<Form.Control let:attrs>
-															<Input
-																{...attrs}
-																disabled={loading}
-																name="ingredientAmounts"
-																type="number"
-																step="0.1"
-																class="w-20 rounded-r-none border-r-0"
-																bind:value={$formData.ingredientAmounts[i]}
-															/>
+														<Form.Control>
+															{#snippet children({ props })}
+																<Input
+																	{...props}
+																	disabled={loading}
+																	name="ingredientAmounts"
+																	type="number"
+																	step="0.1"
+																	class="w-20 rounded-r-none border-r-0"
+																	bind:value={$formData.ingredientAmounts[i]}
+																/>
+															{/snippet}
 														</Form.Control>
 													</Form.Field>
 
 													<Form.Field {form} name="ingredientUnits" class="space-y-0">
-														<Form.Control let:attrs>
-															<Select.Root
-																selected={{
-																	// label: unitLabels[$formData.ingredientUnits[i] as keyof typeof unitLabels],
-																	label: $formData.ingredientUnits[i],
-																	value: $formData.ingredientUnits[i]
-																}}
-																onSelectedChange={(v) => {
-																	v && ($formData.ingredientUnits[i] = v.value);
-																}}
-															>
-																<Select.Trigger {...attrs} class="gap-1 bg-muted/40 rounded-l-none">
-																	<Select.Value placeholder="Unit" class="min-w-12" />
-																</Select.Trigger>
-																<Select.Content>
-																	{#each Object.entries(unitLabels) as [key, label]}
-																		<Select.Item value={key} {label} />
-																	{/each}
-																</Select.Content>
-															</Select.Root>
-															<input hidden bind:value={$formData.foodType} name={attrs.name} />
+														<Form.Control>
+															{#snippet children({ props })}
+																<Select.Root
+																	type="single"
+																	bind:value={$formData.ingredientUnits[i]}
+																	name={props.name}
+																>
+																	<Select.Trigger
+																		{...props}
+																		class="gap-1 bg-muted/40 rounded-l-none min-w-12"
+																	>
+																		{$formData.ingredientUnits[i]}
+																	</Select.Trigger>
+																	<Select.Content>
+																		{#each Object.entries(unitLabels) as [key, label]}
+																			<Select.Item value={key} {label} />
+																		{/each}
+																	</Select.Content>
+																</Select.Root>
+																<input hidden bind:value={$formData.foodType} name={props.name} />
+															{/snippet}
 														</Form.Control>
 														<Form.FieldErrors />
 													</Form.Field>
 												</div>
 
 												<Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
-													<Form.Control let:attrs>
-														<Input
-															{...attrs}
-															disabled={loading}
-															name="ingredientNames"
-															type="text"
-															placeholder="Tomatoes, Flour, ..."
-															bind:value={$formData.ingredientNames[i]}
-														/>
+													<Form.Control>
+														{#snippet children({ props })}
+															<Input
+																{...props}
+																disabled={loading}
+																name="ingredientNames"
+																type="text"
+																placeholder="Tomatoes, Flour, ..."
+																bind:value={$formData.ingredientNames[i]}
+															/>
+														{/snippet}
 													</Form.Control>
 												</Form.Field>
 
@@ -487,8 +496,8 @@
 									<Table.Body>
 										<Table.Row>
 											<Table.Cell>
-												<Label for="amount" class="sr-only">Amount</Label>
-												<Input id="amount" type="number" class="w-[80px]" value="100" />
+												<Label class="sr-only">Amount</Label>
+												<Input type="number" class="w-[80px]" value="100" />
 											</Table.Cell>
 											<Table.Cell>
 												<ToggleGroup.Root type="single" value="s" variant="outline">
@@ -497,7 +506,7 @@
 												</ToggleGroup.Root>
 											</Table.Cell>
 											<Table.Cell>
-												<Label for="item">Tomatoes</Label>
+												<Label>Tomatoes</Label>
 											</Table.Cell>
 										</Table.Row>
 									</Table.Body>
@@ -563,69 +572,69 @@
 							<Card.Content class="grid gap-6">
 								{#each $formData.stepDescriptions as desc, i}
 									<Form.Field {form} name="stepDescriptions" class="grid">
-										<Form.Control let:attrs>
-											<div class="grid gap-1.5">
-												<div class="flex items-center">
-													<Form.Label
-														for="description"
-														class={cn(
-															'mr-auto',
-															$errors.stepDescriptions?.[i] && 'text-destructive'
-														)}>Step {i + 1}</Form.Label
-													>
-													{#if i > 0}
-														<Button
-															variant="ghost"
-															size="icon"
-															class="size-6"
-															onclick={() => {
-																const temp = $formData.stepDescriptions[i];
-																$formData.stepDescriptions[i] = $formData.stepDescriptions[i - 1];
-																$formData.stepDescriptions[i - 1] = temp;
-															}}
+										<Form.Control>
+											{#snippet children({ props })}
+												<div class="grid gap-1.5">
+													<div class="flex items-center">
+														<Form.Label
+															class={cn(
+																'mr-auto',
+																$errors.stepDescriptions?.[i] && 'text-destructive'
+															)}>Step {i + 1}</Form.Label
 														>
-															<ChevronUp class="size-4" />
-															<span class="sr-only">Move up</span>
-														</Button>
-													{/if}
-													{#if i < $formData.stepDescriptions.length - 1}
-														<Button
-															variant="ghost"
-															size="icon"
-															class="size-6 ml-2"
-															onclick={() => {
-																const temp = $formData.stepDescriptions[i];
-																$formData.stepDescriptions[i] = $formData.stepDescriptions[i + 1];
-																$formData.stepDescriptions[i + 1] = temp;
-															}}
-														>
-															<ChevronDown class="size-4" />
-															<span class="sr-only">Move down</span>
-														</Button>
-													{/if}
-													{#if $formData.stepDescriptions.length > 1}
-														<Button
-															variant="ghost"
-															size="icon"
-															class="size-6 ml-2"
-															onclick={() =>
-																($formData.stepDescriptions = $formData.stepDescriptions.filter(
-																	(_, j) => j !== i
-																))}
-														>
-															<X class="size-4" />
-															<span class="sr-only">Delete</span>
-														</Button>
-													{/if}
-												</div>
-												<Textarea
-													{...attrs}
-													id="description"
-													placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
-													class="min-h-20"
-													bind:value={$formData.stepDescriptions[i]}
-												/>
-												<!-- <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+														{#if i > 0}
+															<Button
+																variant="ghost"
+																size="icon"
+																class="size-6"
+																onclick={() => {
+																	const temp = $formData.stepDescriptions[i];
+																	$formData.stepDescriptions[i] = $formData.stepDescriptions[i - 1];
+																	$formData.stepDescriptions[i - 1] = temp;
+																}}
+															>
+																<ChevronUp class="size-4" />
+																<span class="sr-only">Move up</span>
+															</Button>
+														{/if}
+														{#if i < $formData.stepDescriptions.length - 1}
+															<Button
+																variant="ghost"
+																size="icon"
+																class="size-6 ml-2"
+																onclick={() => {
+																	const temp = $formData.stepDescriptions[i];
+																	$formData.stepDescriptions[i] = $formData.stepDescriptions[i + 1];
+																	$formData.stepDescriptions[i + 1] = temp;
+																}}
+															>
+																<ChevronDown class="size-4" />
+																<span class="sr-only">Move down</span>
+															</Button>
+														{/if}
+														{#if $formData.stepDescriptions.length > 1}
+															<Button
+																variant="ghost"
+																size="icon"
+																class="size-6 ml-2"
+																onclick={() =>
+																	($formData.stepDescriptions = $formData.stepDescriptions.filter(
+																		(_, j) => j !== i
+																	))}
+															>
+																<X class="size-4" />
+																<span class="sr-only">Delete</span>
+															</Button>
+														{/if}
+													</div>
+													<Textarea
+														{...props}
+														id="description"
+														placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
+														class="min-h-20"
+														bind:value={$formData.stepDescriptions[i]}
+													/>
+													<!-- <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
 													<div class="bg-muted w-full aspect-square rounded-md"></div>
 													<div
 														class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
@@ -636,12 +645,13 @@
 													</div>
 												</div> -->
 
-												{#if $errors.stepDescriptions?.[i]}
-													<p class="text-destructive text-sm font-medium">
-														{$errors.stepDescriptions[i]}
-													</p>
-												{/if}
-											</div>
+													{#if $errors.stepDescriptions?.[i]}
+														<p class="text-destructive text-sm font-medium">
+															{$errors.stepDescriptions[i]}
+														</p>
+													{/if}
+												</div>
+											{/snippet}
 										</Form.Control>
 										<Form.FieldErrors />
 									</Form.Field>
@@ -650,7 +660,7 @@
 							<!-- <Card.Footer class="grid gap-3 border-t p-6">
 								<div class="flex flex-col space-y-1.5">
 									<div class="flex items-center">
-										<Label for="description" class="text-yellow-600 flex gap-2 items-center">
+										<Label class="text-yellow-600 flex gap-2 items-center">
 											4 unlinked ingredients
 											<TriangleAlert class="size-4" />
 										</Label>
@@ -718,31 +728,29 @@
 								<div class="grid gap-6">
 									<div class="grid gap-3">
 										<Form.Field {form} name="motivationLevel">
-											<Form.Control let:attrs>
-												<Form.Label>Motivation needed</Form.Label>
-												<Select.Root
-													selected={{
-														label: capitalize(
-															RecipeMotivationLevel[$formData.motivationLevel]
-														).replace('_', ' '),
-														value: $formData.motivationLevel
-													}}
-													onSelectedChange={(v) => {
-														v && ($formData.motivationLevel = v.value);
-													}}
-												>
-													<Select.Trigger {...attrs}>
-														<Select.Value placeholder="Select..." />
-													</Select.Trigger>
-													<Select.Content>
-														<Select.Item value={1} label="Very low" />
-														<Select.Item value={2} label="Low" />
-														<Select.Item value={3} label="Medium" />
-														<Select.Item value={4} label="High" />
-														<Select.Item value={5} label="Very high" />
-													</Select.Content>
-												</Select.Root>
-												<input hidden bind:value={$formData.motivationLevel} name={attrs.name} />
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Motivation needed</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.motivationLevel}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{capitalize(
+																RecipeMotivationLevel[parseInt($formData.motivationLevel)]
+															).replace('_', ' ')}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value="1" label="Very low" />
+															<Select.Item value="2" label="Low" />
+															<Select.Item value="3" label="Medium" />
+															<Select.Item value="4" label="High" />
+															<Select.Item value="5" label="Very high" />
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.motivationLevel} name={props.name} />
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
@@ -750,32 +758,29 @@
 
 									<div class="grid gap-3">
 										<Form.Field {form} name="healthyLevel">
-											<Form.Control let:attrs>
-												<Form.Label>Healthy level</Form.Label>
-												<Select.Root
-													selected={{
-														label: capitalize(RecipeHealthyLevel[$formData.healthyLevel]).replace(
-															'_',
-															' '
-														),
-														value: $formData.healthyLevel
-													}}
-													onSelectedChange={(v) => {
-														v && ($formData.healthyLevel = v.value);
-													}}
-												>
-													<Select.Trigger {...attrs}>
-														<Select.Value placeholder="Select..." />
-													</Select.Trigger>
-													<Select.Content>
-														<Select.Item value={1} label="Bad" />
-														<Select.Item value={2} label="Ok" />
-														<Select.Item value={3} label="Good" />
-														<Select.Item value={4} label="Great" />
-														<Select.Item value={5} label="Excellent" />
-													</Select.Content>
-												</Select.Root>
-												<input hidden bind:value={$formData.healthyLevel} name={attrs.name} />
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Motivation needed</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.healthyLevel}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{capitalize(
+																RecipeHealthyLevel[parseInt($formData.healthyLevel)]
+															).replace('_', ' ')}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value="1" label="Very low" />
+															<Select.Item value="2" label="Low" />
+															<Select.Item value="3" label="Medium" />
+															<Select.Item value="4" label="High" />
+															<Select.Item value="5" label="Very high" />
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.healthyLevel} name={props.name} />
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
@@ -784,33 +789,34 @@
 									<div class="grid grid-cols-2 gap-3">
 										<div class="grid gap-3">
 											<Form.Field {form} name="dishWasherLevel">
-												<Form.Control let:attrs>
-													<Form.Label>Dish washer</Form.Label>
-													<Select.Root
-														selected={{
-															label: capitalize(DishesLevel[$formData.dishWasherLevel]).replace(
-																'_',
-																' '
-															),
-															value: $formData.dishWasherLevel
-														}}
-														onSelectedChange={(v) => {
-															v && ($formData.dishWasherLevel = v.value);
-														}}
-													>
-														<Select.Trigger {...attrs}>
-															<Select.Value placeholder="Select..." />
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Item value={0} label="None" />
-															<Select.Item value={1} label="Very Low" />
-															<Select.Item value={2} label="Low" />
-															<Select.Item value={3} label="Medium" />
-															<Select.Item value={4} label="High" />
-															<Select.Item value={5} label="Very High" />
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.dishWasherLevel} name={attrs.name} />
+												<Form.Control>
+													{#snippet children({ props })}
+														<Form.Label>Dish washer</Form.Label>
+														<Select.Root
+															type="single"
+															bind:value={$formData.dishWasherLevel}
+															name={props.name}
+														>
+															<Select.Trigger {...props}>
+																{capitalize(
+																	DishesLevel[parseInt($formData.dishWasherLevel)]
+																).replace('_', ' ')}
+															</Select.Trigger>
+															<Select.Content>
+																<Select.Item value="0" label="None" />
+																<Select.Item value="1" label="Very Low" />
+																<Select.Item value="2" label="Low" />
+																<Select.Item value="3" label="Medium" />
+																<Select.Item value="4" label="High" />
+																<Select.Item value="5" label="Very High" />
+															</Select.Content>
+														</Select.Root>
+														<input
+															hidden
+															bind:value={$formData.dishWasherLevel}
+															name={props.name}
+														/>
+													{/snippet}
 												</Form.Control>
 												<Form.FieldErrors />
 											</Form.Field>
@@ -818,33 +824,31 @@
 
 										<div class="grid gap-3">
 											<Form.Field {form} name="dishHandLevel">
-												<Form.Control let:attrs>
-													<Form.Label>Hand washing</Form.Label>
-													<Select.Root
-														selected={{
-															label: capitalize(DishesLevel[$formData.dishHandLevel]).replace(
-																'_',
-																' '
-															),
-															value: $formData.dishHandLevel
-														}}
-														onSelectedChange={(v) => {
-															v && ($formData.dishHandLevel = v.value);
-														}}
-													>
-														<Select.Trigger {...attrs}>
-															<Select.Value placeholder="Select..." />
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Item value={0} label="None" />
-															<Select.Item value={1} label="Very Low" />
-															<Select.Item value={2} label="Low" />
-															<Select.Item value={3} label="Medium" />
-															<Select.Item value={4} label="High" />
-															<Select.Item value={5} label="Very High" />
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.dishHandLevel} name={attrs.name} />
+												<Form.Control>
+													{#snippet children({ props })}
+														<Form.Label>Dish washer</Form.Label>
+														<Select.Root
+															type="single"
+															bind:value={$formData.dishHandLevel}
+															name={props.name}
+														>
+															<Select.Trigger {...props}>
+																{capitalize(DishesLevel[parseInt($formData.dishHandLevel)]).replace(
+																	'_',
+																	' '
+																)}
+															</Select.Trigger>
+															<Select.Content>
+																<Select.Item value="0" label="None" />
+																<Select.Item value="1" label="Very Low" />
+																<Select.Item value="2" label="Low" />
+																<Select.Item value="3" label="Medium" />
+																<Select.Item value="4" label="High" />
+																<Select.Item value="5" label="Very High" />
+															</Select.Content>
+														</Select.Root>
+														<input hidden bind:value={$formData.dishHandLevel} name={props.name} />
+													{/snippet}
 												</Form.Control>
 												<Form.FieldErrors />
 											</Form.Field>
@@ -855,46 +859,52 @@
 										<Label>Time</Label>
 
 										<Form.Field {form} name="timePrep" class="pl-4 flex items-center gap-3">
-											<Form.Control let:attrs>
-												<Form.Label class="font-normal text-muted-foreground">Prep</Form.Label>
-												<Input
-													{...attrs}
-													placeholder="10"
-													type="number"
-													class="w-24 ml-auto"
-													bind:value={$formData.timePrep}
-												/>
-												<p>min</p>
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label class="font-normal text-muted-foreground">Prep</Form.Label>
+													<Input
+														{...props}
+														placeholder="10"
+														type="number"
+														class="w-24 ml-auto"
+														bind:value={$formData.timePrep}
+													/>
+													<p>min</p>
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
 
 										<Form.Field {form} name="timeCook" class="pl-4 flex items-center gap-3">
-											<Form.Control let:attrs>
-												<Form.Label class="font-normal text-muted-foreground">Cook</Form.Label>
-												<Input
-													{...attrs}
-													placeholder="10"
-													type="number"
-													class="w-24 ml-auto"
-													bind:value={$formData.timeCook}
-												/>
-												<p>min</p>
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label class="font-normal text-muted-foreground">Cook</Form.Label>
+													<Input
+														{...props}
+														placeholder="10"
+														type="number"
+														class="w-24 ml-auto"
+														bind:value={$formData.timeCook}
+													/>
+													<p>min</p>
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
 
 										<Form.Field {form} name="timeRest" class="pl-4 flex items-center gap-3">
-											<Form.Control let:attrs>
-												<Form.Label class="font-normal text-muted-foreground">Rest</Form.Label>
-												<Input
-													{...attrs}
-													placeholder="10"
-													type="number"
-													class="w-24 ml-auto"
-													bind:value={$formData.timeRest}
-												/>
-												<p>min</p>
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label class="font-normal text-muted-foreground">Rest</Form.Label>
+													<Input
+														{...props}
+														placeholder="10"
+														type="number"
+														class="w-24 ml-auto"
+														bind:value={$formData.timeRest}
+													/>
+													<p>min</p>
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
@@ -911,27 +921,25 @@
 								<div class="grid gap-6">
 									<div class="grid gap-3">
 										<Form.Field {form} name="timeOfDay">
-											<Form.Control let:attrs>
-												<Form.Label>Time of day</Form.Label>
-												<Select.Root
-													selected={{
-														label: recipeTimesOfDay[$formData.timeOfDay as RecipeTimeOfDayKey],
-														value: $formData.timeOfDay
-													}}
-													onSelectedChange={(v) => {
-														v && ($formData.timeOfDay = v.value);
-													}}
-												>
-													<Select.Trigger {...attrs}>
-														<Select.Value placeholder="Select..." />
-													</Select.Trigger>
-													<Select.Content>
-														{#each Object.entries(recipeTimesOfDay) as [key, label]}
-															<Select.Item value={key} {label} />
-														{/each}
-													</Select.Content>
-												</Select.Root>
-												<input hidden bind:value={$formData.timeOfDay} name={attrs.name} />
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Time of day</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.timeOfDay}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{recipeTimesOfDay[$formData.timeOfDay as RecipeTimeOfDayKey]}
+														</Select.Trigger>
+														<Select.Content>
+															{#each Object.entries(recipeTimesOfDay) as [key, label]}
+																<Select.Item value={key} {label} />
+															{/each}
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.timeOfDay} name={props.name} />
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
@@ -939,27 +947,25 @@
 
 									<div class="grid gap-3">
 										<Form.Field {form} name="foodType">
-											<Form.Control let:attrs>
-												<Form.Label>Food type</Form.Label>
-												<Select.Root
-													selected={{
-														label: recipeFoodTypes[$formData.foodType as RecipeFoodTypeKey],
-														value: $formData.foodType
-													}}
-													onSelectedChange={(v) => {
-														v && ($formData.foodType = v.value);
-													}}
-												>
-													<Select.Trigger {...attrs}>
-														<Select.Value placeholder="Select..." />
-													</Select.Trigger>
-													<Select.Content>
-														{#each Object.entries(recipeFoodTypes) as [key, label]}
-															<Select.Item value={key} {label} />
-														{/each}
-													</Select.Content>
-												</Select.Root>
-												<input hidden bind:value={$formData.foodType} name={attrs.name} />
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Food type</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.foodType}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{recipeFoodTypes[$formData.foodType as RecipeFoodTypeKey]}
+														</Select.Trigger>
+														<Select.Content>
+															{#each Object.entries(recipeFoodTypes) as [key, label]}
+																<Select.Item value={key} {label} />
+															{/each}
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.foodType} name={props.name} />
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
@@ -967,27 +973,25 @@
 
 									<div class="grid gap-3">
 										<Form.Field {form} name="cuisine">
-											<Form.Control let:attrs>
-												<Form.Label>Cuisine</Form.Label>
-												<Select.Root
-													selected={{
-														label: recipeCuisines[$formData.cuisine as RecipeCuisineKey],
-														value: $formData.cuisine
-													}}
-													onSelectedChange={(v) => {
-														v && ($formData.cuisine = v.value);
-													}}
-												>
-													<Select.Trigger {...attrs}>
-														<Select.Value placeholder="Select..." />
-													</Select.Trigger>
-													<Select.Content>
-														{#each Object.entries(recipeCuisines) as [key, label]}
-															<Select.Item value={key} {label} />
-														{/each}
-													</Select.Content>
-												</Select.Root>
-												<input hidden bind:value={$formData.cuisine} name={attrs.name} />
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Cuisine</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.cuisine}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{recipeCuisines[$formData.cuisine as RecipeCuisineKey]}
+														</Select.Trigger>
+														<Select.Content>
+															{#each Object.entries(recipeCuisines) as [key, label]}
+																<Select.Item value={key} {label} />
+															{/each}
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.cuisine} name={props.name} />
+												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>

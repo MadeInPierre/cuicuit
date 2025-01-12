@@ -42,7 +42,7 @@
 					<AlertDialog.Footer>
 						<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 						<AlertDialog.Action
-							on:click={() => {
+							onclick={() => {
 								selectedIcon = icon_name;
 								onChange(selectedIcon);
 							}}
@@ -57,7 +57,7 @@
 				variant={isSelected && showSelected ? 'default' : 'secondary'}
 				disabled={isSelected && showSelected}
 				class="flex aspect-square h-full w-full items-center justify-center p-0"
-				on:click={() => {
+				onclick={() => {
 					selectedIcon = icon_name;
 					onChange(selectedIcon);
 				}}

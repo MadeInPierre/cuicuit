@@ -13,7 +13,9 @@
 
 	<nav class="flex items-center gap-6 text-sm">
 		{#each navLinksMarketing as { href, title, startsWith, startPath, className }}
-			<NavDesktopLink {href} {startsWith} {startPath} class={className}>{title}</NavDesktopLink>
+			<NavDesktopLink {href} {startsWith} startPath={startPath || ''} class={className}>
+				{title}
+			</NavDesktopLink>
 		{/each}
 	</nav>
 </div>

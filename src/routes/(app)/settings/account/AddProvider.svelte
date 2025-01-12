@@ -56,10 +56,9 @@
 </script>
 
 <div class="flex items-center space-x-2">
-	<Popover.Root bind:open let:ids>
-		<Popover.Trigger asChild let:builder>
+	<Popover.Root bind:open>
+		<Popover.Trigger>
 			<Button
-				builders={[builder]}
 				variant="outline"
 				role="combobox"
 				aria-expanded={open}
@@ -79,9 +78,8 @@
 						<Command.Item
 							disabled={isLinked}
 							value={provider.value}
-							onSelect={(currentValue) => {
-								value = currentValue;
-								closeAndFocusTrigger(ids.trigger);
+							onSelect={() => {
+								value = provider.value;
 							}}
 						>
 							<svelte:component this={provider.icon} class="mr-2 h-4 w-4" />
@@ -100,7 +98,7 @@
 		</Popover.Content>
 	</Popover.Root>
 
-	<Button on:click={clicked} {disabled}>
+	<Button onclick={clicked} {disabled}>
 		<Link class="mr-2 h-4 w-4" />
 		Add provider
 	</Button>

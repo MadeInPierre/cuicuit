@@ -70,7 +70,7 @@
 			{#each Object.entries(activeSpace.userHeaders).sort( (a, b) => a[1].name.localeCompare(b[1].name) ) as [spaceId, header], index (header.name)}
 				{@const TeamIcon = spaceIcons[header.icon]}
 
-				<DropdownMenu.Item on:click={() => (activeSpace.id = spaceId)} class="gap-2 p-2 group">
+				<DropdownMenu.Item onclick={() => (activeSpace.id = spaceId)} class="gap-2 p-2 group">
 					<div
 						class={cn(
 							'flex size-6 items-center justify-center rounded-sm',
@@ -93,7 +93,7 @@
 			<Dialog.Trigger class="w-full">
 				<DropdownMenu.Item
 					class="gap-2 p-2"
-					on:click={() => {
+					onclick={() => {
 						activeTab = 'create';
 						openDialog = true;
 					}}
@@ -105,7 +105,7 @@
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					class="gap-2 p-2"
-					on:click={() => {
+					onclick={() => {
 						activeTab = 'join';
 						openDialog = true;
 					}}

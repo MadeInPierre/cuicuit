@@ -88,17 +88,21 @@
 	<div class="flex flex-col">
 		<div class="flex w-full gap-4">
 			<Form.Field {form} name="firstName" class="w-full">
-				<Form.Control let:attrs>
-					<Form.Label>First name</Form.Label>
-					<Input {...attrs} bind:value={$formData.firstName} placeholder="John" />
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>First name</Form.Label>
+						<Input {...props} bind:value={$formData.firstName} placeholder="John" />
+					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
 
 			<Form.Field {form} name="lastName" class="w-full">
-				<Form.Control let:attrs>
-					<Form.Label>Last name</Form.Label>
-					<Input {...attrs} bind:value={$formData.lastName} placeholder="Carrot" />
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Last name</Form.Label>
+						<Input {...props} bind:value={$formData.lastName} placeholder="Carrot" />
+					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
@@ -108,9 +112,11 @@
 	</div>
 
 	<Form.Field {form} name="userName">
-		<Form.Control let:attrs>
-			<Form.Label>Username</Form.Label>
-			<Input {...attrs} bind:value={$formData.userName} placeholder="johncarrot" />
+		<Form.Control>
+			{#snippet children({ props })}
+				<Form.Label>Username</Form.Label>
+				<Input {...props} bind:value={$formData.userName} placeholder="cuicarrot" />
+			{/snippet}
 		</Form.Control>
 		<Form.Description>
 			This is your public display name. You can only change this once every 30 days.

@@ -113,7 +113,7 @@
 			variant="outline"
 			type="button"
 			disabled={isLoading}
-			on:click={() => onSubmit(AuthMethod.GOOGLE)}
+			onclick={() => onSubmit(AuthMethod.GOOGLE)}
 		>
 			{#if isLoading && selectedMethod == AuthMethod.GOOGLE}
 				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
@@ -127,7 +127,7 @@
 			variant="outline"
 			type="button"
 			disabled={isLoading}
-			on:click={() => onSubmit(AuthMethod.GITHUB)}
+			onclick={() => onSubmit(AuthMethod.GITHUB)}
 		>
 			{#if isLoading && selectedMethod == AuthMethod.GITHUB}
 				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
@@ -151,20 +151,21 @@
 		<div class="grid gap-4">
 			<div class="grid gap-2">
 				<Form.Field {form} name="email">
-					<Form.Control let:attrs>
-						<Form.Label for="email">Email</Form.Label>
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Email</Form.Label>
 
-						<Input
-							{...attrs}
-							id="email"
-							type="email"
-							placeholder="name@example.com"
-							autocapitalize="none"
-							autocomplete="email"
-							autocorrect="off"
-							disabled={isLoading}
-							bind:value={$formData.email}
-						/>
+							<Input
+								{...props}
+								type="email"
+								placeholder="name@example.com"
+								autocapitalize="none"
+								autocomplete="email"
+								autocorrect="off"
+								disabled={isLoading}
+								bind:value={$formData.email}
+							/>
+						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
@@ -172,50 +173,51 @@
 
 			<div class="grid gap-2">
 				<Form.Field {form} name="password">
-					<Form.Control let:attrs>
-						<div class="flex items-center justify-between">
-							<Form.Label for="password">Password</Form.Label>
+					<Form.Control>
+						{#snippet children({ props })}
+							<div class="flex items-center justify-between">
+								<Form.Label>Password</Form.Label>
 
-							{#if logMethod == LogMethod.LOGIN}
-								<button
-									onclick={() => resetPassword($formData.email)}
-									class="text-xs text-muted-foreground decoration-dotted underline-offset-4 hover:underline"
-									type="button"
-								>
-									Forgot password?
-								</button>
-							{/if}
-						</div>
-
-						<div class="relative w-full">
-							<Input
-								{...attrs}
-								class="pr-9"
-								id="password"
-								type={showPassword ? 'text' : 'password'}
-								placeholder="Password"
-								disabled={isLoading}
-								bind:value={$formData.password}
-								on:focus={() => {
-									showPasswordRequirements = true;
-								}}
-							/>
-
-							<Button
-								size="icon"
-								variant="link"
-								class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
-								on:click={() => {
-									showPassword = !showPassword;
-								}}
-							>
-								{#if showPassword}
-									<EyeOff />
-								{:else}
-									<Eye />
+								{#if logMethod == LogMethod.LOGIN}
+									<button
+										onclick={() => resetPassword($formData.email)}
+										class="text-xs text-muted-foreground decoration-dotted underline-offset-4 hover:underline"
+										type="button"
+									>
+										Forgot password?
+									</button>
 								{/if}
-							</Button>
-						</div>
+							</div>
+
+							<div class="relative w-full">
+								<Input
+									{...props}
+									class="pr-9"
+									type={showPassword ? 'text' : 'password'}
+									placeholder="Password"
+									disabled={isLoading}
+									bind:value={$formData.password}
+									onfocus={() => {
+										showPasswordRequirements = true;
+									}}
+								/>
+
+								<Button
+									size="icon"
+									variant="link"
+									class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
+									onclick={() => {
+										showPassword = !showPassword;
+									}}
+								>
+									{#if showPassword}
+										<EyeOff />
+									{:else}
+										<Eye />
+									{/if}
+								</Button>
+							</div>
+						{/snippet}
 					</Form.Control>
 
 					<Form.FieldErrors />
@@ -273,7 +275,7 @@
 				</AlertDialog.Header>
 				<AlertDialog.Footer>
 					<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-					<AlertDialog.Action on:click={() => onSubmit(AuthMethod.ANONYMOUS)}>
+					<AlertDialog.Action onclick={() => onSubmit(AuthMethod.ANONYMOUS)}>
 						Continue anonymously
 					</AlertDialog.Action>
 				</AlertDialog.Footer>
@@ -294,14 +296,14 @@
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel
-				on:click={() => {
+				onclick={() => {
 					showExistingAccountDialog = false;
 				}}
 			>
 				Cancel
 			</AlertDialog.Cancel>
 			<AlertDialog.Action
-				on:click={() => {
+				onclick={() => {
 					goto('/login');
 				}}
 			>

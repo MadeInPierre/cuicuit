@@ -51,7 +51,7 @@
 			disabled={!allowedToLeave}
 			variant="link"
 			class="px-0 text-destructive md:ml-auto"
-			on:click={() => {
+			onclick={() => {
 				if (allowedToLeave) showConfirmLeaveSpaceDialog = true;
 				else {
 					toast.error('Cannot leave.', {
@@ -84,7 +84,7 @@
 		<Dialog.Footer class="gap-2">
 			<Button
 				variant="outline"
-				on:click={() => {
+				onclick={() => {
 					showConfirmLeaveSpaceDialog = false;
 				}}
 			>
@@ -92,7 +92,7 @@
 			</Button>
 			<Button
 				disabled={inputValue !== activeSpace.doc?.name}
-				on:click={leaveActiveSpace}
+				onclick={leaveActiveSpace}
 				variant="destructive"
 			>
 				Leave {activeSpace.doc?.name}

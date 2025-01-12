@@ -15,7 +15,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Trigger asChild>
+	<Dialog.Trigger>
 		{@render children?.()}
 	</Dialog.Trigger>
 
