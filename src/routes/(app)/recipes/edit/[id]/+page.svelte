@@ -77,6 +77,7 @@
 		SPA: true,
 		validators: zod(createRecipeFormSchema),
 		resetForm: false,
+		taintedMessage: 'Leave this page without saving your changes?',
 		async onUpdate({ form }) {
 			if (form.valid) {
 				await onSubmit(form.data);
@@ -86,39 +87,48 @@
 			}
 		}
 	});
-	const { form: formData, enhance, errors } = form;
+	const { form: formData, enhance, errors, tainted, isTainted } = form;
 	$inspect($errors);
 
+	let dirty = $derived(isTainted($tainted));
 	let searchInput = $state('');
-	let result = $state('');
 
 	// Update the form data with the recipe document data whenever it changes
 	$effect(() => {
-		if (!recipeDocState.data) return;
-		$formData.title = recipeDocState.data.title;
-		$formData.description = recipeDocState.data.description;
-		$formData.tools = recipeDocState.data.tools;
-		$formData.timePrep = recipeDocState.data.time?.prep || 0;
-		$formData.timeCook = recipeDocState.data.time?.cook || 0;
-		$formData.timeRest = recipeDocState.data.time?.rest || 0;
-		$formData.tools = recipeDocState.data.tools || [];
-		$formData.motivationLevel = recipeDocState.data.motivationLevel || 3;
-		$formData.healthyLevel = recipeDocState.data.healthyLevel || 3;
-		$formData.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher || 3;
-		$formData.dishHandLevel = recipeDocState.data.dishesLevels?.hand || 3;
-		$formData.timeOfDay = recipeDocState.data.timeOfDay || undefined;
-		$formData.foodType = recipeDocState.data.foodType || undefined;
-		$formData.cuisine = recipeDocState.data.cuisine || undefined;
-		$formData.stepDescriptions = recipeDocState.data.steps?.map((step) => step.description) || [''];
-		$formData.servings = recipeDocState.data.servings || 4;
-		$formData.ingredientAmounts = recipeDocState.data.ingredients?.map((i) => i.amount) || [1, 1];
-		$formData.ingredientUnits = recipeDocState.data.ingredients?.map((i) => i.unit) || ['g', 'g'];
-		$formData.ingredientNames = recipeDocState.data.ingredients?.map((i) => i.name) || ['', ''];
+		recipeDocState.data; // Subscribe to changes in firestore to trigger the effect
+
+		formData.update(
+			(f) => {
+				if (!recipeDocState.data) return f;
+
+				f.title = recipeDocState.data.title;
+				f.description = recipeDocState.data.description;
+				f.tools = recipeDocState.data.tools;
+				f.timePrep = recipeDocState.data.time?.prep || 0;
+				f.timeCook = recipeDocState.data.time?.cook || 0;
+				f.timeRest = recipeDocState.data.time?.rest || 0;
+				f.tools = recipeDocState.data.tools || [];
+				f.motivationLevel = recipeDocState.data.motivationLevel || 3;
+				f.healthyLevel = recipeDocState.data.healthyLevel || 3;
+				f.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher || 3;
+				f.dishHandLevel = recipeDocState.data.dishesLevels?.hand || 3;
+				f.timeOfDay = recipeDocState.data.timeOfDay || undefined;
+				f.foodType = recipeDocState.data.foodType || undefined;
+				f.cuisine = recipeDocState.data.cuisine || undefined;
+				f.stepDescriptions = recipeDocState.data.steps?.map((step) => step.description) || [''];
+				f.servings = recipeDocState.data.servings || 4;
+				f.ingredientAmounts = recipeDocState.data.ingredients?.map((i) => i.amount) || [1, 1];
+				f.ingredientUnits = recipeDocState.data.ingredients?.map((i) => i.unit) || ['g', 'g'];
+				f.ingredientNames = recipeDocState.data.ingredients?.map((i) => i.name) || ['', ''];
+				return f;
+			},
+			{ taint: false }
+		);
 	});
 
-	// Debounce the search input
 	// TODO this is temporary just for testing and fun with the Quantity library & embeddings
-	let debounceTimeout: NodeJS.Timeout;
+	let result = $state('');
+	let debounceTimeout: NodeJS.Timeout; // Debounce the search input
 	$effect(() => {
 		searchInput; // Trigger the effect when the search input changes
 
@@ -174,7 +184,7 @@
 			servings: data.servings || 4,
 			ingredients: data.ingredientAmounts.map((amount, i) => ({
 				amount,
-				unit: data.ingredientUnits[i] as Unit, // TODO units are wrong in the form, must match the type
+				unit: data.ingredientUnits[i] as Unit, // TODO add unit region support (e.g. eutsp, ...)
 				name: capitalize(data.ingredientNames[i])
 			}))
 		});
@@ -199,8 +209,8 @@
 						onclick={() => {
 							if (recipeDocState.data?.status == 'draft') dismissDialogMode = 'delete';
 							else {
-								// TODO Check if the form is dirty before showing the dialog when dismissing only
-								// if (!dirty) goto('/recipes');
+								// Check if the form is dirty before showing the dialog when dismissing only
+								if (!dirty) goto('/recipes');
 								dismissDialogMode = 'discard';
 							}
 							showDismissDialog = true;
@@ -319,7 +329,7 @@
 											List all the ingredients required for the recipe
 										</Card.Description>
 									</div>
-									<div class="flex gap-2 items-center ml-auto p-2 bg-blue-100/40 rounded-md">
+									<div class="flex gap-2 items-center ml-auto p-2 bg-muted rounded-md">
 										<Button
 											variant="outline"
 											size="icon"
@@ -378,7 +388,7 @@
 																disabled={loading}
 																name="ingredientAmounts"
 																type="number"
-																step=".01"
+																step="0.1"
 																class="w-20 rounded-r-none border-r-0"
 																bind:value={$formData.ingredientAmounts[i]}
 															/>
@@ -389,6 +399,7 @@
 														<Form.Control let:attrs>
 															<Select.Root
 																selected={{
+																	// label: unitLabels[$formData.ingredientUnits[i] as keyof typeof unitLabels],
 																	label: $formData.ingredientUnits[i],
 																	value: $formData.ingredientUnits[i]
 																}}
@@ -397,7 +408,7 @@
 																}}
 															>
 																<Select.Trigger {...attrs} class="gap-1 bg-muted/40 rounded-l-none">
-																	<Select.Value placeholder="Unit" class="min-w-7" />
+																	<Select.Value placeholder="Unit" class="min-w-12" />
 																</Select.Trigger>
 																<Select.Content>
 																	{#each Object.entries(unitLabels) as [key, label]}

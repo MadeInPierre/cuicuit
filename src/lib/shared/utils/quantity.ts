@@ -81,19 +81,24 @@ export const unitLabels = {
 	cl: 'cL',
 	dl: 'dL',
 	l: 'L',
-	tsp: 'tsp',
-	tbsp: 'tbsp',
-	dstspn: 'dstspn',
+	tsp: 'teaspoon',
+	tbsp: 'tablespoon',
+	dstspn: 'desert spoon',
 	cup: 'cup',
 	quart: 'quart',
 	gallon: 'gallon',
-	floz: 'floz',
+	floz: 'fluid ounce',
 	pint: 'pint',
-	g: 'g',
+	g: 'gram',
 	kg: 'kg',
 	oz: 'oz',
-	lb: 'lb'
-} satisfies Record<keyof typeof volumeAliases | keyof typeof weightAliases, string>;
+	lb: 'lb',
+	whole: 'pieces',
+	pinch: 'pinch'
+} satisfies Record<
+	keyof typeof volumeAliases | keyof typeof weightAliases | 'whole' | 'pinch',
+	string
+>;
 
 /**
  * Quantity class: represents a quantity of a food item with a value, a unit and an optional food density.
