@@ -9,7 +9,6 @@
 	import { collection, getDocs, query } from 'firebase/firestore';
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import { recipeDocConverter, type RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
-	import { cn } from '$lib/utils';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import RecipeCard from './RecipeCard.svelte';
 
@@ -61,7 +60,7 @@
 					</ButtonThemed>
 				{/snippet}
 			</DropdownMenu.Trigger>
-			<DropdownMenu.Content class="w-52" align="end">
+			<DropdownMenu.Content class="w-[230px]" align="end">
 				<DropdownMenu.Item onclick={onNewRecipe}>
 					<SquarePen class="mr-2 h-4 w-4" />
 					<span>Create manually</span>
@@ -77,9 +76,7 @@
 
 	<Separator class="my-6" />
 
-	<div
-		class="w-full grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
-	>
+	<div class="w-full grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
 		{#each recipes as recipe}
 			<RecipeCard recipeId={recipe.id} recipeDoc={recipe.doc} />
 		{/each}

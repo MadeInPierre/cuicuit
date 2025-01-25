@@ -1,5 +1,24 @@
-<svelte:head>
-	<title>Shopping list</title>
-</svelte:head>
+<script lang="ts">
+	import { Separator } from '$lib/shared/components/ui/separator';
 
-Shopping list page
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
+</script>
+
+<div class="space-y-6 pb-16 min-h-full">
+	<div class="flex items-center">
+		<div class="space-y-0.5">
+			<h2 class="text-2xl font-bold tracking-tight">Shopping list</h2>
+			<p class="text-muted-foreground">
+				Here's your shopping list. Add items or recipes to get started.
+			</p>
+		</div>
+	</div>
+
+	<Separator class="my-6" />
+
+	{@render children?.()}
+</div>

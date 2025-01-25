@@ -26,7 +26,8 @@
 		Loader2,
 		Users,
 		Minus,
-		GripVertical
+		GripVertical,
+		Camera
 	} from 'lucide-svelte';
 	import { Quantity, unitLabels, type Unit } from '$lib/shared/utils/quantity';
 	import {
@@ -198,8 +199,8 @@
 </script>
 
 <form method="POST" use:enhance class="space-y-8">
-	<div class="bg-muted/40 w-full min-h-screen flex flex-col sm:gap-4 sm:py-4">
-		<main class="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+	<div class="w-full min-h-screen flex flex-col">
+		<main class="grid flex-1 items-start gap-4 md:gap-8 sm:px-6">
 			<div class="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
 				<div class="flex items-center gap-4">
 					<Button
@@ -244,7 +245,7 @@
 									dismissDialogMode = 'delete';
 								}}
 							>
-								<Trash2 class="size-3.5 mr-2" />
+								<!-- <Trash2 class="size-3.5" /> -->
 								Delete
 							</Button>
 						{/if}
@@ -627,23 +628,33 @@
 															</Button>
 														{/if}
 													</div>
-													<Textarea
-														{...props}
-														id="description"
-														placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
-														class="min-h-20"
-														bind:value={$formData.stepDescriptions[i]}
-													/>
-													<!-- <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-													<div class="bg-muted w-full aspect-square rounded-md"></div>
-													<div
-														class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
-													>
-														<Plus class="size-8 mb-1" />
-														<span class="text-xs">Link</span>
-														<span class="text-xs">ingredient</span>
+
+													<div class="flex gap-2 min-h-24">
+														<Textarea
+															{...props}
+															id="description"
+															placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
+															class="min-h-24 max-h-52"
+															bind:value={$formData.stepDescriptions[i]}
+														/>
+
+														<!-- <Separator orientation="vertical" /> -->
+
+														<label
+															class="h-24 aspect-square rounded-md border border-dashed cursor-pointer bg-muted flex items-center justify-center"
+														>
+															<Camera class="text-muted-foreground size-4" />
+														</label>
 													</div>
-												</div> -->
+
+													<!-- <div class="w-full grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+														<div class="bg-muted w-full aspect-square rounded-md"></div>
+														<div
+															class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
+														>
+															<Plus class="size-8 mb-1" />
+														</div>
+													</div> -->
 
 													{#if $errors.stepDescriptions?.[i]}
 														<p class="text-destructive text-sm font-medium">
