@@ -43,7 +43,7 @@
 	let activeSpace = getActiveSpaceState();
 </script>
 
-<div class={cn('space-y-6 p-10 pb-16 min-h-full', `bg-${activeSpace.userHeader?.theme}-100/10`)}>
+<div class="space-y-6 pb-16 min-h-full">
 	<div class="flex items-center">
 		<div class="space-y-0.5">
 			<h2 class="text-2xl font-bold tracking-tight">Recipes</h2>
@@ -78,7 +78,7 @@
 	<Separator class="my-6" />
 
 	<div
-		class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2"
+		class="w-full grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
 	>
 		{#each recipes as recipe}
 			<RecipeCard recipeId={recipe.id} recipeDoc={recipe.doc} />

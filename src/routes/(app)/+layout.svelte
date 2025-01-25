@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/shared/components/ui/sonner';
-	// import HeaderContent from '$lib/shared/components/app/header/header-content.svelte';
-	// import SiteHeader from '$lib/features/marketing/components/SiteHeader.svelte';
 	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { createUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-	import Sidebar from './Sidebar.svelte';
 	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
 
 	// Initialize the user doc state at the root app layout, will be used by all children
 	const userDocState = createUserDocState();
@@ -40,10 +38,7 @@
 {#if userDocState.isLoading || (userDocState.doc && userDocState.doc.checklist.welcome === false) || userDocState.user === null}
 	<LoadingSplash />
 {:else}
-	<!-- TODO Add app Navbar or Sidebar -->
-	<!-- <SiteHeader><HeaderContent /></SiteHeader> -->
-
-	<Sidebar>
+	<SidebarPage>
 		{@render children?.()}
-	</Sidebar>
+	</SidebarPage>
 {/if}

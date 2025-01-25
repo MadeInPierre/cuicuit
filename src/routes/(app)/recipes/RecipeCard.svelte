@@ -14,7 +14,7 @@
 
 {#if recipeDoc}
 	<div
-		class="flex flex-col items-start bg-white rounded-md border shadow-sm hover:shadow-lg transition-shadow"
+		class="flex flex-col items-start bg-white dark:bg-muted rounded-md border shadow-sm hover:shadow-lg transition-shadow"
 	>
 		{#if recipeDoc.imageUrls && recipeDoc.imageUrls.length > 0}
 			<a href={'/recipes/edit/' + recipeId} class="relative">
@@ -26,7 +26,7 @@
 
 				<!-- <UserAvatar profile={recipeDoc.author.profile} class="absolute bottom-2 right-2 size-5" /> -->
 
-				<CardBookmark class="absolute -top-[12px] right-[8px] size-10" />
+				<!-- <CardBookmark class="absolute -top-[12px] right-[8px] size-10" /> -->
 			</a>
 		{:else}
 			<div class="w-full aspect-[1.618] bg-gray-200 rounded-md"></div>
@@ -42,7 +42,7 @@
 				</p>
 			</a>
 			<ButtonThemed
-				class="rounded-full size-7 min-w-7 mr-2"
+				class="size-7 min-w-7 mr-2"
 				size="icon"
 				type="outline"
 				aria-label="Add to plan"

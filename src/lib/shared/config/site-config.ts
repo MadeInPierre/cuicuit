@@ -1,5 +1,5 @@
 export const siteConfig = {
-	name: 'Cuicuit V2',
+	name: 'Cuicuit',
 	url: 'https://cuicuit.vercel.app',
 	ogImage: 'https://cuicuit.vercel.app/signup-bg.jpg',
 	description: 'Your favorite kitchen companion!',

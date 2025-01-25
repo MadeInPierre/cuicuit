@@ -2,7 +2,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import Loader2 from 'lucide-svelte/icons/loader-circle';
-	import { HousePlus, Share2, UserPlus } from 'lucide-svelte';
+	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from 'lucide-svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn } from '$lib/utils';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
@@ -10,6 +10,7 @@
 	import CreateSpaceForm from '$lib/features/spaces/components/CreateSpaceForm.svelte';
 	import { spaceIcons, themeButtonClasses } from '../consts';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';
+	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 
 	const { ...others } = $props();
 
@@ -38,7 +39,7 @@
 <Dialog.Root bind:open={openDialog}>
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
-			<Button
+			<!-- <Button
 				variant={activeSpace.id ? 'ghost' : 'default'}
 				disabled={!activeSpace.id}
 				size="icon"
@@ -50,7 +51,37 @@
 				)}
 			>
 				<ActiveTeamIcon class={cn('size-5', !activeSpace.id && 'animate-spin')}></ActiveTeamIcon>
-			</Button>
+			</Button> -->
+			{#snippet child({ props })}
+				<Sidebar.MenuButton
+					{...props}
+					size="lg"
+					class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+				>
+					<div
+						class={cn(
+							'bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg transition-colors',
+							activeSpace.userHeader && themeButtonClasses[activeSpace.userHeader.theme]
+						)}
+					>
+						<ActiveTeamIcon class={cn('size-4', !activeSpace.id && 'animate-spin')}
+						></ActiveTeamIcon>
+					</div>
+					<div class="grid flex-1 text-left text-sm leading-tight">
+						<span class="truncate font-semibold">
+							{activeSpace.doc?.name || 'Loading...'}
+						</span>
+						<span class="truncate text-xs">
+							{Object.keys(activeSpace.doc?.memberProfiles || {}).length} member{Object.keys(
+								activeSpace.doc?.memberProfiles || {}
+							).length > 1
+								? 's'
+								: ''}
+						</span>
+					</div>
+					<ChevronsUpDown class="ml-auto" />
+				</Sidebar.MenuButton>
+			{/snippet}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content
 			class="w-[--bits-dropdown-menu-anchor-width] min-w-56 rounded-lg"

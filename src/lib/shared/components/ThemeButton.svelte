@@ -24,9 +24,11 @@
 
 	interface Props {
 		class?: string;
+		keepOpen?: boolean;
+		tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
 	}
 
-	const { class: className }: Props = $props();
+	const { class: className, keepOpen = false, tooltipSide = 'right' }: Props = $props();
 </script>
 
 {#snippet button(
@@ -35,7 +37,7 @@
 	code: 'light' | 'dark' | 'system',
 	isActive: boolean
 )}
-	<div class={!isActive ? 'group-hover:block hidden' : ''}>
+	<div class={cn(!isActive && !keepOpen && 'group-hover/themebutton:block hidden')}>
 		<Tooltip.Provider>
 			<Tooltip.Root>
 				<Tooltip.Trigger>
@@ -51,7 +53,7 @@
 						<span class="sr-only">{label}</span>
 					</Button>
 				</Tooltip.Trigger>
-				<Tooltip.Content side="right">
+				<Tooltip.Content side={tooltipSide}>
 					<span>{label}</span>
 				</Tooltip.Content>
 			</Tooltip.Root>
@@ -59,7 +61,7 @@
 	</div>
 {/snippet}
 
-<div class={cn('flex rounded-full border group', className)}>
+<div class={cn('flex rounded-full border group/themebutton', className)}>
 	{@render button(SunMoon, 'Follow device', 'system', $userPrefersMode === 'system')}
 	{@render button(Moon, 'Dark', 'dark', $userPrefersMode === 'dark')}
 	{@render button(Sun, 'Light', 'light', $userPrefersMode === 'light')}
