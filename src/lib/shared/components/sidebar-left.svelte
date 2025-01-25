@@ -271,7 +271,7 @@
 		<NavSecondary items={data.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
 	<Sidebar.Rail />
-	<Sidebar.Header class="border-sidebar-border h-16 border-b">
+	<Sidebar.Header class="border-sidebar-border border-b">
 		<NavUser
 			user={{
 				name: user.doc?.firstName + ' ' + user.doc?.lastName || 'Loading...',
