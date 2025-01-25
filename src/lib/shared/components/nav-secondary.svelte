@@ -1,0 +1,46 @@
+<script lang="ts">
+	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import type { ComponentProps } from 'svelte';
+	import ThemeButton from './ThemeButton.svelte';
+	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
+
+	let {
+		ref = $bindable(null),
+		items,
+		...restProps
+	}: ComponentProps<
+		typeof Sidebar.Group
+		// The `any` should be `Component` after lucide-svelte updates types
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	> & { items: { title: string; url: string; icon: any; badge?: string }[] } = $props();
+
+	const sidebar = useSidebar();
+</script>
+
+<Sidebar.Group bind:ref {...restProps}>
+	<Sidebar.GroupContent>
+		<Sidebar.Menu>
+			{#if sidebar.open}
+				<ThemeButton class="mx-auto" keepOpen={true} tooltipSide="top" />
+			{:else}
+				<ThemeButton class="w-min flex-col mx-auto" />
+			{/if}
+
+			{#each items as item (item.title)}
+				<Sidebar.MenuItem>
+					<Sidebar.MenuButton>
+						{#snippet child({ props })}
+							<a href={item.url} {...props}>
+								<item.icon />
+								<span>{item.title}</span>
+							</a>
+						{/snippet}
+					</Sidebar.MenuButton>
+					{#if item.badge}
+						<Sidebar.MenuBadge>{item.badge}</Sidebar.MenuBadge>
+					{/if}
+				</Sidebar.MenuItem>
+			{/each}
+		</Sidebar.Menu>
+	</Sidebar.GroupContent>
+</Sidebar.Group>
