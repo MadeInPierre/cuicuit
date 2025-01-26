@@ -35,7 +35,7 @@
 		type CreateRecipeFormSchema
 	} from '$lib/features/recipes/models/schemas';
 	import ImgUploadButton from './ImgUploadButton.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { DocState } from '$lib/shared/db/doc-state.svelte';
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
@@ -64,7 +64,7 @@
 	import { Badge } from '$lib/shared/components/ui/badge';
 
 	// Load the recipe document
-	const pageRecipeId = $page.params.id;
+	const pageRecipeId = page.params.id;
 	let recipeDocState = new DocState<RecipeDoc, DBRecipeDoc>(
 		firestore,
 		`recipes/${pageRecipeId}`,
@@ -200,7 +200,7 @@
 
 <form method="POST" use:enhance class="space-y-8">
 	<div class="w-full min-h-screen flex flex-col">
-		<main class="grid flex-1 items-start gap-4 md:gap-8 sm:px-6">
+		<main class="grid flex-1 items-start gap-4 md:gap-8">
 			<div class="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
 				<div class="flex items-center gap-4">
 					<Button
@@ -211,7 +211,7 @@
 							if (recipeDocState.data?.status == 'draft') dismissDialogMode = 'delete';
 							else {
 								// Check if the form is dirty before showing the dialog when dismissing only
-								if (!dirty) goto('/recipes');
+								if (!dirty && window) window.history.back();
 								dismissDialogMode = 'discard';
 							}
 							showDismissDialog = true;
