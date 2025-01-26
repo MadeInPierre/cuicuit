@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
-	import { Plus, SquarePen, Download } from 'lucide-svelte';
+	import { Plus } from 'lucide-svelte';
 	import { createDraftRecipe } from '$lib/features/recipes/actions/create-draft-recipe';
 	import { goto } from '$app/navigation';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
@@ -15,6 +14,7 @@
 	} from '$lib/features/recipes/db/recipe-doc';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import RecipeCard from './RecipeCard.svelte';
+	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -56,27 +56,14 @@
 				</p>
 			</div>
 
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<ButtonThemed {...props} class="ml-auto">
-							<Plus class="size-4 mr-2" />
-							Add
-						</ButtonThemed>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content class="w-[230px]" align="end">
-					<DropdownMenu.Item onclick={onNewRecipe}>
-						<SquarePen class="mr-2 h-4 w-4" />
-						<span>Create manually</span>
-					</DropdownMenu.Item>
-					<DropdownMenu.Item disabled>
-						<Download class="mr-2 h-4 w-4" />
-						<span>Web import</span>
-						<DropdownMenu.Shortcut class="tracking-normal">Coming soon</DropdownMenu.Shortcut>
-					</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			<ImportRecipeDialog dropdownAlign="end">
+				{#snippet trigger({ props })}
+					<ButtonThemed {...props} class="ml-auto">
+						<Plus class="size-4 mr-2" />
+						Add
+					</ButtonThemed>
+				{/snippet}
+			</ImportRecipeDialog>
 		</div>
 
 		<Separator class="my-6" />

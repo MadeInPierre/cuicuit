@@ -40,5 +40,5 @@
 			{@render children?.()}
 		</div>
 	</Sidebar.Inset>
-	<SidebarRight />
+	<!-- <SidebarRight /> -->
 </Sidebar.Provider>

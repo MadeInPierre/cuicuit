@@ -25,8 +25,10 @@
 	let loading = $state(false);
 
 	async function uploadImage(file: File) {
+		if (!recipeDocState.id || !recipeDocState.data) return;
+
 		loading = true;
-		await uploadRecipeImage(recipeDocState, file);
+		await uploadRecipeImage(recipeDocState.id, recipeDocState.data, file);
 
 		// wait 1sec to show the loading spinner for better UX
 		await new Promise((resolve) =>

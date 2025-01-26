@@ -10,19 +10,13 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import {
 		ChevronDown,
 		ChevronUp,
-		Download,
 		Plus,
-		FileImage,
-		FileText,
 		X,
-		Globe,
-		Trash2,
 		Loader2,
 		Users,
 		Minus,
@@ -62,6 +56,8 @@
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
+	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
+	import { slide } from 'svelte/transition';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
@@ -70,6 +66,9 @@
 		`recipes/${pageRecipeId}`,
 		recipeDocConverter
 	);
+
+	const banner = page.url.searchParams.get('banner') || undefined;
+	let openBanner = $state(banner ? true : false);
 
 	const activeSpace = getActiveSpaceState();
 
@@ -109,10 +108,10 @@
 				f.timeCook = recipeDocState.data.time?.cook || 0;
 				f.timeRest = recipeDocState.data.time?.rest || 0;
 				f.tools = recipeDocState.data.tools || [];
-				f.motivationLevel = recipeDocState.data.motivationLevel.toString() || '3';
-				f.healthyLevel = recipeDocState.data.healthyLevel.toString() || '3';
-				f.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher.toString() || '3';
-				f.dishHandLevel = recipeDocState.data.dishesLevels?.hand.toString() || '3';
+				f.motivationLevel = recipeDocState.data.motivationLevel?.toString() || '3';
+				f.healthyLevel = recipeDocState.data.healthyLevel?.toString() || '3';
+				f.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher?.toString() || '3';
+				f.dishHandLevel = recipeDocState.data.dishesLevels?.hand?.toString() || '3';
 				f.timeOfDay = recipeDocState.data.timeOfDay || undefined;
 				f.foodType = recipeDocState.data.foodType || undefined;
 				f.cuisine = recipeDocState.data.cuisine || undefined;
@@ -190,6 +189,12 @@
 			}))
 		});
 
+		// Remove the banner query param if it exists
+		const url = new URL(window.location.toString());
+		url.searchParams.delete('banner');
+		history.replaceState({}, '', url);
+		openBanner = false;
+
 		// Wait for 1 second for the loading spinner to show
 		loading = false;
 	}
@@ -259,6 +264,23 @@
 						</ButtonThemed>
 					</div>
 				</div>
+
+				{#if banner == 'import-incomplete' && openBanner}
+					<div class="w-full bg-yellow-50 flex gap-8 p-4 items-start text-yellow-800" out:slide>
+						<div class="rounded-md text-sm">
+							<span class="font-semibold">Missing information:</span>
+							<span>
+								Almost there! It seems like the imported recipe is missing some information required
+								for Cuicuit recipes. Please take a moment to fill in the remaining details and save
+								the recipe.
+							</span>
+						</div>
+						<button class="ml-auto" onclick={() => (openBanner = false)}>
+							<X class="h-4 w-4" />
+						</button>
+					</div>
+				{/if}
+
 				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
 						<Card.Root>
@@ -267,30 +289,7 @@
 									<Card.Title>Recipe Details</Card.Title>
 									<Card.Description>This is the main information about the recipe</Card.Description>
 								</div>
-								<DropdownMenu.Root>
-									<DropdownMenu.Trigger>
-										{#snippet child({ props })}
-											<ButtonThemed {...props} class="ml-auto" size="sm" disabled={loading}>
-												<Download class="mx-2 h-4 w-4" />
-												<span>Import</span>
-											</ButtonThemed>
-										{/snippet}
-									</DropdownMenu.Trigger>
-									<DropdownMenu.Content class="w-44" align="start">
-										<DropdownMenu.Item>
-											<Globe class="mr-2 h-4 w-4" />
-											<span>From the web...</span>
-										</DropdownMenu.Item>
-										<DropdownMenu.Item>
-											<FileImage class="mr-2 h-4 w-4" />
-											<span>Photo or PDF...</span>
-										</DropdownMenu.Item>
-										<DropdownMenu.Item>
-											<FileText class="mr-2 h-4 w-4" />
-											<span>Text or document...</span>
-										</DropdownMenu.Item>
-									</DropdownMenu.Content>
-								</DropdownMenu.Root>
+								<ImportRecipeDialog recipeId={recipeDocState.id} />
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
