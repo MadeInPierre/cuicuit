@@ -1,34 +1,37 @@
-import { storage } from '$lib/shared/db/firebase-client';
+import { firestore, storage } from '$lib/shared/db/firebase-client';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { toast } from 'svelte-sonner';
 import type { DBRecipeDoc, RecipeDoc } from '../db/recipe-doc';
 import type { DocState } from '$lib/shared/db/doc-state.svelte';
+import { doc, updateDoc } from 'firebase/firestore';
 
 /**
  * Upload a new recipe image to the storage and add the image url to the recipeDoc urls list
  */
 export async function uploadRecipeImage(
-	recipeDocState: DocState<RecipeDoc, DBRecipeDoc>,
-	file: File
+	recipeId: string,
+	recipeDoc: RecipeDoc | null,
+	file: File | Blob
 ) {
 	if (!file) throw new Error('No file to upload');
-	if (!recipeDocState.data) throw new Error('No recipe data, not loaded yet?');
+	if (!recipeDoc) throw new Error('No recipe data, not loaded yet?');
 
 	// Generate a random uuid for the image
 	const uuid = crypto.randomUUID(); // Only available in modern browsers and localhost or https
 
 	// Upload the file to the storage
-	const imgRef = ref(storage, `recipes/${recipeDocState.id}/${uuid}.png`);
+	const imgRef = ref(storage, `recipes/${recipeId}/${uuid}.png`);
 
 	uploadBytesResumable(imgRef, file)
 		.then((snapshot) => {
 			return getDownloadURL(imgRef);
 		})
 		.then((url) => {
-			recipeDocState.setDoc({
-				...recipeDocState.data,
-				imageIds: [...(recipeDocState.data!.imageIds || []), uuid as string],
-				imageUrls: [...(recipeDocState.data!.imageUrls || []), url as string]
+			const docRef = doc(firestore, 'recipes', recipeId);
+
+			updateDoc(docRef, {
+				imageIds: [...(recipeDoc?.imageIds || []), uuid as string],
+				imageUrls: [...(recipeDoc?.imageUrls || []), url as string]
 			});
 		})
 		.catch((error) => {

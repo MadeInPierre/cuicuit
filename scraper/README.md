@@ -1,3 +1,5 @@
+This is a python REST server that takes a recipe URL and returns the parsed recipe in JSON format. It should run in a docker container in a VPS along with the cuicuit frontend. 
+
 Build the image with: 
 
 ```bash

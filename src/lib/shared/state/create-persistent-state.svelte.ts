@@ -17,7 +17,7 @@ export function createPersistentState(key: string, initialValue: string | undefi
 	}
 
 	return {
-		get id() {
+		get value() {
 			return activeId;
 		},
 		set

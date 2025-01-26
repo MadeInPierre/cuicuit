@@ -12,7 +12,7 @@ class ActiveSpaceState {
 	private _userDocState: UserDocState | undefined = undefined;
 
 	/** Repeat the activeSpaceIdState.id here for easier access */
-	private _id: string | undefined | null = $derived(activeSpaceIdState.id);
+	private _id: string | undefined | null = $derived(activeSpaceIdState.value);
 	get id(): string | undefined | null {
 		return this._id;
 	}

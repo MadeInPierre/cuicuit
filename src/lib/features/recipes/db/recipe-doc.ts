@@ -13,11 +13,18 @@ import { Timestamp, type FirestoreDataConverter } from 'firebase/firestore';
 export type RecipeDoc = {
 	// Metadata
 	status: 'draft' | 'published';
+	language: 'fr' | 'en';
 	created_t: Date;
 	modified_t: Date;
 	author: {
 		uid: string;
 		profile: UserProfile;
+	} | null; // Null allowed for imported recipes
+	source: {
+		name: string;
+		domain: string;
+		url: string;
+		author: string;
 	};
 	// Cover info
 	title: string;

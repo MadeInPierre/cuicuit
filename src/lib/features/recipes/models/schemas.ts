@@ -108,3 +108,9 @@ export const createRecipeFormSchema = z
 	});
 
 export type CreateRecipeFormSchema = typeof createRecipeFormSchema;
+
+export const imortRecipeUrlSchema = z.object({
+	url: z.string().url({ message: 'Oops, please enter a valid URL.' })
+});
+
+export type ImportRecipeUrlSchema = typeof imortRecipeUrlSchema;

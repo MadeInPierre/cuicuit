@@ -7,7 +7,10 @@ import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelt
  * Creates a new draft recipe document in the recipes collection
  * @returns the id of the newly created draft recipe
  */
-export async function createDraftRecipe(userDocState: UserDocState): Promise<string> {
+export async function createDraftRecipe(
+	userDocState: UserDocState,
+	language: string = 'fr'
+): Promise<string> {
 	if (!userDocState.user || !userDocState.doc) {
 		throw new Error('No user to create the draft recipe for');
 	}
@@ -18,6 +21,7 @@ export async function createDraftRecipe(userDocState: UserDocState): Promise<str
 	// Set the initial data of the draft recipe
 	await setDoc(docRef, {
 		status: 'draft',
+		language,
 		author: {
 			uid: userDocState.user.uid,
 			profile: {
@@ -26,6 +30,11 @@ export async function createDraftRecipe(userDocState: UserDocState): Promise<str
 				userName: userDocState.doc.userName,
 				avatar: userDocState.doc.avatar
 			}
+		},
+		source: {
+			name: 'Cuicuit',
+			domain: 'cuicuit.fr',
+			url: 'https://cuicuit.fr/recipes/' + docRef.id
 		},
 		created_t: new Date(),
 		modified_t: new Date()
