@@ -197,6 +197,9 @@
 
 		// Wait for 1 second for the loading spinner to show
 		loading = false;
+
+		// Go to the recipe view page
+		goto(`/recipes/${recipeDocState.id}`);
 	}
 
 	let showDismissDialog = $state(false);

@@ -41,7 +41,7 @@ export type RecipeDoc = {
 	};
 	// Search
 	embedding: number[];
-	// tags: string[]; // E.g. 'breakfast, vegan, gluten-free, party, birthday'
+	// tags: string[]; // E.g. breakfast, vegan, gluten-free, party, birthday
 	// Categories
 	timeOfDay: RecipeTimeOfDayKey;
 	foodType: RecipeFoodTypeKey;
