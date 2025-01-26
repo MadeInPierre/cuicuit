@@ -1,37 +1,46 @@
 <script lang="ts">
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-	import Heart from 'lucide-svelte/icons/heart';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import {
 		ArrowUpRight,
-		Calendar,
+		BicepsFlexed,
 		CalendarPlus,
 		Camera,
-		Clock,
 		Equal,
+		ForkKnife,
+		Globe,
 		Grid,
+		HandCoins,
+		Leaf,
+		LeafyGreen,
 		List,
 		Pencil,
-		Plus
+		Plus,
+		Salad
 	} from 'lucide-svelte';
 	import { DocState } from '$lib/shared/db/doc-state.svelte';
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
+		DishesLevel,
+		recipeCuisines,
 		recipeDocConverter,
+		recipeFoodTypes,
+		RecipeHealthyLevel,
+		RecipeMotivationLevel,
+		recipeTimesOfDay,
 		type DBRecipeDoc,
 		type RecipeDoc,
 		type RecipeIngredient
 	} from '$lib/features/recipes/db/recipe-doc';
-	import { goto } from '$app/navigation';
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import { page } from '$app/state';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import * as Card from '$lib/shared/components/ui/card/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
-	import Separator from '$lib/shared/components/ui/separator/separator.svelte';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { capitalize } from '$lib/utils';
+	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
@@ -48,7 +57,7 @@
 	let doc = $derived(recipeDocState.data);
 </script>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col mb-20">
 	<main class="grid flex-1 items-start gap-4 md:gap-8">
 		<div class="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
 			<div class="flex items-center gap-4">
@@ -123,18 +132,24 @@
 						<h1 class="text-3xl font-bold">{doc?.title || 'Loading...'}</h1>
 						<h3 class="text-lg text-muted-foreground">{doc?.description || ''}</h3>
 
-						{#if doc?.source?.domain != 'cuicuit.fr'}
-							<Button
-								class="p-0 gap-1"
-								variant="link"
-								href={doc?.source.url}
-								target="_blank"
-								rel="noopener"
-							>
-								View the original recipe on {doc?.source.name}
-								<ArrowUpRight class="size-4 inline-block ml-1" />
-							</Button>
-						{/if}
+						<div class="flex">
+							<div class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm">
+								<UserAvatar profile={doc?.author?.profile} class="ml-auto size-5" />
+								<span class="">Added by {'@' + doc?.author?.profile.userName}</span>
+							</div>
+							{#if doc?.source?.domain && doc?.source?.domain != 'cuicuit.fr'}
+								<Button
+									class="p-0 gap-1"
+									variant="link"
+									href={doc?.source.url}
+									target="_blank"
+									rel="noopener"
+								>
+									View on {doc?.source.name}
+									<ArrowUpRight class="size-4 inline-block ml-1" />
+								</Button>
+							{/if}
+						</div>
 					</div>
 
 					<div class="rounded-lg bg-muted flex items-center p-2">
@@ -171,8 +186,58 @@
 						</div>
 					</div>
 
-					<div class="grid space-y-6">
-						<h2 class="text-xl font-semibold">Instructions</h2>
+					<div class="grid grid-cols-3 gap-6 justify-items-center">
+						{#snippet recipeFilter(Icon: any, title: string, value: string)}
+							<div class="flex gap-4 w-40">
+								<div class="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+									<Icon class="size-5" />
+								</div>
+								<div class="flex flex-col gap-0.5">
+									<span class="text-xs text-muted-foreground">{title}</span>
+									<span class="text-sm font-semibold">{value}</span>
+								</div>
+							</div>
+						{/snippet}
+
+						{@render recipeFilter(
+							ForkKnife,
+							'Category',
+							doc?.timeOfDay ? recipeTimesOfDay[doc.timeOfDay] : 'Unknown'
+						)}
+
+						{@render recipeFilter(
+							Salad,
+							'Type',
+							doc?.foodType ? recipeFoodTypes[doc.foodType] : 'Unknown'
+						)}
+
+						{@render recipeFilter(
+							Globe,
+							'Cuisine',
+							doc?.cuisine ? recipeCuisines[doc.cuisine] : 'Unknown'
+						)}
+
+						{@render recipeFilter(
+							BicepsFlexed,
+							'Motivation',
+							capitalize(RecipeMotivationLevel[doc?.motivationLevel || 3])
+						)}
+
+						{@render recipeFilter(
+							LeafyGreen,
+							'Healthy',
+							capitalize(RecipeHealthyLevel[doc?.healthyLevel || 3])
+						)}
+
+						{@render recipeFilter(
+							HandCoins,
+							'Dishes',
+							capitalize(DishesLevel[doc?.dishesLevels.hand || 3])
+						)}
+					</div>
+
+					<div class="grid mt-6 space-y-6">
+						<h2 class="text-xl font-semibold">Steps</h2>
 
 						{#each doc?.steps || [] as step, i (step)}
 							<div class="flex items-start min-h-12">
@@ -187,7 +252,7 @@
 					</div>
 				</div>
 
-				<div class="grid auto-rows-max items-start gap-4 lg:gap-8">
+				<div class="grid auto-rows-max items-start gap-x-4 gap-y-12">
 					<div class="grid space-y-4">
 						<h2 class="text-xl font-semibold flex items-center">
 							<span class="">Ingredients</span>
@@ -253,14 +318,10 @@
 						{/if}
 					</div>
 
-					<!-- <div class="grid space-y-4">
-						<h2 class="text-xl font-semibold">Optional</h2>
-
-						<div class="w-full grid grid-cols-3 gap-2">
-							<div class="bg-muted aspect-square rounded-md"></div>
-							<div class="bg-muted aspect-square rounded-md"></div>
-						</div>
-					</div> -->
+					<div class="grid space-y-4">
+						<h2 class="text-xl font-semibold">Nutrition</h2>
+						<div class="grid grid-cols-2 gap-4">TODO</div>
+					</div>
 				</div>
 			</div>
 
