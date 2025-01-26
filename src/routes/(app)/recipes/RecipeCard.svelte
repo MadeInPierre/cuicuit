@@ -3,21 +3,26 @@
 	import { CalendarPlus } from 'lucide-svelte';
 	import { recipeTimesOfDay, type RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
 	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
+	import { cn } from '$lib/utils';
 
 	interface Props {
 		recipeId: string;
 		recipeDoc: RecipeDoc;
+		class?: string;
 	}
 
-	let { recipeId, recipeDoc }: Props = $props();
+	let { recipeId, recipeDoc, class: className = '' }: Props = $props();
 </script>
 
 {#if recipeDoc}
 	<div
-		class="flex flex-col items-start bg-white dark:bg-muted rounded-md border shadow-sm hover:shadow-lg transition-shadow"
+		class={cn(
+			'w-52 group flex flex-col items-start bg-white dark:bg-muted rounded-md border shadow-sm hover:shadow-lg transition-shadow',
+			className
+		)}
 	>
 		{#if recipeDoc.imageUrls && recipeDoc.imageUrls.length > 0}
-			<a href={'/recipes/edit/' + recipeId} class="relative">
+			<a href={'/recipes/' + recipeId} class="relative">
 				<img
 					src={recipeDoc.imageUrls[0]}
 					alt="Recipe"
@@ -42,7 +47,8 @@
 				</p>
 			</a>
 			<ButtonThemed
-				class="size-7 min-w-7 mr-2"
+				class="min-w-7 h-7 mr-2 hidden group-hover:flex"
+				title="Add to plan"
 				size="icon"
 				type="outline"
 				aria-label="Add to plan"

@@ -8,7 +8,11 @@
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { collection, getDocs, query } from 'firebase/firestore';
 	import { firestore } from '$lib/shared/db/firebase-client';
-	import { recipeDocConverter, type RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
+	import {
+		recipeDocConverter,
+		recipeTimesOfDay,
+		type RecipeDoc
+	} from '$lib/features/recipes/db/recipe-doc';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import RecipeCard from './RecipeCard.svelte';
 
@@ -42,45 +46,57 @@
 	let activeSpace = getActiveSpaceState();
 </script>
 
-<div class="space-y-6 pb-16 min-h-full">
-	<div class="flex items-center">
-		<div class="space-y-0.5">
-			<h2 class="text-2xl font-bold tracking-tight">Recipes</h2>
-			<p class="text-muted-foreground">
-				Here's your daily dose of inspiration. Add a recipe to get started.
-			</p>
+<div class="space-y-8 pb-16 min-h-full">
+	<div class="space-y-6">
+		<div class="flex items-center">
+			<div class="space-y-0.5">
+				<h2 class="text-2xl font-bold tracking-tight">Recipes</h2>
+				<p class="text-muted-foreground">
+					Here's your daily dose of inspiration. Add a recipe to get started.
+				</p>
+			</div>
+
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<ButtonThemed {...props} class="ml-auto">
+							<Plus class="size-4 mr-2" />
+							Add
+						</ButtonThemed>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content class="w-[230px]" align="end">
+					<DropdownMenu.Item onclick={onNewRecipe}>
+						<SquarePen class="mr-2 h-4 w-4" />
+						<span>Create manually</span>
+					</DropdownMenu.Item>
+					<DropdownMenu.Item disabled>
+						<Download class="mr-2 h-4 w-4" />
+						<span>Web import</span>
+						<DropdownMenu.Shortcut class="tracking-normal">Coming soon</DropdownMenu.Shortcut>
+					</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<ButtonThemed {...props} class="ml-auto">
-						<Plus class="size-4 mr-2" />
-						Add
-					</ButtonThemed>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content class="w-[230px]" align="end">
-				<DropdownMenu.Item onclick={onNewRecipe}>
-					<SquarePen class="mr-2 h-4 w-4" />
-					<span>Create manually</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item disabled>
-					<Download class="mr-2 h-4 w-4" />
-					<span>Web import</span>
-					<DropdownMenu.Shortcut class="tracking-normal">Coming soon</DropdownMenu.Shortcut>
-				</DropdownMenu.Item>
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		<Separator class="my-6" />
 	</div>
 
-	<Separator class="my-6" />
+	{#each Object.entries(recipeTimesOfDay) as [key, label]}
+		{@const categoryRecipes = recipes.filter((recipe) => recipe.doc.timeOfDay == key)}
 
-	<div class="w-full grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-		{#each recipes as recipe}
-			<RecipeCard recipeId={recipe.id} recipeDoc={recipe.doc} />
-		{/each}
-	</div>
+		{#if categoryRecipes.length > 0}
+			<div class="space-y-4">
+				<h3 class="text-lg font-bold tracking-tight">{label}</h3>
+
+				<div class="w-full flex flex-wrap gap-2">
+					{#each recipes.filter((recipe) => recipe.doc.timeOfDay == key) as recipe (recipe.id)}
+						<RecipeCard recipeId={recipe.id} recipeDoc={recipe.doc} />
+					{/each}
+				</div>
+			</div>
+		{/if}
+	{/each}
 
 	{@render children?.()}
 </div>
