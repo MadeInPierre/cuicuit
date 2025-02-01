@@ -382,6 +382,8 @@
 
 								<p>{result}</p> -->
 
+								<Label>Required</Label>
+
 								{#each $formData.ingredientAmounts as _, i}
 									<div class="grid gap-3">
 										<div class="grid gap-2">
@@ -487,6 +489,11 @@
 										</div>
 									</div>
 								{/each}
+
+								<Label>Optional</Label>
+								<p class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md">
+									Drag ingredients here to mark them as optional
+								</p>
 
 								<!-- <Table.Root>
 									<Table.Header>

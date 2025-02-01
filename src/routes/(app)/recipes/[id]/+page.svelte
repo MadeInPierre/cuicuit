@@ -60,7 +60,7 @@
 <div class="w-full flex flex-col mb-20">
 	<main class="grid flex-1 items-start gap-4 md:gap-8">
 		<div class="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
-			<div class="flex items-center gap-4">
+			<!-- <div class="flex items-center gap-4">
 				<Button
 					variant="outline"
 					size="icon"
@@ -96,7 +96,7 @@
 						Add to plan
 					</ButtonThemed>
 				</div>
-			</div>
+			</div> -->
 
 			<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 				<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
@@ -302,7 +302,7 @@
 						{:else}
 							{#snippet ingredientList(ing: RecipeIngredient)}
 								<div class="flex items-center gap-2">
-									<div class="bg-muted aspect-square rounded-md min-w-14"></div>
+									<div class="bg-muted aspect-square rounded-md min-w-10"></div>
 									<div class="flex-1">
 										<span class="text-sm font-medium">{ing.name}</span>
 										<span class="text-xs text-balance line-clamp-2">
@@ -312,15 +312,39 @@
 								</div>
 							{/snippet}
 
-							{#each doc?.ingredients || [] as ing, i (ing.name)}
-								{@render ingredientList(ing)}
-							{/each}
+							<div class="w-full grid gap-y-2">
+								{#each doc?.ingredients || [] as ing, i (ing.name)}
+									{@render ingredientList(ing)}
+								{/each}
+							</div>
 						{/if}
+					</div>
+
+					<div class="grid space-y-4">
+						<div class="flex gap-2 items-center">
+							<h2 class="text-xl font-semibold">Plan</h2>
+
+							<ButtonThemed size="sm" type="submit" class="flex gap-2 ml-auto">
+								<CalendarPlus class="size-4" />
+								Add to plan
+							</ButtonThemed>
+						</div>
+
+						<div
+							class="flex items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
+						>
+							This recipe is not in your plan yet.
+						</div>
 					</div>
 
 					<div class="grid space-y-4">
 						<h2 class="text-xl font-semibold">Nutrition</h2>
 						<div class="grid grid-cols-2 gap-4">TODO</div>
+					</div>
+
+					<div class="grid space-y-4">
+						<h2 class="text-xl font-semibold">History</h2>
+						<div class="grid grid-cols-2 gap-4">TODO History of personal makes</div>
 					</div>
 				</div>
 			</div>
