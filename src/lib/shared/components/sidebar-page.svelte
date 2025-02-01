@@ -16,7 +16,7 @@
 <Sidebar.Provider>
 	<SidebarLeft collapsible="icon" />
 	<Sidebar.Inset>
-		<header class="bg-background sticky top-0 flex h-14 shrink-0 items-center gap-2">
+		<header class="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md">
 			<div class="flex flex-1 items-center gap-2 px-3">
 				<Sidebar.Trigger />
 				<Separator orientation="vertical" class="mr-2 h-4" />
