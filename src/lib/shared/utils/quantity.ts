@@ -270,7 +270,7 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 	gramsPerWhole: GramsPerWhole | undefined;
 
 	/**
-	 * Create a new WholeVolumeWeightQuantity object from a free input for the density ingredient.
+	 * Create a new quantity with finding the closest embedded density ingredient to the free text input.
 	 * This method fetches the density value from an external API using the density ingredient name.
 	 * @param value the value of the quantity
 	 * @param unit the unit of the quantity
