@@ -254,8 +254,30 @@
 
 				<div class="grid auto-rows-max items-start gap-x-4 gap-y-12">
 					<div class="grid space-y-4">
-						<h2 class="text-xl font-semibold flex items-center">
-							<span class="">Ingredients</span>
+						<div class="flex gap-2 items-center">
+							<h2 class="text-xl font-semibold">Plan</h2>
+
+							<ButtonThemed size="sm" type="submit" class="flex gap-2 ml-auto">
+								<CalendarPlus class="size-4" />
+								Add meal
+							</ButtonThemed>
+						</div>
+
+						<div
+							class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
+						>
+							<span>This recipe is not in your plan yet.</span>
+
+							<!-- <ButtonThemed size="sm" type="submit" class="flex gap-2 mx-auto">
+								<CalendarPlus class="size-4" />
+								Add to plan
+							</ButtonThemed> -->
+						</div>
+					</div>
+
+					<div class="grid space-y-4">
+						<div class="text-xl font-semibold flex items-center">
+							<span>Ingredients</span>
 
 							<Button
 								variant="ghost"
@@ -281,7 +303,7 @@
 								<List class="min-w-4 h-4" />
 								<span class="sr-only">List view</span>
 							</Button>
-						</h2>
+						</div>
 
 						{#if ingredientsView.value === 'grid'}
 							{#snippet ingredientGrid(ing: RecipeIngredient)}
@@ -321,23 +343,6 @@
 					</div>
 
 					<div class="grid space-y-4">
-						<div class="flex gap-2 items-center">
-							<h2 class="text-xl font-semibold">Plan</h2>
-
-							<ButtonThemed size="sm" type="submit" class="flex gap-2 ml-auto">
-								<CalendarPlus class="size-4" />
-								Add to plan
-							</ButtonThemed>
-						</div>
-
-						<div
-							class="flex items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
-						>
-							This recipe is not in your plan yet.
-						</div>
-					</div>
-
-					<div class="grid space-y-4">
 						<h2 class="text-xl font-semibold">Nutrition</h2>
 						<div class="grid grid-cols-2 gap-4">TODO</div>
 					</div>
@@ -345,6 +350,12 @@
 					<div class="grid space-y-4">
 						<h2 class="text-xl font-semibold">History</h2>
 						<div class="grid grid-cols-2 gap-4">TODO History of personal makes</div>
+					</div>
+
+					<div class="grid space-y-4">
+						<Button variant="outline" href={'/recipes/' + pageRecipeId + '/edit'} class="w-full">
+							Edit
+						</Button>
 					</div>
 				</div>
 			</div>

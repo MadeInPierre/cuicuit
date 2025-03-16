@@ -115,7 +115,6 @@
 
 				{@render tabList()}
 
-				<!-- <JoinSpaceForm bind:openDialog /> -->
 				TODO
 			</Tabs.Content>
 
@@ -132,7 +131,6 @@
 
 				{@render tabList()}
 
-				<!-- <JoinSpaceForm bind:openDialog /> -->
 				TODO
 			</Tabs.Content>
 		</Tabs.Root>

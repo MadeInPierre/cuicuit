@@ -58,6 +58,7 @@
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { slide } from 'svelte/transition';
+	import IngredientSelectDropdown from './IngredientSelectDropdown.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
@@ -387,11 +388,19 @@
 								{#each $formData.ingredientAmounts as _, i}
 									<div class="grid gap-3">
 										<div class="grid gap-2">
-											<div class="flex gap-2 items-center">
+											<div class="w-full flex gap-2 items-center">
 												<GripVertical class="size-6 text-muted-foreground cursor-grab" />
+												<!-- <IngredientSelectDropdown /> -->
+
+												<div
+													class="bg-muted aspect-square h-full rounded-md flex items-center justify-center text-muted-foreground"
+												>
+													?
+													<!-- <Loader2 class="size-4 animate-spin" /> -->
+												</div>
 
 												<div class="flex">
-													<Form.Field {form} name="ingredientAmounts" class="space-y-0 w-full">
+													<Form.Field {form} name="ingredientAmounts" class="space-y-0">
 														<Form.Control>
 															{#snippet children({ props })}
 																<Input
@@ -452,7 +461,7 @@
 												<Button
 													variant="ghost"
 													size="icon"
-													class="h-6 w-6 min-w-6"
+													class="ml-auto h-6 w-6 min-w-6"
 													disabled={loading || $formData.ingredientAmounts.length <= 2}
 													onclick={() => {
 														$formData.ingredientAmounts = $formData.ingredientAmounts.filter(
@@ -470,23 +479,23 @@
 													<span class="sr-only">Delete</span>
 												</Button>
 											</div>
-
-											{#if $errors.ingredientAmounts?.[i]}
-												<p class="ml-6 text-destructive text-sm font-medium">
-													{$errors.ingredientAmounts[i]}
-												</p>
-											{/if}
-											{#if $errors.ingredientUnits?.[i]}
-												<p class="ml-6 text-destructive text-sm font-medium">
-													{$errors.ingredientUnits[i]}
-												</p>
-											{/if}
-											{#if $errors.ingredientNames?.[i]}
-												<p class="ml-6 text-destructive text-sm font-medium">
-													{$errors.ingredientNames[i]}
-												</p>
-											{/if}
 										</div>
+
+										{#if $errors.ingredientAmounts?.[i]}
+											<p class="ml-6 text-destructive text-sm font-medium">
+												{$errors.ingredientAmounts[i]}
+											</p>
+										{/if}
+										{#if $errors.ingredientUnits?.[i]}
+											<p class="ml-6 text-destructive text-sm font-medium">
+												{$errors.ingredientUnits[i]}
+											</p>
+										{/if}
+										{#if $errors.ingredientNames?.[i]}
+											<p class="ml-6 text-destructive text-sm font-medium">
+												{$errors.ingredientNames[i]}
+											</p>
+										{/if}
 									</div>
 								{/each}
 
