@@ -57,6 +57,7 @@
 		"dotenv": "^16.4.7",
 		"firebase": "^11.0.1",
 		"firebase-admin": "^12.6.0",
+		"fuse.js": "^7.1.0",
 		"svelte-copy": "^2.0.0"
 	}
 }

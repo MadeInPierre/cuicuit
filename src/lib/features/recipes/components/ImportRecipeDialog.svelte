@@ -1,11 +1,14 @@
 <script lang="ts">
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
-	import { Download, FileImage, FileText, Globe } from 'lucide-svelte';
+	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 	import type { Snippet } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { createDraftRecipe } from '../actions/create-draft-recipe';
+	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
@@ -22,6 +25,8 @@
 	}: Props = $props();
 
 	let activeTab: 'url' | 'image' | 'text' = $state('url');
+
+	const userDocState = getUserDocState();
 </script>
 
 {#snippet tabList()}
@@ -56,6 +61,15 @@
 			{/snippet}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content class="w-[200px]" align={dropdownAlign}>
+			<DropdownMenu.Item
+				onclick={async () => {
+					const recipeId = await createDraftRecipe(userDocState)
+					goto(`/recipes/${recipeId}/edit`);
+				}}
+			>
+				<Pencil class="mr-2 h-4 w-4" />
+				<span>Create new...</span>
+			</DropdownMenu.Item>
 			<DropdownMenu.Item
 				onclick={() => {
 					activeTab = 'url';

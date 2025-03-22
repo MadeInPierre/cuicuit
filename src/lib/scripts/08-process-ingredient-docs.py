@@ -64,9 +64,6 @@ unknown_substitutions: Dict[str, int] = {}
 
 # Validate and process ingredient documents
 for slug, doc in load_ingredient_docs().items():
-    # Add category
-    doc["hierarchy"] = categories[slug].split("/")
-
     # Verify that the quantityUnits field has at least one unit with the "default" value
     if not any(unit == "default" for unit in doc["quantityUnits"].values()):
         print(f"[red]Missing default quantity unit for {slug}")
@@ -263,6 +260,9 @@ for slug, doc in docs.items():
 
 
 for slug, doc in docs.items():
+    # Add category
+    doc["hierarchy"] = categories[slug].split("/")
+
     # Add the ingredient embeddings to the processed ingredient documents
     doc["embedding"] = (
         df_existing_ingredient_embeddings[df_existing_ingredient_embeddings["slug"] == slug]["embedding"]
