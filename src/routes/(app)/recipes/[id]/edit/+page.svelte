@@ -89,7 +89,6 @@
 		}
 	});
 	const { form: formData, enhance, errors, tainted, isTainted } = form;
-	$inspect($errors);
 
 	let dirty = $derived(isTainted($tainted));
 	let searchInput = $state('');
@@ -137,22 +136,30 @@
 		debounceTimeout = setTimeout(async () => {
 			if (!searchInput) return;
 
-			result = `Searching for: ${searchInput}`;
-
-			const quantity = await Quantity.freeDensity(100, 'g', searchInput, {
-				region: 'EU',
-				gramsPerWhole: {
-					min: 30,
-					mid: 33,
-					max: 36
+			const response = await fetch('/api/ingredients/search', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'search-query': searchInput,
+					locale: 'en-US',
+					limit: '3'
 				}
 			});
+			const data = await response.json();
+			result = JSON.stringify(data, null, 2);
 
-			result = `${quantity.toString()} is ${quantity.to('ml').mid.toFixed(2)} ml`;
-		}, 1000);
+			const bestMatch = data.matches[0] as { slug: string; name: string };
+
+			result += `\nSearching for: ${bestMatch}`;
+			const quantity = await Quantity.freeDensity(100, 'g', bestMatch.name, {
+				region: 'EU',
+				gramsPerWhole: { min: 30, mid: 33, max: 36 }
+			});
+			result += `\n${quantity.toString()} is ${quantity.to('ml').mid.toFixed(2)} ml`;
+		}, 500);
 	});
 
-	let loading = $state(false);
+	let loading = $state(false); 
 
 	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
 		if (!recipeDocState.data) return;
@@ -372,7 +379,7 @@
 								</div>
 							</Card.Header>
 							<Card.Content class="grid gap-3">
-								<!-- <Input
+								<Input
 									disabled={loading}
 									id="name"
 									type="text"
@@ -380,8 +387,7 @@
 									placeholder="Type to add 3 tomatoes, 200g of flour, ..."
 									bind:value={searchInput}
 								/>
-
-								<p>{result}</p> -->
+								<pre>{result}</pre>
 
 								<Label>Required</Label>
 

@@ -1,4 +1,6 @@
 /**
+ * TODO DEPRECATED?? Maybe replaced by api/ingredients/search/+server.ts
+ *
  * This API endpoint takes a search query (free-form ingredient text) and returns
  * the 5 most similar ingredients to the query based on the embeddings of the
  * ingredient names (pre-calculated using the script

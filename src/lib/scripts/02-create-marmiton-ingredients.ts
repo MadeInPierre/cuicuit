@@ -1,3 +1,5 @@
+// DEPRECATED: This script is deprecated and should not be used anymore.
+//
 // To run: npx tsx src/lib/admin/create-marmiton-ingredients.ts
 //
 // This script takes the JSON ingredients and image files generated from the Marmiton python scraper
@@ -59,7 +61,7 @@ type IngredientDoc = {
 };
 
 // Upload each ingredient to Firestore
-for (const item of ingredientsList) {
+export for (const item of ingredientsList) {
 	// Upload image to Firebase Storage
 	let imageUrl: string | null = null;
 	if (item.imageUrl) {
@@ -118,7 +120,7 @@ const names = ingredientsList.map((item) => `Ingredient: ${item.name}`);
 const output = (await hf.featureExtraction({ model, inputs: names })) as number[][];
 
 // Update the Firestore documents with the embeddings
-for (let i = 0; i < names.length; i++) {
+export for (let i = 0; i < names.length; i++) {
 	console.log(`${i + 1}/${names.length}`, 'Updating', ingredientsList[i].slug);
 	const item = ingredientsList[i];
 
