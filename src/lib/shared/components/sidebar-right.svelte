@@ -39,8 +39,10 @@
 	{...restProps}
 >
 	<Sidebar.Header class="border-sidebar-border border-b grid p-4 gap-0">
-		<h1 class="text-md font-semibold">Meal plan</h1>
-		<p class="text-xs text-muted-foreground">Check ingredients and generate a shopping list.</p>
+		<h1 class="text-md font-semibold">Your plan</h1>
+		<p class="text-xs text-muted-foreground">
+			Drag planned recipes here.
+		</p>
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<!-- <DatePicker /> -->

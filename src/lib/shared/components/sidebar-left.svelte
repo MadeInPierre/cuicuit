@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Calendar from 'lucide-svelte/icons/calendar';
-	import House from 'lucide-svelte/icons/house';
 	import Settings2 from 'lucide-svelte/icons/settings-2';
 	import NavFavorites from '$lib/shared/components/nav-favorites.svelte';
 	import NavMain from '$lib/shared/components/nav-main.svelte';
@@ -9,7 +8,7 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import type { ComponentProps } from 'svelte';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
-	import { ChefHat, LifeBuoy, Notebook, Refrigerator, ScrollText, Send } from 'lucide-svelte';
+	import { Blocks, ChefHat, LifeBuoy, Megaphone, Notebook, Refrigerator, ScrollText, Send, ShoppingCart } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import NavUser from './nav-user.svelte';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
@@ -17,12 +16,6 @@
 	// This is sample data.
 	const data = $derived({
 		navMain: [
-			// {
-			// 	title: 'Home',
-			// 	url: '/dashboard',
-			// 	icon: House,
-			// 	isActive: page.url.pathname.startsWith('/dashboard')
-			// },
 			{
 				title: 'Recipes',
 				url: '/recipes',
@@ -30,15 +23,15 @@
 				isActive: page.url.pathname.startsWith('/recipes')
 			},
 			{
-				title: 'Meal Plan',
+				title: 'Meal plan',
 				url: '/plan',
 				icon: Calendar,
 				isActive: page.url.pathname.startsWith('/plan')
 			},
 			{
-				title: 'Shopping List',
+				title: 'Shopping list',
 				url: '/list',
-				icon: ScrollText,
+				icon: ShoppingCart,
 				isActive: page.url.pathname.startsWith('/list')
 			},
 			{
@@ -53,35 +46,12 @@
 				icon: Notebook,
 				isActive: page.url.pathname.startsWith('/cookbook')
 			}
-			// {
-			// 	title: 'Settings',
-			// 	url: '/settings/space',
-			// 	icon: Settings2,
-			// 	isActive: page.url.pathname.startsWith('/settings')
-			// },
-			// {
-			// 	title: 'Share',
-			// 	url: '#',
-			// 	icon: Share2,
-			// 	isActive: false
-			// }
 		],
 		navSecondary: [
 			// {
-			// 	title: 'Calendar',
-			// 	url: '#',
-			// 	icon: Calendar,
-			// 	badge: '10'
-			// },
-			{
-				title: 'Settings',
-				url: '/settings/space',
-				icon: Settings2
-			},
-			// {
-			// 	title: 'Templates',
-			// 	url: '#',
-			// 	icon: Blocks
+			// 	title: 'Settings',
+			// 	url: '/settings/space',
+			// 	icon: Settings2
 			// },
 			{
 				title: 'Feedback',
@@ -89,9 +59,10 @@
 				icon: Send
 			},
 			{
-				title: 'Help',
-				url: '#',
-				icon: LifeBuoy
+				title: "What's new",
+				url: '/changelog',
+				icon: Megaphone,
+				// badge: '2'
 			}
 		],
 		favorites: [
