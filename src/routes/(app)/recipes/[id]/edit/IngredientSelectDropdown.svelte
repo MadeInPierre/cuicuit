@@ -10,12 +10,13 @@
 	import ingredients from '$lib/shared/data/marmiton_ingredients_list.json';
 	type IngredientsList = { slug: string; name: string; imageUrl: string | null }[];
 
-	const ingredientLabels: { label: string; value: string; image: string | null }[] =
-		ingredients.map((ingredient) => ({
+	const ingredientLabels: { label: string; value: string; image: string | null }[] = ingredients
+		.map((ingredient) => ({
 			label: capitalize(ingredient.name),
 			value: ingredient.slug,
 			image: ingredient.imageUrl
-		}));
+		}))
+		.filter((f) => f.image !== null);
 
 	let open = $state(false);
 	let value = $state('');
@@ -49,13 +50,13 @@
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
+	<Popover.Content class="w-[400px] p-0" align="start">
 		<Command.Root>
 			<Command.Input placeholder="Search ingredient..." />
 			<Command.List>
 				<Command.Empty>No ingredient found.</Command.Empty>
 				<Command.Group>
-					{#each ingredientLabels as ing}
+					{#each ingredientLabels.slice(0, 10) as ing}
 						<Command.Item
 							value={ing.value}
 							onSelect={() => {
@@ -64,8 +65,8 @@
 							}}
 						>
 							<Check class={cn(value !== ing.value && 'text-transparent')} />
-							{ing.label}
-							<img src={ing.image} alt={ing.label} class="w-6 h-6 rounded-full" />
+							<img src={ing.image} alt={ing.label} class="w-6 h-6 rounded-sm object-cover" />
+							<span>{ing.label}</span>
 						</Command.Item>
 					{/each}
 				</Command.Group>

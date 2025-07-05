@@ -1,4 +1,5 @@
 import type { UserProfile } from '$lib/features/auth/db/user-doc';
+import type { LanguageKey } from '$lib/features/user-settings/consts';
 import type { Unit } from '$lib/shared/utils/quantity';
 import type { Modify } from '$lib/utils';
 import { Timestamp, type FirestoreDataConverter } from 'firebase/firestore';
@@ -13,7 +14,7 @@ import { Timestamp, type FirestoreDataConverter } from 'firebase/firestore';
 export type RecipeDoc = {
 	// Metadata
 	status: 'draft' | 'published';
-	language: 'fr' | 'en';
+	language: LanguageKey;
 	created_t: Date;
 	modified_t: Date;
 	author: {

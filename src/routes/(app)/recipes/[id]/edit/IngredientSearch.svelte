@@ -1,0 +1,151 @@
+<script lang="ts">
+	import type { LanguageKey } from '$lib/features/user-settings/consts';
+	import { Input } from '$lib/shared/components/ui/input';
+	import type {
+		IngredientMatch,
+		IngredientSearchResponse
+	} from '../../../../api/ingredients/search/+server';
+	import { parseIngredientSearchInput, type ParsedSearchInput } from './parse-ingredient-input';
+
+	const {
+		language
+	}: {
+		language: LanguageKey;
+	} = $props();
+
+	let selectedIngredientSlug = $state('');
+
+	let searchInput = $state('');
+
+	let matches: IngredientMatch[] = $state([]);
+	let parsedInput: ParsedSearchInput | null = $state(null);
+
+	let debounceTimeout: NodeJS.Timeout; // Debounce the search input
+
+	$effect(() => {
+		searchInput; // Trigger the effect when the search input changes
+
+		clearTimeout(debounceTimeout);
+		debounceTimeout = setTimeout(async () => {
+			if (!searchInput) return;
+
+			parsedInput = parseIngredientSearchInput(searchInput);
+			if (!parsedInput.parsed.ingredientText) return;
+
+			const response = await fetch('/api/ingredients/search', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'search-query': parsedInput.parsed.ingredientText,
+					locale: language,
+					limit: '5'
+				}
+			});
+			const data = (await response.json()) as IngredientSearchResponse;
+			// result = JSON.stringify(data, null, 2);
+			// result = JSON.stringify(parsedInput, null, 2);
+
+			matches = data.matches;
+
+			// result = '';
+			// if (parsedInput.parsed.quantity) {
+			// 	result += `${parsedInput.parsed.quantity.amount} ${parsedInput.parsed.quantity.unit} (${parsedInput.parsed.quantity.unitKey})`;
+			// }
+
+			// if (data.matches.length === 0) {
+			// 	result += '\nNo matches found';
+			// 	return;
+			// }
+
+			// const name =
+			// 	parsedInput.parsed.quantity?.amount !== 1
+			// 		? data.matches[0].plural || data.matches[0].singular
+			// 		: data.matches[0].singular || data.matches[0].plural;
+
+			// result += ' ' + name;
+
+			// result +=
+			// 	parsedInput.parsed.quantity.amount +
+			// 	' [' +
+			// 	parsedInput.parsed.quantity.unit +
+			// 	'] (' +
+			// 	parsedInput.parsed.quantity.unitKey +
+			// 	') ' +
+			// 	data.matches.map((i) => i.name).join('\n');
+
+			// const bestMatch = data.matches[0] as { slug: string; name: string };
+
+			// result += `\nSearching for: ${bestMatch}`;
+			// const quantity = await Quantity.freeDensity(100, 'g', bestMatch.name, {
+			// 	region: 'EU',
+			// 	gramsPerWhole: { min: 30, mid: 33, max: 36 }
+			// });
+			// result += `\n${quantity.toString()} is ${quantity.to('ml').mid.toFixed(2)} ml`;
+		}, 100);
+	});
+</script>
+
+<div class="grid w-full space-y-4">
+	<Input
+		type="text"
+		placeholder="3 tomatoes, 200g of flour, ..."
+		class="w-full"
+		bind:value={searchInput}
+	/>
+
+	{#if matches}
+		<div class="grid w-full space-y-2 bg-background rounded-md">
+			{#snippet ingredientGrid(match: IngredientMatch)}
+				<div class="flex-1 text-center text-sm">
+					<div class="bg-muted aspect-square rounded-md mb-2"></div>
+
+					{#if parsedInput?.parsed.quantity}
+						<span class="font-medium"
+							>{parsedInput?.parsed.quantity.amount} {parsedInput?.parsed.quantity.unit}</span
+						>
+					{:else}
+						<span class="font-bold">??</span>
+					{/if}
+
+					<span class="text-balance line-clamp-2 px-1">
+						{parsedInput?.parsed.quantity && parsedInput?.parsed.quantity.amount != 1
+							? match.plural || match.singular
+							: match.singular || match.plural}
+					</span>
+
+					<span class="text-muted-foreground">{parsedInput?.parsed.description}</span>
+				</div>
+			{/snippet}
+
+			<div class="w-full flex flex-wrap gap-x-2 gap-y-4">
+				{#each matches as match (match.slug)}
+					<div class="w-20">
+						{@render ingredientGrid(match)}
+					</div>
+				{/each}
+			</div>
+
+			<!-- {#each matches as match (match.slug)}
+				<div class="flex items-center gap-2 text-sm">
+					{#if parsedInput?.parsed.quantity}
+						<span class="font-bold"
+							>{parsedInput?.parsed.quantity.amount} {parsedInput?.parsed.quantity.unit}</span
+						>
+					{:else}
+						<span class="font-bold">No quantity</span>
+					{/if}
+
+					<span>
+						{parsedInput?.parsed.quantity && parsedInput?.parsed.quantity.amount != 1
+							? match.plural || match.singular
+							: match.singular || match.plural}
+					</span>
+
+					<span class="text-muted-foreground">{parsedInput?.parsed.description}</span>
+
+					<span class="ml-auto text-muted-foreground">{parsedInput?.parsed.quantity?.unitKey}</span>
+				</div>
+			{/each} -->
+		</div>
+	{/if}
+</div>

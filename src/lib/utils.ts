@@ -112,3 +112,32 @@ export function capitalize(s: string) {
 	if (s.length === 0) return s;
 	return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
+
+const accentsMap: Record<string, string> = {
+	A: 'Á|À|Ã|Â|Ä',
+	a: 'á|à|ã|â|ä',
+	E: 'É|È|Ê|Ë',
+	e: 'é|è|ê|ë',
+	I: 'Í|Ì|Î|Ï',
+	i: 'í|ì|î|ï',
+	O: 'Ó|Ò|Ô|Õ|Ö',
+	o: 'ó|ò|ô|õ|ö',
+	U: 'Ú|Ù|Û|Ü',
+	u: 'ú|ù|û|ü',
+	C: 'Ç',
+	c: 'ç',
+	N: 'Ñ',
+	n: 'ñ'
+};
+
+/**
+ * Remove accents from a string
+ * @param text The text to remove accents from
+ * @returns The text without accents
+ */
+export const removeAccents = (text: string): string => {
+	return Object.entries(accentsMap).reduce(
+		(acc, [key, pattern]) => acc.replace(new RegExp(pattern, 'g'), key),
+		text
+	);
+};

@@ -44,7 +44,7 @@
 			<div class="w-full aspect-[1.618] bg-gray-200 rounded-md"></div>
 		{/if}
 		<div class="flex items-center gap-2 p-2 w-full h-full">
-			<a class="grid w-full" href={'/recipes/edit/' + recipeId}>
+			<a class="grid w-full" href={'/recipes/' + recipeId}>
 				<h3 class="text-sm font-semibold line-clamp-1">{recipeDoc.title}</h3>
 				<!-- <div class="text-xs text-muted-foreground flex items-center">
 					<span class="mr-4">{recipeDoc.time.total}min</span>

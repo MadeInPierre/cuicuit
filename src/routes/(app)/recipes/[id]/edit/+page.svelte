@@ -6,10 +6,10 @@
 	import * as Card from '$lib/shared/components/ui/card/index.js';
 	import { Input } from '$lib/shared/components/ui/input/index.js';
 	import { Label } from '$lib/shared/components/ui/label/index.js';
-	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
+	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import {
@@ -23,7 +23,7 @@
 		GripVertical,
 		Camera
 	} from 'lucide-svelte';
-	import { Quantity, unitLabels, type Unit } from '$lib/shared/utils/quantity';
+	import { unitLabels, type Unit } from '$lib/shared/utils/quantity';
 	import {
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
@@ -58,7 +58,8 @@
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { slide } from 'svelte/transition';
-	import IngredientSelectDropdown from './IngredientSelectDropdown.svelte';
+	import { languages } from '$lib/features/user-settings/consts';
+	import IngredientSearch from './IngredientSearch.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
@@ -91,7 +92,6 @@
 	const { form: formData, enhance, errors, tainted, isTainted } = form;
 
 	let dirty = $derived(isTainted($tainted));
-	let searchInput = $state('');
 
 	// Update the form data with the recipe document data whenever it changes
 	$effect(() => {
@@ -101,6 +101,7 @@
 			(f) => {
 				if (!recipeDocState.data) return f;
 
+				f.language = recipeDocState.data.language || 'fr-FR';
 				f.title = recipeDocState.data.title;
 				f.description = recipeDocState.data.description;
 				f.tools = recipeDocState.data.tools;
@@ -126,40 +127,7 @@
 		);
 	});
 
-	// TODO this is temporary just for testing and fun with the Quantity library & embeddings
-	let result = $state('');
-	let debounceTimeout: NodeJS.Timeout; // Debounce the search input
-	$effect(() => {
-		searchInput; // Trigger the effect when the search input changes
-
-		clearTimeout(debounceTimeout);
-		debounceTimeout = setTimeout(async () => {
-			if (!searchInput) return;
-
-			const response = await fetch('/api/ingredients/search', {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'search-query': searchInput,
-					locale: 'en-US',
-					limit: '3'
-				}
-			});
-			const data = await response.json();
-			result = JSON.stringify(data, null, 2);
-
-			const bestMatch = data.matches[0] as { slug: string; name: string };
-
-			result += `\nSearching for: ${bestMatch}`;
-			const quantity = await Quantity.freeDensity(100, 'g', bestMatch.name, {
-				region: 'EU',
-				gramsPerWhole: { min: 30, mid: 33, max: 36 }
-			});
-			result += `\n${quantity.toString()} is ${quantity.to('ml').mid.toFixed(2)} ml`;
-		}, 500);
-	});
-
-	let loading = $state(false); 
+	let loading = $state(false);
 
 	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
 		if (!recipeDocState.data) return;
@@ -167,6 +135,7 @@
 		loading = true;
 		await recipeDocState.updateDoc({
 			status: 'published',
+			language: data.language,
 			title: data.title,
 			description: data.description,
 			tools: data.tools as RecipeToolKey[],
@@ -304,20 +273,64 @@
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
-									<Form.Field {form} name="title" class="grid">
-										<Form.Control>
-											{#snippet children({ props })}
-												<Form.Label>Title</Form.Label>
-												<Input
-													disabled={loading}
-													{...props}
-													bind:value={$formData.title}
-													placeholder="Chocolate cookies"
-												/>
-											{/snippet}
-										</Form.Control>
-										<Form.FieldErrors />
-									</Form.Field>
+									<div class="flex gap-4">
+										<Form.Field {form} name="language" class="grid">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Language</Form.Label>
+													<!-- <Input
+														disabled={loading}
+														{...props}
+														bind:value={$formData.title}
+														placeholder="Chocolate cookies"
+													/> -->
+
+													<Select.Root
+														{...props}
+														type="single"
+														name="language"
+														bind:value={$formData.language}
+													>
+														<Select.Trigger class="w-20">
+															{languages[$formData.language]!.emoji}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Group>
+																<Select.GroupHeading>Recipe language</Select.GroupHeading>
+																{#each Object.entries(languages) as [value, lang] (value)}
+																	<Select.Item
+																		{value}
+																		label={lang.label}
+																		class="flex gap-2 items-center"
+																	>
+																		<span>{lang.emoji}</span>
+																		<span>{lang.label}</span>
+																	</Select.Item>
+																{/each}
+															</Select.Group>
+														</Select.Content>
+													</Select.Root>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+
+										<Form.Field {form} name="title" class="w-full grid">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Title</Form.Label>
+													<Input
+														disabled={loading}
+														{...props}
+														bind:value={$formData.title}
+														placeholder="Chocolate cookies"
+													/>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+									</div>
+
 									<Form.Field {form} name="description" class="grid">
 										<Form.Control>
 											{#snippet children({ props })}
@@ -379,15 +392,7 @@
 								</div>
 							</Card.Header>
 							<Card.Content class="grid gap-3">
-								<Input
-									disabled={loading}
-									id="name"
-									type="text"
-									class="w-full shadow-sm"
-									placeholder="Type to add 3 tomatoes, 200g of flour, ..."
-									bind:value={searchInput}
-								/>
-								<pre>{result}</pre>
+								<IngredientSearch language={$formData.language} />
 
 								<Label>Required</Label>
 
@@ -795,7 +800,7 @@
 										<Form.Field {form} name="healthyLevel">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Motivation needed</Form.Label>
+													<Form.Label>Healthy level</Form.Label>
 													<Select.Root
 														type="single"
 														bind:value={$formData.healthyLevel}
@@ -826,7 +831,7 @@
 											<Form.Field {form} name="dishWasherLevel">
 												<Form.Control>
 													{#snippet children({ props })}
-														<Form.Label>Dish washer</Form.Label>
+														<Form.Label>Dishwasher load</Form.Label>
 														<Select.Root
 															type="single"
 															bind:value={$formData.dishWasherLevel}
@@ -861,7 +866,7 @@
 											<Form.Field {form} name="dishHandLevel">
 												<Form.Control>
 													{#snippet children({ props })}
-														<Form.Label>Dish washer</Form.Label>
+														<Form.Label>Handwash load</Form.Label>
 														<Select.Root
 															type="single"
 															bind:value={$formData.dishHandLevel}
