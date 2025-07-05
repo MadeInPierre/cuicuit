@@ -42,45 +42,8 @@
 				}
 			});
 			const data = (await response.json()) as IngredientSearchResponse;
-			// result = JSON.stringify(data, null, 2);
-			// result = JSON.stringify(parsedInput, null, 2);
 
 			matches = data.matches;
-
-			// result = '';
-			// if (parsedInput.parsed.quantity) {
-			// 	result += `${parsedInput.parsed.quantity.amount} ${parsedInput.parsed.quantity.unit} (${parsedInput.parsed.quantity.unitKey})`;
-			// }
-
-			// if (data.matches.length === 0) {
-			// 	result += '\nNo matches found';
-			// 	return;
-			// }
-
-			// const name =
-			// 	parsedInput.parsed.quantity?.amount !== 1
-			// 		? data.matches[0].plural || data.matches[0].singular
-			// 		: data.matches[0].singular || data.matches[0].plural;
-
-			// result += ' ' + name;
-
-			// result +=
-			// 	parsedInput.parsed.quantity.amount +
-			// 	' [' +
-			// 	parsedInput.parsed.quantity.unit +
-			// 	'] (' +
-			// 	parsedInput.parsed.quantity.unitKey +
-			// 	') ' +
-			// 	data.matches.map((i) => i.name).join('\n');
-
-			// const bestMatch = data.matches[0] as { slug: string; name: string };
-
-			// result += `\nSearching for: ${bestMatch}`;
-			// const quantity = await Quantity.freeDensity(100, 'g', bestMatch.name, {
-			// 	region: 'EU',
-			// 	gramsPerWhole: { min: 30, mid: 33, max: 36 }
-			// });
-			// result += `\n${quantity.toString()} is ${quantity.to('ml').mid.toFixed(2)} ml`;
 		}, 100);
 	});
 </script>
