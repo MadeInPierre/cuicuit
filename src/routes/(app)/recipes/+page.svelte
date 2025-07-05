@@ -37,13 +37,6 @@
 			return { id: doc.id, doc: doc.data() as RecipeDoc };
 		});
 	}
-
-	async function onNewRecipe() {
-		const recipeId = await createDraftRecipe(userDocState);
-		goto('/recipes/edit/' + recipeId);
-	}
-
-	let activeSpace = getActiveSpaceState();
 </script>
 
 <div class="space-y-8 pb-16 min-h-full">

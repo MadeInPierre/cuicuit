@@ -1,14 +1,10 @@
-import { string, z } from 'zod';
-import {
-	recipeCuisines,
-	recipeTimesOfDay,
-	recipeTools,
-	recipeFoodTypes,
-	type RecipeStep
-} from '../db/recipe-doc';
+import { z } from 'zod';
+import { recipeCuisines, recipeTimesOfDay, recipeTools, recipeFoodTypes } from '../db/recipe-doc';
+import { languageKeys } from '$lib/features/user-settings/consts';
 
 export const createRecipeFormSchema = z
 	.object({
+		language: z.enum(languageKeys).default('fr-FR'),
 		title: z
 			.string()
 			.min(3, 'Name must be at least 3 characters long.')

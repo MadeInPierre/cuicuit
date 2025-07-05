@@ -54,7 +54,7 @@ export type UnitType = 'volume' | 'weight' | 'whole';
 export type UnitRegion = 'US' | 'UK' | 'EU' | 'AU';
 
 // Define aliases for each unit to parse free text input
-const volumeAliases = {
+export const volumeAliases = {
 	ml: ['milliliter', 'millilitre', 'milliliters', 'millilitres'],
 	cl: ['centiliter', 'centilitre', 'centiliters', 'centilitres'],
 	dl: ['deciliter', 'decilitre', 'deciliters', 'decilitres'],
@@ -69,7 +69,7 @@ const volumeAliases = {
 	pint: ['pint', 'pints', 'pt', 'pts']
 };
 
-const weightAliases = {
+export const weightAliases = {
 	g: ['gram', 'grams'],
 	kg: ['kilogram', 'kilograms'],
 	oz: ['ounce', 'ounces'],
@@ -242,7 +242,7 @@ export type MinMidMax = {
 
 export type GramsPerWhole = MinMidMax;
 
-const wholeAliases = [
+export const wholeAliases = [
 	'whole',
 	'egg',
 	'eggs',
