@@ -126,83 +126,66 @@ function convertFractionToDecimal(fraction: string): number {
 export function parseIngredientSearchInput(input: string): ParsedSearchInput {
 	input = input.trim(); // Remove extra spaces from input
 
-	// If the input contains no numbers, treat it as an ingredient-only string.
-	if (!/\d/.test(input)) {
-		return {
-			raw: input,
-			parsed: {
-				quantity: null,
-				linkWord: '',
-				ingredientText: input.trim(),
-				description: ''
-			}
-		};
+	// Manual override for ingredient/description separation
+	const commaIndex = input.indexOf(',');
+	if (commaIndex !== -1) {
+		const ingredientText = input.slice(0, commaIndex).trim();
+		const description = input.slice(commaIndex + 1).trim();
+		const result = parseIngredientSearchInput(ingredientText);
+		result.parsed.description = description;
+		return result;
 	}
 
-	// Match the input against the regex pattern.
-	const match = input.match(regex);
-	if (!match) {
-		// If no match is found, return the input as the ingredient text.
-		return {
-			raw: input,
-			parsed: {
-				quantity: null,
-				linkWord: '',
-				ingredientText: input.trim(),
-				description: ''
-			}
-		};
-	}
+	// Match the quantity and unit at the beginning of the string.
+	const quantityRegex = /^(?<amount>[\d\.\/\s-]+)\s*(?<unit>[a-zA-Z]+)?/i;
+	const quantityMatch = input.match(quantityRegex);
 
-	// Extract the matched groups: amount, unit, ingredient text, and optional description.
-	let [, amountStr, possibleUnit, ingredientText, description] = match;
-	amountStr = amountStr ? amountStr.trim() : '';
-	possibleUnit = possibleUnit ? possibleUnit.trim().toLowerCase() : '';
-	ingredientText = ingredientText ? ingredientText.trim() : '';
-	description = description ? description.trim() : '';
-
-	// Parse the amount, handling ranges and fractions.
 	let amount: number | null = null;
-	if (amountStr) {
-		if (amountStr.includes('-')) {
-			// If the amount is a range, calculate the average.
-			const [start, end] = amountStr.split('-').map((s) => convertFractionToDecimal(s.trim()));
-			amount = (start + end) / 2;
-		} else {
-			// Otherwise, convert the fraction to a decimal.
-			amount = convertFractionToDecimal(amountStr);
+	let unit = '';
+	let unitKey = 'whole';
+	let ingredientText = input;
+
+	if (quantityMatch && quantityMatch.groups) {
+		const { amount: amountStr, unit: possibleUnit = '' } = quantityMatch.groups;
+
+		if (amountStr) {
+			if (amountStr.includes('-')) {
+				const [start, end] = amountStr.split('-').map((s) => convertFractionToDecimal(s.trim()));
+				amount = (start + end) / 2;
+			} else {
+				amount = convertFractionToDecimal(amountStr);
+			}
 		}
-	}
 
-	let unit = ''; // Default unit is an empty string.
-	let unitKey = 'whole'; // Default unit key is 'whole'.
+		const remainingText = input.slice(quantityMatch[0].length).trim();
+		let unitFound = false;
 
-	// Identify the unit and its standardized key.
-	if (wholeAliases.includes(possibleUnit)) {
-		// If the unit is a whole unit, set it directly.
-		unit = possibleUnit;
-		unitKey = 'whole';
-	} else {
-		// Otherwise, check for a match in the volume and weight aliases.
-		for (const [key, aliases] of Object.entries(allUnitAliases)) {
-			const allAliases = [key, ...aliases].map((a) => a.toLowerCase());
-			for (const alias of allAliases) {
-				if (possibleUnit.startsWith(alias)) {
-					// If a match is found, set the unit and unit key.
-					unit = alias;
+		// Check for unit in wholeAliases
+		if (wholeAliases.includes(possibleUnit.toLowerCase())) {
+			unit = possibleUnit;
+			unitKey = 'whole';
+			ingredientText = remainingText;
+			unitFound = true;
+		} else {
+			// Check for unit in allUnitAliases
+			for (const [key, aliases] of Object.entries(allUnitAliases)) {
+				const allAliases = [key, ...aliases].map((a) => a.toLowerCase());
+				if (allAliases.includes(possibleUnit.toLowerCase())) {
+					unit = possibleUnit;
 					unitKey = key;
-					// Any remaining part of the possible unit is part of the ingredient name.
-					ingredientText = possibleUnit.slice(alias.length).trim() + ' ' + ingredientText;
+					ingredientText = remainingText;
+					unitFound = true;
 					break;
 				}
 			}
-			if (unit) break; // Stop searching once a unit is found.
 		}
-	}
 
-	// If no unit was identified, assume the detected unit is part of the ingredient name.
-	if (!unit) {
-		ingredientText = `${possibleUnit} ${ingredientText}`.trim();
+		if (!unitFound) {
+			ingredientText = `${possibleUnit} ${remainingText}`.trim();
+		}
+	} else {
+		// If no quantity is found, the whole input is the ingredient text.
+		ingredientText = input;
 	}
 
 	// Detect and remove any linking words from the ingredient text.
@@ -213,14 +196,13 @@ export function parseIngredientSearchInput(input: string): ParsedSearchInput {
 		ingredientText = ingredientText.slice(linkWord.length).trim();
 	}
 
-	// Return the structured result.
 	return {
 		raw: input,
 		parsed: {
 			quantity: amount !== null ? { amount, unit, unitKey } : null,
 			linkWord,
 			ingredientText,
-			description
+			description: undefined
 		}
 	};
 }
