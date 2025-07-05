@@ -51,10 +51,12 @@
 <div class="grid w-full space-y-4">
 	<Input
 		type="text"
-		placeholder="3 tomatoes, 200g of flour, ..."
+		placeholder="3 tomatoes, chopped"
 		class="w-full"
 		bind:value={searchInput}
 	/>
+
+	<!-- <pre class="text-sm text-muted-foreground">{JSON.stringify(parsedInput?.parsed, null, 4)}</pre> -->
 
 	{#if matches}
 		<div class="grid w-full space-y-2 bg-background rounded-md">
@@ -80,11 +82,9 @@
 				</div>
 			{/snippet}
 
-			<div class="w-full flex flex-wrap gap-x-2 gap-y-4">
+			<div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));">
 				{#each matches as match (match.slug)}
-					<div class="w-20">
 						{@render ingredientGrid(match)}
-					</div>
 				{/each}
 			</div>
 
