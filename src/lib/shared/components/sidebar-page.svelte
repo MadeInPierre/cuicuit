@@ -15,6 +15,7 @@
 
 <Sidebar.Provider>
 	<SidebarLeft collapsible="icon" />
+
 	<Sidebar.Inset>
 		<header class="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md">
 			<div class="flex flex-1 items-center gap-2 px-3">
@@ -35,10 +36,9 @@
 			</div>
 		</header>
 		<div class="flex flex-1 flex-col gap-4 p-10">
-			<!-- <div class="bg-muted/50 mx-auto h-24 w-full max-w-3xl rounded-xl"></div>
-			<div class="bg-muted/50 mx-auto h-[100vh] w-full max-w-3xl rounded-xl"></div> -->
 			{@render children?.()}
 		</div>
 	</Sidebar.Inset>
-	<!-- <SidebarRight /> -->
+
+	<SidebarRight />
 </Sidebar.Provider>

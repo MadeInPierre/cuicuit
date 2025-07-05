@@ -37,7 +37,9 @@
 						{/snippet}
 					</Sidebar.MenuButton>
 					{#if item.badge}
-						<Sidebar.MenuBadge>{item.badge}</Sidebar.MenuBadge>
+						<Sidebar.MenuBadge class="bg-red-500 rounded-full text-white text-xs">
+							{item.badge}
+						</Sidebar.MenuBadge>
 					{/if}
 				</Sidebar.MenuItem>
 			{/each}
