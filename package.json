@@ -12,7 +12,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
-		"test:unit": "vitest"
+		"test:unit": "vitest",
+		"db:types": "npx --yes supabase gen types typescript --project-id qyeioetcqxvpsqmyqohf > src/lib/shared/db/supabase.types.ts  # run npx supabase login first"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.6.0",
@@ -54,6 +55,7 @@
 	"type": "module",
 	"dependencies": {
 		"@huggingface/inference": "^2.8.1",
+		"@supabase/supabase-js": "^2.50.3",
 		"dotenv": "^16.4.7",
 		"firebase": "^11.0.1",
 		"firebase-admin": "^12.6.0",

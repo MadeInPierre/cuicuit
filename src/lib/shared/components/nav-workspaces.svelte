@@ -13,7 +13,7 @@
 </script>
 
 <Sidebar.Group>
-	<Sidebar.GroupLabel>Workspaces</Sidebar.GroupLabel>
+	<Sidebar.GroupLabel>Development</Sidebar.GroupLabel>
 	<Sidebar.GroupContent>
 		<Sidebar.Menu>
 			{#each workspaces as workspace (workspace.name)}
