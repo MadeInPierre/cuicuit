@@ -676,7 +676,7 @@
 											disabled={loading}
 											class={$formData.tool_ids.includes(key)
 												? 'aspect-square rounded-md text-center border-2 font-semibold ' +
-													`border-${activeSpace!.userHeader!.theme}-600 text-${activeSpace!.userHeader!.theme}-600`
+													`border-${activeSpace.activeMember?.theme}-600 text-${activeSpace.activeMember?.theme}-600`
 												: 'border-2 aspect-square rounded-md text-center'}
 											onclick={(e) => {
 												e.preventDefault(); // Don't submit the form

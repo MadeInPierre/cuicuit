@@ -1,60 +1,62 @@
-import type { SpaceUserHeader } from '$lib/features/auth/db/user-doc';
-import { firestore } from '$lib/shared/db/firebase-client';
-import { doc, collection, setDoc } from 'firebase/firestore';
-import type { SpaceDoc } from '../db/space-doc';
-import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+import { supabase } from '$lib/shared/db/supabase-client';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
 
+/** * Creates a new space for the user.
+ * @param userId - The ID of the user creating the space.
+ * @param name - The name of the space.
+ * @param theme - The theme key for the space.
+ * @param icon - The icon key for the space.
+ * @returns The ID of the created space.
+ */
 export async function createSpace(
-	userDocState: UserDocState,
+	userId: string,
 	name: string,
 	theme: SpaceThemeKey,
 	icon: SpaceIconKey
 ) {
-	if (!firestore) throw new Error('Error: Firestore or user not available');
-	if (!userDocState.user) throw new Error('Error: User not available');
-	if (!userDocState.docState || !userDocState.doc)
-		throw new Error('Error: UserDocState not available');
+	if (!supabase) throw new Error('Supabase client not available');
+	if (!userId) throw new Error('User ID not provided');
+	if (!name || !theme || !icon) throw new Error('Missing required parameters');
 
 	// Check if the user already has a space with the same name
-	if (Object.values(userDocState.doc.spaces).some((space) => space.name === name)) {
+	const { data: existingSpaces, error: fetchError } = await supabase
+		.from('space_members')
+		.select('space_id, spaces(name)')
+		.eq('user_id', userId);
+	if (fetchError) throw fetchError;
+	if (existingSpaces && existingSpaces.some((sm) => sm.spaces?.name === name)) {
 		throw new Error('space-already-exists');
 	}
 
-	// Create the space in Firestore
-	const spaceDocRef = doc(collection(firestore, 'spaces'));
-
-	const now = new Date();
-
-	await setDoc(spaceDocRef, {
-		name,
-		icon,
-		created_t: now,
-		updated_t: now,
-		memberProfiles: {
-			[userDocState.user.uid]: {
-				firstName: userDocState.doc.firstName,
-				lastName: userDocState.doc.lastName,
-				userName: userDocState.doc.userName,
-				avatar: userDocState.doc.avatar
+	// Insert into spaces table
+	const locale =
+		typeof navigator !== 'undefined' ? navigator.language || navigator.languages[0] : 'fr-FR';
+	const { data: spaceInsert, error: spaceError } = await supabase
+		.from('spaces')
+		.insert([
+			{
+				name,
+				icon,
+				locale,
+				initial_theme: theme,
+				author_id: userId
 			}
-		},
-		locale: navigator.language || navigator.languages[0]
-	} satisfies SpaceDoc);
+		])
+		.select('id')
+		.single();
+	if (spaceError) throw spaceError;
+	const spaceId = spaceInsert?.id;
+	if (!spaceId) throw new Error('Failed to create space');
 
-	// Add the space id and header to the userDoc's spaces
-	userDocState.docState.updateDoc({
-		[`spaces.${spaceDocRef.id}`]: { name, theme, icon } satisfies SpaceUserHeader
-	});
+	// Insert into space_members table
+	const { error: memberError } = await supabase.from('space_members').insert([
+		{
+			space_id: spaceId,
+			user_id: userId,
+			theme
+		}
+	]);
+	if (memberError) throw memberError;
 
-	// Create space content doc
-	// const contentDocRef = doc(firestore, spaceDocRef.path, 'data', 'content');
-
-	// await setDoc(contentDocRef, {
-	// 	items: {},
-	// 	recipes: [],
-	// 	updated_t: Date.now()
-	// } as ListContent);
-
-	return spaceDocRef.id;
+	return spaceId;
 }

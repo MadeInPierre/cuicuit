@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 
-	// Get all recipes in the firestore recipes/ collection
+	// Get all recipes in supabase
 	async function getRecipes() {
 		// Fetch all recipes from Supabase
 		const { data: recipeData, error: recipeError } = await getRecipesDetailed().limit(100);

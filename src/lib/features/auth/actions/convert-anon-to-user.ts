@@ -1,15 +1,7 @@
-import {
-	EmailAuthProvider,
-	linkWithCredential,
-	linkWithPopup,
-	GoogleAuthProvider,
-	GithubAuthProvider
-} from 'firebase/auth';
 import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import type { LogMethod } from '../models/log-method';
 import { onAuthSuccess } from './on-auth-success';
-import { auth } from '$lib/shared/db/firebase-client';
 
 export async function convertAnonToUser(
 	logMethod: LogMethod,

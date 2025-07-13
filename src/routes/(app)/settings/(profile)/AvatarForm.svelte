@@ -5,16 +5,15 @@
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Trash2, ImageUp, LoaderCircle } from 'lucide-svelte';
 	import IconPicker from './IconPicker.svelte';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import { updateUserDocAvatar } from '$lib/features/user-settings/actions/update-user-doc-avatar';
+	import { updateUserAvatar } from '$lib/features/user-settings/actions/update-user-avatar';
 	import { deleteUserPicture } from '$lib/features/user-settings/actions/delete-user-picture';
 	import { uploadProfilePicture } from '$lib/features/user-settings/actions/upload-profile-picture';
-
-	const userDocState = getUserDocState();
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	let file: any = $state(undefined);
 	let loadingUpload = $state(false);
+	let openDeleteDialog = $state(false);
 
 	/** Option 1: Upload the file immediately after it's selected */
 	// $effect(() => {
@@ -26,11 +25,11 @@
 	 * Option 2: Upload the file to the storage and update the userDoc avatar
 	 */
 	async function upload() {
-		if (!file) return;
+		if (!file || !userState.user?.id) return;
 
 		loadingUpload = true;
 
-		await uploadProfilePicture(userDocState, file);
+		await uploadProfilePicture(userState.user.id, file);
 
 		// wait 1sec to show the loading spinner for better UX
 		await new Promise((resolve) =>
@@ -43,7 +42,7 @@
 	}
 </script>
 
-{#if userDocState.user && userDocState.doc}
+{#if userState.user && userState.profile}
 	<div class="flex w-full flex-col gap-2">
 		<Label>Picture or icon</Label>
 
@@ -68,8 +67,8 @@
 				</Button>
 			{/if}
 
-			{#if userDocState.doc.avatar.type == 'image' && userDocState.doc.avatar.url && !file}
-				<AlertDialog.Root>
+			{#if userState.profile.image_url && !file}
+				<AlertDialog.Root bind:open={openDeleteDialog}>
 					<AlertDialog.Trigger>
 						<Button variant="outline" class="px-3">
 							<Trash2 class="h-[1.2rem] w-[1.2rem]" />
@@ -87,8 +86,11 @@
 						<AlertDialog.Footer>
 							<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 							<AlertDialog.Action
-								onclick={() =>
-									deleteUserPicture(userDocState, `users/${userDocState.user?.uid}/profile.png`)}
+								onclick={() => {
+									if (!userState.user?.id) return;
+									deleteUserPicture(userState.user.id);
+									openDeleteDialog = false;
+								}}
 							>
 								Delete
 							</AlertDialog.Action>
@@ -96,11 +98,11 @@
 					</AlertDialog.Content>
 				</AlertDialog.Root>
 
-				<a href={userDocState.doc.avatar.url} target="_blank" rel="noopener noreferrer">
-					<UserAvatar />
+				<a href={userState.profile.image_url} target="_blank" rel="noopener noreferrer">
+					<UserAvatar profile={userState.profile} />
 				</a>
 			{:else}
-				<UserAvatar />
+				<UserAvatar profile={userState.profile} />
 			{/if}
 		</div>
 
@@ -108,10 +110,13 @@
 
 		<div class="mt-4">
 			<IconPicker
-				selectedIcon={userDocState.doc.avatar.icon}
-				showSelected={userDocState.doc.avatar.type == 'icon'}
-				onChange={(name) => updateUserDocAvatar(userDocState, 'icon', name)}
-				showWarning={userDocState.doc.avatar.type == 'image'}
+				selectedIcon={userState.profile.icon}
+				showSelected={!userState.profile.image_url}
+				onChange={(name) => {
+					if (!userState.user?.id) return;
+					updateUserAvatar(userState.user.id, name, null);
+				}}
+				showWarning={!!userState.profile.image_url}
 			/>
 
 			<p class="mt-2 text-sm text-muted-foreground">

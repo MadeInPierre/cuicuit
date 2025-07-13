@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { page } from '$app/stores';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cubicInOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import { Circle } from 'lucide-svelte';
 	import type { NavLink } from '$lib/features/marketing/consts/nav-links';
+	import { page } from '$app/state';
 
 	interface Props {
 		class?: string | undefined | null;
@@ -25,7 +25,7 @@
 		<p class="text-muted-foreground text-sm font-medium">{group.name}</p>
 
 		{#each group.links as link}
-			{@const isActive = $page.url.pathname === link.href}
+			{@const isActive = page.url.pathname === link.href}
 
 			<Button
 				href={link.href}

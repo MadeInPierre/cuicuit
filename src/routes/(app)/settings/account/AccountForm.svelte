@@ -1,32 +1,25 @@
 <script lang="ts">
-	import { Check, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-svelte';
+	import { Check, Eye, EyeOff, KeyRound, Trash2, User as UserIcon } from 'lucide-svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Avatar from '$lib/shared/components/ui/avatar';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import { Label } from '$lib/shared/components/ui/label';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
-	import {
-		GithubAuthProvider,
-		GoogleAuthProvider,
-		linkWithPopup,
-		unlink,
-		updatePassword,
-		type User
-	} from 'firebase/auth';
 	import { toast } from 'svelte-sonner';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { superForm, defaults } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
-	import { goto } from '$app/navigation';
 	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
-	import { auth } from '$lib/shared/db/firebase-client';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import UserAuthForm from '../../../(auth)/user-auth-form.svelte';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
-	import { signOut } from 'firebase/auth';
 	import AddProvider from './AddProvider.svelte';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { supabase } from '$lib/shared/db/supabase-client';
+	import { capitalize } from '$lib/utils';
+	import type { User } from '@supabase/supabase-js';
+	import { signOut } from '$lib/features/auth/actions/sign-out';
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(passwordFormSchema)), {
@@ -41,105 +34,107 @@
 	});
 	const { form: formData, enhance } = form;
 
-	const userDocState = getUserDocState();
-
 	let countProviderChanges = $state(0); // Count the number of provider changes to trigger a UI refresh
 
 	let showPassword = $state(false);
 	let showReloginDialog = $state(false);
 
 	const confirmDeleteAccountMessage = $derived(
-		`Delete @${userDocState.doc?.userName || 'account'} forever`
+		`Delete @${userState.user?.email || 'account'} forever`
 	);
 	let inputConfirmDeleteAccount: string = $state('');
 	let showConfirmDeleteAccountDialog = $state(false);
 
 	function linkProvider(providerId: string) {
-		if (!auth || !auth.currentUser) {
+		if (!supabase || !userState.user) {
 			console.error('Error: Auth problem.');
 			return;
 		}
 
-		let provider;
-		switch (providerId) {
-			case 'google.com':
-				provider = new GoogleAuthProvider();
-				break;
-			case 'github.com':
-				provider = new GithubAuthProvider();
-				break;
-			default:
-				toast.error('An error occured.');
-				return;
-		}
+		// TODO: Implement provider linking
+		// let provider;
+		// switch (providerId) {
+		// 	case 'google.com':
+		// 		provider = new GoogleAuthProvider();
+		// 		break;
+		// 	case 'github.com':
+		// 		provider = new GithubAuthProvider();
+		// 		break;
+		// 	default:
+		// 		toast.error('An error occured.');
+		// 		return;
+		// }
 
-		linkWithPopup(auth.currentUser, provider)
-			.then((result) => {
-				// const credential = GoogleAuthProvider.credentialFromResult(result);
-				// const user = result.user;
-				toast.success('Account linked!');
-				console.log(result);
-				countProviderChanges++;
-			})
-			.catch((error) => {
-				toast.error('Link failed.');
-				console.error(error);
-			});
+		// linkWithPopup(auth.currentUser, provider)
+		// 	.then((result) => {
+		// 		// const credential = GoogleAuthProvider.credentialFromResult(result);
+		// 		// const user = result.user;
+		// 		toast.success('Account linked!');
+		// 		console.log(result);
+		// 		countProviderChanges++;
+		// 	})
+		// 	.catch((error) => {
+		// 		toast.error('Link failed.');
+		// 		console.error(error);
+		// 	});
 	}
 
 	function unlinkProvider(providerId: string) {
-		if (!auth || !auth.currentUser) {
+		if (!supabase || !userState.user) {
 			console.error('Error: Auth problem.');
 			return;
 		}
 
-		unlink(auth.currentUser, providerId)
-			.then((result) => {
-				toast.success('Provider unlinked!');
-				console.log(result);
-				countProviderChanges++;
-			})
-			.catch((error) => {
-				toast.success('Unlink failed.');
-				console.error(error);
-			});
+		// TODO: Implement provider unlinking
+		// unlink(auth.currentUser, providerId)
+		// 	.then((result) => {
+		// 		toast.success('Provider unlinked!');
+		// 		console.log(result);
+		// 		countProviderChanges++;
+		// 	})
+		// 	.catch((error) => {
+		// 		toast.success('Unlink failed.');
+		// 		console.error(error);
+		// 	});
 	}
 
 	function changePassword(newPassword: string) {
-		if (!auth || !auth.currentUser) {
+		if (!supabase || !userState.user) {
 			console.error('Error: Auth not found.');
 			return;
 		}
 
-		updatePassword(auth.currentUser, newPassword)
-			.then(() => {
-				toast.success('Password changed!');
-				countProviderChanges++;
-			})
-			.catch((error) => {
-				console.error(error);
-				if (error.message.includes('auth/requires-recent-login')) showReloginDialog = true;
-				else toast.error('Something went wrong...');
-			});
+		// TODO: Implement password change
+		// updatePassword(auth.currentUser, newPassword)
+		// 	.then(() => {
+		// 		toast.success('Password changed!');
+		// 		countProviderChanges++;
+		// 	})
+		// 	.catch((error) => {
+		// 		console.error(error);
+		// 		if (error.message.includes('auth/requires-recent-login')) showReloginDialog = true;
+		// 		else toast.error('Something went wrong...');
+		// 	});
 	}
 
 	function deleteAccount(user: User) {
 		if (inputConfirmDeleteAccount === confirmDeleteAccountMessage) {
 			// TODO Also delete user data (preferences, family, etc...)
 			// TODO Redirect to a goodbye page to ask why the user left
-			user
-				.delete()
-				.then(() => {
-					toast.success('Good bye, friend!', {
-						description: 'Your account and data have been deleted.'
-					});
-					goto('/');
-				})
-				.catch((error) => {
-					console.error(error);
-					if (error.message.includes('auth/requires-recent-login')) showReloginDialog = true;
-					else toast.error('Something went wrong...');
-				});
+			// TODO: Implement account deletion
+			// user
+			// 	.delete()
+			// 	.then(() => {
+			// 		toast.success('Good bye, friend!', {
+			// 			description: 'Your account and data have been deleted.'
+			// 		});
+			// 		goto('/');
+			// 	})
+			// 	.catch((error) => {
+			// 		console.error(error);
+			// 		if (error.message.includes('auth/requires-recent-login')) showReloginDialog = true;
+			// 		else toast.error('Something went wrong...');
+			// 	});
 		} else {
 			toast.error('Wrong confirmation message.', {
 				description: 'Make sure you typed the message correctly to delete your account.'
@@ -149,21 +144,21 @@
 </script>
 
 {#key countProviderChanges}
-	{#if userDocState.user}
+	{#if userState.user}
 		<div class="w-full space-y-8">
 			<div class="space-y-2">
 				<Label>
 					<div class="flex items-center">
 						<p class="flex-grow">Primary email</p>
 
-						{#if !userDocState.user.isAnonymous}
+						{#if !userState.user.is_anonymous}
 							<Badge
-								variant={userDocState.user.emailVerified ? 'default' : 'destructive'}
-								class={userDocState.user.emailVerified ? 'bg-green-600' : ''}
+								variant={userState.user.email_confirmed_at ? 'default' : 'destructive'}
+								class={userState.user.email_confirmed_at ? 'bg-green-600' : ''}
 							>
-								{userDocState.user.emailVerified ? 'Verified' : 'Not verified'}
+								{userState.user.email_confirmed_at ? 'Verified' : 'Not verified'}
 
-								{#if userDocState.user.emailVerified}
+								{#if userState.user.email_confirmed_at}
 									<Check class="ml-1 h-4 w-4" />
 								{/if}
 							</Badge>
@@ -171,8 +166,8 @@
 					</div>
 				</Label>
 				<div class="flex gap-2">
-					<Input value={userDocState.user.email || 'No email set!'} disabled />
-					{#if userDocState.user.isAnonymous}
+					<Input value={userState.user?.email || 'No email set!'} disabled />
+					{#if userState.user.is_anonymous}
 						<Dialog.Root>
 							<Dialog.Trigger>
 								<Button>Create account</Button>
@@ -190,7 +185,7 @@
 					{/if}
 				</div>
 				<p class="text-sm text-muted-foreground">
-					{#if !userDocState.user.isAnonymous}
+					{#if !userState.user.is_anonymous}
 						You cannot change your primary email address.
 					{:else}
 						Click the button on the right to create a full account while keeping your data.
@@ -198,13 +193,13 @@
 				</p>
 			</div>
 
-			{#if !userDocState.user.isAnonymous}
+			{#if !userState.user.is_anonymous}
 				<form method="POST" use:enhance>
 					<Form.Field {form} name="password">
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>
-									{#if userDocState.user!.providerData.some((item) => item.providerId === 'password')}
+									{#if userState.user?.identities?.some((i) => i.provider === 'email')}
 										Change password
 									{:else}
 										Set password
@@ -253,35 +248,32 @@
 					<!-- <legend class="mb-4 text-lg font-medium"> Login Providers </legend> -->
 					<Label>Sign in methods</Label>
 
-					{#each userDocState.user.providerData as provider}
+					{#each userState.user.identities || [] as identity (identity.provider)}
 						<div class="rounded-lg border px-5 py-4">
 							<div class="flex w-full items-center">
 								<Avatar.Root class="mr-4 h-10 w-10">
-									{#if provider.providerId === 'password'}
+									{#if identity.provider === 'email'}
 										<Avatar.Fallback>
 											<KeyRound class="h-1/2 w-1/2" />
 										</Avatar.Fallback>
 									{:else}
-										<Avatar.Image src={provider.photoURL} alt={provider.displayName} />
+										<!-- <Avatar.Image src={identity.photoURL} alt={identity.displayName} /> -->
 										<Avatar.Fallback>
-											{provider.providerId.charAt(0).toUpperCase()}
+											{identity.provider.charAt(0).toUpperCase()}
 										</Avatar.Fallback>
 									{/if}
 								</Avatar.Root>
 
 								<div class="flex-grow space-y-0.5">
 									<Label>
-										{provider.providerId.charAt(0).toUpperCase() +
-											provider.providerId.slice(1).replace('.com', '') +
-											(provider.displayName ? ` (${provider.displayName})` : '')}
+										{capitalize(identity.provider).replace('.com', '')}
 									</Label>
 									<p class="text-sm text-muted-foreground">
-										{provider.email || ''}
-										{provider.phoneNumber || ''}
+										{identity.provider || ''}
 									</p>
 								</div>
 
-								{#if userDocState.user.providerData.length > 1}
+								{#if userState.user?.identities && userState.user.identities.length > 1}
 									<AlertDialog.Root>
 										<AlertDialog.Trigger>
 											<Button size="icon" variant="destructive">
@@ -300,7 +292,7 @@
 											<AlertDialog.Footer>
 												<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 												<AlertDialog.Action
-													onclick={() => unlinkProvider(provider.providerId)}
+													onclick={() => unlinkProvider(identity.provider)}
 													class="bg-destructive"
 												>
 													Delete
@@ -318,14 +310,14 @@
 					<Label>Add a method</Label>
 					<AddProvider
 						onSelected={(p) => linkProvider(p)}
-						linkedProviderIds={userDocState.user.providerData.map((e) => e.providerId)}
+						linkedProviderIds={userState.user?.identities?.map((i) => i.provider) || []}
 					/>
 				</div>
 			{/if}
 
 			<div class="mt-8 grid items-center md:grid-cols-2">
 				<p class="text-center md:mr-auto text-sm text-muted-foreground">
-					Your uid is {userDocState.user.uid || 'unknown'}
+					{userState.user.id || 'unknown'}
 				</p>
 
 				<Button
@@ -368,7 +360,8 @@
 					</Button>
 					<Button
 						onclick={() => {
-							deleteAccount(userDocState.user!);
+							if (!userState.user) return;
+							deleteAccount(userState.user);
 							showConfirmDeleteAccountDialog = true;
 						}}
 						variant="destructive"
@@ -396,7 +389,7 @@
 					>
 						Cancel
 					</AlertDialog.Cancel>
-					<AlertDialog.Action onclick={() => signOut(auth)}>Sign out</AlertDialog.Action>
+					<AlertDialog.Action onclick={signOut}>Sign out</AlertDialog.Action>
 				</AlertDialog.Footer>
 			</AlertDialog.Content>
 		</AlertDialog.Root>

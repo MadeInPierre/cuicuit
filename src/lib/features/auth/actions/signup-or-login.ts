@@ -1,18 +1,9 @@
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
-import { auth } from '$lib/shared/db/firebase-client';
-import {
-	createUserWithEmailAndPassword,
-	sendEmailVerification,
-	signInWithEmailAndPassword,
-	sendSignInLinkToEmail,
-	signInWithPopup,
-	GoogleAuthProvider,
-	GithubAuthProvider,
-	signInAnonymously
-} from 'firebase/auth';
 import { toast } from 'svelte-sonner';
 import { onAuthSuccess } from './on-auth-success';
+import { supabase } from '$lib/shared/db/supabase-client';
+import { redirect } from '@sveltejs/kit';
 
 /**
  * Sign up or log in the user with the given email and password.
@@ -28,7 +19,7 @@ export async function signupOrLogin(
 	email: string,
 	password: string
 ): Promise<{ emailSent: boolean }> {
-	if (!auth) {
+	if (!supabase.auth) {
 		console.error('Error: Auth not found.');
 		throw new Error('Auth not found.');
 	}
@@ -44,48 +35,95 @@ export async function signupOrLogin(
 				}
 
 				if (logMethod == LogMethod.SIGNUP) {
-					const emailCred = await createUserWithEmailAndPassword(auth, email, password);
+					const { data, error } = await supabase.auth.signUp({ email, password });
 
-					onAuthSuccess(logMethod, authMethod, emailCred);
-					if (!emailCred.user.emailVerified) {
-						sendEmailVerification(emailCred.user).then(() => {
+					if (error) {
+						if (error.code === 'user_already_exists') {
+							toast.error('User already exists. Please log in instead.');
+							throw new Error('User already exists.');
+						}
+						console.error('Error signing up:', error, error.code);
+						toast.error('Could not sign up. Please try again later.');
+						throw error;
+					}
+
+					emailSent = true;
+
+					if (data.user) {
+						// Create the user's preferences and public profile, redirect to the welcome page
+						onAuthSuccess(logMethod, authMethod, data.user);
+
+						// If supabase requires email verification, show a reminder
+						if (!data.session) {
 							toast.success('Verification email sent!', {
 								description: 'Please click on the link inside the email before logging in.'
 							});
-						});
+						}
 					}
 				} else if (logMethod == LogMethod.LOGIN) {
-					const emailCred = await signInWithEmailAndPassword(auth, email, password);
-					onAuthSuccess(logMethod, authMethod, emailCred);
+					const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+					if (error) {
+						console.error('Error logging in:', error);
+						toast.error('Could not log in. Please check your credentials and try again.');
+						throw error;
+					}
+
+					if (data.user) {
+						onAuthSuccess(logMethod, authMethod, data.user);
+					} else {
+						toast.error('Could not retrieve user after login.');
+						throw new Error('User not found after login.');
+					}
 				}
 				break;
 			case AuthMethod.EMAIL_LINK:
-				const actionCodeSettings = {
-					url: 'https://cuicuit.vercel.app/finishSignUp',
-					handleCodeInApp: true
-				};
+				// const actionCodeSettings = {
+				// 	url: 'https://cuicuit.vercel.app/finishSignUp',
+				// 	handleCodeInApp: true
+				// };
 
-				await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+				// await sendSignInLinkToEmail(auth, email, actionCodeSettings);
 
-				window.localStorage.setItem('emailForSignIn', email);
+				// window.localStorage.setItem('emailForSignIn', email);
 
-				toast.success('Email sent!', {
-					description: 'Check your inbox and click on the link to sign in.'
-				});
+				// toast.success('Email sent!', {
+				// 	description: 'Check your inbox and click on the link to sign in.'
+				// });
 
-				emailSent = true;
+				// emailSent = true;
 				break;
 			case AuthMethod.GOOGLE:
-				const googleCred = await signInWithPopup(auth, new GoogleAuthProvider());
-				onAuthSuccess(logMethod, authMethod, googleCred);
+				// const googleCred = await signInWithPopup(auth, new GoogleAuthProvider());
+				const { data, error } = await supabase.auth.signInWithOAuth({
+					provider: 'google'
+				});
+
+				if (error) {
+					console.error('Error signing in with Google:', error);
+					toast.error('Could not sign in with Google. Please try again later.');
+					throw error;
+				}
+
+				// Get the user
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
+
+				if (user) {
+					onAuthSuccess(logMethod, authMethod, user);
+				} else {
+					toast.error('Could not retrieve user after Google sign-in.');
+					throw new Error('User not found after Google sign-in.');
+				}
 				break;
 			case AuthMethod.GITHUB:
-				const githubCred = await signInWithPopup(auth, new GithubAuthProvider());
-				onAuthSuccess(logMethod, authMethod, githubCred);
+				// const githubCred = await signInWithPopup(auth, new GithubAuthProvider());
+				// onAuthSuccess(logMethod, authMethod, githubCred);
 				break;
 			case AuthMethod.ANONYMOUS:
-				const anonCred = await signInAnonymously(auth);
-				onAuthSuccess(logMethod, authMethod, anonCred);
+				// const anonCred = await signInAnonymously(auth);
+				// onAuthSuccess(logMethod, authMethod, anonCred);
 				break;
 		}
 	} catch (error) {

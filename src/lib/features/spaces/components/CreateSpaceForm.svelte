@@ -9,19 +9,20 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { createSpaceFormSchema } from '../models/schemas';
 	import { createSpace } from '../actions/create-space';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import { cn } from '$lib/utils';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	let { openDialog = $bindable() } = $props();
 
-	const userDocState = getUserDocState();
 	const activeSpace = getActiveSpaceState();
 
 	// Refine the form schema to make sure the name is not already taken by other spaces
 	const schema = createSpaceFormSchema.refine(
-		(v) => !Object.values(activeSpace.userHeaders).some((h) => h.name === v.name),
+		(v) =>
+			activeSpace.userSpaces &&
+			!Object.values(activeSpace.userSpaces).some((s) => s.name === v.name),
 		{
 			path: ['name'],
 			message:
@@ -47,9 +48,14 @@
 	);
 
 	function onSubmit() {
+		if (!userState.user?.id) {
+			toast.error('You must be logged in to create a space.');
+			return;
+		}
+
 		loading = true;
 		createSpace(
-			userDocState,
+			userState.user.id,
 			$formData.name,
 			$formData.theme as SpaceThemeKey,
 			$formData.iconSlug as SpaceIconKey

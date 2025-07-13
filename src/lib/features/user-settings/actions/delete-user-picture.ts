@@ -1,31 +1,28 @@
-import { deleteObject, ref } from 'firebase/storage';
 import { toast } from 'svelte-sonner';
-import { updateUserDocAvatar } from './update-user-doc-avatar';
-import { storage } from '$lib/shared/db/firebase-client';
-import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+import { updateUserAvatar } from './update-user-avatar';
+import { supabase } from '$lib/shared/db/supabase-client';
 
 /**
  * Remove the picture from the storage and update the userDoc avatar
  */
-export function deleteUserPicture(userDocState: UserDocState, imgRef: string) {
-	if (!imgRef) {
-		toast.error('No photo set.', { description: "Can't delete what's not there!" });
-		return;
+export async function deleteUserPicture(userId: string) {
+	if (!userId) throw new Error('No user to delete the picture for');
+	if (!supabase) throw new Error('Supabase client not available');
+
+	// Delete the image from Supabase storage
+	const { error: deleteError } = await supabase.storage
+		.from('users')
+		.remove([`public/${userId}/avatar.png`]);
+
+	if (deleteError) {
+		console.error('Error deleting avatar image:', deleteError);
+		toast.error('Failed to delete profile picture. Please try again later.');
+		throw deleteError;
 	}
 
-	const picRef = ref(storage!, imgRef);
+	// Update the user's profile row in the database
+	await updateUserAvatar(userId, undefined, null);
 
-	deleteObject(picRef)
-		.then(() => {
-			updateUserDocAvatar(userDocState, 'icon');
-			toast.success('Photo deleted 🗑', { description: 'Out of our servers!' });
-		})
-		.catch((error) => {
-			if (error.code == 'storage/object-not-found') {
-				// Shouldn't happen, but just in case
-				toast.error('No photo found.', { description: "Hmm, the photo doesn't exist anyway." });
-				return;
-			}
-			throw new Error("Couldn't delete the file:", error.code);
-		});
+	// Notify the user
+	toast.success('Profile picture deleted.');
 }

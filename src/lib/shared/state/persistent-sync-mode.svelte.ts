@@ -1,9 +1,8 @@
-import { disableNetwork, enableNetwork } from 'firebase/firestore';
-import { firestore } from '../db/firebase-client';
 import { browser } from '$app/environment';
 
 export type SyncMode = 'offline' | 'online';
 
+// TODO migrate to Supabase
 function createSyncMode() {
 	// read the mode from localStorage, defaulting to local
 	const initialMode = browser
@@ -12,7 +11,7 @@ function createSyncMode() {
 
 	// Start with the initial mode
 	if (initialMode === 'offline') {
-		disableNetwork(firestore);
+		// disableNetwork(firestore);
 	}
 
 	let mode = $state(initialMode);
@@ -27,10 +26,10 @@ function createSyncMode() {
 		// Set network based on mode
 		if (newMode == 'offline') {
 			console.log('disabling network');
-			disableNetwork(firestore);
+			// disableNetwork(firestore);
 		} else if (newMode == 'online') {
 			console.log('enabling network');
-			enableNetwork(firestore);
+			// enableNetwork(firestore);
 		}
 	}
 

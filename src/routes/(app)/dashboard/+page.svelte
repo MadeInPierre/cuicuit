@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-	import { userState } from '$lib/features/auth/state/user.svelte';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { auth } from '$lib/shared/db/firebase-client';
-	import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
+	// TODO import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
 	import { jsonStringify } from '$lib/utils';
-	import { signOut } from 'firebase/auth';
 	import { Separator } from '$lib/shared/components/ui/separator';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { signOut } from '$lib/features/auth/actions/sign-out';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -16,7 +14,6 @@
 
 	let { children }: Props = $props();
 
-	const userDocState = getUserDocState();
 	const activeSpaceState = getActiveSpaceState();
 </script>
 
@@ -31,31 +28,29 @@
 	<Separator class="my-6" />
 
 	<div class="flex gap-2 items-center m-2">
-		<ButtonThemed
-			onclick={() => {
-				signOut(auth);
-				goto('/');
-			}}
-		>
-			Sign out
-		</ButtonThemed>
+		<ButtonThemed onclick={signOut}>Sign out</ButtonThemed>
 
-		<ButtonThemed
+		<!-- <ButtonThemed
 			onclick={() => {
 				syncMode.toggle();
 			}}
 		>
 			{syncMode.mode}
-		</ButtonThemed>
+		</ButtonThemed> -->
 	</div>
 
-	<pre
-		class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">active SpaceDoc {activeSpaceState.id} {jsonStringify(
-			activeSpaceState.doc
-		)}</pre>
-	<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">UserDoc {userDocState.user
-			?.uid} {jsonStringify(userDocState.doc)}</pre>
-	<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Auth {jsonStringify(
+	<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Auth: {jsonStringify(
 			userState.user
+		)}</pre>
+	<pre
+		class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Preferences: {jsonStringify(
+			userState.preferences
+		)}</pre>
+	<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Profile: {jsonStringify(
+			userState.profile
+		)}</pre>
+	<pre
+		class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">Active Space: {activeSpaceState.id} {jsonStringify(
+			activeSpaceState.activeSpace
 		)}</pre>
 </div>

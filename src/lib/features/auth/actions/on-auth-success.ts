@@ -1,10 +1,11 @@
-import { sendEmailVerification, signOut, type UserCredential } from 'firebase/auth';
 import { AuthMethod } from '../models/auth-method';
-import { createUserDoc } from './create-user-doc';
 import { LogMethod } from '../models/log-method';
+import { createUserData } from './create-user-data';
 import { goto } from '$app/navigation';
 import { toast } from 'svelte-sonner';
-import { auth } from '$lib/shared/db/firebase-client';
+import { supabase } from '$lib/shared/db/supabase-client';
+import type { User } from '@supabase/supabase-js';
+import { resendConfirmationEmail } from './send-signup-confirmation-email';
 
 /**
  * Handle a new signed in user coming from any source (after signup or signin, any provider)
@@ -13,16 +14,12 @@ import { auth } from '$lib/shared/db/firebase-client';
  * @param credentials The user credentials returned by the auth provider
  * @returns
  */
-export async function onAuthSuccess(
-	logMethod: LogMethod,
-	authMethod: AuthMethod,
-	credentials: UserCredential
-) {
+export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod, user: User) {
 	// Create a new user doc if they're a new user
-	const createdUserDoc = await createUserDoc(credentials);
+	const createdUserDoc = await createUserData(user);
 
 	// Make sure a non-anonymous user has a verified email
-	if (authMethod !== AuthMethod.ANONYMOUS && !credentials.user.emailVerified) {
+	if (authMethod !== AuthMethod.ANONYMOUS && !user.email_confirmed_at) {
 		// Show a reminder if the user still didn't verify their email on login
 		if (logMethod == LogMethod.LOGIN || logMethod == LogMethod.CONVERT_ANONYMOUS) {
 			toast.error('Please verify your email first.', {
@@ -32,19 +29,27 @@ export async function onAuthSuccess(
 				action: {
 					label: 'Resend',
 					onClick: () => {
-						sendEmailVerification(credentials.user).then(() => {
-							toast.success('Verification email sent!', {
-								description: 'Please click on the link inside the email before logging in.'
-							});
-						});
+						resendConfirmationEmail();
 					}
 				}
 			});
 		}
 
 		// Forbid the user to sign-in without verified email, sign them out
-		if (auth) {
-			signOut(auth);
+		if (supabase.auth) {
+			await supabase.auth.signOut();
+			toast.error('Please verify your email first.', {
+				duration: 60000,
+				description:
+					'Click on the link you received by email to activate your account. Check your spam folder 👀',
+				action: {
+					label: 'Resend',
+					onClick: () => {
+						resendConfirmationEmail();
+					}
+				}
+			});
+			return;
 		} else {
 			toast.error('Could not sign out.', {
 				description: 'Something went wrong, please try again later.'
