@@ -1,114 +1,136 @@
 <script lang="ts">
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import { Input } from '$lib/shared/components/ui/input';
-	import type {
-		IngredientMatch,
-		IngredientSearchResponse
-	} from '../../../../api/ingredients/search/+server';
 	import { parseIngredientSearchInput, type ParsedSearchInput } from './parse-ingredient-input';
+	import { supabase } from '$lib/shared/db/supabase-client';
+	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import type { Tables } from '$lib/shared/db/supabase.types';
+	import { Label } from '$lib/shared/components/ui/label';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { slide } from 'svelte/transition';
+	import { cn } from '$lib/utils';
 
 	const {
-		language
+		language,
+		onSelect,
+		class: className
 	}: {
 		language: LanguageKey;
+		onSelect: ({
+			ingredient,
+			parsedInput
+		}: {
+			ingredient: Tables<'ingredient_translations'>;
+			parsedInput: ParsedSearchInput | null;
+		}) => void;
+		class?: string;
 	} = $props();
 
-	let selectedIngredientSlug = $state('');
-
 	let searchInput = $state('');
-
-	let matches: IngredientMatch[] = $state([]);
+	let matches: Tables<'ingredient_translations'>[] = $state([]);
 	let parsedInput: ParsedSearchInput | null = $state(null);
-
-	let debounceTimeout: NodeJS.Timeout; // Debounce the search input
+	let isLoading = $state(false);
+	let debounceTimeout: NodeJS.Timeout;
 
 	$effect(() => {
-		searchInput; // Trigger the effect when the search input changes
-
+		searchInput;
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(async () => {
-			if (!searchInput) return;
-
+			if (!searchInput) {
+				matches = [];
+				parsedInput = null;
+				return;
+			}
 			parsedInput = parseIngredientSearchInput(searchInput);
-			if (!parsedInput.parsed.ingredientText) return;
+			if (!parsedInput.parsed.ingredientText) {
+				matches = [];
+				return;
+			}
+			isLoading = true;
+			try {
+				// Use the same logic as /match/+page.svelte: call supabase edge function
+				const { data, error } = await supabase.functions.invoke('match-ingredients', {
+					body: {
+						ingredients: [searchInput],
+						lang: language
+					}
+				});
+				if (error) throw error;
 
-			const response = await fetch('/api/ingredients/search', {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'search-query': parsedInput.parsed.ingredientText,
-					locale: language,
-					limit: '5'
-				}
-			});
-			const data = (await response.json()) as IngredientSearchResponse;
-
-			matches = data.matches;
-		}, 100);
+				matches = data?.matches?.[0]?.bestMatches || [];
+			} catch (e) {
+				matches = [];
+			} finally {
+				isLoading = false;
+			}
+		}, 200);
 	});
+
+	function onSelectIngredient(ingredient: Tables<'ingredient_translations'>) {
+		// Call the provided onSelect callback with the selected ingredient
+		if (!ingredient.ingredient_id) return;
+
+		onSelect?.({
+			ingredient,
+			parsedInput
+		});
+
+		// Reset the search input and matches
+		searchInput = '';
+		matches = [];
+		parsedInput = null;
+	}
 </script>
 
-<div class="grid w-full space-y-4">
-	<Input
-		type="text"
-		placeholder="3 tomatoes, chopped"
-		class="w-full"
-		bind:value={searchInput}
-	/>
+<div class={cn('grid w-full', className)}>
+	<Input type="text" placeholder="3 tomatoes, chopped" class="w-full" bind:value={searchInput} />
 
-	<!-- <pre class="text-sm text-muted-foreground">{JSON.stringify(parsedInput?.parsed, null, 4)}</pre> -->
+	<!-- {#if isLoading}
+		<div class="flex items-center justify-center py-4 text-muted-foreground text-sm">
+			Loading matches...
+		</div> -->
+	{#if matches && matches.length > 0}
+		<div class="grid" transition:slide>
+			<Label class="mt-4 mb-2">Select the best match:</Label>
 
-	{#if matches}
-		<div class="grid w-full space-y-2 bg-background rounded-md">
-			{#snippet ingredientGrid(match: IngredientMatch)}
-				<div class="flex-1 text-center text-sm">
-					<div class="bg-muted aspect-square rounded-md mb-2"></div>
-
-					{#if parsedInput?.parsed.quantity}
-						<span class="font-medium"
-							>{parsedInput?.parsed.quantity.amount} {parsedInput?.parsed.quantity.unit}</span
+			<div class="grid w-full space-y-2 bg-background rounded-md">
+				<div class="grid gap-4 grid-cols-4">
+					{#each matches.slice(0, 4) as ingredient (ingredient.ingredient_id)}
+						<Button
+							variant="secondary"
+							class="p-0 flex-1 text-center text-xs h-32 aspect-square flex flex-col items-center justify-center"
+							onclick={() => onSelectIngredient(ingredient)}
 						>
-					{:else}
-						<span class="font-bold">??</span>
-					{/if}
-
-					<span class="text-balance line-clamp-2 px-1">
-						{parsedInput?.parsed.quantity && parsedInput?.parsed.quantity.amount != 1
-							? match.plural || match.singular
-							: match.singular || match.plural}
-					</span>
-
-					<span class="text-muted-foreground">{parsedInput?.parsed.description}</span>
+							<div class="w-full flex items-center justify-center">
+								<img
+									src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.ingredient_id}.jpg`}
+									alt={ingredient.name_singular}
+									class="object-fill rounded w-16 h-16"
+								/>
+							</div>
+							<div class="grid font-normal">
+								<span class="block text-balance line-clamp-2 px-1">
+									<span class="font-medium">
+										{parsedInput?.parsed.quantity?.amount ?? 1}
+										{parsedInput?.parsed.quantity?.unit ?? ''}
+									</span>
+									{(parsedInput?.parsed.quantity?.amount || 1) > 1
+										? ingredient.name_plural || ingredient.name_singular
+										: ingredient.name_singular || ingredient.name_plural}
+								</span>
+								{#if parsedInput?.parsed.description}
+									<span class="text-muted-foreground italic">{parsedInput?.parsed.description}</span
+									>
+								{/if}
+							</div>
+						</Button>
+					{/each}
 				</div>
-			{/snippet}
-
-			<div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));">
-				{#each matches as match (match.slug)}
-						{@render ingredientGrid(match)}
-				{/each}
 			</div>
-
-			<!-- {#each matches as match (match.slug)}
-				<div class="flex items-center gap-2 text-sm">
-					{#if parsedInput?.parsed.quantity}
-						<span class="font-bold"
-							>{parsedInput?.parsed.quantity.amount} {parsedInput?.parsed.quantity.unit}</span
-						>
-					{:else}
-						<span class="font-bold">No quantity</span>
-					{/if}
-
-					<span>
-						{parsedInput?.parsed.quantity && parsedInput?.parsed.quantity.amount != 1
-							? match.plural || match.singular
-							: match.singular || match.plural}
-					</span>
-
-					<span class="text-muted-foreground">{parsedInput?.parsed.description}</span>
-
-					<span class="ml-auto text-muted-foreground">{parsedInput?.parsed.quantity?.unitKey}</span>
-				</div>
-			{/each} -->
+		</div>
+	{:else if searchInput}
+		<div class="flex items-center justify-center py-4 text-muted-foreground text-sm">
+			No matches found.
 		</div>
 	{/if}
 </div>

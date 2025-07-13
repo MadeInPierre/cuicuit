@@ -13,7 +13,13 @@
 		"format": "prettier --write .",
 		"test:integration": "playwright test",
 		"test:unit": "vitest",
-		"db:types": "npx --yes supabase gen types typescript --project-id qyeioetcqxvpsqmyqohf > src/lib/shared/db/supabase.types.ts  # run npx supabase login first"
+		"db:start": "npx --yes supabase start  # Start supabase locally",
+		"db:stop": "npx --yes supabase stop  # Stop supabase locally",
+		"db:deploy": "npx --yes supabase db push  # Deploy local changes to the database",
+		"db:reset": "npx --yes supabase db reset  # Reset the database to the latest migration",
+		"db:serve": "npx --yes supabase functions serve  # Serve supabase functions locally",
+		"db:types:cloud": "npx --yes supabase gen types typescript --project-id qyeioetcqxvpsqmyqohf > src/lib/shared/db/supabase.types.ts  # run npx supabase login first",
+		"db:types:local": "npx --yes supabase gen types typescript --local > src/lib/shared/db/supabase.types.ts"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.6.0",
@@ -37,6 +43,7 @@
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
 		"rollup-plugin-visualizer": "^5.12.0",
+		"supabase": "^2.30.4",
 		"svelte": "^5.17.3",
 		"svelte-check": "^4.0.0",
 		"svelte-sonner": "^0.3.28",

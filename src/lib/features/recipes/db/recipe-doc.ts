@@ -45,7 +45,7 @@ export type RecipeDoc = {
 	// tags: string[]; // E.g. breakfast, vegan, gluten-free, party, birthday
 	// Categories
 	timeOfDay: RecipeTimeOfDayKey;
-	foodType: RecipeFoodTypeKey;
+	// foodType: RecipeFoodTypeKey;
 	cuisine: RecipeCuisineKey;
 	// Filters
 	motivationLevel: RecipeMotivationLevel;
@@ -142,54 +142,52 @@ export const recipeTools = {
 export type RecipeToolKey = keyof typeof recipeTools;
 
 export const recipeTimesOfDay = {
-	breakfast: 'Breakfast & Brunch',
-	main: 'Lunch & Dinner',
-	snack: 'Snacks & Appetizers',
-	dessert: 'Desserts',
-	drink: 'Drinks'
+	breakfast: 'Breakfast',
+	brunch: 'Brunch',
+	lunch: 'Lunch',
+	dinner: 'Dinner',
+	snack: 'Snack',
+	dessert: 'Dessert',
+	drink: 'Drinks only'
 } as const;
 export type RecipeTimeOfDayKey = keyof typeof recipeTimesOfDay;
 
+export const recipeCourses = {
+	appetizer: 'Appetizer',
+	soup: 'Soup',
+	main: 'Main Course',
+	side: 'Side Dish',
+	salad: 'Salad',
+	dessert: 'Dessert',
+	drink: 'Drink',
+	snack: 'Snack'
+} as const;
+export type RecipeCourseKey = keyof typeof recipeCourses;
+
 export const recipeCuisines = {
-	french: 'French',
 	italian: 'Italian',
 	mexican: 'Mexican',
-	japanese: 'Japanese',
-	chinese: 'Chinese',
 	indian: 'Indian',
-	thai: 'Thai',
-	greek: 'Greek',
+	chinese: 'Chinese',
+	french: 'French',
+	japanese: 'Japanese',
 	mediterranean: 'Mediterranean',
 	american: 'American',
 	spanish: 'Spanish',
-	german: 'German',
-	brazilian: 'Brazilian',
-	portuguese: 'Portuguese',
-	russian: 'Russian',
-	turkish: 'Turkish',
+	thai: 'Thai',
+	greek: 'Greek',
 	korean: 'Korean',
-	vietnamese: 'Vietnamese'
+	vietnamese: 'Vietnamese',
+	middleeast: 'Middle Eastern',
+	british: 'British',
+	brazilian: 'Brazilian',
+	caribbean: 'Caribbean',
+	african: 'African'
 } as const;
 export type RecipeCuisineKey = keyof typeof recipeCuisines;
 
-export const recipeFoodTypes = {
-	salads: 'Salads',
-	appetizers: 'Appetizers',
-	soups: 'Soups',
-	main: 'Main Dishes',
-	side: 'Side Dishes',
-	beverages: 'Beverages',
-	smoothies: 'Smoothies',
-	breads: 'Breads',
-	desserts: 'Desserts',
-	cocktails: 'Cocktails',
-	snacks: 'Snacks',
-	condiments: 'Condiments and Sauces',
-	dressings: 'Dressings and Marinades'
-} as const;
-export type RecipeFoodTypeKey = keyof typeof recipeFoodTypes;
-
 export type RecipeIngredient = {
+	id: string;
 	name: string;
 	amount: number;
 	unit: Unit;
