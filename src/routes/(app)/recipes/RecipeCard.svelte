@@ -3,38 +3,39 @@
 	import { CalendarPlus, CheckCheck } from 'lucide-svelte';
 	import { type RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
 	import { cn } from '$lib/utils';
+	import type { Tables } from '$lib/shared/db/supabase.types';
+	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 
 	interface Props {
-		recipeId: string;
-		recipeDoc: RecipeDoc;
+		recipe: Tables<'recipes'>;
 		class?: string;
 	}
 
-	let { recipeId, recipeDoc, class: className = '' }: Props = $props();
+	let { recipe, class: className = '' }: Props = $props();
 </script>
 
-{#if recipeDoc}
+{#if recipe}
 	<div
 		class={cn(
 			'w-52 group flex flex-col items-start bg-white dark:bg-muted rounded-md border shadow-sm hover:shadow-lg transition-shadow',
 			className
 		)}
 	>
-		{#if recipeDoc.imageUrls && recipeDoc.imageUrls.length > 0}
-			<a href={'/recipes/' + recipeId} class="relative">
+		{#if recipe.image_ids && recipe.image_ids.length > 0}
+			<a href={'/recipes/' + recipe.id} class="relative">
 				<img
-					src={recipeDoc.imageUrls[0]}
+					src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 					alt="Recipe"
 					class="aspect-[1.618] rounded-md object-cover"
 				/>
 
-				<!-- <UserAvatar profile={recipeDoc.author.profile} class="absolute bottom-2 right-2 size-5" /> -->
+				<!-- <UserAvatar profile={recipe.author.profile} class="absolute bottom-2 right-2 size-5" /> -->
 
-				{#if recipeDoc.source && recipeDoc.source.name != 'Cuicuit'}
+				{#if recipe.source_type === 'website'}
 					<div
 						class="absolute top-2 right-2 text-xs rounded-full bg-black/60 text-white py-0.5 px-1.5"
 					>
-						{recipeDoc.source.name}
+						{recipe.source_type}
 					</div>
 				{/if}
 
@@ -44,8 +45,8 @@
 			<div class="w-full aspect-[1.618] bg-gray-200 rounded-md"></div>
 		{/if}
 		<div class="flex items-center gap-2 p-2 w-full h-full">
-			<a class="grid w-full" href={'/recipes/' + recipeId}>
-				<h3 class="text-sm font-semibold line-clamp-1">{recipeDoc.title}</h3>
+			<a class="grid w-full" href={'/recipes/' + recipe.id}>
+				<h3 class="text-sm font-semibold line-clamp-1">{recipe.title}</h3>
 				<!-- <div class="text-xs text-muted-foreground flex items-center">
 					<span class="mr-4">{recipeDoc.time.total}min</span>
 
@@ -82,7 +83,7 @@
 				type="outline"
 				aria-label="Add to plan"
 				onclick={() => {
-					console.log('Add to plan', recipeId);
+					console.log('Add to plan', recipe.id);
 				}}
 			>
 				<CalendarPlus class="size-4" />

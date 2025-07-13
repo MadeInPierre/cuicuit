@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { recipeCuisines, recipeTimesOfDay, recipeTools, recipeFoodTypes } from '../db/recipe-doc';
 import { languageKeys } from '$lib/features/user-settings/consts';
 
 export const createRecipeFormSchema = z
 	.object({
+		// General info
 		language: z.enum(languageKeys).default('fr-FR'),
 		title: z
 			.string()
@@ -11,55 +11,44 @@ export const createRecipeFormSchema = z
 			.max(50, 'Name must be at most 50 characters long.'),
 		description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
-		timeOfDay: z
-			.string({ message: 'Please select a value.' })
-			.refine((value) => Object.keys(recipeTimesOfDay).includes(value), {
-				message: 'Please select a value.'
-			}),
-		foodType: z
-			.string({ message: 'Please select a value.' })
-			.refine((value) => Object.keys(recipeFoodTypes).includes(value), {
-				message: 'Please select a value.'
-			}),
-		cuisine: z
-			.string({ message: 'Please select a value.' })
-			.refine((value) => Object.keys(recipeCuisines).includes(value), {
-				message: 'Please select a value.'
-			}),
+		// Images
+		imageIds: z.array(z.string().min(1, { message: 'Please upload at least one image.' })).default([]),
 
-		motivationLevel: z.string().min(1, 'Please select a value.').max(5),
-		healthyLevel: z.string().min(1, 'Please select a value.').max(5),
-		dishWasherLevel: z.string().min(1, 'Please select a value.').max(5),
-		dishHandLevel: z.string().min(1, 'Please select a value.').max(5),
+		// Filters (single select, enums)
+		effortLevel: z.string(),
+		skillLevel: z.string(),
+		cleanupLevel: z.string(),
+		costLevel: z.string(),
 
-		timePrep: z.number().int().min(0).max(120),
-		timeRest: z.number().int().min(0).max(120),
-		timeCook: z.number().int().min(0).max(120),
+		// Filters (multi select, foreign keys to other tables)
+		course_ids: z.array(z.string()),
+		cuisine_ids: z.array(z.string()),
+		tag_ids: z.array(z.string()),
+		timesofday_ids: z.array(z.string()),
+		tool_ids: z.array(z.string()),
 
-		tools: z
-			.array(
-				z
-					.string()
-					.refine((value) => Object.keys(recipeTools).includes(value), { message: 'Invalid tool.' })
-			)
-			.min(0),
+		// Cook times
+		timePrep: z
+			.number()
+			.int()
+			.min(0)
+			.max(60 * 24),
+		timeRest: z
+			.number()
+			.int()
+			.min(0)
+			.max(60 * 24),
+		timeCook: z
+			.number()
+			.int()
+			.min(0)
+			.max(60 * 24),
 
-		stepDescriptions: z
-			.array(
-				z
-					.string()
-					.min(3, {
-						message: 'The step description must be at least 3 characters long.'
-					})
-					.max(500, {
-						message: 'The step description must be at most 500 characters long.'
-					})
-			)
-			.min(1)
-			.default(['']),
-
+		// Servings & Ingredients
 		servings: z.number().int().min(1).max(20),
-
+		ingredientIds: z
+			.array(z.string().min(1, { message: 'Please select an ingredient.' }))
+			.min(2, { message: 'Please select at least 2 ingredients.' }),
 		ingredientAmounts: z
 			.array(
 				z
@@ -93,7 +82,22 @@ export const createRecipeFormSchema = z
 						message: 'The ingredient name must be at most 50 characters long.'
 					})
 			)
-			.default(['', ''])
+			.default(['', '']),
+
+		// Steps
+		stepDescriptions: z
+			.array(
+				z
+					.string()
+					.min(3, {
+						message: 'The step description must be at least 3 characters long.'
+					})
+					.max(500, {
+						message: 'The step description must be at most 500 characters long.'
+					})
+			)
+			.min(1)
+			.default([''])
 	})
 	.refine((data) => {
 		const { ingredientAmounts, ingredientUnits, ingredientNames } = data;

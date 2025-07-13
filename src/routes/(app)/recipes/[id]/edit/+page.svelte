@@ -21,7 +21,8 @@
 		Users,
 		Minus,
 		GripVertical,
-		Camera
+		Camera,
+		Trash2
 	} from 'lucide-svelte';
 	import { unitLabels, type Unit } from '$lib/shared/utils/quantity';
 	import {
@@ -34,17 +35,17 @@
 	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
 		DishesLevel,
+		recipeCourses,
 		recipeCuisines,
 		recipeDocConverter,
-		recipeFoodTypes,
 		RecipeHealthyLevel,
 		RecipeMotivationLevel,
 		recipeTimesOfDay,
 		recipeTools,
 		type DBRecipeDoc,
+		type RecipeCourseKey,
 		type RecipeCuisineKey,
 		type RecipeDoc,
-		type RecipeFoodTypeKey,
 		type RecipeStep,
 		type RecipeTimeOfDayKey,
 		type RecipeToolKey
@@ -58,16 +59,17 @@
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { slide } from 'svelte/transition';
-	import { languages } from '$lib/features/user-settings/consts';
+	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import IngredientSearch from './IngredientSearch.svelte';
+	import type { ParsedSearchInput } from './parse-ingredient-input';
+	import type { Database, Tables } from '$lib/shared/db/supabase.types';
+	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
+	import { supabase } from '$lib/shared/db/supabase-client';
+	import { onMount } from 'svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
-	let recipeDocState = new DocState<RecipeDoc, DBRecipeDoc>(
-		firestore,
-		`recipes/${pageRecipeId}`,
-		recipeDocConverter
-	);
+	const isNewRecipe = pageRecipeId === 'new';
 
 	const banner = page.url.searchParams.get('banner') || undefined;
 	let openBanner = $state(banner ? true : false);
@@ -85,6 +87,7 @@
 				await onSubmit(form.data);
 				toast.success('Recipe saved! 👨‍🍳');
 			} else {
+				console.error('Form validation failed:', form.errors);
 				toast.error('Please fix the errors in the form.');
 			}
 		}
@@ -94,89 +97,254 @@
 	let dirty = $derived(isTainted($tainted));
 
 	// Update the form data with the recipe document data whenever it changes
-	$effect(() => {
-		recipeDocState.data; // Subscribe to changes in firestore to trigger the effect
+
+	onMount(async () => {
+		// If it's a new recipe, we don't need to fetch the recipe data
+		if (isNewRecipe) return;
+
+		// Fetch the recipe from Supabase
+		const { data: recipeData, error: recipeError } = await supabase
+			.from('recipes')
+			.select(
+				`*, 
+				language:languages(*), 
+				ingredients:recipe_ingredients(*), 
+				courses:recipe_courses(*), 
+				cuisines:recipe_cuisines(*), 
+				times_of_day:recipe_times_of_day(*), 
+				tags:recipe_tags(*), 
+				tools:recipe_tools(*)`
+			)
+			.eq('id', pageRecipeId)
+			.single();
+
+		if (recipeError) {
+			console.error('Error fetching recipe:', recipeError);
+			return;
+		}
+
+		console.log('Fetched recipe:', recipeData);
 
 		formData.update(
 			(f) => {
-				if (!recipeDocState.data) return f;
+				// General info
+				f.language = (recipeData.language.lang as LanguageKey) || 'fr-FR';
+				f.title = recipeData.title || 'New recipe';
+				f.description = recipeData.description || 'Delicious new recipe';
 
-				f.language = recipeDocState.data.language || 'fr-FR';
-				f.title = recipeDocState.data.title;
-				f.description = recipeDocState.data.description;
-				f.tools = recipeDocState.data.tools;
-				f.timePrep = recipeDocState.data.time?.prep || 0;
-				f.timeCook = recipeDocState.data.time?.cook || 0;
-				f.timeRest = recipeDocState.data.time?.rest || 0;
-				f.tools = recipeDocState.data.tools || [];
-				f.motivationLevel = recipeDocState.data.motivationLevel?.toString() || '3';
-				f.healthyLevel = recipeDocState.data.healthyLevel?.toString() || '3';
-				f.dishWasherLevel = recipeDocState.data.dishesLevels?.dishwasher?.toString() || '3';
-				f.dishHandLevel = recipeDocState.data.dishesLevels?.hand?.toString() || '3';
-				f.timeOfDay = recipeDocState.data.timeOfDay || undefined;
-				f.foodType = recipeDocState.data.foodType || undefined;
-				f.cuisine = recipeDocState.data.cuisine || undefined;
-				f.stepDescriptions = recipeDocState.data.steps?.map((step) => step.description) || [''];
-				f.servings = recipeDocState.data.servings || 4;
-				f.ingredientAmounts = recipeDocState.data.ingredients?.map((i) => i.amount) || [1, 1];
-				f.ingredientUnits = recipeDocState.data.ingredients?.map((i) => i.unit) || ['g', 'g'];
-				f.ingredientNames = recipeDocState.data.ingredients?.map((i) => i.name) || ['', ''];
+				// Images
+				f.imageIds = recipeData.image_ids || [];
+
+				// Filters
+				f.course_ids = recipeData.courses.map((course) => course.course_id.toString()) || [];
+				f.cuisine_ids = recipeData.cuisines.map((cuisine) => cuisine.cuisine_id.toString()) || [];
+				f.tag_ids = recipeData.tags.map((tag) => tag.tag_id.toString()) || [];
+				f.timesofday_ids = recipeData.times_of_day.map((tod) => tod.timeofday_id.toString()) || [];
+				f.tool_ids = recipeData.tools.map((tool) => tool.tool_id.toString()) || [];
+
+				// Levels
+				f.effortLevel = recipeData.effort_level || 'low';
+				f.skillLevel = recipeData.skill_level || 'beginner';
+				f.cleanupLevel = recipeData.cleanup_level || 'none';
+				f.costLevel = recipeData.cost_level || 'budget';
+
+				// Cook times
+				f.timePrep = recipeData.time_prep_minutes || 0;
+				f.timeCook = recipeData.time_cook_minutes || 0;
+				f.timeRest = recipeData.time_rest_minutes || 0;
+
+				// Servings & Ingredients
+				f.servings = recipeData.servings || 4;
+				f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
+				f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
+				f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
+				f.ingredientNames = recipeData.ingredients.map((ing) => ing.raw_input || '');
+
+				// Steps
+				f.stepDescriptions = recipeData.steps || [''];
 				return f;
 			},
 			{ taint: false }
 		);
 	});
 
+	function onAddIngredient({
+		ingredient,
+		parsedInput
+	}: {
+		ingredient: Tables<'ingredient_translations'>;
+		parsedInput: ParsedSearchInput | null;
+	}) {
+		formData.update((f) => {
+			f.ingredientIds.push(ingredient.ingredient_id);
+			f.ingredientAmounts.push(parsedInput?.parsed.quantity?.amount ?? 1);
+			f.ingredientUnits.push(parsedInput?.parsed.quantity?.unitKey ?? 'whole');
+			f.ingredientNames.push(ingredient.name_singular ?? parsedInput?.parsed.ingredientText ?? '');
+			return f;
+		});
+	}
+
 	let loading = $state(false);
 
 	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
-		if (!recipeDocState.data) return;
-
 		loading = true;
-		await recipeDocState.updateDoc({
-			status: 'published',
-			language: data.language,
-			title: data.title,
-			description: data.description,
-			tools: data.tools as RecipeToolKey[],
-			'time.total': data.timeCook + data.timePrep + data.timeRest,
-			'time.cook': data.timeCook,
-			'time.prep': data.timePrep,
-			'time.rest': data.timeRest,
-			motivationLevel: parseInt(data.motivationLevel),
-			healthyLevel: parseInt(data.healthyLevel),
-			'dishesLevels.dishwasher': parseInt(data.dishWasherLevel),
-			'dishesLevels.hand': parseInt(data.dishHandLevel),
-			'dishesLevels.total': parseInt(data.dishWasherLevel + data.dishHandLevel),
-			timeOfDay: data.timeOfDay as RecipeTimeOfDayKey,
-			foodType: data.foodType as RecipeFoodTypeKey,
-			cuisine: data.cuisine as RecipeCuisineKey,
-			steps: Object.values(data.stepDescriptions.filter((d) => d.trim() != '')).map(
-				(d) =>
-					({
-						description: d,
-						ingredients: [] // TODO ingredients
-					}) as RecipeStep
-			),
-			servings: data.servings || 4,
-			ingredients: data.ingredientAmounts.map((amount, i) => ({
-				amount,
-				unit: data.ingredientUnits[i] as Unit, // TODO add unit region support (e.g. eutsp, ...)
-				name: capitalize(data.ingredientNames[i])
-			}))
-		});
+		const { data: langData, error: langError } = await supabase
+			.from('languages')
+			.select('id')
+			.eq('lang', data.language)
+			.single();
 
-		// Remove the banner query param if it exists
-		const url = new URL(window.location.toString());
-		url.searchParams.delete('banner');
-		history.replaceState({}, '', url);
-		openBanner = false;
+		if (langError || !langData) {
+			console.error('Error fetching language ID:', langError);
+			toast.error('Failed to fetch language ID.');
+			return;
+		}
 
-		// Wait for 1 second for the loading spinner to show
-		loading = false;
+		// Create the recipe
+		const { data: recipeIdData, error: recipeIdError } = await supabase
+			.from('recipes')
+			.upsert({
+				// ID if we are updating an existing recipe
+				id: isNewRecipe ? undefined : pageRecipeId,
+
+				// Source
+				source_type: 'user-manual',
+
+				// General info
+				title: data.title,
+				description: data.description,
+				notes: '',
+				author_id: '01b12743-d908-46ff-b239-332438cb4c4d', // TODO connect auth
+				language_id: langData.id,
+				slug: '', // Will be generated by a db trigger
+
+				// Filters (single select enums)
+				cleanup_level: data.cleanupLevel,
+				cost_level: data.costLevel,
+				effort_level: data.effortLevel,
+				skill_level: data.skillLevel,
+
+				// Cook times
+				time_prep_minutes: data.timePrep,
+				time_cook_minutes: data.timeCook,
+				time_rest_minutes: data.timeRest,
+
+				// Servings (ingredients will be inserted in another table)
+				servings: data.servings,
+
+				// Steps
+				steps: data.stepDescriptions
+			} as Tables<'recipes'>)
+			.select('id')
+			.single();
+
+		if (recipeIdError || !recipeIdData) {
+			console.error('Error creating recipe:', recipeIdError);
+			toast.error('Failed to create recipe.');
+			return;
+		}
+
+		// If it's an existing recipe, we need to delete the old relations first
+		if (!isNewRecipe) {
+			const { error: deleteError } = await supabase
+				.from('recipe_ingredients')
+				.delete()
+				.eq('recipe_id', pageRecipeId);
+
+			if (deleteError) {
+				console.error('Error deleting old ingredients:', deleteError);
+				toast.error('Failed to delete old ingredients.');
+				return;
+			}
+		}
+
+		// Add the ingredients to the recipe_ingredients table
+		const { error: ingredientsError } = await supabase
+			.from('recipe_ingredients')
+			.insert(
+				data.ingredientIds.map(
+					(id, i) =>
+						({
+							recipe_id: recipeIdData.id,
+							ingredient_id: id,
+							quantity: data.ingredientAmounts[i],
+							unit: data.ingredientUnits[i],
+							details: '',
+							notes: '',
+							raw_input: data.ingredientNames[i]
+						}) as Tables<'recipe_ingredients'>
+				)
+			)
+			.select();
+
+		if (ingredientsError) {
+			console.error('Error adding ingredients:', ingredientsError);
+			toast.error('Failed to add ingredients.');
+			return;
+		}
+
+		// Add the other relations like courses, cuisines, times of day, tags, and tools
+		const relations = [
+			{ table: 'recipe_courses', ids: data.course_ids, column: 'course_id' },
+			{ table: 'recipe_cuisines', ids: data.cuisine_ids, column: 'cuisine_id' },
+			{ table: 'recipe_times_of_day', ids: data.timesofday_ids, column: 'timeofday_id' },
+			{ table: 'recipe_tags', ids: data.tag_ids, column: 'tag_id' },
+			{ table: 'recipe_tools', ids: data.tool_ids, column: 'tool_id' }
+		] as {
+			table: keyof Database['public']['Tables'];
+			ids: (number | string)[];
+			column: string;
+		}[];
+
+		for (const { table, ids, column } of relations) {
+			// Always delete existing relations for this recipe before upserting
+			const { error: deleteRelationError } = await supabase
+				.from(table)
+				.delete()
+				.eq('recipe_id', recipeIdData.id);
+
+			if (deleteRelationError) {
+				console.error(`Error deleting old ${table}:`, deleteRelationError);
+				toast.error(`Failed to delete old ${table}.`);
+				return;
+			}
+
+			if (ids.length > 0) {
+				const { error: relationError } = await supabase
+					.from(table)
+					.insert(
+						ids.map(
+							(id) =>
+								({
+									recipe_id: recipeIdData.id,
+									[column]: id
+								}) as Tables<typeof table>
+						)
+					)
+					.select();
+
+				if (relationError) {
+					console.error(`Error adding ${table}:`, relationError);
+					toast.error(`Failed to add ${table}.`);
+					return;
+				}
+			}
+		}
 
 		// Go to the recipe view page
-		goto(`/recipes/${recipeDocState.id}`);
+		console.log('Created or edited recipe ID:', recipeIdData?.id);
+		loading = false;
+		goto(`/recipes/${recipeIdData?.id}`);
+	}
+
+	function onImagesChanged(imageIds: string[]) {
+		formData.update(
+			(f) => {
+				f.imageIds = imageIds;
+				return f;
+			},
+			{ taint: false }
+		);
 	}
 
 	let showDismissDialog = $state(false);
@@ -193,7 +361,7 @@
 						size="icon"
 						class="h-7 w-7"
 						onclick={() => {
-							if (recipeDocState.data?.status == 'draft') dismissDialogMode = 'delete';
+							if (isNewRecipe) dismissDialogMode = 'delete';
 							else {
 								// Check if the form is dirty before showing the dialog when dismissing only
 								if (!dirty && window) window.history.back();
@@ -208,19 +376,19 @@
 					<h1
 						class="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0"
 					>
-						{#if recipeDocState.data?.status == 'draft'}
+						{#if isNewRecipe}
 							New recipe
 						{:else}
 							Edit recipe
 						{/if}
 					</h1>
 
-					{#if recipeDocState.data?.status == 'draft'}
+					{#if isNewRecipe}
 						<Badge class="ml-auto sm:ml-0 bg-yellow-600 text-white dark:bg-yellow-900">Draft</Badge>
 					{/if}
 
 					<div class="hidden items-center gap-2 md:ml-auto md:flex">
-						{#if recipeDocState.data?.status == 'published'}
+						{#if !isNewRecipe}
 							<Button
 								variant="outline"
 								size="sm"
@@ -230,7 +398,7 @@
 									dismissDialogMode = 'delete';
 								}}
 							>
-								<!-- <Trash2 class="size-3.5" /> -->
+								<Trash2 class="size-3.5" />
 								Delete
 							</Button>
 						{/if}
@@ -269,21 +437,30 @@
 									<Card.Title>Recipe Details</Card.Title>
 									<Card.Description>This is the main information about the recipe</Card.Description>
 								</div>
-								<ImportRecipeDialog recipeId={recipeDocState.id} />
+								<!-- <ImportRecipeDialog recipeId={recipeDocState.id} /> -->
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
 									<div class="flex gap-4">
-										<Form.Field {form} name="language" class="grid">
+										<Form.Field {form} name="title" class="w-full grid">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Language</Form.Label>
-													<!-- <Input
+													<Form.Label>Title</Form.Label>
+													<Input
 														disabled={loading}
 														{...props}
 														bind:value={$formData.title}
 														placeholder="Chocolate cookies"
-													/> -->
+													/>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+
+										<Form.Field {form} name="language" class="grid">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Language</Form.Label>
 
 													<Select.Root
 														{...props}
@@ -292,7 +469,7 @@
 														bind:value={$formData.language}
 													>
 														<Select.Trigger class="w-20">
-															{languages[$formData.language]!.emoji}
+															{languages[$formData.language]?.emoji || '?'}
 														</Select.Trigger>
 														<Select.Content>
 															<Select.Group>
@@ -310,21 +487,6 @@
 															</Select.Group>
 														</Select.Content>
 													</Select.Root>
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors />
-										</Form.Field>
-
-										<Form.Field {form} name="title" class="w-full grid">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Title</Form.Label>
-													<Input
-														disabled={loading}
-														{...props}
-														bind:value={$formData.title}
-														placeholder="Chocolate cookies"
-													/>
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
@@ -392,23 +554,28 @@
 								</div>
 							</Card.Header>
 							<Card.Content class="grid gap-3">
-								<IngredientSearch language={$formData.language} />
+								<Label>Type to add:</Label>
 
-								<Label>Required</Label>
+								<IngredientSearch
+									language={$formData.language}
+									onSelect={onAddIngredient}
+									class="mb-3"
+								/>
 
-								{#each $formData.ingredientAmounts as _, i}
+								<!-- <Label>Required</Label> -->
+
+								{#each $formData.ingredientIds as id, i (id)}
 									<div class="grid gap-3">
 										<div class="grid gap-2">
 											<div class="w-full flex gap-2 items-center">
 												<GripVertical class="size-6 text-muted-foreground cursor-grab" />
 												<!-- <IngredientSelectDropdown /> -->
 
-												<div
-													class="bg-muted aspect-square h-full rounded-md flex items-center justify-center text-muted-foreground"
-												>
-													?
-													<!-- <Loader2 class="size-4 animate-spin" /> -->
-												</div>
+												<IngredientImage
+													id={$formData.ingredientIds[i]}
+													name={$formData.ingredientNames[i]}
+													class="w-10 h-10"
+												/>
 
 												<div class="flex">
 													<Form.Field {form} name="ingredientAmounts" class="space-y-0">
@@ -437,7 +604,7 @@
 																>
 																	<Select.Trigger
 																		{...props}
-																		class="gap-1 bg-muted/40 rounded-l-none min-w-12"
+																		class="gap-1 bg-muted/40 rounded-l-none w-20"
 																	>
 																		{$formData.ingredientUnits[i]}
 																	</Select.Trigger>
@@ -447,7 +614,7 @@
 																		{/each}
 																	</Select.Content>
 																</Select.Root>
-																<input hidden bind:value={$formData.foodType} name={props.name} />
+																<!-- <input hidden bind:value={$formData.foodType} name={props.name} /> -->
 															{/snippet}
 														</Form.Control>
 														<Form.FieldErrors />
@@ -475,6 +642,9 @@
 													class="ml-auto h-6 w-6 min-w-6"
 													disabled={loading || $formData.ingredientAmounts.length <= 2}
 													onclick={() => {
+														$formData.ingredientIds = $formData.ingredientIds.filter(
+															(_, j) => j !== i
+														);
 														$formData.ingredientAmounts = $formData.ingredientAmounts.filter(
 															(_, j) => j !== i
 														);
@@ -510,54 +680,11 @@
 									</div>
 								{/each}
 
-								<Label>Optional</Label>
+								<!-- <Label>Optional</Label>
 								<p class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md">
 									Drag ingredients here to mark them as optional
-								</p>
-
-								<!-- <Table.Root>
-									<Table.Header>
-										<Table.Row>
-											<Table.Head class="w-[0px]">Amount</Table.Head>
-											<Table.Head class="w-[0px]">Unit</Table.Head>
-											<Table.Head>Item</Table.Head>
-										</Table.Row>
-									</Table.Header>
-									<Table.Body>
-										<Table.Row>
-											<Table.Cell>
-												<Label class="sr-only">Amount</Label>
-												<Input type="number" class="w-[80px]" value="100" />
-											</Table.Cell>
-											<Table.Cell>
-												<ToggleGroup.Root type="single" value="s" variant="outline">
-													<ToggleGroup.Item value="s">g</ToggleGroup.Item>
-													<ToggleGroup.Item value="m">mL</ToggleGroup.Item>
-												</ToggleGroup.Root>
-											</Table.Cell>
-											<Table.Cell>
-												<Label>Tomatoes</Label>
-											</Table.Cell>
-										</Table.Row>
-									</Table.Body>
-								</Table.Root> -->
+								</p> -->
 							</Card.Content>
-							<Card.Footer class="justify-center border-t p-4">
-								<Button
-									size="sm"
-									variant="ghost"
-									class="gap-1"
-									disabled={loading || $formData.ingredientAmounts.length >= 10}
-									onclick={() => {
-										$formData.ingredientAmounts = [...$formData.ingredientAmounts, 1];
-										$formData.ingredientUnits = [...$formData.ingredientUnits, 'g'];
-										$formData.ingredientNames = [...$formData.ingredientNames, ''];
-									}}
-								>
-									<CirclePlus class="h-3.5 w-3.5" />
-									Add Ingredient
-								</Button>
-							</Card.Footer>
 						</Card.Root>
 						<Card.Root>
 							<Card.Header>
@@ -571,15 +698,15 @@
 									{#snippet toolButton(key: RecipeToolKey, label: string)}
 										<button
 											disabled={loading}
-											class={$formData.tools.includes(key)
+											class={$formData.tool_ids.includes(key)
 												? 'aspect-square rounded-md text-center border-2 font-semibold ' +
 													`border-${activeSpace!.userHeader!.theme}-600 text-${activeSpace!.userHeader!.theme}-600`
 												: 'border-2 aspect-square rounded-md text-center'}
 											onclick={(e) => {
 												e.preventDefault(); // Don't submit the form
-												$formData.tools = $formData.tools.includes(key)
-													? $formData.tools.filter((tool) => tool !== key)
-													: [...$formData.tools, key];
+												$formData.tool_ids = $formData.tool_ids.includes(key)
+													? $formData.tool_ids.filter((tool) => tool !== key)
+													: [...$formData.tool_ids, key];
 											}}
 										>
 											<img src={`/appliances/${key}.jpg`} alt="" class="size-12 mx-auto mb-1" />
@@ -750,10 +877,20 @@
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-2">
-									<ImgUploadButton {recipeDocState} />
+									<ImgUploadButton
+										recipeId={pageRecipeId}
+										currentImageIds={$formData.imageIds}
+										{onImagesChanged}
+									/>
 									<div class="grid grid-cols-3 gap-2">
-										{#each Array.from( { length: Math.min(recipeDocState.data?.imageIds?.length || 0, 3) } ) as _, i}
-											<ImgUploadButton {recipeDocState} size="small" position={i + 1} />
+										{#each Array.from( { length: Math.min($formData.imageIds?.length || 0, 3) } ) as _, i}
+											<ImgUploadButton
+												recipeId={pageRecipeId}
+												currentImageIds={$formData.imageIds}
+												size="small"
+												position={i + 1}
+												{onImagesChanged}
+											/>
 										{/each}
 									</div>
 								</div>
@@ -765,31 +902,28 @@
 								<Card.Description>Helpful information for search</Card.Description>
 							</Card.Header>
 							<Card.Content>
-								<div class="grid gap-6">
+								<div class="grid gap-3">
 									<div class="grid gap-3">
-										<Form.Field {form} name="motivationLevel">
+										<Form.Field {form} name="skillLevel">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Motivation needed</Form.Label>
+													<Form.Label>Skill needed</Form.Label>
 													<Select.Root
 														type="single"
-														bind:value={$formData.motivationLevel}
+														bind:value={$formData.skillLevel}
 														name={props.name}
 													>
 														<Select.Trigger {...props}>
-															{capitalize(
-																RecipeMotivationLevel[parseInt($formData.motivationLevel)]
-															).replace('_', ' ')}
+															{capitalize($formData.skillLevel).replace('_', ' ')}
 														</Select.Trigger>
 														<Select.Content>
-															<Select.Item value="1" label="Very low" />
-															<Select.Item value="2" label="Low" />
-															<Select.Item value="3" label="Medium" />
-															<Select.Item value="4" label="High" />
-															<Select.Item value="5" label="Very high" />
+															<Select.Item value="beginner" label="Beginner" />
+															<Select.Item value="intermediate" label="Intermediate" />
+															<Select.Item value="advanced" label="Advanced" />
+															<Select.Item value="chef" label="Chef" />
 														</Select.Content>
 													</Select.Root>
-													<input hidden bind:value={$formData.motivationLevel} name={props.name} />
+													<input hidden bind:value={$formData.skillLevel} name={props.name} />
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
@@ -797,102 +931,84 @@
 									</div>
 
 									<div class="grid gap-3">
-										<Form.Field {form} name="healthyLevel">
+										<Form.Field {form} name="effortLevel">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Healthy level</Form.Label>
+													<Form.Label>Effort needed</Form.Label>
 													<Select.Root
 														type="single"
-														bind:value={$formData.healthyLevel}
+														bind:value={$formData.effortLevel}
 														name={props.name}
 													>
 														<Select.Trigger {...props}>
-															{capitalize(
-																RecipeHealthyLevel[parseInt($formData.healthyLevel)]
-															).replace('_', ' ')}
+															{capitalize($formData.effortLevel).replace('_', ' ')}
 														</Select.Trigger>
 														<Select.Content>
-															<Select.Item value="1" label="Very low" />
-															<Select.Item value="2" label="Low" />
-															<Select.Item value="3" label="Medium" />
-															<Select.Item value="4" label="High" />
-															<Select.Item value="5" label="Very high" />
+															<Select.Item value="none" label="None" />
+															<Select.Item value="low" label="Low" />
+															<Select.Item value="medium" label="Medium" />
+															<Select.Item value="high" label="High" />
 														</Select.Content>
 													</Select.Root>
-													<input hidden bind:value={$formData.healthyLevel} name={props.name} />
+													<input hidden bind:value={$formData.effortLevel} name={props.name} />
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
 										</Form.Field>
 									</div>
 
-									<div class="grid grid-cols-2 gap-3">
-										<div class="grid gap-3">
-											<Form.Field {form} name="dishWasherLevel">
-												<Form.Control>
-													{#snippet children({ props })}
-														<Form.Label>Dishwasher load</Form.Label>
-														<Select.Root
-															type="single"
-															bind:value={$formData.dishWasherLevel}
-															name={props.name}
-														>
-															<Select.Trigger {...props}>
-																{capitalize(
-																	DishesLevel[parseInt($formData.dishWasherLevel)]
-																).replace('_', ' ')}
-															</Select.Trigger>
-															<Select.Content>
-																<Select.Item value="0" label="None" />
-																<Select.Item value="1" label="Very Low" />
-																<Select.Item value="2" label="Low" />
-																<Select.Item value="3" label="Medium" />
-																<Select.Item value="4" label="High" />
-																<Select.Item value="5" label="Very High" />
-															</Select.Content>
-														</Select.Root>
-														<input
-															hidden
-															bind:value={$formData.dishWasherLevel}
-															name={props.name}
-														/>
-													{/snippet}
-												</Form.Control>
-												<Form.FieldErrors />
-											</Form.Field>
-										</div>
+									<div class="grid gap-3">
+										<Form.Field {form} name="costLevel">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Cost</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.costLevel}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{capitalize($formData.costLevel).replace('_', ' ')}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value="minimal" label="Minimal" />
+															<Select.Item value="budget" label="Budget" />
+															<Select.Item value="average" label="Average" />
+															<Select.Item value="premium" label="Premium" />
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.costLevel} name={props.name} />
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+									</div>
 
-										<div class="grid gap-3">
-											<Form.Field {form} name="dishHandLevel">
-												<Form.Control>
-													{#snippet children({ props })}
-														<Form.Label>Handwash load</Form.Label>
-														<Select.Root
-															type="single"
-															bind:value={$formData.dishHandLevel}
-															name={props.name}
-														>
-															<Select.Trigger {...props}>
-																{capitalize(DishesLevel[parseInt($formData.dishHandLevel)]).replace(
-																	'_',
-																	' '
-																)}
-															</Select.Trigger>
-															<Select.Content>
-																<Select.Item value="0" label="None" />
-																<Select.Item value="1" label="Very Low" />
-																<Select.Item value="2" label="Low" />
-																<Select.Item value="3" label="Medium" />
-																<Select.Item value="4" label="High" />
-																<Select.Item value="5" label="Very High" />
-															</Select.Content>
-														</Select.Root>
-														<input hidden bind:value={$formData.dishHandLevel} name={props.name} />
-													{/snippet}
-												</Form.Control>
-												<Form.FieldErrors />
-											</Form.Field>
-										</div>
+									<div class="grid gap-3">
+										<Form.Field {form} name="cleanupLevel">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Cleanup effort</Form.Label>
+													<Select.Root
+														type="single"
+														bind:value={$formData.cleanupLevel}
+														name={props.name}
+													>
+														<Select.Trigger {...props}>
+															{capitalize($formData.cleanupLevel).replace('_', ' ')}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Item value="none" label="None" />
+															<Select.Item value="low" label="Low" />
+															<Select.Item value="medium" label="Medium" />
+															<Select.Item value="high" label="High" />
+														</Select.Content>
+													</Select.Root>
+													<input hidden bind:value={$formData.cleanupLevel} name={props.name} />
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
 									</div>
 
 									<div class="grid gap-2">
@@ -954,23 +1070,31 @@
 						</Card.Root>
 						<Card.Root>
 							<Card.Header>
-								<Card.Title>Category</Card.Title>
-								<Card.Description>Select the closest match</Card.Description>
+								<Card.Title>Categories</Card.Title>
+								<Card.Description>Select the closest matches</Card.Description>
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
 									<div class="grid gap-3">
-										<Form.Field {form} name="timeOfDay">
+										<Form.Field {form} name="timesofday_ids">
 											<Form.Control>
 												{#snippet children({ props })}
 													<Form.Label>Time of day</Form.Label>
 													<Select.Root
-														type="single"
-														bind:value={$formData.timeOfDay}
+														type="multiple"
+														bind:value={$formData.timesofday_ids}
 														name={props.name}
 													>
 														<Select.Trigger {...props}>
-															{recipeTimesOfDay[$formData.timeOfDay as RecipeTimeOfDayKey]}
+															{#if $formData.timesofday_ids.length == 0}
+																<span class="text-muted-foreground">Select...</span>
+															{:else if $formData.timesofday_ids.length == 1}
+																{recipeTimesOfDay[
+																	$formData.timesofday_ids[0] as RecipeTimeOfDayKey
+																]}
+															{:else}
+																{$formData.timesofday_ids.length} selected
+															{/if}
 														</Select.Trigger>
 														<Select.Content>
 															{#each Object.entries(recipeTimesOfDay) as [key, label]}
@@ -978,7 +1102,7 @@
 															{/each}
 														</Select.Content>
 													</Select.Root>
-													<input hidden bind:value={$formData.timeOfDay} name={props.name} />
+													<input hidden bind:value={$formData.timesofday_ids} name={props.name} />
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
@@ -986,25 +1110,31 @@
 									</div>
 
 									<div class="grid gap-3">
-										<Form.Field {form} name="foodType">
+										<Form.Field {form} name="course_ids">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Food type</Form.Label>
+													<Form.Label>Courses</Form.Label>
 													<Select.Root
-														type="single"
-														bind:value={$formData.foodType}
+														type="multiple"
+														bind:value={$formData.course_ids}
 														name={props.name}
 													>
 														<Select.Trigger {...props}>
-															{recipeFoodTypes[$formData.foodType as RecipeFoodTypeKey]}
+															{#if $formData.course_ids.length == 0}
+																<span class="text-muted-foreground">Select...</span>
+															{:else if $formData.course_ids.length == 1}
+																{recipeCourses[$formData.course_ids[0] as RecipeCourseKey]}
+															{:else}
+																{$formData.course_ids.length} selected
+															{/if}
 														</Select.Trigger>
 														<Select.Content>
-															{#each Object.entries(recipeFoodTypes) as [key, label]}
+															{#each Object.entries(recipeCourses) as [key, label]}
 																<Select.Item value={key} {label} />
 															{/each}
 														</Select.Content>
 													</Select.Root>
-													<input hidden bind:value={$formData.foodType} name={props.name} />
+													<input hidden bind:value={$formData.course_ids} name={props.name} />
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
@@ -1012,17 +1142,23 @@
 									</div>
 
 									<div class="grid gap-3">
-										<Form.Field {form} name="cuisine">
+										<Form.Field {form} name="cuisine_ids">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Cuisine</Form.Label>
+													<Form.Label>Cuisines</Form.Label>
 													<Select.Root
-														type="single"
-														bind:value={$formData.cuisine}
+														type="multiple"
+														bind:value={$formData.cuisine_ids}
 														name={props.name}
 													>
 														<Select.Trigger {...props}>
-															{recipeCuisines[$formData.cuisine as RecipeCuisineKey]}
+															{#if $formData.cuisine_ids.length == 0}
+																<span class="text-muted-foreground">Select...</span>
+															{:else if $formData.cuisine_ids.length == 1}
+																{recipeCuisines[$formData.cuisine_ids[0] as RecipeCuisineKey]}
+															{:else}
+																{$formData.cuisine_ids.length} selected
+															{/if}
 														</Select.Trigger>
 														<Select.Content>
 															{#each Object.entries(recipeCuisines) as [key, label]}
@@ -1030,7 +1166,7 @@
 															{/each}
 														</Select.Content>
 													</Select.Root>
-													<input hidden bind:value={$formData.cuisine} name={props.name} />
+													<input hidden bind:value={$formData.cuisine_ids} name={props.name} />
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors />
@@ -1065,7 +1201,7 @@
 
 						<div class="flex-1 gap-2 text-center text-xs text-muted-foreground">
 							<p>Recipe id: {pageRecipeId}</p>
-							<p>Status: {recipeDocState.data?.status}</p>
+							<!-- <p>Status: {recipeDocState.data?.status}</p> -->
 						</div>
 					</div>
 				</div>
@@ -1107,7 +1243,7 @@
 			<AlertDialog.Action
 				class={dismissDialogMode == 'delete' ? 'bg-destructive' : ''}
 				onclick={() => {
-					if (dismissDialogMode == 'delete') deleteRecipe(recipeDocState);
+					// TODO if (dismissDialogMode == 'delete') deleteRecipe(recipeDocState);
 					goto('/recipes');
 				}}
 			>

@@ -1,54 +1,104 @@
 <script lang="ts">
-	import {
-		deleteRecipeImage,
-		uploadRecipeImage
-	} from '$lib/features/recipes/actions/upload-recipe-image';
-	import type { DBRecipeDoc, RecipeDoc } from '$lib/features/recipes/db/recipe-doc';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Input } from '$lib/shared/components/ui/input';
-	import type { DocState } from '$lib/shared/db/doc-state.svelte';
+	import { supabase } from '$lib/shared/db/supabase-client';
 	import { cn } from '$lib/utils';
 	import { Camera, Loader2, Upload, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
-		recipeDocState: DocState<RecipeDoc, DBRecipeDoc>;
+		recipeId: string | null;
+		currentImageIds: string[];
 		size?: 'big' | 'small';
 		position?: number;
+		onImagesChanged?: (imageIds: string[]) => void;
 	};
 
-	let { recipeDocState, position = 0, size = 'big' }: Props = $props();
+	let { recipeId, currentImageIds, position = 0, size = 'big', onImagesChanged }: Props = $props();
 
-	let url: string | null = $derived.by(() => {
-		if (!recipeDocState?.data?.imageUrls) return null;
-		return recipeDocState.data.imageUrls[position];
+	let imgId: string | null = $derived.by(() => {
+		if (!currentImageIds) return null;
+		return currentImageIds[position];
 	});
 	let loading = $state(false);
 
 	async function uploadImage(file: File) {
-		if (!recipeDocState.id || !recipeDocState.data) return;
+		if (!recipeId) return;
 
 		loading = true;
-		await uploadRecipeImage(recipeDocState.id, recipeDocState.data, file);
 
-		// wait 1sec to show the loading spinner for better UX
-		await new Promise((resolve) =>
-			setTimeout(() => {
-				loading = false;
-				resolve(null);
-			}, 1000)
-		);
+		// Get the file extension
+		const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+		const uuid = crypto.randomUUID();
+		const imageId = `${uuid}.${ext}`;
+
+		// Upload the image to Supabase storage
+		const { data, error } = await supabase.storage
+			.from('recipes')
+			.upload(`images/${recipeId}/${imageId}`, file, {
+				contentType: file.type,
+				upsert: true
+			});
+
+		if (error) {
+			console.error('Error uploading image:', error);
+			toast.error('Failed to upload image.');
+		} else {
+			toast.success('Image uploaded successfully.');
+		}
+
+		// Update the recipe row in supabase with the new image ID
+		const { error: updateError } = await supabase
+			.from('recipes')
+			.update({ image_ids: [...(currentImageIds || []), imageId] })
+			.eq('id', recipeId);
+
+		if (updateError) {
+			console.error('Error updating recipe with new image ID:', updateError);
+			toast.error('Failed to update recipe with new image ID.');
+		} else {
+			toast.success('Recipe updated with new image ID.');
+		}
+
+		// Call the callback if provided
+		onImagesChanged?.([...currentImageIds, imageId]);
+		loading = false;
 	}
 
 	async function deleteImage() {
+		if (!recipeId || !imgId) return;
+
 		loading = true;
-		await deleteRecipeImage(recipeDocState, position);
+		// Delete the image from Supabase storage
+		await supabase.storage.from('recipes').remove([`images/${recipeId}/${imgId}`]);
+
+		// Remove the image ID from the recipe's image_ids array
+		const updatedImageIds = currentImageIds.filter((id) => id !== imgId);
+		const { error } = await supabase
+			.from('recipes')
+			.update({ image_ids: updatedImageIds })
+			.eq('id', recipeId);
+
+		if (error) {
+			console.error('Error updating recipe after image deletion:', error);
+			toast.error('Failed to update recipe after image deletion.');
+		} else {
+			toast.success('Image deleted successfully.');
+		}
+
+		// Call the callback if provided
+		onImagesChanged?.(updatedImageIds);
 		loading = false;
 	}
 </script>
 
-{#if url}
+{#if imgId}
 	<div class="relative w-full aspect-[1.618] group">
-		<img src={url} alt="Recipe" class="aspect-[1.618] w-full rounded-md object-cover" />
+		<img
+			src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipeId}/${imgId}`}
+			alt="Recipe"
+			class="aspect-[1.618] w-full rounded-md object-cover"
+		/>
 		<button
 			class="absolute -top-2 -right-2 bg-black rounded-full p-1 hidden group-hover:block"
 			onclick={deleteImage}

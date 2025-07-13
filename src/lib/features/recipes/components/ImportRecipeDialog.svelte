@@ -7,7 +7,6 @@
 	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 	import type { Snippet } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { createDraftRecipe } from '../actions/create-draft-recipe';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 
 	type Props = {
@@ -63,8 +62,8 @@
 		<DropdownMenu.Content class="w-[200px]" align={dropdownAlign}>
 			<DropdownMenu.Item
 				onclick={async () => {
-					const recipeId = await createDraftRecipe(userDocState)
-					goto(`/recipes/${recipeId}/edit`);
+					// const recipeId = await createDraftRecipe(userDocState)
+					goto(`/recipes/new/edit`);
 				}}
 			>
 				<Pencil class="mr-2 h-4 w-4" />

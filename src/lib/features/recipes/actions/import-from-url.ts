@@ -2,7 +2,6 @@ import { firestore } from '$lib/shared/db/firebase-client';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import type { RecipeDoc, RecipeIngredient } from '../db/recipe-doc';
 import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-import { createDraftRecipe } from './create-draft-recipe';
 import { uploadRecipeImage } from './upload-recipe-image';
 import { capitalize } from '$lib/utils';
 
