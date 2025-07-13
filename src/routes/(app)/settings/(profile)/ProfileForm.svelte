@@ -6,10 +6,11 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { Check, Loader2, X } from 'lucide-svelte';
 	import { profileFormSchema, type ProfileFormSchema } from '$lib/features/auth/models/schemas';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { updateUserProfile } from '$lib/features/user-settings/actions/update-user-profile';
 	import ImagePicker from './AvatarForm.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { updateUserPreferences } from '$lib/features/user-settings/actions/update-user-preferences';
 
 	// Show a status icon to the user in real-time
 	enum UpdateStatus {
@@ -31,14 +32,18 @@
 	});
 	const { form: formData, enhance, allErrors } = form;
 
-	const userDocState = getUserDocState();
-
 	async function onSubmit(data: Infer<ProfileFormSchema>) {
+		if (!userState.user?.id) {
+			console.error('User is not logged in, cannot update profile.');
+			return;
+		}
+
 		updateStatus = UpdateStatus.LOADING;
 
 		try {
 			// Write the new user data to the database
-			await updateUserProfile(userDocState, data);
+			await updateUserProfile(userState.user.id, data);
+			await updateUserPreferences(userState.user.id, data);
 
 			// Notify success to the user
 			updateStatus = UpdateStatus.SUCCESS;
@@ -60,19 +65,19 @@
 		setTimeout(() => (updateStatus = UpdateStatus.STANDBY), 3000);
 	}
 
-	// This effect runs when the userDocState changes to fill the form fields
+	// This effect runs when the userState changes to fill the form fields
 	$effect(() => {
-		$formData.firstName = userDocState.doc?.firstName || '';
-		$formData.lastName = userDocState.doc?.lastName || '';
-		$formData.userName = userDocState.doc?.userName || '';
+		$formData.firstName = userState.preferences?.first_name || '';
+		$formData.lastName = userState.preferences?.last_name || '';
+		$formData.userName = userState.profile?.user_name || '';
 	});
 
 	// Disable submit button if the values are identical to the placeholders
 	const buttonDisabled = $derived(
 		$allErrors.length > 0 ||
-			($formData.firstName == userDocState.doc?.firstName &&
-				$formData.lastName == userDocState.doc?.lastName &&
-				$formData.userName == userDocState.doc?.userName)
+			($formData.firstName == userState.preferences?.first_name &&
+				$formData.lastName == userState.preferences?.last_name &&
+				$formData.userName == userState.profile?.user_name)
 	);
 </script>
 

@@ -4,7 +4,7 @@ import { toast } from 'svelte-sonner';
 import type { Infer } from 'sveltekit-superforms';
 
 // Triggered when a valid profile form is submitted, updates supabase
-export async function updateUserProfile(userId: string, newProfile: Infer<ProfileFormSchema>) {
+export async function updateUserPreferences(userId: string, newProfile: Infer<ProfileFormSchema>) {
 	// Validation
 	if (!supabase || !userId) return;
 
@@ -14,9 +14,10 @@ export async function updateUserProfile(userId: string, newProfile: Infer<Profil
 
 	// Update the user profile info in supabase (ignore empty fields)
 	const { error } = await supabase
-		.from('user_public_profiles')
+		.from('user_preferences')
 		.update({
-			user_name: newProfile.userName
+			first_name: newProfile.firstName,
+			last_name: newProfile.lastName
 		})
 		.eq('user_id', userId);
 

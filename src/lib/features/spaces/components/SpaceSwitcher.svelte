@@ -8,15 +8,14 @@
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import CreateSpaceForm from '$lib/features/spaces/components/CreateSpaceForm.svelte';
-	import { spaceIcons, themeButtonClasses } from '../consts';
+	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-
-	const { ...others } = $props();
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	const activeSpace = getActiveSpaceState();
 	const ActiveTeamIcon = $derived(
-		activeSpace.userHeader ? spaceIcons[activeSpace.userHeader.icon] : Loader2
+		spaceIcons[activeSpace.activeSpace?.icon as SpaceIconKey] || Loader2
 	);
 
 	let openDialog = $state(false);
@@ -61,7 +60,8 @@
 					<div
 						class={cn(
 							'bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg transition-colors',
-							activeSpace.userHeader && themeButtonClasses[activeSpace.userHeader.theme]
+							activeSpace.activeMember &&
+								themeButtonClasses[activeSpace.activeMember.theme as SpaceThemeKey]
 						)}
 					>
 						<ActiveTeamIcon class={cn('size-4', !activeSpace.id && 'animate-spin')}
@@ -69,11 +69,11 @@
 					</div>
 					<div class="grid flex-1 text-left text-sm leading-tight">
 						<span class="truncate font-semibold">
-							{activeSpace.doc?.name || 'Loading...'}
+							{activeSpace.activeSpace?.name || 'Loading...'}
 						</span>
 						<span class="truncate text-xs">
-							{Object.keys(activeSpace.doc?.memberProfiles || {}).length} member{Object.keys(
-								activeSpace.doc?.memberProfiles || {}
+							{Object.keys(activeSpace.activeSpace?.members || {}).length} member{Object.keys(
+								activeSpace.activeSpace?.members || {}
 							).length > 1
 								? 's'
 								: ''}
@@ -98,19 +98,21 @@
 			</DropdownMenu.Label>
 
 			<!-- Display the spaces alphabetically -->
-			{#each Object.entries(activeSpace.userHeaders).sort( (a, b) => a[1].name.localeCompare(b[1].name) ) as [spaceId, header], index (header.name)}
-				{@const TeamIcon = spaceIcons[header.icon]}
+			{#each (activeSpace.userSpaces || []).sort( (a, b) => a.name.localeCompare(b.name) ) as space, index (space.name)}
+				{@const TeamIcon = spaceIcons[space.icon as SpaceIconKey]}
+				{@const userTheme =
+					space.members?.find((m) => m.user_id === userState.user?.id)?.theme || 'default'}
 
-				<DropdownMenu.Item onclick={() => (activeSpace.id = spaceId)} class="gap-2 p-2 group">
+				<DropdownMenu.Item onclick={() => (activeSpace.id = space.id)} class="gap-2 p-2 group">
 					<div
 						class={cn(
 							'flex size-6 items-center justify-center rounded-sm',
-							themeButtonClasses[header.theme]
+							themeButtonClasses[userTheme as SpaceThemeKey] || 'bg-background'
 						)}
 					>
 						<TeamIcon class="size-4 shrink-0"></TeamIcon>
 					</div>
-					{header.name}
+					{space.name}
 					<DropdownMenu.Shortcut class="group-hover:block hidden">
 						<Button size="icon" class="size-6" variant="ghost">
 							<Share2 class="size-4" />

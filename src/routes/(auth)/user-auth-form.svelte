@@ -15,22 +15,21 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
-	import { auth, firestore } from '$lib/shared/db/firebase-client';
 	import { AuthMethod } from '$lib/features/auth/models/auth-method';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
 	import { signupOrLogin } from '$lib/features/auth/actions/signup-or-login';
-	import { convertAnonToUser } from '$lib/features/auth/actions/convert-anon-to-user';
 	import { resetPassword } from '$lib/features/auth/actions/reset-password';
 	import { toast } from 'svelte-sonner';
+	import { supabase } from '$lib/shared/db/supabase-client';
 
 	// Component props
 	interface Props {
 		logMethod: LogMethod;
 		class?: string | undefined | null;
-		[key: string]: any;
+		[key: string]: any; // Other props
 	}
 
-	let { logMethod, class: className = undefined, ...rest }: Props = $props();
+	let { logMethod, class: className = undefined, ...restProps }: Props = $props();
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(authSchema)), {
@@ -58,7 +57,7 @@
 	 * @param authMethod The authentication method selected by the user (email/password, google, etc)
 	 */
 	async function onSubmit(authMethod: AuthMethod) {
-		if (!auth || !firestore) {
+		if (!supabase.auth) {
 			console.error('Error: Auth not found.');
 			return;
 		}
@@ -76,7 +75,7 @@
 				);
 				linkEmailSent = emailSent;
 			} else if (logMethod == LogMethod.CONVERT_ANONYMOUS) {
-				convertAnonToUser(logMethod, authMethod, $formData.email, $formData.password);
+				// TODO convertAnonToUser(logMethod, authMethod, $formData.email, $formData.password);
 			} else {
 				throw new Error('Invalid log method');
 			}
@@ -107,7 +106,7 @@
 	}
 </script>
 
-<div class={cn('grid gap-4', className)} {...rest}>
+<div class={cn('grid gap-4', className)} {...restProps}>
 	<div class="grid grid-cols-2 gap-6">
 		<Button
 			variant="outline"

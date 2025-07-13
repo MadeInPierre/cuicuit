@@ -7,7 +7,6 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { importFromUrl } from '../actions/import-from-url';
 	import { goto } from '$app/navigation';
 
@@ -17,8 +16,6 @@
 	};
 
 	let { openDialog = $bindable(), recipeId = $bindable(undefined) }: Props = $props();
-
-	const userDocState = getUserDocState();
 
 	const form = superForm(defaults(zod(importRecipeUrlSchema)), {
 		SPA: true,
@@ -36,17 +33,17 @@
 	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
 		loading = true;
 		try {
-			const result = await importFromUrl(data.url, userDocState, recipeId); // TODO migrate to Supabase
-
-			if (result.isComplete) {
-				toast.success('Recipe imported successfully!');
-				openDialog = false;
-				goto(`/recipes/${result.id}`);
-			} else {
-				toast.warning('Some fields are missing, please complete the recipe.');
-				openDialog = false;
-				goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
-			}
+			// TODO
+			// const result = await importFromUrl(data.url, userDocState, recipeId); // TODO migrate to Supabase
+			// if (result.isComplete) {
+			// 	toast.success('Recipe imported successfully!');
+			// 	openDialog = false;
+			// 	goto(`/recipes/${result.id}`);
+			// } else {
+			// 	toast.warning('Some fields are missing, please complete the recipe.');
+			// 	openDialog = false;
+			// 	goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
+			// }
 		} catch (error) {
 			toast.error('Failed to import recipe. Please try again.');
 		}

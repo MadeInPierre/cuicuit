@@ -10,6 +10,7 @@ import { HfInference } from '@huggingface/inference';
 import { cosineSimilarity } from '$lib/utils';
 import { json } from '@sveltejs/kit';
 
+// TODO
 const densitiesUrl =
 	'https://firebasestorage.googleapis.com/v0/b/madeinpierre-cuicuit.appspot.com/o/ingredient-densities.json?alt=media&token=18e98f26-0b68-4c79-8323-ed4e796a9ddd';
 

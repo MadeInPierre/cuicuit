@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 	import ShareSpaceForm from './ShareSpaceForm.svelte';
@@ -21,11 +20,11 @@
 
 	<Dialog.Content class="sm:max-w-[425px]">
 		<Dialog.Header>
-			<Dialog.Title>Share {activeSpace.userHeader?.name}</Dialog.Title>
+			<Dialog.Title>Share {activeSpace.activeSpace?.name || 'this space'}</Dialog.Title>
 			<Dialog.Description>Invite your friends to manage your kitchen together!</Dialog.Description>
 		</Dialog.Header>
 
-		<ShareSpaceForm></ShareSpaceForm>
+		<ShareSpaceForm />
 
 		<!-- <Dialog.Footer>
 			<Button variant="outline" on:click={() => (open = false)}>Close</Button>

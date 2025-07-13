@@ -10,6 +10,7 @@
 	import { slide } from 'svelte/transition';
 	import { cn } from '$lib/utils';
 	import { matchIngredients } from '$lib/features/recipes/actions/match-ingredients';
+	import { error } from '@sveltejs/kit';
 
 	const {
 		language,
@@ -49,9 +50,10 @@
 			}
 			isLoading = true;
 			try {
-				const { data, error } = await matchIngredients(searchInput, language);
-				if (error) throw error;
-				matches = data?.matches?.[0]?.bestMatches || [];
+				// Call the matchIngredients function to get ingredient matches
+				const response = await matchIngredients(searchInput, language);
+				if (!response || response.error || !response.data) throw error;
+				matches = response.data?.matches?.[0]?.bestMatches || [];
 			} catch (e) {
 				matches = [];
 			} finally {

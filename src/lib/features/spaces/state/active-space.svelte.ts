@@ -1,15 +1,56 @@
-import { DocState } from '$lib/shared/db/doc-state.svelte';
 import { getContext, setContext } from 'svelte';
-import { spaceDocConverter, type DBSpaceDoc, type SpaceDoc } from '../db/space-doc';
-import { firestore } from '$lib/shared/db/firebase-client';
-import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-import type { SpaceUserHeader } from '$lib/features/auth/db/user-doc';
 import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+import type { Tables } from '$lib/shared/db/supabase.types';
+import { supabase } from '$lib/shared/db/supabase-client';
+import type { UserState } from '$lib/features/auth/state/user-state.svelte';
 
 const activeSpaceIdState = createPersistentState('active-space-id', undefined);
 
+async function fetchUserSpacesWithMembers(userId: string) {
+	let { data: userSpaces, error } = await supabase
+		.from('space_members')
+		.select(
+			`
+			...space_id(
+				*, 
+				members:space_members(*)
+			)`
+		)
+		.eq('user_id', userId);
+
+	if (error) throw error;
+	if (!userSpaces) return [];
+
+	console.log('Fetched user spaces with members:', userSpaces);
+	return userSpaces;
+}
+
+export type ActiveSpaceWithMembers =
+	ReturnType<typeof fetchUserSpacesWithMembers> extends Promise<infer T>
+		? T extends Array<infer U>
+			? U
+			: never
+		: never;
+
+// Fetch the profile and preferences for each member in all spaces
+async function fetchFriendsProfiles(spaces: ActiveSpaceWithMembers[]) {
+	const memberIds = spaces.flatMap((space) => space.members.map((m) => m.user_id));
+	const { data: memberProfiles, error: profilesError } = await supabase
+		.from('user_public_profiles')
+		.select('*')
+		.in('user_id', memberIds); // Duplicates are fine
+
+	if (profilesError) {
+		console.error('Error fetching member profiles:', profilesError);
+		throw profilesError;
+	}
+
+	return memberProfiles;
+}
+
 class ActiveSpaceState {
-	private _userDocState: UserDocState | undefined = undefined;
+	private _userState: UserState | undefined = undefined;
+	private _userId: string | undefined = $derived(this._userState?.user?.id);
 
 	/** Repeat the activeSpaceIdState.id here for easier access */
 	private _id: string | undefined | null = $derived(activeSpaceIdState.value);
@@ -20,65 +61,48 @@ class ActiveSpaceState {
 		activeSpaceIdState.set(newId);
 	}
 
-	/** All the space headers stored in the UserDoc */
-	userHeaders: Record<string, SpaceUserHeader> = $derived(this._userDocState?.doc?.spaces || {});
+	/** The user's spaces, fetched from the database */
+	userSpaces: ActiveSpaceWithMembers[] | undefined | null = $state(undefined);
 
-	/** Data about the active space stored in the UserDoc */
-	userHeader: SpaceUserHeader | undefined | null = $derived(
-		this.id ? this.userHeaders[this.id] : undefined
+	/** The profiles of all friends in the user's spaces */
+	friendProfiles: Tables<'user_public_profiles'>[] | undefined | null = $state(undefined);
+
+	/** The active space, derived from userSpaces based on the current id (convenient shortcut) */
+	activeSpace: ActiveSpaceWithMembers | undefined | null = $derived(
+		this.userSpaces?.find((space) => space.id === this.id) || null
 	);
 
-	/** TODO The full DocState instance if needed to access all document methods */
-	docState: DocState<SpaceDoc, DBSpaceDoc> | undefined = $state(undefined);
-	doc: SpaceDoc | undefined | null = $derived(this.docState?.data);
+	/** The active space's members, derived from the activeSpace (convenient shortcut) */
+	activeMember: Tables<'space_members'> | undefined | null = $derived(
+		this.activeSpace?.members?.find((member) => member.user_id === this._userId) || null
+	);
 
-	constructor(userDocState: UserDocState) {
-		this._userDocState = userDocState;
+	constructor(userState: UserState) {
+		this._userState = userState;
 
 		// If the user has spaces but none active, set the first one as active
 		$effect(() => {
-			if (
-				userDocState.docState?.data &&
-				Object.keys(userDocState.docState.data.spaces).length > 0 &&
-				!this._id
-			) {
-				this.id = Object.keys(userDocState.docState.data.spaces)[0];
+			if (this._userId && this.userSpaces && this.userSpaces.length > 0 && !this.id) {
+				this.id = this.userSpaces[0].id;
 			}
 		});
 
-		// Fetch the space document whenever the active space id changes
+		// Fetch the user's spaces rows and members when the user state changes
 		$effect(() => {
-			if (this.id) {
-				// Subscribe to the space document. DocState will stop listening when its instance is destroyed
-				this.docState = new DocState<SpaceDoc, DBSpaceDoc>(
-					firestore,
-					`spaces/${this.id}`,
-					spaceDocConverter
-				);
+			if (this._userId) {
+				// Fetch spaces where user is a member, including members of each space
+				fetchUserSpacesWithMembers(this._userId)
+					.then((spaces) => {
+						this.userSpaces = spaces;
+
+						// Continue to fetch profiles for all members in the spaces
+						return fetchFriendsProfiles(spaces);
+					})
+					.then((profiles) => {
+						this.friendProfiles = profiles;
+					});
 			} else {
-				this.docState = undefined;
-			}
-		});
-
-		// Update the userDoc headers whenever the space's name/icon changes (e.g. edited by another member)
-		$effect(() => {
-			if (
-				this.docState &&
-				this.docState.data &&
-				this.userHeader &&
-				(this.docState.data.name !== this.userHeader.name ||
-					this.docState.data.icon !== this.userHeader.icon)
-			) {
-				console.log(
-					'Switched active space with new name/icon, updating userDoc:',
-					this._id,
-					this.docState?.data
-				);
-
-				this._userDocState?.docState?.updateDoc({
-					[`spaces.${this._id}.name`]: this.docState.data.name,
-					[`spaces.${this._id}.icon`]: this.docState.data.icon
-				});
+				this.userSpaces = null;
 			}
 		});
 	}
@@ -88,10 +112,10 @@ class ActiveSpaceState {
 // Must use the create/getActiveSpaceState() functions in components
 export type { ActiveSpaceState };
 
-const KEY = Symbol('USER_DOC_STATE');
+const KEY = Symbol('ACTIVE_SPACE_STATE');
 
-export function createActiveSpaceState(userDocState: UserDocState): ActiveSpaceState {
-	return setContext(KEY, new ActiveSpaceState(userDocState));
+export function createActiveSpaceState(userState: UserState): ActiveSpaceState {
+	return setContext(KEY, new ActiveSpaceState(userState));
 }
 
 export function getActiveSpaceState(): ActiveSpaceState {

@@ -10,7 +10,7 @@
 	import { ChefHat, Megaphone, Notebook, Refrigerator, Send, ShoppingCart } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import NavUser from './nav-user.svelte';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	// This is sample data.
 	const data = $derived({
@@ -231,8 +231,6 @@
 	});
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
-
-	let user = getUserDocState();
 </script>
 
 <Sidebar.Root class="border-r-0" bind:ref {...restProps}>
@@ -249,9 +247,11 @@
 	<Sidebar.Header class="border-sidebar-border border-b">
 		<NavUser
 			user={{
-				name: user.doc?.firstName + ' ' + user.doc?.lastName || 'Loading...',
-				email: '@' + user.doc?.userName || 'Loading...',
-				avatar: user.doc?.avatar.url || ''
+				name:
+					userState.preferences?.first_name + ' ' + userState.preferences?.last_name ||
+					'Loading...',
+				email: '@' + userState.profile?.user_name || 'Loading...',
+				avatar: userState.profile?.image_url || ''
 			}}
 		/>
 	</Sidebar.Header>

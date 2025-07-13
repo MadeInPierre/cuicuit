@@ -1,24 +1,26 @@
 <script lang="ts">
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
-	import { themeButtonClasses } from '../consts';
+	import { themeButtonClasses, type SpaceThemeKey } from '../consts';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 
 	interface Props {
 		children?: any;
 		class?: string;
-		onclick?: () => void;
 		[key: string]: any;
 	}
 
-	const { children, class: className = '', onclick = () => {}, ...others }: Props = $props();
+	const { children, class: className = '', ...others }: Props = $props();
 
 	const activeSpace = getActiveSpaceState();
+
 	const themeClasses = $derived(
-		activeSpace.userHeader ? themeButtonClasses[activeSpace.userHeader.theme] : ''
+		activeSpace.activeMember
+			? themeButtonClasses[activeSpace.activeMember.theme as SpaceThemeKey]
+			: ''
 	);
 </script>
 
-<Button {...others} class={cn(themeClasses, "dark:text-white", className)} onclick={() => onclick()}>
+<Button {...others} class={cn(themeClasses, 'dark:text-white', className)}>
 	{@render children?.()}
 </Button>

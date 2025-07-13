@@ -1,39 +1,42 @@
-import type { DBUserDoc } from '$lib/features/auth/db/user-doc';
-import { firestore } from '$lib/shared/db/firebase-client';
-import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+import { supabase } from '$lib/shared/db/supabase-client';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
-import type { ActiveSpaceState } from '../state/active-space.svelte';
-
-// Note: Since it's hard to have permissions to update each member's userDocs to
-// update their headers, we can just update the spaceDoc fields and let
-// the userDoc headers be updated when each user opens the space. This is handled
-// in the ActiveSpaceState store, which listens to the spaceDoc changes and updates
-// the userDoc headers whenever there is a difference.
 
 export async function editSpace(
-	userDocState: UserDocState,
-	activeSpace: ActiveSpaceState,
+	userId: string,
+	spaceId: string,
 	name: string,
 	theme: SpaceThemeKey,
 	icon: SpaceIconKey
 ) {
-	if (!firestore) throw new Error('Error: Firestore or user not available');
-	if (!activeSpace.doc) throw new Error('Error: ActiveSpaceState not available');
-	if (!userDocState.user) throw new Error('Error: User not available');
-	if (!userDocState.docState || !userDocState.doc)
-		throw new Error('Error: UserDocState not available');
+	if (!supabase) throw new Error('Supabase client not available');
+	if (!userId) throw new Error('User ID not provided');
+	if (!spaceId) throw new Error('Space ID not provided');
+	if (!name || !theme || !icon) throw new Error('Missing required parameters');
 
 	// Forbid to user a name already in use by another space owned by the user
-	const hasSpaceWithSameName = Object.entries(userDocState.doc.spaces).some(
-		([id, header]) => header.name === name && id !== activeSpace.id
+	const { data: userSpaces, error: fetchError } = await supabase
+		.from('spaces')
+		.select('id, name')
+		.eq('author_id', userId);
+	if (fetchError) throw fetchError;
+
+	const hasSpaceWithSameName = userSpaces.some(
+		(space) => space.name === name && space.id !== spaceId
 	);
 	if (hasSpaceWithSameName) throw new Error('space-already-exists');
 
-	// Update the name & icon in the spaceDoc data in Firestore
-	activeSpace.docState?.updateDoc({ name, icon });
+	// Update the space's name & icon in the spaces table
+	const { error: updateError } = await supabase
+		.from('spaces')
+		.update({ name, icon })
+		.eq('id', spaceId);
+	if (updateError) throw updateError;
 
-	// Update the theme in the userDoc's space header
-	userDocState.docState.updateDoc({
-		[`spaces.${activeSpace.id}.theme`]: theme
-	});
+	// Update the user's theme in the space_members table
+	const { error: memberError } = await supabase
+		.from('space_members')
+		.update({ theme })
+		.eq('space_id', spaceId)
+		.eq('user_id', userId);
+	if (memberError) throw memberError;
 }

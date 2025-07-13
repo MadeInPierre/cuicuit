@@ -7,22 +7,20 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { createSpaceFormSchema } from '../models/schemas';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import { cn } from '$lib/utils';
 	import { editSpace } from '../actions/edit-space';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
-	const userDocState = getUserDocState();
 	const activeSpace = getActiveSpaceState();
 
 	// Refine the form schema to make sure the name is not already taken by other spaces,
 	// except if it's the same as the current space (doesn't count when editing the current space)
 	const schema = createSpaceFormSchema.refine(
 		(v) =>
-			!Object.values(activeSpace.userHeaders).some(
-				(h) => h.name === v.name && v.name !== activeSpace.userHeader?.name
-			),
+			activeSpace.userSpaces &&
+			!activeSpace.userSpaces.some((space) => space.name === v.name && space.id !== activeSpace.id),
 		{
 			path: ['name'],
 			message:
@@ -46,10 +44,10 @@
 
 	// Set the form data to the current space data
 	$effect(() => {
-		if (!activeSpace.userHeader) return;
-		$formData.name = activeSpace.userHeader.name;
-		$formData.theme = activeSpace.userHeader.theme;
-		$formData.iconSlug = activeSpace.userHeader.icon;
+		if (!activeSpace.activeSpace || !activeSpace.activeMember) return;
+		$formData.name = activeSpace.activeSpace.name;
+		$formData.iconSlug = activeSpace.activeSpace.icon;
+		$formData.theme = activeSpace.activeMember.theme;
 	});
 
 	// Disable the submit button if the form is loading or the data is the same as the current space
@@ -57,16 +55,28 @@
 		loading ||
 			$allErrors.length > 0 ||
 			!$formData.name ||
-			($formData.name === activeSpace.userHeader?.name &&
-				$formData.theme === activeSpace.userHeader?.theme &&
-				$formData.iconSlug === activeSpace.userHeader?.icon)
+			!activeSpace.activeSpace ||
+			!activeSpace.activeMember ||
+			($formData.name === activeSpace.activeSpace.name &&
+				$formData.iconSlug === activeSpace.activeSpace.icon &&
+				$formData.theme === activeSpace.activeMember.theme)
 	);
 
 	function onSubmit() {
+		if (!userState.user?.id) {
+			toast.error('You must be logged in to edit a space.');
+			return;
+		}
+		
+		if (!activeSpace.id) {
+			toast.error('You must select a space to edit.');
+			return;
+		}
+
 		loading = true;
 		editSpace(
-			userDocState,
-			activeSpace,
+			userState.user.id,
+			activeSpace.id,
 			$formData.name,
 			$formData.theme as SpaceThemeKey,
 			$formData.iconSlug as SpaceIconKey

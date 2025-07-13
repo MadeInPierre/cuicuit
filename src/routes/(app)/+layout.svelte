@@ -4,26 +4,27 @@
 	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { createUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
-	// Initialize the user doc state at the root app layout, will be used by all children
-	const userDocState = createUserDocState();
-	const activeSpaceState = createActiveSpaceState(userDocState);
+	// Initialize the active space state, this will create a persistent state
+	// that will be used to store the active space and its related data
+	createActiveSpaceState(userState);
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
 	$effect(() => {
 		// Only run this effect in the browser, not in the server
 		if (browser) {
-			if (userDocState.user === null) {
+			if (userState.user === null) {
 				console.warn('User is not logged in, redirect to signup');
 				goto('/signup');
-			} else if (userDocState.user && userDocState.doc) {
-				if (userDocState.doc.checklist.welcome === false) {
-					console.warn('User has not finished onboarding, redirect to welcome');
-					goto('/welcome');
-				}
+			}
+
+			// Forbid this zone if the user has not finished his onboarding
+			else if (userState.preferences?.onboarding_status !== 'finished') {
+				console.warn('User has not finished onboarding, redirect to welcome');
+				goto('/welcome');
 			}
 		}
 	});
@@ -35,7 +36,8 @@
 <Toaster />
 
 <!-- Hide the app if the user was not welcomed yet (prevents flickering between state changes) -->
-{#if userDocState.isLoading || (userDocState.doc && userDocState.doc.checklist.welcome === false) || userDocState.user === null}
+<!-- TODO userDocState.doc.checklist.welcome === false -->
+{#if !userState.isComplete}
 	<LoadingSplash />
 {:else}
 	<SidebarPage>

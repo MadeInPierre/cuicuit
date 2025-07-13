@@ -1,43 +1,30 @@
-import type { SpaceUserHeader } from '$lib/features/auth/db/user-doc';
-import { firestore } from '$lib/shared/db/firebase-client';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { spaceDocConverter } from '../db/space-doc';
-import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
+import { supabase } from '$lib/shared/db/supabase-client';
 import type { SpaceThemeKey } from '../consts';
-import type { UserProfile } from 'firebase/auth';
 
-export async function joinSpace(userDocState: UserDocState, id: string, theme: SpaceThemeKey) {
-	console.log('Joining space:', id, theme);
+export async function joinSpace(userId: string, spaceId: string, theme: SpaceThemeKey) {
+	if (!supabase) throw new Error('Supabase client not available');
+	if (!userId) throw new Error('User ID not provided');
+	if (!spaceId) throw new Error('Space ID not provided');
+	if (!theme) throw new Error('Theme not provided');
 
-	if (!firestore) throw new Error('Error: Firestore or user not available');
-	if (!userDocState.user) throw new Error('Error: User not available');
-	if (!userDocState.docState || !userDocState.doc)
-		throw new Error('Error: UserDocState not available');
+	console.log('Joining space:', spaceId, theme);
 
-	// Check if the space exists and get its document
-	const spaceDocRef = doc(firestore, `spaces/${id}`).withConverter(spaceDocConverter);
-	const spaceDoc = await getDoc(spaceDocRef);
-	if (!spaceDoc.exists()) throw new Error('space-not-found');
-	const data = spaceDoc.data();
+	// Check if the space exists and get its row
+	const { data, error: fetchError } = await supabase
+		.from('spaces')
+		.select('id, name, icon')
+		.eq('id', spaceId)
+		.single();
+	if (fetchError) throw fetchError;
+	if (!data) throw new Error('space-not-found');
 
-	// Add the space id and header to the userDoc's spaces
-	userDocState.docState.updateDoc({
-		[`spaces.${id}`]: {
-			name: data.name,
-			icon: data.icon,
+	// Add the space id and theme to the user's space_members
+	const { error: memberError } = await supabase.from('space_members').insert([
+		{
+			space_id: spaceId,
+			user_id: userId,
 			theme
-		} as SpaceUserHeader
-	});
-
-	// Add the user to the space's memberProfiles
-	await updateDoc(spaceDocRef, {
-		[`memberProfiles.${userDocState.user.uid}`]: {
-			firstName: userDocState.doc.firstName,
-			lastName: userDocState.doc.lastName,
-			userName: userDocState.doc.userName,
-			avatar: userDocState.doc.avatar
-		} as UserProfile,
-		// serverTimestamp() is a placeholder for the actual timestamp
-		updated_t: serverTimestamp()
-	});
+		}
+	]);
+	if (memberError) throw memberError;
 }

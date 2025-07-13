@@ -523,6 +523,71 @@ export type Database = {
           },
         ]
       }
+      space_members: {
+        Row: {
+          created_at: string
+          space_id: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          space_id: string
+          theme: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          space_id?: string
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_members_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spaces: {
+        Row: {
+          author_id: string
+          created_at: string
+          icon: string
+          id: string
+          initial_theme: string
+          locale: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          icon: string
+          id?: string
+          initial_theme: string
+          locale: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          initial_theme?: string
+          locale?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           id: number
@@ -559,6 +624,60 @@ export type Database = {
         }
         Update: {
           id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          first_name: string
+          last_name: string
+          onboarding_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          last_name: string
+          onboarding_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          last_name?: string
+          onboarding_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_public_profiles: {
+        Row: {
+          created_at: string
+          icon: string
+          image_url: string | null
+          updated_at: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          icon: string
+          image_url?: string | null
+          updated_at?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          image_url?: string | null
+          updated_at?: string
+          user_id?: string
+          user_name?: string
         }
         Relationships: []
       }

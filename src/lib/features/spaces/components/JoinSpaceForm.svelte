@@ -8,18 +8,14 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { joinSpaceFormSchema } from '../models/schemas';
-	import {
-		getUserDocState,
-		type UserDocState
-	} from '$lib/features/auth/state/user-doc-state.svelte';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import { cn } from '$lib/utils';
 	import { joinSpace } from '../actions/join-space';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	let { openDialog = $bindable() } = $props();
 
-	const userDocState = getUserDocState();
 	const activeSpace = getActiveSpaceState();
 
 	// Refine the form schema to validate the invite link, should contain a code of 20 alphanumeric characters,
@@ -55,6 +51,11 @@
 	// );
 
 	function onSubmit() {
+		if (!userState.user?.id) {
+			toast.error('You must be logged in to join a space.');
+			return;
+		}
+
 		// Extract the space ID from the invite link
 		const spaceId = $formData.url.match(/[a-zA-Z0-9]{20}$/)?.[0];
 
@@ -65,7 +66,7 @@
 		}
 
 		loading = true;
-		joinSpace(userDocState, spaceId, $formData.theme as SpaceThemeKey)
+		joinSpace(userState.user.id, spaceId, $formData.theme as SpaceThemeKey)
 			.then(() => {
 				activeSpace.id = spaceId; // Change the active space to the newly joined one
 				openDialog = false;
