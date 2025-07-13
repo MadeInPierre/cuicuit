@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { parseIngredientSearchInput, type ParsedSearchInput } from './parse-ingredient-input';
+	import { parseIngredientSearchInput, type ParsedSearchInput } from './_parse-ingredient-input';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import type { Tables } from '$lib/shared/db/supabase.types';
@@ -9,6 +9,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { slide } from 'svelte/transition';
 	import { cn } from '$lib/utils';
+	import { matchIngredients } from '$lib/features/recipes/actions/match-ingredients';
 
 	const {
 		language,
@@ -48,15 +49,8 @@
 			}
 			isLoading = true;
 			try {
-				// Use the same logic as /match/+page.svelte: call supabase edge function
-				const { data, error } = await supabase.functions.invoke('match-ingredients', {
-					body: {
-						ingredients: [searchInput],
-						lang: language
-					}
-				});
+				const { data, error } = await matchIngredients(searchInput, language);
 				if (error) throw error;
-
 				matches = data?.matches?.[0]?.bestMatches || [];
 			} catch (e) {
 				matches = [];

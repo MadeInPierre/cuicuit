@@ -6,11 +6,10 @@
 	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
-	import { imortRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
+	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
 	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import { importFromUrl } from '../actions/import-from-url';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
 
 	type Props = {
 		openDialog?: boolean;
@@ -21,9 +20,9 @@
 
 	const userDocState = getUserDocState();
 
-	const form = superForm(defaults(zod(imortRecipeUrlSchema)), {
+	const form = superForm(defaults(zod(importRecipeUrlSchema)), {
 		SPA: true,
-		validators: zod(imortRecipeUrlSchema),
+		validators: zod(importRecipeUrlSchema),
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
 			else toast.error('Please fix the errors in the form.');
@@ -37,7 +36,7 @@
 	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
 		loading = true;
 		try {
-			const result = await importFromUrl(data.url, userDocState, recipeId);
+			const result = await importFromUrl(data.url, userDocState, recipeId); // TODO migrate to Supabase
 
 			if (result.isComplete) {
 				toast.success('Recipe imported successfully!');
@@ -72,36 +71,6 @@
 			<Form.FieldErrors />
 		</Form.Field>
 	</div>
-
-	<!-- <div class="space-y-2">
-		<Form.Fieldset {form} name="url">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>
-						Theme <span class="font-normal text-muted-foreground text-xs"> (for you only) </span>
-					</Form.Label>
-
-					<div class="flex gap-2 items-center w-full">
-						{#each Object.keys(themeButtonClasses) as c}
-							<Button
-								{...props}
-								size="icon"
-								variant={c === $formData.theme ? 'link' : 'secondary'}
-								onclick={() => ($formData.theme = c)}
-								class={cn(
-									'w-full size-10 rounded-full',
-									c === $formData.theme && `border-2 border-${c}-500`
-								)}
-							>
-								<div class={`size-5 rounded-full bg-${c}-500`}></div>
-							</Button>
-						{/each}
-					</div>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors />
-		</Form.Fieldset>
-	</div> -->
 
 	<div class="space-y-2">
 		{#if recipeId}

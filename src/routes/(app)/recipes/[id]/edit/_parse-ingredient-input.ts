@@ -11,7 +11,7 @@
  * - "1/2 tsp of salt"
  * - "sugar" (no quantity)
  */
-import { volumeAliases, weightAliases, wholeAliases } from '$lib/shared/utils/quantity';
+import { volumeAliases, weightAliases, wholeAliases, type Unit } from '$lib/shared/utils/quantity';
 
 /**
  * Represents the structured result of parsing an ingredient search input.
@@ -28,7 +28,7 @@ export interface ParsedSearchInput {
 			/** The unit of the quantity (e.g., "cup", "g", "ml"). */
 			unit: string;
 			/** The standardized key for the unit (e.g., "cup", "gram", "milliliter"). */
-			unitKey: string;
+			unitKey: Unit;
 		} | null;
 		/** The linking word used between the quantity and ingredient (e.g., "of", "de"). */
 		linkWord: string | undefined;
@@ -92,7 +92,7 @@ export interface ParsedSearchInput {
 			/** The unit of the quantity (e.g., "cup", "g", "ml"). */
 			unit: string;
 			/** The standardized key for the unit (e.g., "cup", "gram", "milliliter"). */
-			unitKey: string;
+			unitKey: Unit;
 		} | null;
 		/** The linking word used between the quantity and ingredient (e.g., "of", "de"). */
 		linkWord: string | undefined;
@@ -199,7 +199,7 @@ export function parseIngredientSearchInput(input: string): ParsedSearchInput {
 	return {
 		raw: input,
 		parsed: {
-			quantity: amount !== null ? { amount, unit, unitKey } : null,
+			quantity: amount !== null ? { amount, unit, unitKey: unitKey as Unit } : null,
 			linkWord,
 			ingredientText,
 			description: undefined

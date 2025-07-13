@@ -1,33 +1,24 @@
-import { firestore, storage } from '$lib/shared/db/firebase-client';
-import { collection, deleteDoc, doc, setDoc } from 'firebase/firestore';
-import type { DBRecipeDoc, RecipeDoc } from '../db/recipe-doc';
-import type { UserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-import type { DocState } from '$lib/shared/db/doc-state.svelte';
-import { listAll, ref, deleteObject } from 'firebase/storage';
+import { supabase } from '$lib/shared/db/supabase-client';
+import { toast } from 'svelte-sonner';
 
 /**
  * Deletes a recipe document in the recipes collection
- * @returns the id of the deleted recipe
+ * @returns a boolean indicating success or failure
  */
-export async function deleteRecipe(recipeDocState: DocState<RecipeDoc, DBRecipeDoc>) {
-	if (!recipeDocState.id) {
+export async function deleteRecipe(recipeId: string) {
+	if (!recipeId) {
 		throw new Error('No recipe to delete');
 	}
-	const id = recipeDocState.id;
 
-	// Delete the document in the recipes collection
-	const docRef = doc(collection(firestore, 'recipes'), recipeDocState.id);
-	await deleteDoc(docRef);
+	const { error } = await supabase.from('recipes').delete().eq('id', recipeId);
 
-	// Delete the folder recipes/{recipeId} in the storage
-	const folderRef = ref(storage, `recipes/${recipeDocState.id}`);
-	await listAll(folderRef).then((listResults) => {
-		const promises = listResults.items.map((item) => {
-			return deleteObject(item);
+	if (error) {
+		console.error('Error deleting recipe:', error);
+		toast.error('Failed to delete recipe.', {
+			description: 'Please try again later.'
 		});
-		Promise.all(promises);
-	});
+		throw new Error('Failed to delete recipe');
+	}
 
-	// Return the id of the deleted recipe
-	return id;
+	return true;
 }

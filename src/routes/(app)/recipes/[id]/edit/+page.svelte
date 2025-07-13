@@ -24,29 +24,20 @@
 		Camera,
 		Trash2
 	} from 'lucide-svelte';
-	import { unitLabels, type Unit } from '$lib/shared/utils/quantity';
+	import { unitLabels } from '$lib/shared/utils/quantity';
 	import {
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
 	} from '$lib/features/recipes/models/schemas';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import { page } from '$app/state';
-	import { DocState } from '$lib/shared/db/doc-state.svelte';
-	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
-		DishesLevel,
 		recipeCourses,
 		recipeCuisines,
-		recipeDocConverter,
-		RecipeHealthyLevel,
-		RecipeMotivationLevel,
 		recipeTimesOfDay,
 		recipeTools,
-		type DBRecipeDoc,
 		type RecipeCourseKey,
 		type RecipeCuisineKey,
-		type RecipeDoc,
-		type RecipeStep,
 		type RecipeTimeOfDayKey,
 		type RecipeToolKey
 	} from '$lib/features/recipes/db/recipe-doc';
@@ -61,11 +52,13 @@
 	import { slide } from 'svelte/transition';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import IngredientSearch from './IngredientSearch.svelte';
-	import type { ParsedSearchInput } from './parse-ingredient-input';
+	import type { ParsedSearchInput } from './_parse-ingredient-input';
 	import type { Database, Tables } from '$lib/shared/db/supabase.types';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
+	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { getLanguageId } from '$lib/features/recipes/queries/get-language-id';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
@@ -103,20 +96,7 @@
 		if (isNewRecipe) return;
 
 		// Fetch the recipe from Supabase
-		const { data: recipeData, error: recipeError } = await supabase
-			.from('recipes')
-			.select(
-				`*, 
-				language:languages(*), 
-				ingredients:recipe_ingredients(*), 
-				courses:recipe_courses(*), 
-				cuisines:recipe_cuisines(*), 
-				times_of_day:recipe_times_of_day(*), 
-				tags:recipe_tags(*), 
-				tools:recipe_tools(*)`
-			)
-			.eq('id', pageRecipeId)
-			.single();
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId);
 
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);
@@ -188,11 +168,7 @@
 
 	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
 		loading = true;
-		const { data: langData, error: langError } = await supabase
-			.from('languages')
-			.select('id')
-			.eq('lang', data.language)
-			.single();
+		const { data: langData, error: langError } = await getLanguageId(data.language);
 
 		if (langError || !langData) {
 			console.error('Error fetching language ID:', langError);
@@ -437,7 +413,7 @@
 									<Card.Title>Recipe Details</Card.Title>
 									<Card.Description>This is the main information about the recipe</Card.Description>
 								</div>
-								<!-- <ImportRecipeDialog recipeId={recipeDocState.id} /> -->
+								<ImportRecipeDialog recipeId={pageRecipeId} />
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
@@ -1242,8 +1218,8 @@
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action
 				class={dismissDialogMode == 'delete' ? 'bg-destructive' : ''}
-				onclick={() => {
-					// TODO if (dismissDialogMode == 'delete') deleteRecipe(recipeDocState);
+				onclick={async () => {
+					if (dismissDialogMode == 'delete') await deleteRecipe(pageRecipeId);
 					goto('/recipes');
 				}}
 			>

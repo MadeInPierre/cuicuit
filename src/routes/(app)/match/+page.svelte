@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { matchIngredients } from '$lib/features/recipes/actions/match-ingredients';
 	import { supabase } from '$lib/shared/db/supabase-client';
 
 	const defaultIngredients = {
@@ -21,12 +22,7 @@
 		const ingredientList = ingredientsText.split('\n').filter((line) => line.trim() !== '');
 
 		try {
-			const { data, error } = await supabase.functions.invoke('match-ingredients', {
-				body: {
-					ingredients: ingredientList,
-					lang: selectedLang
-				}
-			});
+			const { data, error } = await matchIngredients(ingredientList.join('\n'), selectedLang);
 
 			if (error) {
 				throw error;

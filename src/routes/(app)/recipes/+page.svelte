@@ -2,38 +2,16 @@
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { Plus } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
-	import { collection, getDocs, query } from 'firebase/firestore';
-	import { firestore } from '$lib/shared/db/firebase-client';
-	import {
-		recipeDocConverter,
-		recipeTimesOfDay,
-		type RecipeDoc
-	} from '$lib/features/recipes/db/recipe-doc';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
 	import RecipeCard from './RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
-	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
-	import { error } from '@sveltejs/kit';
+	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 
 	// Get all recipes in the firestore recipes/ collection
 	async function getRecipes() {
 		// Fetch all recipes from Supabase
-		const { data: recipeData, error: recipeError } = await supabase
-			.from('recipes')
-			.select(
-				`*, 
-				language:languages(*), 
-				ingredients:recipe_ingredients(*), 
-				courses:recipe_courses(*), 
-				cuisines:recipe_cuisines(*), 
-				times_of_day:recipe_times_of_day(*), 
-				tags:recipe_tags(*), 
-				tools:recipe_tools(*)`
-			)
-			.limit(100);
+		const { data: recipeData, error: recipeError } = await getRecipesDetailed().limit(100);
 
 		if (recipeError) {
 			console.error('Error fetching recipes:', recipeError);
