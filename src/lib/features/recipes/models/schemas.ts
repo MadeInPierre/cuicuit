@@ -12,7 +12,9 @@ export const createRecipeFormSchema = z
 		description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
 		// Images
-		imageIds: z.array(z.string().min(1, { message: 'Please upload at least one image.' })).default([]),
+		imageIds: z
+			.array(z.string().min(1, { message: 'Please upload at least one image.' }))
+			.default([]),
 
 		// Filters (single select, enums)
 		effortLevel: z.string(),
@@ -21,11 +23,13 @@ export const createRecipeFormSchema = z
 		costLevel: z.string(),
 
 		// Filters (multi select, foreign keys to other tables)
-		course_ids: z.array(z.string()),
-		cuisine_ids: z.array(z.string()),
+		course_ids: z.array(z.string()).min(1, { message: 'Please select at least one course.' }),
+		cuisine_ids: z.array(z.string()).min(1, { message: 'Please select at least one cuisine.' }),
 		tag_ids: z.array(z.string()),
-		timesofday_ids: z.array(z.string()),
-		tool_ids: z.array(z.string()),
+		timesofday_ids: z
+			.array(z.string())
+			.min(1, { message: 'Please select at least one time of day.' }),
+		tool_ids: z.array(z.string()).min(1, { message: 'Please select at least one tool.' }),
 
 		// Cook times
 		timePrep: z
@@ -109,8 +113,8 @@ export const createRecipeFormSchema = z
 
 export type CreateRecipeFormSchema = typeof createRecipeFormSchema;
 
-export const imortRecipeUrlSchema = z.object({
+export const importRecipeUrlSchema = z.object({
 	url: z.string().url({ message: 'Oops, please enter a valid URL.' })
 });
 
-export type ImportRecipeUrlSchema = typeof imortRecipeUrlSchema;
+export type ImportRecipeUrlSchema = typeof importRecipeUrlSchema;

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import { getSupermarketAisles } from '$lib/features/recipes/queries/get-supermarket-aisles';
 
 	async function fetchIngredients({ start = 0, end = 100 } = { start: 0, end: 100 }) {
 		try {
@@ -29,10 +30,7 @@
 
 	async function fetchAisles() {
 		try {
-			const { data, error } = await supabase
-				.from('supermarket_aisles')
-				.select()
-				.order('aisle', { ascending: true });
+			const { data, error } = await getSupermarketAisles();
 
 			if (error) {
 				console.error('Error fetching ingredients:', error);
@@ -77,21 +75,21 @@
 					>
 						{#each ingredients.filter((ingredient) => ingredient.aisle === aisle.aisle) as ingredient}
 							<div class="flex flex-col items-center">
-                                <img
-                                    src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}
-                                    alt={ingredient.name_singular}
-                                    class="aspect-square w-24 h-24 object-cover rounded-md"
-                                    onerror={(e) => {
-                                        const el = e.currentTarget as HTMLImageElement;
-                                        el.style.display = 'none';
-                                        el.insertAdjacentHTML(
-                                            'afterend',
-                                            `<div class="aspect-square w-24 h-24 rounded-md flex items-center justify-center bg-muted text-xs text-muted-foreground">
+								<img
+									src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}
+									alt={ingredient.name_singular}
+									class="aspect-square w-24 h-24 object-cover rounded-md"
+									onerror={(e) => {
+										const el = e.currentTarget as HTMLImageElement;
+										el.style.display = 'none';
+										el.insertAdjacentHTML(
+											'afterend',
+											`<div class="aspect-square w-24 h-24 rounded-md flex items-center justify-center bg-muted text-xs text-muted-foreground">
                                                 No image
                                             </div>`
-                                        );
-                                    }}
-                                />
+										);
+									}}
+								/>
 								<div style="margin-top: 0.5rem; text-align: center;">
 									{ingredient.name_singular}
 								</div>

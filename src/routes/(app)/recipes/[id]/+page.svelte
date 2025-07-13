@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import {
 		ArrowUpRight,
@@ -11,63 +10,34 @@
 		Globe,
 		Grid,
 		HandCoins,
-		Leaf,
-		LeafyGreen,
 		List,
-		Pencil,
 		Plus,
 		Salad
 	} from 'lucide-svelte';
-	import { DocState } from '$lib/shared/db/doc-state.svelte';
-	import { firestore } from '$lib/shared/db/firebase-client';
 	import {
-		DishesLevel,
 		recipeCourses,
 		recipeCuisines,
-		recipeDocConverter,
-		RecipeHealthyLevel,
-		RecipeMotivationLevel,
-		recipeTimesOfDay,
-		type DBRecipeDoc,
-		type RecipeDoc,
-		type RecipeIngredient
+		recipeTimesOfDay
 	} from '$lib/features/recipes/db/recipe-doc';
-	import { Badge } from '$lib/shared/components/ui/badge';
 	import { page } from '$app/state';
-	import { getUserDocState } from '$lib/features/auth/state/user-doc-state.svelte';
 	import * as Card from '$lib/shared/components/ui/card/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
-	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { map } from 'zod';
-	import { doc } from 'firebase/firestore';
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 
 	const pageRecipeId = page.params.id;
 
 	let ingredientsView = createPersistentState('view-recipe-ingredients-layout', 'grid');
 
 	async function getRecipe() {
-		const { data: recipeData, error: recipeError } = await supabase
-			.from('recipes')
-			.select(
-				`*, 
-				language:languages(*), 
-				ingredients:recipe_ingredients(*), 
-				courses:recipe_courses(*), 
-				cuisines:recipe_cuisines(*), 
-				times_of_day:recipe_times_of_day(*), 
-				tags:recipe_tags(*), 
-				tools:recipe_tools(*)`
-			)
-			.eq('id', pageRecipeId)
-			.single();
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId);
 
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);

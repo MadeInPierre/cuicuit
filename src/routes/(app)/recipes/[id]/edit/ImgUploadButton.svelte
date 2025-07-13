@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import {
+		deleteRecipeImage,
+		uploadRecipeImage
+	} from '$lib/features/recipes/actions/upload-recipe-image';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { supabase } from '$lib/shared/db/supabase-client';
 	import { cn } from '$lib/utils';
-	import { Camera, Loader2, Upload, X } from 'lucide-svelte';
+	import { Camera, Loader2, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
@@ -26,69 +29,22 @@
 		if (!recipeId) return;
 
 		loading = true;
-
-		// Get the file extension
-		const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-		const uuid = crypto.randomUUID();
-		const imageId = `${uuid}.${ext}`;
-
-		// Upload the image to Supabase storage
-		const { data, error } = await supabase.storage
-			.from('recipes')
-			.upload(`images/${recipeId}/${imageId}`, file, {
-				contentType: file.type,
-				upsert: true
-			});
-
-		if (error) {
-			console.error('Error uploading image:', error);
-			toast.error('Failed to upload image.');
-		} else {
-			toast.success('Image uploaded successfully.');
-		}
-
-		// Update the recipe row in supabase with the new image ID
-		const { error: updateError } = await supabase
-			.from('recipes')
-			.update({ image_ids: [...(currentImageIds || []), imageId] })
-			.eq('id', recipeId);
-
-		if (updateError) {
-			console.error('Error updating recipe with new image ID:', updateError);
-			toast.error('Failed to update recipe with new image ID.');
-		} else {
-			toast.success('Recipe updated with new image ID.');
-		}
+		const imageId = await uploadRecipeImage(file, recipeId, currentImageIds);
+		loading = false;
 
 		// Call the callback if provided
-		onImagesChanged?.([...currentImageIds, imageId]);
-		loading = false;
+		if (imageId) onImagesChanged?.([...currentImageIds, imageId]);
 	}
 
 	async function deleteImage() {
 		if (!recipeId || !imgId) return;
 
 		loading = true;
-		// Delete the image from Supabase storage
-		await supabase.storage.from('recipes').remove([`images/${recipeId}/${imgId}`]);
-
-		// Remove the image ID from the recipe's image_ids array
-		const updatedImageIds = currentImageIds.filter((id) => id !== imgId);
-		const { error } = await supabase
-			.from('recipes')
-			.update({ image_ids: updatedImageIds })
-			.eq('id', recipeId);
-
-		if (error) {
-			console.error('Error updating recipe after image deletion:', error);
-			toast.error('Failed to update recipe after image deletion.');
-		} else {
-			toast.success('Image deleted successfully.');
-		}
+		const newImageIds = await deleteRecipeImage(imgId, recipeId, currentImageIds);
+		loading = false;
 
 		// Call the callback if provided
-		onImagesChanged?.(updatedImageIds);
-		loading = false;
+		if (newImageIds) onImagesChanged?.(newImageIds);
 	}
 </script>
 
