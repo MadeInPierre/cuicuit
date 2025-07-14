@@ -14,9 +14,6 @@ export async function leaveSpace(userId: string, spaceId: string) {
 	if (fetchError) throw fetchError;
 	if (!space) throw new Error('space-not-found');
 
-	// Check that the active space is the space being left
-	// TODO
-
 	// Check that this isn't the last space the user is a member of
 	const { data: members, error: membersError } = await supabase
 		.from('space_members')
@@ -30,6 +27,11 @@ export async function leaveSpace(userId: string, spaceId: string) {
 		throw new Error('not-a-member');
 	}
 
-	// Set the active space to the first in the userDoc's spaces
-	// TODO activeSpace.id = Object.keys(userDocState.doc.spaces)[0];
+	// Remove the user from the space members
+	const { error: memberError } = await supabase
+		.from('space_members')
+		.delete()
+		.eq('user_id', userId)
+		.eq('space_id', spaceId);
+	if (memberError) throw memberError;
 }

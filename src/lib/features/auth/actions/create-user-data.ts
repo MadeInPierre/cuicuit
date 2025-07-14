@@ -62,6 +62,7 @@ export async function createUserData(user: User): Promise<boolean> {
 	}
 
 	let spaceId: string | null = null;
+	console.log('Existing spaces on user creation:', existingSpaces);
 
 	// If a space already exists, use it
 	if (existingSpaces && existingSpaces.length > 0) {

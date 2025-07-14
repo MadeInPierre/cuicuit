@@ -98,28 +98,32 @@
 			</DropdownMenu.Label>
 
 			<!-- Display the spaces alphabetically -->
-			{#each (activeSpace.userSpaces || []).sort( (a, b) => a.name.localeCompare(b.name) ) as space, index (space.name)}
-				{@const TeamIcon = spaceIcons[space.icon as SpaceIconKey]}
-				{@const userTheme =
-					space.members?.find((m) => m.user_id === userState.user?.id)?.theme || 'default'}
+			{#if activeSpace.userSpaces && activeSpace.userSpaces.length > 0}
+				{#each [...activeSpace.userSpaces].sort( (a, b) => a.name.localeCompare(b.name) ) as space (space.id)}
+					{@const TeamIcon = spaceIcons[space.icon as SpaceIconKey]}
+					{@const userTheme =
+						space.members?.find((m) => m.user_id === userState.user?.id)?.theme || 'default'}
 
-				<DropdownMenu.Item onclick={() => (activeSpace.id = space.id)} class="gap-2 p-2 group">
-					<div
-						class={cn(
-							'flex size-6 items-center justify-center rounded-sm',
-							themeButtonClasses[userTheme as SpaceThemeKey] || 'bg-background'
-						)}
-					>
-						<TeamIcon class="size-4 shrink-0"></TeamIcon>
-					</div>
-					{space.name}
-					<DropdownMenu.Shortcut class="group-hover:block hidden">
-						<Button size="icon" class="size-6" variant="ghost">
-							<Share2 class="size-4" />
-						</Button>
-					</DropdownMenu.Shortcut>
-				</DropdownMenu.Item>
-			{/each}
+					<DropdownMenu.Item onclick={() => (activeSpace.id = space.id)} class="gap-2 p-2 group">
+						<div
+							class={cn(
+								'flex size-6 items-center justify-center rounded-sm',
+								themeButtonClasses[userTheme as SpaceThemeKey] || 'bg-background'
+							)}
+						>
+							<TeamIcon class="size-4 shrink-0"></TeamIcon>
+						</div>
+						{space.name}
+						<DropdownMenu.Shortcut class="group-hover:block hidden">
+							<Button size="icon" class="size-6" variant="ghost">
+								<Share2 class="size-4" />
+							</Button>
+						</DropdownMenu.Shortcut>
+					</DropdownMenu.Item>
+				{/each}
+			{:else}
+				<DropdownMenu.Item disabled class="p-2">No spaces found.</DropdownMenu.Item>
+			{/if}
 
 			<DropdownMenu.Separator />
 
