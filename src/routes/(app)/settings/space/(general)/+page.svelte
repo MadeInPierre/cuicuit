@@ -17,20 +17,32 @@
 	let allowedToLeave = $derived((spaceState.userSpaces || []).length >= 2);
 
 	async function leaveActiveSpace() {
-		if (!spaceState.id || !userState.user?.id || !spaceState.activeSpace) {
+		if (
+			!spaceState.id ||
+			!userState.user?.id ||
+			!spaceState.activeSpace ||
+			!spaceState.userSpaces
+		) {
 			console.error('Cannot leave space, missing active space or user ID.');
 			return;
 		}
 
+		if (spaceState.userSpaces.length < 2) {
+			toast.error('Cannot leave.', {
+				description: 'This is your only space, create another first.'
+			});
+			return;
+		}
+
 		try {
+			console.log('Leaving space:', spaceState.activeSpace.id, 'for user:', userState.user.id);
 			await leaveSpace(userState.user?.id, spaceState.activeSpace.id);
 			showConfirmLeaveSpaceDialog = false;
 		} catch (error: any) {
-			if (error.message === 'last-space-of-user') {
-				toast.error('Cannot leave.', {
-					description: 'This is your only space, create another first.'
-				});
-			}
+			console.error('Error leaving space:', error);
+			toast.error('Failed to leave space.', {
+				description: error.message || 'An unexpected error occurred.'
+			});
 		}
 	}
 </script>

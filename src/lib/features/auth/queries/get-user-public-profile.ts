@@ -19,3 +19,17 @@ export async function getUserPublicProfile(userId: string) {
 
 export type UserPublicProfile =
 	ReturnType<typeof getUserPublicProfile> extends Promise<infer T> ? T : never;
+
+export async function getUserPublicProfiles(userIds: string[]): Promise<UserPublicProfile[]> {
+	const { data: memberProfiles, error: profilesError } = await supabase
+		.from('user_public_profiles')
+		.select('*')
+		.in('user_id', userIds); // Duplicates are fine
+
+	if (profilesError) {
+		console.error('Error fetching member profiles:', profilesError);
+		throw profilesError;
+	}
+
+	return memberProfiles;
+}

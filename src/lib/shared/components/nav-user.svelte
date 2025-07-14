@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { signOut } from '$lib/features/auth/actions/sign-out';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import * as Avatar from '$lib/shared/components/ui/avatar/index.js';
@@ -78,7 +79,7 @@
 					</DropdownMenu.Item> -->
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item>
+				<DropdownMenu.Item onclick={signOut}>
 					<LogOut />
 					Log out
 				</DropdownMenu.Item>

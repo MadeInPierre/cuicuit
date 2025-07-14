@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
 
 			// If cleaning results in an empty string, don't query the database
 			if (!cleanedText) {
-				return { original: originalText, match: null };
+				return { original: originalText, bestMatches: [] };
 			}
 
 			const { data, error } = await supabaseClient.rpc('match_ingredient', {
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
 
 			if (error) {
 				console.error(`Error matching '${cleanedText}':`, error.message);
-				return { original: originalText, match: null };
+				return { original: originalText, bestMatches: [] };
 			}
 
 			return {

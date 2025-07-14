@@ -1,52 +1,14 @@
 import { getContext, setContext } from 'svelte';
 import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 import type { Tables } from '$lib/shared/db/supabase.types';
-import { supabase } from '$lib/shared/db/supabase-client';
 import type { UserState } from '$lib/features/auth/state/user-state.svelte';
+import {
+	getUserSpacesWithMembers,
+	type ActiveSpaceWithMembers
+} from '../queries/get-user-spaces-with-members';
+import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
 
 const activeSpaceIdState = createPersistentState('active-space-id', undefined);
-
-async function fetchUserSpacesWithMembers(userId: string) {
-	let { data: userSpaces, error } = await supabase
-		.from('space_members')
-		.select(
-			`
-			...space_id(
-				*, 
-				members:space_members(*)
-			)`
-		)
-		.eq('user_id', userId);
-
-	if (error) throw error;
-	if (!userSpaces) return [];
-
-	console.log('Fetched user spaces with members:', userSpaces);
-	return userSpaces;
-}
-
-export type ActiveSpaceWithMembers =
-	ReturnType<typeof fetchUserSpacesWithMembers> extends Promise<infer T>
-		? T extends Array<infer U>
-			? U
-			: never
-		: never;
-
-// Fetch the profile and preferences for each member in all spaces
-async function fetchFriendsProfiles(spaces: ActiveSpaceWithMembers[]) {
-	const memberIds = spaces.flatMap((space) => space.members.map((m) => m.user_id));
-	const { data: memberProfiles, error: profilesError } = await supabase
-		.from('user_public_profiles')
-		.select('*')
-		.in('user_id', memberIds); // Duplicates are fine
-
-	if (profilesError) {
-		console.error('Error fetching member profiles:', profilesError);
-		throw profilesError;
-	}
-
-	return memberProfiles;
-}
 
 class ActiveSpaceState {
 	private _userState: UserState | undefined = undefined;
@@ -91,15 +53,17 @@ class ActiveSpaceState {
 		$effect(() => {
 			if (this._userId) {
 				// Fetch spaces where user is a member, including members of each space
-				fetchUserSpacesWithMembers(this._userId)
+				getUserSpacesWithMembers(this._userId)
 					.then((spaces) => {
 						this.userSpaces = spaces;
 
-						// Continue to fetch profiles for all members in the spaces
-						return fetchFriendsProfiles(spaces);
+						// Fetch the profile and preferences for each member in all spaces
+						const memberIds = spaces.flatMap((space) => space.members.map((m) => m.user_id));
+						return getUserPublicProfiles(memberIds);
 					})
 					.then((profiles) => {
-						this.friendProfiles = profiles;
+						// Filter out any null profiles just to make TypeScript happy
+						this.friendProfiles = profiles.filter((profile) => profile !== null);
 					});
 			} else {
 				this.userSpaces = null;
