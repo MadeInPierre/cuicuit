@@ -17,12 +17,12 @@
 
 	const providerList = [
 		{
-			value: 'google.com',
+			value: 'google',
 			label: 'Google',
 			icon: Icons.google
 		},
 		{
-			value: 'github.com',
+			value: 'github',
 			label: 'GitHub',
 			icon: Icons.gitHub
 		}
