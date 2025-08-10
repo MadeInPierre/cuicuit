@@ -18,7 +18,7 @@
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { capitalize } from '$lib/utils';
-	import type { User } from '@supabase/supabase-js';
+	import type { Provider, User } from '@supabase/supabase-js';
 	import { signOut } from '$lib/features/auth/actions/sign-out';
 
 	// Validate the form data using zod
@@ -45,25 +45,35 @@
 	let inputConfirmDeleteAccount: string = $state('');
 	let showConfirmDeleteAccountDialog = $state(false);
 
-	function linkProvider(providerId: string) {
+	async function linkProvider(providerId: string) {
 		if (!supabase || !userState.user) {
 			console.error('Error: Auth problem.');
 			return;
 		}
 
-		// TODO: Implement provider linking
-		// let provider;
-		// switch (providerId) {
-		// 	case 'google.com':
-		// 		provider = new GoogleAuthProvider();
-		// 		break;
-		// 	case 'github.com':
-		// 		provider = new GithubAuthProvider();
-		// 		break;
-		// 	default:
-		// 		toast.error('An error occured.');
-		// 		return;
-		// }
+		console.log('Linking provider:', providerId, 'for user:', userState.user.id);
+
+		const { data, error } = await supabase.auth.linkIdentity({
+			provider: providerId as Provider,
+			options: {
+				redirectTo: window.location.origin + '/settings/account'
+			}
+		});
+
+		if (error) {
+			console.error('Error linking provider:', error);
+			toast.error('Link failed.');
+			return;
+		}
+
+		if (data) {
+			toast.success('Account linked!');
+			console.log('Provider linked successfully:', data);
+			countProviderChanges++;
+		} else {
+			toast.error('Link failed.');
+			console.error('No data returned from linkIdentity:', data);
+		}
 
 		// linkWithPopup(auth.currentUser, provider)
 		// 	.then((result) => {
@@ -257,7 +267,10 @@
 											<KeyRound class="h-1/2 w-1/2" />
 										</Avatar.Fallback>
 									{:else}
-										<!-- <Avatar.Image src={identity.photoURL} alt={identity.displayName} /> -->
+										<Avatar.Image
+											src={identity.identity_data?.avatar_url}
+											alt={identity.identity_data?.name}
+										/>
 										<Avatar.Fallback>
 											{identity.provider.charAt(0).toUpperCase()}
 										</Avatar.Fallback>
@@ -267,9 +280,20 @@
 								<div class="flex-grow space-y-0.5">
 									<Label>
 										{capitalize(identity.provider).replace('.com', '')}
+										{identity.identity_data?.name ? `(${identity.identity_data?.name})` : ''}
 									</Label>
 									<p class="text-sm text-muted-foreground">
-										{identity.provider || ''}
+										{#if identity.last_sign_in_at}
+											Last login: {new Date(identity.last_sign_in_at).toLocaleDateString('fr-FR', {
+												year: 'numeric',
+												month: '2-digit',
+												day: '2-digit',
+												hour: '2-digit',
+												minute: '2-digit'
+											})}
+										{:else}
+											No login yet.
+										{/if}
 									</p>
 								</div>
 

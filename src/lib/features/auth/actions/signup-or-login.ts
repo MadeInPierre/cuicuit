@@ -96,7 +96,10 @@ export async function signupOrLogin(
 			case AuthMethod.GOOGLE:
 				// const googleCred = await signInWithPopup(auth, new GoogleAuthProvider());
 				const { data, error } = await supabase.auth.signInWithOAuth({
-					provider: 'google'
+					provider: 'google',
+					options: {
+						redirectTo: `${window.location.origin}/dashboard`
+					}
 				});
 
 				if (error) {
