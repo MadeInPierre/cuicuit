@@ -3,7 +3,7 @@
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { Plus } from 'lucide-svelte';
 	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
-	import RecipeCard from './RecipeCard.svelte';
+	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
 	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
@@ -80,7 +80,7 @@
 
 					<div class="w-full flex flex-wrap gap-2">
 						{#each categoryRecipes as recipe (recipe.id)}
-							<RecipeCard {recipe} />
+							<RecipeCard {recipe} showAddToPlanButton showDetails />
 						{/each}
 					</div>
 				</div>

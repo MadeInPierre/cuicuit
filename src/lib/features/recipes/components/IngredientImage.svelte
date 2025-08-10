@@ -18,13 +18,11 @@
 	onerror={(e) => {
 		const el = e.currentTarget as HTMLImageElement;
 		el.style.display = 'none';
-		el.insertAdjacentHTML(
-			'afterend',
-			`<div
-                class="bg-muted aspect-square w-full rounded-md flex items-center justify-center text-muted-foreground"
-            >
-                ?
-            </div>`
+
+		const classes = cn(
+			'bg-muted aspect-square w-full rounded-md flex items-center justify-center text-muted-foreground',
+			className
 		);
+		el.insertAdjacentHTML('afterend', `<div class="${classes}">?</div>`);
 	}}
 />

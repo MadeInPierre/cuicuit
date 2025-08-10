@@ -2,32 +2,10 @@
 	import { goto } from '$app/navigation';
 	import Calendars from '$lib/shared/components/calendars.svelte';
 	import DatePicker from '$lib/shared/components/date-picker.svelte';
+	import RecipeList from '$lib/features/plans/components/sidebar/recipe-list.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { ArrowRight, Calendar, ChefHat, ScrollText } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
-
-	// This is sample data.
-	const data = {
-		user: {
-			name: 'shadcn',
-			email: 'm@example.com',
-			avatar: '/avatars/shadcn.jpg'
-		},
-		calendars: [
-			{
-				name: 'My Calendars',
-				items: ['Personal', 'Work', 'Family']
-			},
-			{
-				name: 'Favorites',
-				items: ['Holidays', 'Birthdays']
-			},
-			{
-				name: 'Other',
-				items: ['Travel', 'Reminders', 'Deadlines']
-			}
-		]
-	};
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 </script>
@@ -40,18 +18,17 @@
 >
 	<Sidebar.Header class="border-sidebar-border border-b grid p-4 gap-0">
 		<h1 class="text-md font-semibold">Your plan</h1>
-		<p class="text-xs text-muted-foreground">
-			Drag planned recipes here.
-		</p>
+		<p class="text-xs text-muted-foreground">Drag or add recipes here.</p>
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<!-- <DatePicker /> -->
 		<!-- <Sidebar.Separator class="mx-0" /> -->
 		<!-- <Calendars calendars={data.calendars} /> -->
+		<RecipeList />
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<Sidebar.Menu>
-			<Sidebar.MenuItem class="group">
+			<!-- <Sidebar.MenuItem class="group">
 				<Sidebar.MenuButton onclick={() => goto('/plan')}>
 					<Calendar />
 					<span>Calendar View</span>
@@ -64,7 +41,7 @@
 					<span>Add Recipes</span>
 					<ArrowRight class="ml-auto opacity-40 group-hover:opacity-100 transition-opacity" />
 				</Sidebar.MenuButton>
-			</Sidebar.MenuItem>
+			</Sidebar.MenuItem> -->
 			<Sidebar.MenuItem class="group">
 				<Sidebar.MenuButton onclick={() => goto('/list')}>
 					<ScrollText />

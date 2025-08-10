@@ -13,13 +13,25 @@
 	import { capitalize, cn } from '$lib/utils';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
+
+	const activeSpace = getActiveSpaceState();
 
 	interface Props {
 		recipe?: Tables<'recipes'> | null; // Allow recipe to be null for loading state
+		showAddToPlanButton?: boolean; // Optional prop to control visibility of Add to Plan button
+		showDetails?: boolean; // Optional prop to control visibility of details
 		class?: string;
 	}
 
-	let { recipe = null, class: className = '' }: Props = $props();
+	let {
+		recipe = null,
+		class: className = '',
+		showAddToPlanButton = false,
+		showDetails = false
+	}: Props = $props();
 </script>
 
 {#if recipe}
@@ -36,8 +48,6 @@
 					alt="Recipe"
 					class="aspect-[1.618] rounded-md object-cover"
 				/>
-
-				<!-- <UserAvatar profile={recipe.author.profile} class="absolute bottom-2 right-2 size-5" /> -->
 
 				{#if recipe.source_type === 'website'}
 					<div
@@ -56,14 +66,16 @@
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
 				<h3 class="text-sm font-semibold line-clamp-1">{recipe.title}</h3>
 
-				<div class="text-xs text-muted-foreground flex items-center">
-					<span class="mr-4">{recipe.time_total_minutes}min</span>
+				{#if showDetails}
+					<div class="text-xs text-muted-foreground flex items-center">
+						<span class="mr-4">{recipe.time_total_minutes}min</span>
 
-					<span class="mr-4">{capitalize(recipe.effort_level)}</span>
+						<span class="mr-4">{capitalize(recipe.effort_level)}</span>
 
-					<span>{recipe.servings}</span>
-					<Users class="size-3 inline-block ml-0.5 mr-4" />
-				</div>
+						<span>{recipe.servings}</span>
+						<Users class="size-3 inline-block ml-0.5 mr-4" />
+					</div>
+				{/if}
 
 				{#snippet status(status: string, Icon: any, color: string)}
 					<div class="text-xs flex items-center {color}">
@@ -86,18 +98,22 @@
 				{@render status('1 missing', ShoppingBasket, 'text-red-600 dark:text-red-500')} -->
 			</a>
 
-			<ButtonThemed
-				class="min-w-7 h-7 mr-2 hidden group-hover:flex"
-				title="Add to plan"
-				size="icon"
-				type="outline"
-				aria-label="Add to plan"
-				onclick={() => {
-					console.log('Add to plan', recipe.id);
-				}}
-			>
-				<CalendarPlus class="size-4" />
-			</ButtonThemed>
+			{#if showAddToPlanButton}
+				<ButtonThemed
+					class="min-w-7 h-7 mr-2 hidden group-hover:flex"
+					title="Add to plan"
+					size="icon"
+					type="outline"
+					aria-label="Add to plan"
+					onclick={() => {
+						// TODO
+						if (!recipe || !activeSpace || activeSpace.activePlan === undefined) return;
+						addRecipeToActivePlan(activeSpace, recipe, 1);
+					}}
+				>
+					<CalendarPlus class="size-4" />
+				</ButtonThemed>
+			{/if}
 		</div>
 	</div>
 {:else}
