@@ -7,6 +7,7 @@ import {
 	type ActiveSpaceWithMembers
 } from '../queries/get-user-spaces-with-members';
 import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
+import type { RecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 
 const activeSpaceIdState = createPersistentState('active-space-id', undefined);
 
@@ -34,10 +35,13 @@ class ActiveSpaceState {
 		this.userSpaces?.find((space) => space.id === this.id) || null
 	);
 
-	/** The active space's members, derived from the activeSpace (convenient shortcut) */
+	/** The active space's member object of the current user, derived from the activeSpace (convenient shortcut) */
 	activeMember: Tables<'space_members'> | undefined | null = $derived(
 		this.activeSpace?.members?.find((member) => member.user_id === this._userId) || null
 	);
+
+	/** TODO The active space's meal plan. Contains a list of recipes to cook */
+	activePlan: { recipe: RecipeDetailed; servings: number }[] | undefined = $state([]);
 
 	constructor(userState: UserState) {
 		this._userState = userState;

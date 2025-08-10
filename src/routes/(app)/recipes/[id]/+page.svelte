@@ -26,32 +26,42 @@
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import { onMount } from 'svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { getUserPublicProfile } from '$lib/features/auth/queries/get-user-public-profile';
+	import {
+		getRecipeDetailed,
+		type RecipeDetailedWithAuthor
+	} from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
-	const pageRecipeId = page.params.id;
+	const pageRecipeId = $derived(page.params.id);
+	const activeSpace = getActiveSpaceState();
 
 	let ingredientsView = createPersistentState('view-recipe-ingredients-layout', 'grid');
 
-	async function getRecipe() {
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId);
+	async function getRecipe(id: string) {
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id);
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);
-			return;
+			return null;
 		}
 		console.log('Fetched recipe:', recipeData);
 		return recipeData;
 	}
-	type Recipe = typeof getRecipe extends () => Promise<infer R> ? R : never;
 
-	let recipe = $state<Recipe | null>(null);
+	let recipe: RecipeDetailedWithAuthor | undefined | null = $state(undefined);
 
-	onMount(async () => {
+	$effect(() => {
+		if (!pageRecipeId) {
+			console.error('No recipe ID found in page parameters');
+			return;
+		}
+
 		// Fetch the recipe from Supabase
-		recipe = await getRecipe();
+		getRecipe(pageRecipeId).then((result) => {
+			recipe = result;
+		});
 	});
 </script>
 
@@ -253,7 +263,16 @@
 							<div class="flex gap-2 items-center">
 								<h2 class="text-xl font-semibold">Plan</h2>
 
-								<ButtonThemed size="sm" type="submit" class="flex gap-2 ml-auto">
+								<ButtonThemed
+									size="sm"
+									type="submit"
+									class="flex gap-2 ml-auto"
+									onclick={() => {
+										// TODO
+										if (!recipe || !activeSpace || activeSpace.activePlan === undefined) return;
+										addRecipeToActivePlan(activeSpace, recipe, 1);
+									}}
+								>
 									<CalendarPlus class="size-4" />
 									Add meal
 								</ButtonThemed>

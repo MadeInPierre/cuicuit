@@ -59,4 +59,5 @@ export async function getRecipeDetailed(recipeId: string) {
 	return { data: recipe, error: null };
 }
 
-export type RecipeDetailed = Awaited<ReturnType<typeof getRecipeDetailed>>['data'];
+export type RecipeDetailed = NonNullable<Awaited<ReturnType<typeof getRecipesDetailed>>['data']>[number];
+export type RecipeDetailedWithAuthor = NonNullable<Awaited<ReturnType<typeof getRecipeDetailed>>['data']>;
