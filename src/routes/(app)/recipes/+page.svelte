@@ -24,9 +24,11 @@
 	type Recipes = typeof getRecipes extends () => Promise<infer R> ? R : never;
 
 	let recipes: Recipes = $state([]);
+	let loading = $state(true);
 
 	onMount(async () => {
 		recipes = await getRecipes();
+		loading = false;
 	});
 </script>
 
@@ -53,7 +55,18 @@
 		<Separator class="my-6" />
 	</div>
 
-	{#if recipes && recipes?.length > 0}
+	{#if loading}
+		{#each Object.entries(recipeTimesOfDay) as [key, label]}
+			<div class="space-y-4">
+				<h3 class="text-lg font-bold tracking-tight">{label}</h3>
+				<div class="w-full flex flex-wrap gap-2">
+					{#each Array(4) as _, i}
+						<RecipeCard />
+					{/each}
+				</div>
+			</div>
+		{/each}
+	{:else if recipes && recipes?.length > 0}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
 			{@const categoryRecipes = recipes.filter((recipe) =>
 				recipe.times_of_day
