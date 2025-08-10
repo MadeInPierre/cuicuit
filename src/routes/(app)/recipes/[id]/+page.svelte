@@ -26,11 +26,11 @@
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { getUserPublicProfile } from '$lib/features/auth/queries/get-user-public-profile';
 
 	const pageRecipeId = page.params.id;
 
@@ -38,12 +38,10 @@
 
 	async function getRecipe() {
 		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId);
-
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);
 			return;
 		}
-
 		console.log('Fetched recipe:', recipeData);
 		return recipeData;
 	}
@@ -136,7 +134,7 @@
 							<div class="flex">
 								<div class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm">
 									<!-- <UserAvatar profile={doc?.author?.profile} class="ml-auto size-5" /> -->
-									<span class="">Added by {'@' + recipe.author_id}</span>
+									<span class="">Added by {'@' + recipe.author.user_name}</span>
 								</div>
 								{#if recipe.source_type && recipe.source_type != 'user-manual'}
 									<Button
@@ -188,45 +186,49 @@
 						</div>
 
 						<div class="grid grid-cols-3 gap-6 justify-items-center">
-							{#snippet recipeFilter(Icon: any, title: string, value: string)}
+							{#snippet recipeFilter(Icon: any, title: string, values: string[])}
 								<div class="flex gap-4 w-40">
 									<div class="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
 										<Icon class="size-5" />
 									</div>
-									<div class="flex flex-col gap-0.5 w-min">
-										<span class="text-xs text-muted-foreground">{title}</span>
-										<span class="text-sm font-semibold">{value}</span>
+									<div class="w-full flex flex-col gap-0.5">
+										<span class="w-full text-xs text-muted-foreground">{title}</span>
+										<div class="flex flex-col">
+											{#each values as value}
+												<span class="text-sm font-semibold">{value}</span>
+											{/each}
+										</div>
 									</div>
 								</div>
 							{/snippet}
 
-							{@render recipeFilter(BicepsFlexed, 'Effort', capitalize(recipe.effort_level))}
+							{@render recipeFilter(BicepsFlexed, 'Effort', [capitalize(recipe.effort_level)])}
 							<!-- {@render recipeFilter(BicepsFlexed, 'Cost', capitalize(recipe.cost_level))} -->
-							{@render recipeFilter(BicepsFlexed, 'Skill', capitalize(recipe.skill_level))}
-							{@render recipeFilter(HandCoins, 'Cleanup', capitalize(recipe.cleanup_level))}
+							{@render recipeFilter(BicepsFlexed, 'Skill', [capitalize(recipe.skill_level)])}
+							{@render recipeFilter(HandCoins, 'Cleanup', [capitalize(recipe.cleanup_level)])}
 
 							{@render recipeFilter(
 								ForkKnife,
-								'Time of Day',
-								recipe.times_of_day
-									?.map((t) => recipeTimesOfDay[t.timeofday_id as keyof typeof recipeTimesOfDay])
-									.join(', ') || 'Unknown'
+								recipe.times_of_day?.length > 1 ? 'Times of Day' : 'Time of Day',
+								recipe.times_of_day?.map(
+									(t) => recipeTimesOfDay[t.timeofday_id as keyof typeof recipeTimesOfDay]
+								) ?? ['Unknown']
 							)}
 
 							{@render recipeFilter(
 								Salad,
 								'Cuisine',
-								recipe.cuisines
-									?.map((c) => recipeCuisines[c.cuisine_id as keyof typeof recipeCuisines])
-									.join(', ') || 'Unknown'
+								recipe.cuisines?.map(
+									(c) => recipeCuisines[c.cuisine_id as keyof typeof recipeCuisines]
+								) ?? ['Unknown']
 							)}
 
 							{@render recipeFilter(
 								Globe,
 								'Course',
-								recipe.courses
-									?.map((c) => recipeCourses[c.course_id as keyof typeof recipeCourses])
-									.join(', ') || 'Unknown'
+								recipe.courses?.map(
+									(c) => recipeCourses[c.course_id as keyof typeof recipeCourses]
+								) ?? ['Unknown']
 							)}
 						</div>
 

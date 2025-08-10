@@ -79,23 +79,29 @@ Deno.serve(async (req) => {
 
 			// If cleaning results in an empty string, don't query the database
 			if (!cleanedText) {
-				return { original: originalText, bestMatches: [] };
+				return {
+					original: originalText,
+					bestMatches: [],
+					message: 'No valid ingredient text after cleaning.'
+				};
 			}
 
 			const { data, error } = await supabaseClient.rpc('match_ingredient', {
 				query: cleanedText,
-				lang
+				lang: lang || 'fr-FR', // Default to French if no language provided
+				n_matches: 10 // Limit to top 10 matches
 			});
 
 			if (error) {
 				console.error(`Error matching '${cleanedText}':`, error.message);
-				return { original: originalText, bestMatches: [] };
+				return { original: originalText, bestMatches: [], message: error.message };
 			}
 
 			return {
 				original: originalText,
 				// The function returns an array, we take the first result
-				bestMatches: data
+				bestMatches: data,
+				message: 'Matches found'
 			};
 		});
 

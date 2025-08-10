@@ -16,17 +16,20 @@ export type MatchIngredientsResponse = {
 	}[];
 } | null;
 
-export function matchIngredients(searchInput: string, lang: string) {
+export async function matchIngredients(searchInput: string, lang: string) {
 	if (!supabase) {
 		console.error('Supabase client not available');
 		return;
 	}
 
 	console.log('Matching ingredients:', searchInput, lang);
-	return supabase.functions.invoke<MatchIngredientsResponse>('match-ingredients', {
+	const response = await supabase.functions.invoke<MatchIngredientsResponse>('match-ingredients', {
 		body: {
 			ingredients: [searchInput],
 			lang: lang
 		}
 	});
+
+	console.log('Matched:', response);
+	return response;
 }

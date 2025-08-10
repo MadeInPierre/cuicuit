@@ -28,8 +28,35 @@ export function getRecipesDetailed() {
  * @returns A promise that resolves to the detailed recipe data.
  * @throws Will throw an error if the recipe ID is not provided or if the query fails.
  */
-export function getRecipeDetailed(recipeId: string) {
-	return getRecipesDetailed().eq('id', recipeId).single();
+export async function getRecipeDetailed(recipeId: string) {
+	if (!supabase) throw new Error('Supabase client not available');
+	if (!recipeId) throw new Error('Recipe ID not provided');
+
+	// Get the recipe
+	const { data, error } = await getRecipesDetailed().eq('id', recipeId).single();
+	if (error || !data) {
+		console.error('Error fetching recipes:', error);
+		return { data: null, error };
+	}
+
+	// Add the author's public profile
+	const { data: authorProfile, error: profileError } = await supabase
+		.from('user_public_profiles')
+		.select('*')
+		.eq('user_id', data.author_id)
+		.single();
+
+	if (profileError || !authorProfile) {
+		console.error('Error fetching author profile:', profileError);
+		return { data: null, error: profileError };
+	}
+
+	const recipe = {
+		...data,
+		author: authorProfile
+	};
+
+	return { data: recipe, error: null };
 }
 
-export type RecipeDetailed = ReturnType<typeof getRecipeDetailed>;
+export type RecipeDetailed = Awaited<ReturnType<typeof getRecipeDetailed>>['data'];
