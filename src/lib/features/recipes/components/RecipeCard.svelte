@@ -12,7 +12,7 @@
 	} from 'lucide-svelte';
 	import { capitalize, cn } from '$lib/utils';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
@@ -44,9 +44,9 @@
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
 			<a href={'/recipes/' + recipe.id} class="relative">
 				<img
-					src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
+					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 					alt="Recipe"
-					class="aspect-[1.618] rounded-md object-cover"
+					class="aspect-square w-full rounded-md object-cover"
 				/>
 
 				{#if recipe.source_type === 'website'}
@@ -60,7 +60,7 @@
 				<!-- <CardBookmark class="absolute -top-[12px] right-[8px] size-10" /> -->
 			</a>
 		{:else}
-			<div class="w-full aspect-[1.618] bg-gray-200 rounded-md"></div>
+			<div class="w-full aspect-square bg-gray-200 rounded-md"></div>
 		{/if}
 		<div class="flex items-center gap-2 p-2 w-full h-full">
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
@@ -105,11 +105,7 @@
 					size="icon"
 					type="outline"
 					aria-label="Add to plan"
-					onclick={() => {
-						// TODO
-						if (!recipe || !activeSpace || activeSpace.activePlan === undefined) return;
-						addRecipeToActivePlan(activeSpace, recipe, 1);
-					}}
+					onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, 1)}
 				>
 					<CalendarPlus class="size-4" />
 				</ButtonThemed>
@@ -123,24 +119,24 @@
 			className
 		)}
 	>
-		<div class="w-full aspect-[1.618] bg-gray-200 rounded-md animate-pulse"></div>
+		<div class="w-full aspect-square bg-gray-200 dark:bg-gray-900 rounded-md animate-pulse"></div>
 		<div class="flex items-center gap-2 p-2 w-full h-full">
 			<div class="grid w-full">
-				<div class="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+				<div class="h-4 bg-gray-200 dark:bg-gray-900 rounded mb-2 animate-pulse"></div>
 				<div class="flex items-center text-xs text-muted-foreground">
-					<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
-					<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
-					<span class="h-3 w-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
+					<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+					<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+					<span class="h-3 w-6 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
 					<span
-						class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
+						class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"
 					></span>
 				</div>
 				<div class="flex flex-col gap-1 mt-2">
-					<div class="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
+					<div class="h-3 w-24 bg-gray-200 dark:bg-gray-900 rounded animate-pulse mb-1"></div>
 				</div>
 			</div>
 			<div class="min-w-7 h-7 mr-2 hidden group-hover:flex">
-				<div class="size-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+				<div class="size-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"></div>
 			</div>
 		</div>
 	</div>

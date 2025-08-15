@@ -8,6 +8,7 @@ import {
 } from '../queries/get-user-spaces-with-members';
 import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
 import type { RecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+import { getPlanMeals } from '$lib/features/plans/queries/get-plan-meals';
 
 const activeSpaceIdState = createPersistentState('active-space-id', undefined);
 
@@ -41,7 +42,7 @@ class ActiveSpaceState {
 	);
 
 	/** TODO The active space's meal plan. Contains a list of recipes to cook */
-	activePlan: { recipe: RecipeDetailed; servings: number }[] | undefined = $state([]);
+	activePlan: Tables<'space_plan_meals'>[] | undefined = $state([]);
 
 	constructor(userState: UserState) {
 		this._userState = userState;
@@ -69,10 +70,26 @@ class ActiveSpaceState {
 						// Filter out any null profiles just to make TypeScript happy
 						this.friendProfiles = profiles.filter((profile) => profile !== null);
 					});
+
+				// Fetch the active plan meals for the active space
+				this.refreshActivePlan();
 			} else {
 				this.userSpaces = null;
 			}
 		});
+	}
+
+	/** Fetches the active plan meals for the current active space */
+	async refreshActivePlan() {
+		if (!this.id) return;
+
+		try {
+			const meals = await getPlanMeals(this.id);
+			this.activePlan = meals || [];
+		} catch (error) {
+			console.error('Error refreshing active plan meals:', error);
+			this.activePlan = [];
+		}
 	}
 }
 

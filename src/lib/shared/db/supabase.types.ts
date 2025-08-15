@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
+          variables?: Json
           operationName?: string
           query?: string
-          variables?: Json
+          extensions?: Json
         }
         Returns: Json
       }
@@ -431,13 +431,6 @@ export type Database = {
             referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "recipe_tools_tool_id_fkey"
-            columns: ["tool_id"]
-            isOneToOne: false
-            referencedRelation: "tools"
-            referencedColumns: ["id"]
-          },
         ]
       }
       recipes: {
@@ -548,6 +541,51 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "space_members_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      space_plan_meals: {
+        Row: {
+          created_at: string | null
+          id: string
+          position: number
+          recipe_id: string
+          servings: number
+          space_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          position?: number
+          recipe_id: string
+          servings?: number
+          space_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          position?: number
+          recipe_id?: string
+          servings?: number
+          space_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_plan_meals_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_plan_meals_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
@@ -814,7 +852,9 @@ export type Database = {
         Returns: string
       }
       match_ingredient: {
-        Args: { query: string; lang: string; n_matches?: number }
+        Args:
+          | { lang: string; query: string }
+          | { lang: string; query: string; n_matches?: number }
         Returns: {
           commonly_used: Database["public"]["Enums"]["commonly_used_level"]
           fts: unknown | null
@@ -838,7 +878,7 @@ export type Database = {
         Returns: string[]
       }
       slugify: {
-        Args: { max_length?: number; value: string }
+        Args: { value: string; max_length?: number }
         Returns: string
       }
       sparsevec_out: {
