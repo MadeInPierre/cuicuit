@@ -6,9 +6,21 @@ export async function getPlanMeals(spaceId: string) {
 
 	const { data, error } = await supabase
 		.from('space_plan_meals')
-		.select('*')
+		.select(
+			`*,
+			ingredients:space_plan_shopping_lists(
+				*,
+				ingredient:ingredients(
+					*,
+					translations:ingredient_translations(*)
+				)
+			)`
+		)
 		.eq('space_id', spaceId);
 
-	if (error) throw new Error('Error fetching plan meals: ' + error.message);
-	return data;
+	return { data, error };
 }
+
+export type MealWithIngredients = NonNullable<
+	Awaited<ReturnType<typeof getPlanMeals>>['data']
+>[number];

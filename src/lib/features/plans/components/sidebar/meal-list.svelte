@@ -5,7 +5,7 @@
 	import { dndzone } from 'svelte-dnd-action';
 	import { updateMealPosition } from '../../actions/update-meal';
 	import { toast } from 'svelte-sonner';
-	import type { Tables } from '$lib/shared/db/supabase.types';
+	import type { MealWithIngredients } from '../../queries/get-plan-meals';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -15,7 +15,7 @@
 
 	const flipDurationMs = 220;
 
-	function updateLocalMealPositions(items: Tables<'space_plan_meals'>[]) {
+	function updateLocalMealPositions(items: MealWithIngredients[]) {
 		if (!activeSpace.activePlan) return;
 		activeSpace.activePlan = items.map((meal, index) => ({
 			...meal,
@@ -23,15 +23,15 @@
 		}));
 	}
 
-	function handleDndConsider(e: { detail: { items: Tables<'space_plan_meals'>[] } }) {
-		if (e.detail.items.length === 0) return;
+	function handleDndConsider(e: { detail: { items: MealWithIngredients[] } }) {
+		if (e.detail.items.length < 2) return;
 
 		// Update the local state with the new order
 		updateLocalMealPositions(e.detail.items);
 	}
 
-	async function handleDndFinalize(e: { detail: { items: Tables<'space_plan_meals'>[] } }) {
-		if (e.detail.items.length === 0) return;
+	async function handleDndFinalize(e: { detail: { items: MealWithIngredients[] } }) {
+		if (e.detail.items.length < 2) return;
 
 		// Update the local state with the new order
 		updateLocalMealPositions(e.detail.items);
@@ -48,7 +48,7 @@
 		await activeSpace.refreshActivePlan();
 
 		// Dismiss the loading toast
-		toast.success('Meal positions updated!', { id: toastId, duration: 3000 });
+		toast.success('Meals reordered!', { id: toastId, duration: 3000 });
 	}
 </script>
 
@@ -56,7 +56,7 @@
 	use:dndzone={{ items: meals, flipDurationMs }}
 	onconsider={handleDndConsider}
 	onfinalize={handleDndFinalize}
-	class="grid space-y-2 m-2 ml-1"
+	class="grid space-y-2 m-4 rounded-sm"
 >
 	{#each meals as meal (meal.id)}
 		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5">
