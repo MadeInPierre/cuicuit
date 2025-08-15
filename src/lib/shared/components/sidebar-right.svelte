@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Calendars from '$lib/shared/components/calendars.svelte';
 	import DatePicker from '$lib/shared/components/date-picker.svelte';
-	import RecipeList from '$lib/features/plans/components/sidebar/recipe-list.svelte';
+	import RecipeList from '$lib/features/plans/components/sidebar/meal-list.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { ArrowRight, Calendar, ChefHat, ScrollText } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
