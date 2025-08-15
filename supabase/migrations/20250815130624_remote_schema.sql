@@ -31,6 +31,13 @@ CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "extensions";
 
 
 
+CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "public";
+
+
+
+
+
+
 CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
 
 
@@ -205,6 +212,184 @@ CREATE TYPE "public"."supermarket_aisle" AS ENUM (
 
 ALTER TYPE "public"."supermarket_aisle" OWNER TO "postgres";
 
+SET default_tablespace = '';
+
+SET default_table_access_method = "heap";
+
+
+CREATE TABLE IF NOT EXISTS "public"."ingredient_translations" (
+    "ingredient_id" "uuid" NOT NULL,
+    "language_id" integer NOT NULL,
+    "name_singular" character varying(255),
+    "name_plural" character varying(255),
+    "name_general" character varying(255) NOT NULL,
+    "commonly_used" "public"."commonly_used_level" DEFAULT 'occasionally'::"public"."commonly_used_level" NOT NULL,
+    "fts" "tsvector",
+    CONSTRAINT "ingredient_translations_check" CHECK (((("name_singular")::"text" <> ''::"text") AND (("name_plural")::"text" <> ''::"text") AND (("name_general")::"text" <> ''::"text")))
+);
+
+
+ALTER TABLE "public"."ingredient_translations" OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."match_ingredient"("query" "text", "lang" "text") RETURNS SETOF "public"."ingredient_translations"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+DECLARE
+    l_id INTEGER := (SELECT id FROM public.languages AS l WHERE l.lang = match_ingredient.lang);
+    match_found BOOLEAN := FALSE;
+    similarity_threshold FLOAT := 0.35; -- set your desired threshold here
+    result public.ingredient_translations%ROWTYPE;
+BEGIN
+    -- If the language is not found, return immediately
+    IF l_id IS NULL THEN
+        RETURN;
+    END IF;
+
+    -- Stage 1: Exact match on name_singular, name_plural, or name_general
+    SELECT *
+    INTO result
+    FROM public.ingredient_translations
+    WHERE
+        public.ingredient_translations.language_id = l_id AND
+        lower(query) IN (lower(name_singular), lower(name_plural), lower(name_general))
+    LIMIT 1;
+
+    IF FOUND THEN
+        match_found := TRUE;
+        RETURN NEXT result;
+    END IF;
+
+    -- Stage 2: If no exact match, use Full-Text Search
+    IF NOT match_found THEN
+        SELECT *
+        INTO result
+        FROM public.ingredient_translations
+        WHERE
+            public.ingredient_translations.language_id = l_id AND
+            fts @@ websearch_to_tsquery('english', query)
+        ORDER BY
+            ts_rank(fts, websearch_to_tsquery('english', query)) DESC
+        LIMIT 1;
+
+        IF FOUND THEN
+            match_found := TRUE;
+            RETURN NEXT result;
+        END IF;
+    END IF;
+
+    -- Stage 3: If still no match, use fuzzy trigram similarity
+    IF NOT match_found THEN
+        SELECT *
+        INTO result
+        FROM public.ingredient_translations
+        WHERE
+            public.ingredient_translations.language_id = l_id 
+        ORDER BY
+            greatest(
+                similarity(name_singular, query),
+                similarity(name_plural, query),
+                similarity(name_general, query)
+            ) DESC
+        LIMIT 1;
+
+        -- We require a minimum similarity threshold to avoid bad matches
+        IF FOUND AND greatest(similarity(result.name_singular, query), similarity(result.name_plural, query), similarity(result.name_general, query)) > similarity_threshold THEN
+            RETURN NEXT result;
+        END IF;
+    END IF;
+
+    -- If no match is found at any stage, the function returns an empty set
+    RETURN;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."match_ingredient"("query" "text", "lang" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."match_ingredient"("query" "text", "lang" "text", "n_matches" integer DEFAULT 5) RETURNS SETOF "public"."ingredient_translations"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    l_id INTEGER := (SELECT id FROM public.languages AS l WHERE l.lang = match_ingredient.lang);
+    match_found BOOLEAN := FALSE;
+    similarity_threshold FLOAT := 0.35; -- set your desired threshold here
+    result public.ingredient_translations%ROWTYPE;
+    matches RECORD;
+BEGIN
+    -- If the language is not found, return immediately
+    IF l_id IS NULL THEN
+        RETURN;
+    END IF;
+
+
+    -- Stage 1: Exact match on name_singular, name_plural, or name_general
+    FOR matches IN
+        SELECT *
+        FROM public.ingredient_translations
+        WHERE
+            public.ingredient_translations.language_id = l_id AND
+            lower(query) IN (lower(name_singular), lower(name_plural), lower(name_general))
+        ORDER BY LEAST(length(name_singular), length(name_plural), length(name_general)) ASC
+        LIMIT n_matches
+    LOOP
+        match_found := TRUE;
+        RETURN NEXT matches;
+    END LOOP;
+
+
+    -- Stage 2: If no exact match, use Full-Text Search
+    IF NOT match_found THEN
+        FOR matches IN
+            SELECT *
+            FROM public.ingredient_translations
+            WHERE
+                public.ingredient_translations.language_id = l_id AND
+                fts @@ websearch_to_tsquery('english', query)
+            ORDER BY
+                ts_rank(fts, websearch_to_tsquery('english', query)) DESC,
+                LEAST(length(name_singular), length(name_plural), length(name_general)) ASC
+            LIMIT n_matches
+        LOOP
+            match_found := TRUE;
+            RETURN NEXT matches;
+        END LOOP;
+    END IF;
+
+
+    -- Stage 3: If still no match, use fuzzy trigram similarity
+    IF NOT match_found THEN
+        FOR matches IN
+            SELECT *
+            FROM public.ingredient_translations
+            WHERE
+                public.ingredient_translations.language_id = l_id 
+            ORDER BY
+                greatest(
+                    similarity(name_singular, query),
+                    similarity(name_plural, query),
+                    similarity(name_general, query)
+                ) DESC,
+                LEAST(length(name_singular), length(name_plural), length(name_general)) ASC
+            LIMIT n_matches
+        LOOP
+            -- We require a minimum similarity threshold to avoid bad matches
+            IF greatest(similarity(matches.name_singular, query), similarity(matches.name_plural, query), similarity(matches.name_general, query)) > similarity_threshold THEN
+                RETURN NEXT matches;
+            END IF;
+        END LOOP;
+    END IF;
+
+    -- If no match is found at any stage, the function returns an empty set
+    RETURN;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."match_ingredient"("query" "text", "lang" "text", "n_matches" integer) OWNER TO "postgres";
+
 
 CREATE OR REPLACE FUNCTION "public"."set_unique_slug_from_name"() RETURNS "trigger"
     LANGUAGE "plpgsql"
@@ -278,6 +463,23 @@ $_$;
 ALTER FUNCTION "public"."slugify"("value" "text", "max_length" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_ingredient_fts"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    NEW.fts := to_tsvector('english',
+        coalesce(NEW.name_singular, '') || ' ' ||
+        coalesce(NEW.name_plural, '') || ' ' ||
+        coalesce(NEW.name_general, '')
+    );
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_ingredient_fts"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -290,60 +492,22 @@ $$;
 
 ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
 
-SET default_tablespace = '';
-
-SET default_table_access_method = "heap";
-
 
 CREATE TABLE IF NOT EXISTS "public"."courses" (
-    "id" integer NOT NULL,
-    "name" character varying(50) NOT NULL
+    "id" "text" NOT NULL
 );
 
 
 ALTER TABLE "public"."courses" OWNER TO "postgres";
 
 
-CREATE SEQUENCE IF NOT EXISTS "public"."courses_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE "public"."courses_id_seq" OWNER TO "postgres";
-
-
-ALTER SEQUENCE "public"."courses_id_seq" OWNED BY "public"."courses"."id";
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."cuisines" (
-    "id" integer NOT NULL,
-    "name" character varying(50) NOT NULL,
-    "region" "public"."recipe_region" NOT NULL
+    "id" "text" NOT NULL,
+    "region" "text"
 );
 
 
 ALTER TABLE "public"."cuisines" OWNER TO "postgres";
-
-
-CREATE SEQUENCE IF NOT EXISTS "public"."cuisines_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE "public"."cuisines_id_seq" OWNER TO "postgres";
-
-
-ALTER SEQUENCE "public"."cuisines_id_seq" OWNED BY "public"."cuisines"."id";
-
 
 
 CREATE TABLE IF NOT EXISTS "public"."ingredient_substitutions" (
@@ -358,20 +522,6 @@ CREATE TABLE IF NOT EXISTS "public"."ingredient_substitutions" (
 
 
 ALTER TABLE "public"."ingredient_substitutions" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."ingredient_translations" (
-    "ingredient_id" "uuid" NOT NULL,
-    "language_id" integer NOT NULL,
-    "name_singular" character varying(255),
-    "name_plural" character varying(255),
-    "name_general" character varying(255) NOT NULL,
-    "commonly_used" "public"."commonly_used_level" DEFAULT 'occasionally'::"public"."commonly_used_level" NOT NULL,
-    CONSTRAINT "ingredient_translations_check" CHECK (((("name_singular")::"text" <> ''::"text") AND (("name_plural")::"text" <> ''::"text") AND (("name_general")::"text" <> ''::"text")))
-);
-
-
-ALTER TABLE "public"."ingredient_translations" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."ingredients" (
@@ -452,34 +602,9 @@ ALTER SEQUENCE "public"."languages_id_seq" OWNED BY "public"."languages"."id";
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."meal_types" (
-    "id" integer NOT NULL,
-    "name" character varying(50) NOT NULL
-);
-
-
-ALTER TABLE "public"."meal_types" OWNER TO "postgres";
-
-
-CREATE SEQUENCE IF NOT EXISTS "public"."meal_types_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE "public"."meal_types_id_seq" OWNER TO "postgres";
-
-
-ALTER SEQUENCE "public"."meal_types_id_seq" OWNED BY "public"."meal_types"."id";
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."recipe_courses" (
     "recipe_id" "uuid" NOT NULL,
-    "course_id" integer NOT NULL
+    "course_id" "text" NOT NULL
 );
 
 
@@ -488,7 +613,7 @@ ALTER TABLE "public"."recipe_courses" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."recipe_cuisines" (
     "recipe_id" "uuid" NOT NULL,
-    "cuisine_id" integer NOT NULL
+    "cuisine_id" "text" NOT NULL
 );
 
 
@@ -500,20 +625,15 @@ CREATE TABLE IF NOT EXISTS "public"."recipe_ingredients" (
     "ingredient_id" "uuid" NOT NULL,
     "quantity" numeric(10,2),
     "unit" character varying(50),
-    "notes" "text"
+    "notes" "text",
+    "details" "text",
+    "raw_input" "text" NOT NULL,
+    CONSTRAINT "recipe_ingredients_details_check" CHECK (("length"("details") <= 60)),
+    CONSTRAINT "recipe_ingredients_raw_input_check" CHECK (("length"("raw_input") <= 120))
 );
 
 
 ALTER TABLE "public"."recipe_ingredients" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."recipe_meal_types" (
-    "recipe_id" "uuid" NOT NULL,
-    "meal_type_id" integer NOT NULL
-);
-
-
-ALTER TABLE "public"."recipe_meal_types" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."recipe_tags" (
@@ -525,9 +645,18 @@ CREATE TABLE IF NOT EXISTS "public"."recipe_tags" (
 ALTER TABLE "public"."recipe_tags" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."recipe_times_of_day" (
+    "recipe_id" "uuid" NOT NULL,
+    "timeofday_id" "text" NOT NULL
+);
+
+
+ALTER TABLE "public"."recipe_times_of_day" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."recipe_tools" (
     "recipe_id" "uuid" NOT NULL,
-    "tool_id" integer NOT NULL
+    "tool_id" "text" NOT NULL
 );
 
 
@@ -556,12 +685,40 @@ CREATE TABLE IF NOT EXISTS "public"."recipes" (
     "cleanup_level" "public"."cleanup_level" NOT NULL,
     "cost_level" "public"."cost_level" NOT NULL,
     "servings" smallint NOT NULL,
+    "steps" "text"[],
     CONSTRAINT "recipes_servings_check" CHECK (("servings" > 0)),
     CONSTRAINT "recipes_time_total_minutes_check" CHECK (("time_total_minutes" >= 0))
 );
 
 
 ALTER TABLE "public"."recipes" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."space_members" (
+    "space_id" "uuid" NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "theme" "text" NOT NULL
+);
+
+
+ALTER TABLE "public"."space_members" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."spaces" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "name" "text" NOT NULL,
+    "icon" "text" NOT NULL,
+    "locale" "text" NOT NULL,
+    "initial_theme" "text" NOT NULL,
+    "author_id" "uuid" NOT NULL
+);
+
+
+ALTER TABLE "public"."spaces" OWNER TO "postgres";
 
 
 CREATE MATERIALIZED VIEW "public"."supermarket_aisles" AS
@@ -598,44 +755,49 @@ ALTER SEQUENCE "public"."tags_id_seq" OWNED BY "public"."tags"."id";
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."times_of_day" (
+    "id" "text" NOT NULL
+);
+
+
+ALTER TABLE "public"."times_of_day" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."tools" (
-    "id" integer NOT NULL,
-    "name" character varying(100) NOT NULL
+    "id" "text" NOT NULL
 );
 
 
 ALTER TABLE "public"."tools" OWNER TO "postgres";
 
 
-CREATE SEQUENCE IF NOT EXISTS "public"."tools_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE TABLE IF NOT EXISTS "public"."user_preferences" (
+    "user_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "first_name" "text" NOT NULL,
+    "last_name" "text" NOT NULL,
+    "onboarding_status" "text" DEFAULT 'not-started'::"text" NOT NULL
+);
 
 
-ALTER SEQUENCE "public"."tools_id_seq" OWNER TO "postgres";
+ALTER TABLE "public"."user_preferences" OWNER TO "postgres";
 
 
-ALTER SEQUENCE "public"."tools_id_seq" OWNED BY "public"."tools"."id";
+CREATE TABLE IF NOT EXISTS "public"."user_public_profiles" (
+    "user_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "user_name" "text" NOT NULL,
+    "icon" "text" NOT NULL,
+    "image_url" "text"
+);
 
 
-
-ALTER TABLE ONLY "public"."courses" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."courses_id_seq"'::"regclass");
-
-
-
-ALTER TABLE ONLY "public"."cuisines" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."cuisines_id_seq"'::"regclass");
-
+ALTER TABLE "public"."user_public_profiles" OWNER TO "postgres";
 
 
 ALTER TABLE ONLY "public"."languages" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."languages_id_seq"'::"regclass");
-
-
-
-ALTER TABLE ONLY "public"."meal_types" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."meal_types_id_seq"'::"regclass");
 
 
 
@@ -643,22 +805,8 @@ ALTER TABLE ONLY "public"."tags" ALTER COLUMN "id" SET DEFAULT "nextval"('"publi
 
 
 
-ALTER TABLE ONLY "public"."tools" ALTER COLUMN "id" SET DEFAULT "nextval"('"public"."tools_id_seq"'::"regclass");
-
-
-
-ALTER TABLE ONLY "public"."courses"
-    ADD CONSTRAINT "courses_name_key" UNIQUE ("name");
-
-
-
 ALTER TABLE ONLY "public"."courses"
     ADD CONSTRAINT "courses_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."cuisines"
-    ADD CONSTRAINT "cuisines_name_key" UNIQUE ("name");
 
 
 
@@ -707,16 +855,6 @@ ALTER TABLE ONLY "public"."languages"
 
 
 
-ALTER TABLE ONLY "public"."meal_types"
-    ADD CONSTRAINT "meal_types_name_key" UNIQUE ("name");
-
-
-
-ALTER TABLE ONLY "public"."meal_types"
-    ADD CONSTRAINT "meal_types_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."recipe_courses"
     ADD CONSTRAINT "recipe_courses_pkey" PRIMARY KEY ("recipe_id", "course_id");
 
@@ -732,13 +870,13 @@ ALTER TABLE ONLY "public"."recipe_ingredients"
 
 
 
-ALTER TABLE ONLY "public"."recipe_meal_types"
-    ADD CONSTRAINT "recipe_meal_types_pkey" PRIMARY KEY ("recipe_id", "meal_type_id");
-
-
-
 ALTER TABLE ONLY "public"."recipe_tags"
     ADD CONSTRAINT "recipe_tags_pkey" PRIMARY KEY ("recipe_id", "tag_id");
+
+
+
+ALTER TABLE ONLY "public"."recipe_times_of_day"
+    ADD CONSTRAINT "recipe_times_of_day_pkey" PRIMARY KEY ("recipe_id", "timeofday_id");
 
 
 
@@ -757,6 +895,16 @@ ALTER TABLE ONLY "public"."recipes"
 
 
 
+ALTER TABLE ONLY "public"."space_members"
+    ADD CONSTRAINT "space_members_pkey" PRIMARY KEY ("space_id", "user_id");
+
+
+
+ALTER TABLE ONLY "public"."spaces"
+    ADD CONSTRAINT "spaces_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."tags"
     ADD CONSTRAINT "tags_name_key" UNIQUE ("name");
 
@@ -767,13 +915,23 @@ ALTER TABLE ONLY "public"."tags"
 
 
 
-ALTER TABLE ONLY "public"."tools"
-    ADD CONSTRAINT "tools_name_key" UNIQUE ("name");
+ALTER TABLE ONLY "public"."times_of_day"
+    ADD CONSTRAINT "times_of_day_pkey" PRIMARY KEY ("id");
 
 
 
 ALTER TABLE ONLY "public"."tools"
     ADD CONSTRAINT "tools_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_preferences"
+    ADD CONSTRAINT "user_preferences_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."user_public_profiles"
+    ADD CONSTRAINT "user_public_profiles_pkey" PRIMARY KEY ("user_id");
 
 
 
@@ -793,19 +951,11 @@ CREATE INDEX "idx_ingredients_slug_general" ON "public"."ingredients" USING "btr
 
 
 
-CREATE INDEX "idx_recipe_cuisines_cuisine_id" ON "public"."recipe_cuisines" USING "btree" ("cuisine_id");
-
-
-
 CREATE INDEX "idx_recipe_ingredients_ingredient_id" ON "public"."recipe_ingredients" USING "btree" ("ingredient_id");
 
 
 
 CREATE INDEX "idx_recipe_tags_tag_id" ON "public"."recipe_tags" USING "btree" ("tag_id");
-
-
-
-CREATE INDEX "idx_recipe_tools_tool_id" ON "public"."recipe_tools" USING "btree" ("tool_id");
 
 
 
@@ -817,7 +967,19 @@ CREATE INDEX "idx_recipes_total_time" ON "public"."recipes" USING "btree" ("time
 
 
 
+CREATE INDEX "ingredients_fts_idx" ON "public"."ingredient_translations" USING "gin" ("fts");
+
+
+
+CREATE INDEX "ingredients_trgm_idx" ON "public"."ingredient_translations" USING "gin" ("name_singular" "public"."gin_trgm_ops", "name_plural" "public"."gin_trgm_ops", "name_general" "public"."gin_trgm_ops");
+
+
+
 CREATE INDEX "ingredients_with_translations_lang_idx" ON "public"."ingredients_with_translations" USING "btree" ("lang");
+
+
+
+CREATE OR REPLACE TRIGGER "ingredient_translations_fts_update" BEFORE INSERT OR UPDATE ON "public"."ingredient_translations" FOR EACH ROW EXECUTE FUNCTION "public"."update_ingredient_fts"();
 
 
 
@@ -826,6 +988,22 @@ CREATE OR REPLACE TRIGGER "recipes_insert_slug" BEFORE INSERT ON "public"."recip
 
 
 CREATE OR REPLACE TRIGGER "update_recipes_updated_at" BEFORE UPDATE ON "public"."recipes" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_space_members_updated_at" BEFORE UPDATE ON "public"."space_members" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_spaces_updated_at" BEFORE UPDATE ON "public"."spaces" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_user_preferences_updated_at" BEFORE UPDATE ON "public"."user_preferences" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_user_public_profiles_updated_at" BEFORE UPDATE ON "public"."user_public_profiles" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
 
 
@@ -850,22 +1028,22 @@ ALTER TABLE ONLY "public"."ingredient_translations"
 
 
 ALTER TABLE ONLY "public"."recipe_courses"
-    ADD CONSTRAINT "recipe_courses_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "recipe_courses_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id");
 
 
 
 ALTER TABLE ONLY "public"."recipe_courses"
-    ADD CONSTRAINT "recipe_courses_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "recipe_courses_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id");
 
 
 
 ALTER TABLE ONLY "public"."recipe_cuisines"
-    ADD CONSTRAINT "recipe_cuisines_cuisine_id_fkey" FOREIGN KEY ("cuisine_id") REFERENCES "public"."cuisines"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "recipe_cuisines_cuisine_id_fkey" FOREIGN KEY ("cuisine_id") REFERENCES "public"."cuisines"("id");
 
 
 
 ALTER TABLE ONLY "public"."recipe_cuisines"
-    ADD CONSTRAINT "recipe_cuisines_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "recipe_cuisines_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id");
 
 
 
@@ -879,16 +1057,6 @@ ALTER TABLE ONLY "public"."recipe_ingredients"
 
 
 
-ALTER TABLE ONLY "public"."recipe_meal_types"
-    ADD CONSTRAINT "recipe_meal_types_meal_type_id_fkey" FOREIGN KEY ("meal_type_id") REFERENCES "public"."meal_types"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."recipe_meal_types"
-    ADD CONSTRAINT "recipe_meal_types_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."recipe_tags"
     ADD CONSTRAINT "recipe_tags_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id") ON DELETE CASCADE;
 
@@ -899,13 +1067,18 @@ ALTER TABLE ONLY "public"."recipe_tags"
 
 
 
-ALTER TABLE ONLY "public"."recipe_tools"
-    ADD CONSTRAINT "recipe_tools_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."recipe_times_of_day"
+    ADD CONSTRAINT "recipe_times_of_day_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id");
+
+
+
+ALTER TABLE ONLY "public"."recipe_times_of_day"
+    ADD CONSTRAINT "recipe_times_of_day_timeofday_id_fkey" FOREIGN KEY ("timeofday_id") REFERENCES "public"."times_of_day"("id");
 
 
 
 ALTER TABLE ONLY "public"."recipe_tools"
-    ADD CONSTRAINT "recipe_tools_tool_id_fkey" FOREIGN KEY ("tool_id") REFERENCES "public"."tools"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "recipe_tools_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes"("id");
 
 
 
@@ -919,6 +1092,31 @@ ALTER TABLE ONLY "public"."recipes"
 
 
 
+ALTER TABLE ONLY "public"."space_members"
+    ADD CONSTRAINT "space_members_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "public"."spaces"("id");
+
+
+
+ALTER TABLE ONLY "public"."space_members"
+    ADD CONSTRAINT "space_members_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."spaces"
+    ADD CONSTRAINT "spaces_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_preferences"
+    ADD CONSTRAINT "user_preferences_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."user_public_profiles"
+    ADD CONSTRAINT "user_public_profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
+
+
+
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
@@ -928,6 +1126,20 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_in"("cstring") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_in"("cstring") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_in"("cstring") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_in"("cstring") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_out"("public"."gtrgm") TO "service_role";
 
 
 
@@ -1382,6 +1594,97 @@ GRANT ALL ON FUNCTION "public"."cosine_distance"("public"."vector", "public"."ve
 
 
 
+GRANT ALL ON FUNCTION "public"."gin_extract_query_trgm"("text", "internal", smallint, "internal", "internal", "internal", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gin_extract_query_trgm"("text", "internal", smallint, "internal", "internal", "internal", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gin_extract_query_trgm"("text", "internal", smallint, "internal", "internal", "internal", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gin_extract_query_trgm"("text", "internal", smallint, "internal", "internal", "internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gin_extract_value_trgm"("text", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gin_extract_value_trgm"("text", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gin_extract_value_trgm"("text", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gin_extract_value_trgm"("text", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gin_trgm_consistent"("internal", smallint, "text", integer, "internal", "internal", "internal", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gin_trgm_consistent"("internal", smallint, "text", integer, "internal", "internal", "internal", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gin_trgm_consistent"("internal", smallint, "text", integer, "internal", "internal", "internal", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gin_trgm_consistent"("internal", smallint, "text", integer, "internal", "internal", "internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gin_trgm_triconsistent"("internal", smallint, "text", integer, "internal", "internal", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gin_trgm_triconsistent"("internal", smallint, "text", integer, "internal", "internal", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gin_trgm_triconsistent"("internal", smallint, "text", integer, "internal", "internal", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gin_trgm_triconsistent"("internal", smallint, "text", integer, "internal", "internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_compress"("internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_compress"("internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_compress"("internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_compress"("internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_consistent"("internal", "text", smallint, "oid", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_consistent"("internal", "text", smallint, "oid", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_consistent"("internal", "text", smallint, "oid", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_consistent"("internal", "text", smallint, "oid", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_decompress"("internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_decompress"("internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_decompress"("internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_decompress"("internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_distance"("internal", "text", smallint, "oid", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_distance"("internal", "text", smallint, "oid", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_distance"("internal", "text", smallint, "oid", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_distance"("internal", "text", smallint, "oid", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_options"("internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_options"("internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_options"("internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_options"("internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_penalty"("internal", "internal", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_penalty"("internal", "internal", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_penalty"("internal", "internal", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_penalty"("internal", "internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_picksplit"("internal", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_picksplit"("internal", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_picksplit"("internal", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_picksplit"("internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_same"("public"."gtrgm", "public"."gtrgm", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_same"("public"."gtrgm", "public"."gtrgm", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_same"("public"."gtrgm", "public"."gtrgm", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_same"("public"."gtrgm", "public"."gtrgm", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."gtrgm_union"("internal", "internal") TO "postgres";
+GRANT ALL ON FUNCTION "public"."gtrgm_union"("internal", "internal") TO "anon";
+GRANT ALL ON FUNCTION "public"."gtrgm_union"("internal", "internal") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."gtrgm_union"("internal", "internal") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."halfvec_accum"(double precision[], "public"."halfvec") TO "postgres";
 GRANT ALL ON FUNCTION "public"."halfvec_accum"(double precision[], "public"."halfvec") TO "anon";
 GRANT ALL ON FUNCTION "public"."halfvec_accum"(double precision[], "public"."halfvec") TO "authenticated";
@@ -1662,9 +1965,69 @@ GRANT ALL ON FUNCTION "public"."l2_normalize"("public"."vector") TO "service_rol
 
 
 
+GRANT ALL ON TABLE "public"."ingredient_translations" TO "anon";
+GRANT ALL ON TABLE "public"."ingredient_translations" TO "authenticated";
+GRANT ALL ON TABLE "public"."ingredient_translations" TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."match_ingredient"("query" "text", "lang" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."match_ingredient"("query" "text", "lang" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."match_ingredient"("query" "text", "lang" "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."match_ingredient"("query" "text", "lang" "text", "n_matches" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."match_ingredient"("query" "text", "lang" "text", "n_matches" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."match_ingredient"("query" "text", "lang" "text", "n_matches" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."set_limit"(real) TO "postgres";
+GRANT ALL ON FUNCTION "public"."set_limit"(real) TO "anon";
+GRANT ALL ON FUNCTION "public"."set_limit"(real) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."set_limit"(real) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."set_unique_slug_from_name"() TO "anon";
 GRANT ALL ON FUNCTION "public"."set_unique_slug_from_name"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_unique_slug_from_name"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."show_limit"() TO "postgres";
+GRANT ALL ON FUNCTION "public"."show_limit"() TO "anon";
+GRANT ALL ON FUNCTION "public"."show_limit"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."show_limit"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."show_trgm"("text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."show_trgm"("text") TO "anon";
+GRANT ALL ON FUNCTION "public"."show_trgm"("text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."show_trgm"("text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."similarity"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."similarity"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."similarity"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."similarity"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."similarity_dist"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."similarity_dist"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."similarity_dist"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."similarity_dist"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."similarity_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."similarity_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."similarity_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."similarity_op"("text", "text") TO "service_role";
 
 
 
@@ -1737,6 +2100,41 @@ GRANT ALL ON FUNCTION "public"."sparsevec_negative_inner_product"("public"."spar
 
 
 
+GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_commutator_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_commutator_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_commutator_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_commutator_op"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_commutator_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_commutator_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_commutator_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_commutator_op"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_dist_op"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."strict_word_similarity_op"("text", "text") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."subvector"("public"."halfvec", integer, integer) TO "postgres";
 GRANT ALL ON FUNCTION "public"."subvector"("public"."halfvec", integer, integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."subvector"("public"."halfvec", integer, integer) TO "authenticated";
@@ -1776,6 +2174,12 @@ GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "intern
 GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "internal", "internal") TO "anon";
 GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "internal", "internal") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."unaccent_lexize"("internal", "internal", "internal", "internal") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_ingredient_fts"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_ingredient_fts"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_ingredient_fts"() TO "service_role";
 
 
 
@@ -1925,6 +2329,41 @@ GRANT ALL ON FUNCTION "public"."vector_sub"("public"."vector", "public"."vector"
 
 
 
+GRANT ALL ON FUNCTION "public"."word_similarity"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."word_similarity"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."word_similarity"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."word_similarity"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."word_similarity_commutator_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."word_similarity_commutator_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."word_similarity_commutator_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."word_similarity_commutator_op"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_commutator_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_commutator_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_commutator_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_commutator_op"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."word_similarity_dist_op"("text", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."word_similarity_op"("text", "text") TO "postgres";
+GRANT ALL ON FUNCTION "public"."word_similarity_op"("text", "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."word_similarity_op"("text", "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."word_similarity_op"("text", "text") TO "service_role";
+
+
+
 
 
 
@@ -1974,33 +2413,15 @@ GRANT ALL ON TABLE "public"."courses" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."courses_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."courses_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."courses_id_seq" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."cuisines" TO "anon";
 GRANT ALL ON TABLE "public"."cuisines" TO "authenticated";
 GRANT ALL ON TABLE "public"."cuisines" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."cuisines_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."cuisines_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."cuisines_id_seq" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."ingredient_substitutions" TO "anon";
 GRANT ALL ON TABLE "public"."ingredient_substitutions" TO "authenticated";
 GRANT ALL ON TABLE "public"."ingredient_substitutions" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."ingredient_translations" TO "anon";
-GRANT ALL ON TABLE "public"."ingredient_translations" TO "authenticated";
-GRANT ALL ON TABLE "public"."ingredient_translations" TO "service_role";
 
 
 
@@ -2028,18 +2449,6 @@ GRANT ALL ON SEQUENCE "public"."languages_id_seq" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."meal_types" TO "anon";
-GRANT ALL ON TABLE "public"."meal_types" TO "authenticated";
-GRANT ALL ON TABLE "public"."meal_types" TO "service_role";
-
-
-
-GRANT ALL ON SEQUENCE "public"."meal_types_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."meal_types_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."meal_types_id_seq" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."recipe_courses" TO "anon";
 GRANT ALL ON TABLE "public"."recipe_courses" TO "authenticated";
 GRANT ALL ON TABLE "public"."recipe_courses" TO "service_role";
@@ -2058,15 +2467,15 @@ GRANT ALL ON TABLE "public"."recipe_ingredients" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."recipe_meal_types" TO "anon";
-GRANT ALL ON TABLE "public"."recipe_meal_types" TO "authenticated";
-GRANT ALL ON TABLE "public"."recipe_meal_types" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."recipe_tags" TO "anon";
 GRANT ALL ON TABLE "public"."recipe_tags" TO "authenticated";
 GRANT ALL ON TABLE "public"."recipe_tags" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."recipe_times_of_day" TO "anon";
+GRANT ALL ON TABLE "public"."recipe_times_of_day" TO "authenticated";
+GRANT ALL ON TABLE "public"."recipe_times_of_day" TO "service_role";
 
 
 
@@ -2079,6 +2488,18 @@ GRANT ALL ON TABLE "public"."recipe_tools" TO "service_role";
 GRANT ALL ON TABLE "public"."recipes" TO "anon";
 GRANT ALL ON TABLE "public"."recipes" TO "authenticated";
 GRANT ALL ON TABLE "public"."recipes" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."space_members" TO "anon";
+GRANT ALL ON TABLE "public"."space_members" TO "authenticated";
+GRANT ALL ON TABLE "public"."space_members" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."spaces" TO "anon";
+GRANT ALL ON TABLE "public"."spaces" TO "authenticated";
+GRANT ALL ON TABLE "public"."spaces" TO "service_role";
 
 
 
@@ -2100,15 +2521,27 @@ GRANT ALL ON SEQUENCE "public"."tags_id_seq" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."times_of_day" TO "anon";
+GRANT ALL ON TABLE "public"."times_of_day" TO "authenticated";
+GRANT ALL ON TABLE "public"."times_of_day" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."tools" TO "anon";
 GRANT ALL ON TABLE "public"."tools" TO "authenticated";
 GRANT ALL ON TABLE "public"."tools" TO "service_role";
 
 
 
-GRANT ALL ON SEQUENCE "public"."tools_id_seq" TO "anon";
-GRANT ALL ON SEQUENCE "public"."tools_id_seq" TO "authenticated";
-GRANT ALL ON SEQUENCE "public"."tools_id_seq" TO "service_role";
+GRANT ALL ON TABLE "public"."user_preferences" TO "anon";
+GRANT ALL ON TABLE "public"."user_preferences" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_preferences" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_public_profiles" TO "anon";
+GRANT ALL ON TABLE "public"."user_public_profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_public_profiles" TO "service_role";
 
 
 
