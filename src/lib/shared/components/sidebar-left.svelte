@@ -7,7 +7,7 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import type { ComponentProps } from 'svelte';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
-	import { ChefHat, Megaphone, Notebook, Refrigerator, Send, ShoppingCart } from 'lucide-svelte';
+	import { BotMessageSquare, ChefHat, Megaphone, Notebook, Refrigerator, Send, ShoppingCart } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import NavUser from './nav-user.svelte';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
@@ -40,10 +40,16 @@
 				isActive: page.url.pathname.startsWith('/pantry')
 			},
 			{
-				title: 'Cookbook',
-				url: '/cookbook',
+				title: 'Cookbooks',
+				url: '/cookbooks',
 				icon: Notebook,
-				isActive: page.url.pathname.startsWith('/cookbook')
+				isActive: page.url.pathname.startsWith('/cookbooks')
+			},
+			{
+				title: 'Chat',
+				url: '/chat',
+				icon: BotMessageSquare,
+				isActive: page.url.pathname.startsWith('/chat')
 			}
 		],
 		navSecondary: [
