@@ -27,7 +27,7 @@
 	import { capitalize } from '$lib/utils';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import {
 		getRecipeDetailed,
 		type RecipeDetailedWithAuthor
@@ -115,7 +115,7 @@
 									<Carousel.Item>
 										<Card.Root>
 											<img
-												src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${pageRecipeId}/${imgId}`}
+												src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${pageRecipeId}/${imgId}`}
 												alt="Recipe"
 												class="w-full aspect-[1.618] object-cover rounded-md"
 											/>
@@ -267,11 +267,7 @@
 									size="sm"
 									type="submit"
 									class="flex gap-2 ml-auto"
-									onclick={() => {
-										// TODO
-										if (!recipe || !activeSpace || activeSpace.activePlan === undefined) return;
-										addRecipeToActivePlan(activeSpace, recipe, 1);
-									}}
+									onclick={() => recipe && addRecipeToActivePlan(activeSpace, recipe.id, 1)}
 								>
 									<CalendarPlus class="size-4" />
 									Add meal

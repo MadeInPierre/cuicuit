@@ -37,7 +37,7 @@
 {#if recipe}
 	<div
 		class={cn(
-			'w-52 group flex flex-col items-start bg-white dark:bg-muted rounded-md border shadow-sm hover:shadow-lg transition-shadow',
+			'w-52 group flex flex-col items-start bg-white dark:bg-muted rounded-md hover:shadow-lg transition-shadow',
 			className
 		)}
 	>

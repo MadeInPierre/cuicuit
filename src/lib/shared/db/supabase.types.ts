@@ -593,6 +593,80 @@ export type Database = {
           },
         ]
       }
+      space_plan_shopping_lists: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          ingredient_id: string | null
+          meal_id: string | null
+          meal_origin: string | null
+          name: string | null
+          quantity: number
+          space_id: string
+          type: string
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          ingredient_id?: string | null
+          meal_id?: string | null
+          meal_origin?: string | null
+          name?: string | null
+          quantity?: number
+          space_id: string
+          type: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          ingredient_id?: string | null
+          meal_id?: string | null
+          meal_origin?: string | null
+          name?: string | null
+          quantity?: number
+          space_id?: string
+          type?: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_plan_shopping_lists_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_plan_shopping_lists_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_plan_shopping_lists_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "space_plan_meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_plan_shopping_lists_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spaces: {
         Row: {
           author_id: string

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { CheckCheck, Minus, Plus, Trash2, Users } from 'lucide-svelte';
+	import { CheckCheck, Minus, Pencil, Plus, Trash2, Users } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
-	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { slide } from 'svelte/transition';
@@ -12,11 +11,12 @@
 	import { onMount } from 'svelte';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import type { MealWithIngredients } from '../queries/get-plan-meals';
 
 	const activeSpace = getActiveSpaceState();
 
 	interface Props {
-		meal?: Tables<'space_plan_meals'> | null; // Allow recipe to be null for loading state
+		meal?: MealWithIngredients | null; // Allow recipe to be null for loading state
 		class?: string;
 	}
 
@@ -131,10 +131,41 @@
 
 		{#if expanded}
 			<div
-				class="w-full bg-muted rounded-b-sm px-4 -translate-y-1 -z-10 pt-3 pb-2 border"
+				class="w-full grid space-y-4 bg-muted rounded-b-sm px-4 -translate-y-1 -z-10 pt-3 pb-2 border"
 				transition:slide
 			>
-				<span class="text-xs text-muted-foreground line-clamp-3">{recipe.description}</span>
+				<!-- <p class="text-xs text-muted-foreground">
+					{recipe.description || 'No description available.'}
+				</p> -->
+
+				<div class="grid gap-1">
+					<!-- <h4 class="text-sm font-semibold">Ingredients</h4> -->
+					{#if meal.ingredients.length === 0}
+						<p class="text-xs text-muted-foreground">No ingredients found.</p>
+					{/if}
+
+					{#each meal.ingredients as ingredient (ingredient.ingredient_id)}
+						<div class="flex items-center gap-2 text-xs text-muted-foreground">
+							<strong class="whitespace-nowrap min-w-0">
+								{ingredient.name || ingredient.ingredient?.translations[0]?.name_singular}
+								<!-- {ingredient.meal_origin} -->
+							</strong>
+
+							<span class="ml-auto line-clamp-1">
+								{ingredient.quantity}
+								{ingredient.unit === 'whole' ? '' : ingredient.unit}
+							</span>
+
+							<!-- <CheckCheck class="size-3.5 text-green-600" /> -->
+						</div>
+					{/each}
+				</div>
+
+				<!-- Button to edit the ingredients list -->
+				<Button variant="default" size="sm" class="w-full text-xs flex items-center gap-1">
+					<Pencil class="size-3.5" />
+					Edit Ingredients
+				</Button>
 			</div>
 		{/if}
 	</div>
