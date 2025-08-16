@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { Plus } from 'lucide-svelte';
-	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
+	import { ArrowRight, Plus } from 'lucide-svelte';
+	import { recipeTimesOfDay, recipeTimesOfDayCards } from '$lib/features/recipes/db/recipe-doc';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
 	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { cn } from '$lib/utils';
 
 	// Get all recipes in supabase
 	async function getRecipes() {
@@ -32,7 +34,7 @@
 	});
 </script>
 
-<div class="space-y-8 pb-16 min-h-full">
+<div class="space-y-12 pb-16 min-h-full">
 	<div class="space-y-6">
 		<div class="flex items-center">
 			<div class="space-y-0.5">
@@ -57,9 +59,23 @@
 
 	{#if loading}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
-			<div class="space-y-4">
-				<h3 class="text-lg font-bold tracking-tight">{label}</h3>
-				<div class="w-full flex flex-wrap gap-2">
+			{@const cardInfo = recipeTimesOfDayCards[key as keyof typeof recipeTimesOfDayCards]}
+			<div class="space-y-4 animate-pulse">
+				<div class="flex justify-between items-center">
+					<div class="flex items-center gap-4">
+						<div class="w-12 aspect-square bg-muted rounded-md flex items-center justify-center">
+							<cardInfo.icon class="size-6 text-muted-foreground" />
+						</div>
+						<div class="grid">
+							<h2 class="text-lg font-bold tracking-tight">{label}</h2>
+							<p class="text-muted-foreground text-sm">
+								{cardInfo.description}
+							</p>
+						</div>
+					</div>
+					<div class="h-8 w-20 bg-muted rounded"></div>
+				</div>
+				<div class="w-full flex flex-wrap gap-4">
 					{#each Array(4) as _, i}
 						<RecipeCard />
 					{/each}
@@ -68,6 +84,7 @@
 		{/each}
 	{:else if recipes && recipes?.length > 0}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
+			{@const cardInfo = recipeTimesOfDayCards[key as keyof typeof recipeTimesOfDayCards]}
 			{@const categoryRecipes = recipes.filter((recipe) =>
 				recipe.times_of_day
 					.map((time) => time.timeofday_id)
@@ -76,9 +93,29 @@
 
 			{#if categoryRecipes.length > 0}
 				<div class="space-y-4">
-					<h3 class="text-lg font-bold tracking-tight">{label}</h3>
+					<div class="flex justify-between items-center">
+						<div class="flex items-center gap-4">
+							<div
+								class={cn(
+									'w-12 aspect-square bg-muted rounded-md flex items-center justify-center',
+									cardInfo.classes
+								)}
+							>
+								<cardInfo.icon class={cn("size-6 text-muted-foreground", cardInfo.classes)} />
+							</div>
 
-					<div class="w-full flex flex-wrap gap-2">
+							<div class="grid">
+								<h2 class="text-lg font-bold tracking-tight">{label}</h2>
+								<p class="text-muted-foreground text-sm">{cardInfo.description}</p>
+							</div>
+						</div>
+						<Button variant="link" size="sm" class="flex items-center" href="/recipes">
+							See all
+							<ArrowRight class="size-3.5" />
+						</Button>
+					</div>
+
+					<div class="w-full flex flex-wrap gap-4">
 						{#each categoryRecipes as recipe (recipe.id)}
 							<RecipeCard {recipe} showAddToPlanButton showDetails />
 						{/each}

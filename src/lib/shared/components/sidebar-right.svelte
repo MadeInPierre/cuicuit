@@ -18,7 +18,7 @@
 >
 	<Sidebar.Header class="border-sidebar-border border-b grid p-4 gap-0">
 		<h1 class="text-md font-semibold">Your plan</h1>
-		<p class="text-xs text-muted-foreground">Drag or add recipes here.</p>
+		<p class="text-xs text-muted-foreground">Drag or add recipes here to create a meal plan and shopping list.</p>
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<!-- <DatePicker /> -->

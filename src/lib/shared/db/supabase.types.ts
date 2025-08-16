@@ -551,6 +551,7 @@ export type Database = {
       space_plan_meals: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           id: string
           position: number
           recipe_id: string
@@ -560,6 +561,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           position?: number
           recipe_id: string
@@ -569,6 +571,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           position?: number
           recipe_id?: string

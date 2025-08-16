@@ -10,7 +10,10 @@
 	const activeSpace = getActiveSpaceState();
 
 	const meals = $derived(
-		(activeSpace.activePlan || []).slice().sort((a, b) => a.position - b.position)
+		(activeSpace.activePlan || [])
+			.slice()
+			.filter((meal) => !meal.deleted_at) // Filter out deleted meals
+			.sort((a, b) => a.position - b.position)
 	);
 
 	const flipDurationMs = 220;

@@ -53,11 +53,28 @@ export async function deleteMeal(
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 
-	// Delete the meal from Supabase
-	const { data, error } = await supabase.from('space_plan_meals').delete().eq('id', mealId);
-	if (error) throw new Error('Error deleting meal: ' + error.message);
+	const now = new Date().toISOString();
 
-	// Refresh the active plan meals after deletion
+	// Soft delete related shopping list items first
+	const { error: shoppingListError } = await supabase
+		.from('space_plan_shopping_lists')
+		.update({ deleted_at: now })
+		.eq('meal_id', mealId)
+		.eq('type', 'meal')
+		.is('deleted_at', null);
+
+	if (shoppingListError) {
+		throw new Error('Error soft-deleting shopping list items: ' + shoppingListError.message);
+	}
+
+	// Now set the deleted_at timestamp for the meal
+	const { error } = await supabase
+		.from('space_plan_meals')
+		.update({ deleted_at: now })
+		.eq('id', mealId)
+		.is('deleted_at', null);
+	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
+
 	if (options?.skipRefresh) return;
 	await activeSpace.refreshActivePlan();
 }
