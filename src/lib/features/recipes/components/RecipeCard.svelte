@@ -145,15 +145,17 @@
 
 		<div class="flex items-center gap-2 p-2 w-full">
 			<div class="grid w-full">
-				<div class="h-4 bg-gray-200 dark:bg-gray-900 rounded mb-2 animate-pulse"></div>
-				<div class="flex items-center text-xs text-muted-foreground">
-					<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-					<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-					<span class="h-3 w-6 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-					<span
-						class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"
-					></span>
-				</div>
+				<div class="h-4 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></div>
+				{#if showDetails}
+					<div class="mt-2 flex items-center text-xs text-muted-foreground">
+						<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+						<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+						<span class="h-3 w-6 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+						<span
+							class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"
+						></span>
+					</div>
+				{/if}
 				<div class="flex flex-col gap-1 mt-2">
 					<div class="h-3 w-24 bg-gray-200 dark:bg-gray-900 rounded animate-pulse mb-1"></div>
 				</div>

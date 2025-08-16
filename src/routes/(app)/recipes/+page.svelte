@@ -9,6 +9,8 @@
 	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
+	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
+	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 
 	// Get all recipes in supabase
 	async function getRecipes() {
@@ -28,20 +30,28 @@
 	let recipes: Recipes = $state([]);
 	let loading = $state(true);
 
+	let counter = createPersistentState<number>('global-recipe-page-servings', 2, {
+		toString: (value: number) => value.toString(),
+		fromString: (value: string) => parseInt(value, 10)
+	});
+
 	onMount(async () => {
 		recipes = await getRecipes();
+		await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
 		loading = false;
 	});
 </script>
 
-<div class="space-y-12 pb-16 min-h-full">
+<div class="space-y-8 pb-16 min-h-full">
 	<div class="space-y-6">
 		<div class="flex items-center">
-			<div class="space-y-0.5">
-				<h2 class="text-2xl font-bold tracking-tight">Recipes</h2>
-				<p class="text-muted-foreground">
-					Here's your daily dose of inspiration. Add a recipe to get started.
-				</p>
+			<div class="grid space-y-0.5">
+				<!-- <h2 class="text-2xl font-bold tracking-tight">Recipes</h2> -->
+				<div class="flex gap-6 items-center">
+					<h1 class="text-4xl font-semibold tracking-tight">Ideas for</h1>
+					<ServingsPlusMinus value={counter.value || 1} size="lg" onChange={counter.set} />
+				</div>
+				<p class="text-muted-foreground">Here's your daily dose of inspiration.</p>
 			</div>
 
 			<ImportRecipeDialog dropdownAlign="end">
@@ -60,7 +70,7 @@
 	{#if loading}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
 			{@const cardInfo = recipeTimesOfDayCards[key as keyof typeof recipeTimesOfDayCards]}
-			<div class="space-y-4 animate-pulse">
+			<div class="space-y-6 animate-pulse">
 				<div class="flex justify-between items-center">
 					<div class="flex items-center gap-4">
 						<div class="w-12 aspect-square bg-muted rounded-md flex items-center justify-center">
@@ -75,8 +85,8 @@
 					</div>
 					<div class="h-8 w-20 bg-muted rounded"></div>
 				</div>
-				<div class="w-full flex flex-wrap gap-4">
-					{#each Array(4) as _, i}
+				<div class="w-full flex gap-4">
+					{#each Array(6) as _, i}
 						<RecipeCard />
 					{/each}
 				</div>
@@ -92,7 +102,7 @@
 			)}
 
 			{#if categoryRecipes.length > 0}
-				<div class="space-y-4">
+				<div class="space-y-6">
 					<div class="flex justify-between items-center">
 						<div class="flex items-center gap-4">
 							<div
@@ -101,7 +111,7 @@
 									cardInfo.classes
 								)}
 							>
-								<cardInfo.icon class={cn("size-6 text-muted-foreground", cardInfo.classes)} />
+								<cardInfo.icon class={cn('size-6 text-muted-foreground', cardInfo.classes)} />
 							</div>
 
 							<div class="grid">
