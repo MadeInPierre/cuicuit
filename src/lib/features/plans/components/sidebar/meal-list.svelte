@@ -2,10 +2,11 @@
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { flip } from 'svelte/animate';
-	import { dndzone } from 'svelte-dnd-action';
+	import { dndzone, dragHandle, dragHandleZone } from 'svelte-dnd-action';
 	import { updateMealPosition } from '../../actions/update-meal';
 	import { toast } from 'svelte-sonner';
 	import type { MealWithIngredients } from '../../queries/get-plan-meals';
+	import { GripVertical } from 'lucide-svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -56,14 +57,16 @@
 </script>
 
 <section
-	use:dndzone={{ items: meals, flipDurationMs }}
+	use:dragHandleZone={{ items: meals, flipDurationMs }}
 	onconsider={handleDndConsider}
 	onfinalize={handleDndFinalize}
 	class="grid space-y-2 m-4 rounded-sm"
 >
 	{#each meals as meal (meal.id)}
 		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5">
-			<!-- <GripVertical class="size-4 mt-5 text-muted-foreground cursor-move" /> -->
+			<!-- <div use:dragHandle class="mt-5">
+				<GripVertical class="size-4 text-muted-foreground cursor-move" />
+			</div> -->
 			<MealCard {meal} />
 		</div>
 	{/each}
