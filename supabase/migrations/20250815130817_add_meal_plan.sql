@@ -35,29 +35,6 @@ create table space_plan_meals (
     position integer not null default 0
 );
 
--- create table space_plan_meal_ingredients (
---     id uuid primary key default gen_random_uuid(),
---     created_at timestamp with time zone default now(),
---     updated_at timestamp with time zone default now(),
-
---     meal_id uuid not null references space_plan_meals(id) on delete cascade,
---     ingredient_id uuid not null references ingredients(id) on delete cascade,
---     quantity numeric not null default 1,
---     unit text
--- );
-
--- create table space_plan_items (
---     id uuid primary key default gen_random_uuid(),
---     created_at timestamp with time zone default now(),
---     updated_at timestamp with time zone default now(),
-
---     space_id uuid not null references spaces(id) on delete cascade,
---     name text not null,
---     ingredient_id uuid references ingredients(id) on delete set null,
---     quantity numeric not null default 1,
---     unit text
--- );
-
 -- Add trigger to update updated_at on any update
 create or replace function update_updated_at()
 returns trigger as $$
@@ -70,11 +47,3 @@ $$ language plpgsql;
 create trigger update_space_plan_meals_updated_at
 before update on space_plan_meals
 for each row execute procedure update_updated_at();
-
--- create trigger update_space_plan_meal_ingredients_updated_at
--- before update on space_plan_meal_ingredients
--- for each row execute procedure update_updated_at();
-
--- create trigger update_space_plan_items_updated_at
--- before update on space_plan_items
--- for each row execute procedure update_updated_at();

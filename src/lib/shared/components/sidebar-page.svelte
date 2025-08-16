@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Breadcrumb from '$lib/shared/components/ui/breadcrumb/index.js';
@@ -25,14 +24,14 @@
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-5" />
 					<h1 class="text-md font-semibold">Cuicuit</h1>
 				</a>
-				<Breadcrumb.Root>
+				<!-- <Breadcrumb.Root>
 					<Breadcrumb.List>
 						<Breadcrumb.Separator />
 						<Breadcrumb.Item>
 							<Breadcrumb.Page class="line-clamp-1">Recipes</Breadcrumb.Page>
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
-				</Breadcrumb.Root>
+				</Breadcrumb.Root> -->
 			</div>
 		</header>
 		<div class="flex flex-1 flex-col gap-4 p-10">
