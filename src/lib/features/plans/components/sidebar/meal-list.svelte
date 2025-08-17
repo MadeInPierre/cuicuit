@@ -60,14 +60,14 @@
 	use:dragHandleZone={{ items: meals, flipDurationMs }}
 	onconsider={handleDndConsider}
 	onfinalize={handleDndFinalize}
-	class="grid space-y-2 m-4 rounded-sm"
+	class="grid space-y-2 rounded-sm"
 >
 	{#each meals as meal (meal.id)}
 		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5">
 			<!-- <div use:dragHandle class="mt-5">
 				<GripVertical class="size-4 text-muted-foreground cursor-move" />
 			</div> -->
-			<MealCard {meal} />
+			<MealCard {meal} expanded />
 		</div>
 	{/each}
 </section>

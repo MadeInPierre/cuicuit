@@ -1,5 +1,22 @@
 <script lang="ts">
-	import { Bookmark, CalendarPlus, CheckCheck, Signal, SignalMedium, Users } from 'lucide-svelte';
+	import {
+		Bookmark,
+		CalendarPlus,
+		Check,
+		CheckCheck,
+		EqualApproximately,
+		Loader2,
+		LoaderCircle,
+		Repeat,
+		Scale,
+		ShoppingBasket,
+		Signal,
+		SignalHigh,
+		SignalLow,
+		SignalMedium,
+		Star,
+		Users
+	} from 'lucide-svelte';
 	import { capitalize, cn } from '$lib/utils';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
@@ -8,6 +25,7 @@
 	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { toast } from 'svelte-sonner';
+	import CookableStatus from './CookableStatus.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -18,7 +36,7 @@
 		class?: string;
 	}
 
-	let bookmarked = $state(false); // TODO
+	let bookmarked: boolean | undefined = $state(false); // TODO
 
 	let {
 		recipe = null,
@@ -54,20 +72,37 @@
 						size="icon"
 						class={cn(
 							'size-8 bg-white rounded-full shadow',
-							!bookmarked && 'opacity-0 group-hover:opacity-100 transition-opacity'
+							bookmarked === false && 'opacity-0 group-hover:opacity-100 transition-opacity'
 						)}
 						aria-label="Bookmark recipe"
-						onclick={() => {
-							toast.success('Recipe bookmarked!');
-							bookmarked = !bookmarked;
+						onclick={async () => {
 							// TODO: Implement bookmark functionality
+							const prev = bookmarked || false;
+							const toastId = toast.loading(
+								prev ? 'Removing from cookbook...' : 'Adding to cookbook...'
+							);
+							bookmarked = undefined; // Mark as loading
+							await new Promise((resolve) => setTimeout(resolve, 1000));
+							bookmarked = !prev;
+							toast.success(prev ? "Removed from 'Flemme'" : "Added to 'Flemme'", {
+								id: toastId,
+								description: 'Click here to edit',
+								action: {
+									label: 'Edit',
+									onClick: () => {
+										// TODO: Implement edit functionality
+									}
+								}
+							});
 						}}
 					>
-						<Bookmark
-							class="size-4"
-							fill={bookmarked ? 'orange' : 'none'}
-							color={bookmarked ? 'orange' : 'black'}
-						/>
+						{#if bookmarked === true}
+							<Bookmark class="size-4" fill="orange" color="orange" />
+						{:else if bookmarked === false}
+							<Bookmark class="size-4" fill="none" color="black" />
+						{:else}
+							<LoaderCircle class="size-4 animate-spin text-primary" />
+						{/if}
 					</Button>
 
 					{#if showAddToPlanButton}
@@ -76,21 +111,37 @@
 							size="icon"
 							class="size-8 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
 							aria-label="Add to plan"
-							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, 1)}
+							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}
 						>
 							<CalendarPlus class="size-4" />
 						</Button>
 					{/if}
 				</div>
 
-				<div
-					class="absolute bottom-2 left-2 bg-white rounded-full px-2 py-0.5 text-xs flex items-center"
-				>
-					<div class="relative flex items-center mr-1" style="width: 1rem; height: 1rem;">
-						<Signal class="absolute top-0 left-0 size-3.5 text-muted rounded-full" />
-						<SignalMedium class="absolute top-0 left-0 size-3.5 text-yellow-600" />
+				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-xs">
+					<div class="bg-white rounded-full px-2 py-0.5 flex items-center gap-1">
+						<div class="relative flex items-center" style="width: 1rem; height: 1rem;">
+							<Signal class="absolute top-0 left-0 size-3.5 text-muted rounded-full" />
+
+							{#if recipe.effort_level == 'none'}
+								<SignalLow class="absolute top-0 left-0 size-3.5 rounded-full text-green-600" />
+							{:else if recipe.effort_level == 'low'}
+								<SignalMedium class="absolute top-0 left-0 size-3.5 rounded-full text-green-600" />
+							{:else if recipe.effort_level == 'medium'}
+								<SignalHigh class="absolute top-0 left-0 size-3.5 text-yellow-600" />
+							{:else if recipe.effort_level == 'high'}
+								<Signal class="absolute top-0 left-0 size-3.5 text-red-600" />
+							{/if}
+						</div>
+
+						<span>{recipe.time_total_minutes} min</span>
 					</div>
-					<span>{recipe.time_total_minutes} min</span>
+
+					<!-- <div class="bg-white rounded-full px-2 pl-0.5 py-0.5 flex items-center gap-1">
+						<Star class="size-3.5 ml-1 text-amber-400" fill="#fef08a" />
+						<span>4.5</span>
+						<span class="text-[10px] text-muted-foreground">(134)</span>
+					</div> -->
 				</div>
 
 				<!-- <CardBookmark class="absolute -top-[12px] right-[8px] size-10" /> -->
@@ -106,32 +157,14 @@
 					<div class="text-xs text-muted-foreground flex items-center">
 						<span class="mr-4">{recipe.time_total_minutes}min</span>
 
-						<span class="mr-4">{capitalize(recipe.effort_level)}</span>
+						<span class="mr-4">{capitalize(recipe.effort_level)} effort</span>
 
 						<span>{recipe.servings}</span>
 						<Users class="size-3 inline-block ml-0.5 mr-4" />
 					</div>
 				{/if} -->
 
-				{#snippet status(status: string, Icon: any, color: string)}
-					<div class="text-xs flex items-center {color}">
-						<Icon class="size-3.5 inline-block mr-1" />
-						<span>{status}</span>
-						<!-- <Apple class="size-3.5 inline-block ml-auto text-muted-foreground" />
-						<span class="ml-1 text-xs text-muted-foreground"> 4/5 </span> -->
-					</div>
-				{/snippet}
-
-				{@render status('Ready to cook', CheckCheck, 'text-green-600 dark:text-green-500')}
-				<!-- {@render status('Ready, required only', Check, 'text-teal-600 dark:text-teal-500')}
-				{@render status(
-					'Ready, 2 substitutions',
-					EqualApproximately,
-					'text-emerald-600 dark:text-emerald-500'
-				)}
-				{@render status('Ready, change of plans', Repeat, 'text-yellow-600 dark:text-yellow-500')}
-				{@render status('Not enough', Scale, 'text-amber-600 dark:text-amber-500')}
-				{@render status('1 missing', ShoppingBasket, 'text-red-600 dark:text-red-500')} -->
+				<CookableStatus />
 			</a>
 		</div>
 	</div>

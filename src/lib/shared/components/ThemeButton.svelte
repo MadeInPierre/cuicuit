@@ -46,7 +46,7 @@
 						variant="ghost"
 						class={cn(
 							'size-7 px-0 rounded-full text-muted-foreground hover:text-black dark:hover:text-white',
-							isActive && 'text-black dark:text-white border'
+							isActive && 'text-black dark:text-white group-hover/themebutton:border'
 						)}
 					>
 						<ModeIcon class="size-3.5"></ModeIcon>
@@ -61,7 +61,7 @@
 	</div>
 {/snippet}
 
-<div class={cn('flex rounded-full border group/themebutton', className)}>
+<div class={cn('flex rounded-full group/themebutton', className)}>
 	{@render button(SunMoon, 'Follow device', 'system', $userPrefersMode === 'system')}
 	{@render button(Moon, 'Dark', 'dark', $userPrefersMode === 'dark')}
 	{@render button(Sun, 'Light', 'light', $userPrefersMode === 'light')}

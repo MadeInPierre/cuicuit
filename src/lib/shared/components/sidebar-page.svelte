@@ -12,15 +12,18 @@
 	let { children }: Props = $props();
 </script>
 
-<Sidebar.Provider>
+<Sidebar.Provider open={false} >
 	<SidebarLeft collapsible="icon" />
-	
+	<SidebarRight />
+
 	<Sidebar.Inset>
-		<header class="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md">
+		<header
+			class="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md"
+		>
 			<div class="flex flex-1 items-center gap-2 px-3">
-				<Sidebar.Trigger />
-				<Separator orientation="vertical" class="mr-2 h-4" />
-				<a href="/dashboard" class="flex gap-2 items-center">
+				<!-- <Sidebar.Trigger />
+				<Separator orientation="vertical" class="mr-2 h-4" /> -->
+				<a href="/dashboard" class="ml-6 flex gap-2 items-center">
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-5" />
 					<h1 class="text-md font-semibold">Cuicuit</h1>
 				</a>
@@ -38,6 +41,4 @@
 			{@render children?.()}
 		</div>
 	</Sidebar.Inset>
-	
-	<SidebarRight />
 </Sidebar.Provider>
