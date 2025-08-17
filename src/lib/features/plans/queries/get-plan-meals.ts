@@ -7,18 +7,25 @@ export function getPlanMeals(spaceId: string) {
 	return supabase
 		.from('space_plan_meals')
 		.select(
-			`*,
-			ingredients:space_plan_shopping_lists(
+			`*, 
+			recipe:recipes(*),
+			shopping_ingredients:space_plan_shopping_lists(
 				*,
 				ingredient:ingredients(
 					*,
-					translations:ingredient_translations(*)
+					translations:ingredient_translations(
+						*,
+						language:languages(*)
+					)
 				)
 			)`
 		)
 		.eq('space_id', spaceId);
 }
 
-export type MealWithIngredients = NonNullable<
+export type MealWithRecipeAndIngredients = NonNullable<
 	Awaited<ReturnType<typeof getPlanMeals>>['data']
 >[number];
+export type ShoppingIngredient = NonNullable<
+	Awaited<ReturnType<typeof getPlanMeals>>['data']
+>[number]['shopping_ingredients'][number];

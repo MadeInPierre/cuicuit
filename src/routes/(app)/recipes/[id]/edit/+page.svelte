@@ -136,10 +136,10 @@
 
 				// Servings & Ingredients
 				f.servings = recipeData.servings || 4;
-				f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
-				f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
-				f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
-				f.ingredientNames = recipeData.ingredients.map((ing) => ing.raw_input || '');
+				f.ingredientIds = recipeData.recipe_ingredients.map((ing) => ing.ingredient_id);
+				f.ingredientAmounts = recipeData.recipe_ingredients.map((ing) => ing.quantity || 1);
+				f.ingredientUnits = recipeData.recipe_ingredients.map((ing) => ing.unit || 'whole');
+				f.ingredientNames = recipeData.recipe_ingredients.map((ing) => ing.raw_input || '');
 
 				// Steps
 				f.stepDescriptions = recipeData.steps || [''];

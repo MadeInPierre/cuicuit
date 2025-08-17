@@ -2,24 +2,18 @@
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { flip } from 'svelte/animate';
-	import { dndzone, dragHandle, dragHandleZone } from 'svelte-dnd-action';
+	import { dragHandleZone } from 'svelte-dnd-action';
 	import { updateMealPosition } from '../../actions/update-meal';
 	import { toast } from 'svelte-sonner';
-	import type { MealWithIngredients } from '../../queries/get-plan-meals';
-	import { GripVertical } from 'lucide-svelte';
+	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
 
 	const activeSpace = getActiveSpaceState();
 
-	const meals = $derived(
-		(activeSpace.activePlan || [])
-			.slice()
-			.filter((meal) => !meal.deleted_at) // Filter out deleted meals
-			.sort((a, b) => a.position - b.position)
-	);
+	const meals = $derived(activeSpace.activePlan || []);
 
 	const flipDurationMs = 220;
 
-	function updateLocalMealPositions(items: MealWithIngredients[]) {
+	function updateLocalMealPositions(items: MealWithRecipeAndIngredients[]) {
 		if (!activeSpace.activePlan) return;
 		activeSpace.activePlan = items.map((meal, index) => ({
 			...meal,
@@ -27,14 +21,14 @@
 		}));
 	}
 
-	function handleDndConsider(e: { detail: { items: MealWithIngredients[] } }) {
+	function handleDndConsider(e: { detail: { items: MealWithRecipeAndIngredients[] } }) {
 		if (e.detail.items.length < 2) return;
 
 		// Update the local state with the new order
 		updateLocalMealPositions(e.detail.items);
 	}
 
-	async function handleDndFinalize(e: { detail: { items: MealWithIngredients[] } }) {
+	async function handleDndFinalize(e: { detail: { items: MealWithRecipeAndIngredients[] } }) {
 		if (e.detail.items.length < 2) return;
 
 		// Update the local state with the new order

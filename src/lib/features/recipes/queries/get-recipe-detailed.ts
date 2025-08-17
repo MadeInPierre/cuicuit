@@ -8,14 +8,23 @@ import { supabase } from '$lib/shared/db/supabase-client';
  */
 export function getRecipesDetailed() {
 	return supabase.from('recipes').select(
-		`*, 
-            language:languages(*), 
-            ingredients:recipe_ingredients(*), 
-            courses:recipe_courses(*), 
-            cuisines:recipe_cuisines(*), 
-            times_of_day:recipe_times_of_day(*), 
-            tags:recipe_tags(*), 
-            tools:recipe_tools(*)`
+		`*,
+		language:languages(*), 
+		recipe_ingredients:recipe_ingredients(
+			*,
+			ingredient:ingredients(
+				*,
+				translations:ingredient_translations(
+					*,
+					language:languages(*)
+				)
+			)
+		), 
+		courses:recipe_courses(*), 
+		cuisines:recipe_cuisines(*), 
+		times_of_day:recipe_times_of_day(*), 
+		tags:recipe_tags(*), 
+		tools:recipe_tools(*)`
 	);
 }
 
@@ -59,5 +68,15 @@ export async function getRecipeDetailed(recipeId: string) {
 	return { data: recipe, error: null };
 }
 
-export type RecipeDetailed = NonNullable<Awaited<ReturnType<typeof getRecipesDetailed>>['data']>[number];
-export type RecipeDetailedWithAuthor = NonNullable<Awaited<ReturnType<typeof getRecipeDetailed>>['data']>;
+export type RecipeDetailed = NonNullable<
+	Awaited<ReturnType<typeof getRecipesDetailed>>['data']
+>[number];
+export type RecipeIngredientWithTranslations = NonNullable<
+	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
+>['recipe_ingredients'][number];
+export type IngredientWithTranslations = NonNullable<
+	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
+>['recipe_ingredients'][number]['ingredient'];
+export type RecipeDetailedWithAuthor = NonNullable<
+	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
+>;
