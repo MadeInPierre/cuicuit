@@ -7,7 +7,10 @@ import {
 	type ActiveSpaceWithMembers
 } from '../queries/get-user-spaces-with-members';
 import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
-import { getPlanMeals, type MealWithIngredients } from '$lib/features/plans/queries/get-plan-meals';
+import {
+	getPlanMeals,
+	type MealWithRecipeAndIngredients
+} from '$lib/features/plans/queries/get-plan-meals';
 
 const activeSpaceIdState = createPersistentState<string | undefined>('active-space-id', undefined);
 
@@ -41,7 +44,7 @@ class ActiveSpaceState {
 	);
 
 	/** TODO The active space's meal plan. Contains a list of recipes to cook */
-	activePlan: MealWithIngredients[] | undefined = $state([]);
+	activePlan: MealWithRecipeAndIngredients[] | undefined = $state(undefined);
 
 	constructor(userState: UserState) {
 		this._userState = userState;
@@ -85,7 +88,8 @@ class ActiveSpaceState {
 		try {
 			// Fetch currently active meals for the active space (deleted meals are excluded)
 			const response = await getPlanMeals(this.id).is('deleted_at', null);
-			if (response.data) this.activePlan = response.data || [];
+			if (response.data)
+				this.activePlan = response.data?.sort((a, b) => a.position - b.position) || [];
 		} catch (error) {
 			console.error('Error refreshing active plan meals:', error);
 			this.activePlan = [];

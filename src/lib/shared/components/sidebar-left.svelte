@@ -37,9 +37,9 @@
 			},
 			{
 				title: 'Shopping list',
-				url: '/list',
+				url: '/shopping-list',
 				icon: ShoppingCart,
-				isActive: page.url.pathname.startsWith('/list')
+				isActive: page.url.pathname.startsWith('/shopping-list')
 			},
 			{
 				title: 'Pantry',

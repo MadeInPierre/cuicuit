@@ -3,14 +3,9 @@
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
-	import {
-		getRecipeDetailed,
-		type RecipeDetailedWithAuthor
-	} from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { onMount } from 'svelte';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import type { MealWithIngredients } from '../queries/get-plan-meals';
+	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
@@ -19,36 +14,15 @@
 	const activeSpace = getActiveSpaceState();
 
 	interface Props {
-		meal?: MealWithIngredients | null; // Allow recipe to be null for loading state
+		meal?: MealWithRecipeAndIngredients | null; // null for loading state
 		expanded?: boolean; // Show expanded view with ingredients and controls
 		class?: string;
 	}
 
 	let { meal = null, expanded = false, class: className = '' }: Props = $props();
-
-	let recipe: RecipeDetailedWithAuthor | undefined = $state(undefined);
-
-	// Fetch the recipe details when the component mounts
-	onMount(() => {
-		if (meal && meal.recipe_id) {
-			// Fetch the recipe details if meal is provided
-			getRecipeDetailed(meal.recipe_id)
-				.then((data) => {
-					if (data.error) {
-						console.error('Error fetching recipe details:', data.error);
-						return;
-					}
-
-					recipe = data.data;
-				})
-				.catch((error) => {
-					console.error('Error fetching recipe details:', error);
-				});
-		}
-	});
 </script>
 
-{#if meal && recipe}
+{#if meal}
 	<div class="grid w-full">
 		<button
 			use:dragHandle
@@ -58,9 +32,9 @@
 			)}
 		>
 			<!-- <a href={'/recipes/' + recipe.id} class="flex-shrink-0"> -->
-			{#if recipe.image_ids && recipe.image_ids.length > 0}
+			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
 				<img
-					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
+					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`}
 					alt="Recipe"
 					class="aspect-square size-10 rounded-md object-cover border"
 				/>
@@ -76,7 +50,7 @@
 						meal.deleted_at && 'line-through text-muted-foreground'
 					)}
 				>
-					{recipe.title}
+					{meal.recipe.title}
 				</h3>
 
 				<div class="flex items-center gap-1">
@@ -118,20 +92,21 @@
 				</div> -->
 
 				<div class="grid">
-					{#if meal.ingredients.length === 0}
+					{#if meal.shopping_ingredients.length === 0}
 						<p class="text-xs text-muted-foreground">No ingredients found.</p>
 					{/if}
 
-					{#each [...meal.ingredients].sort((a, b) => {
+					{#each [...meal.shopping_ingredients].sort((a, b) => {
 						const order = { recipe: 0, adjusted: 0, added: 1, ignored: 2 };
 						return order[a.meal_origin as keyof typeof order] - order[b.meal_origin as keyof typeof order];
-					}) as ingredient (ingredient.ingredient_id)}
+					}) as shopping_ingredient (shopping_ingredient.ingredient_id)}
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="flex items-center gap-2 text-xs text-muted-foreground p-0.5 px-2 rounded-sm transition-colors"
-							class:bg-slate-200={hoveredMealIngredientId.value === ingredient.ingredient_id}
+							class:bg-slate-200={hoveredMealIngredientId.value ===
+								shopping_ingredient.ingredient_id}
 							onmouseenter={() => {
-								hoveredMealIngredientId.value = ingredient.ingredient_id;
+								hoveredMealIngredientId.value = shopping_ingredient.ingredient_id;
 							}}
 							onmouseleave={() => {
 								hoveredMealIngredientId.value = null;
@@ -140,30 +115,35 @@
 							<span
 								class={cn(
 									'line-clamp-2',
-									ingredient.meal_origin === 'ignored' && 'line-through text-muted-foreground/60'
+									shopping_ingredient.meal_origin === 'ignored' &&
+										'line-through text-muted-foreground/60'
 								)}
 							>
-								{ingredient.name || ingredient.ingredient?.translations[0]?.name_singular}
+								{shopping_ingredient.name ||
+									shopping_ingredient.ingredient?.translations[0]?.name_singular}
 							</span>
 
-							{#if ingredient.meal_origin === 'recipe'}
+							{#if shopping_ingredient.meal_origin === 'recipe'}
 								<!-- <Circle class="size-3 text-muted-foreground" /> -->
-							{:else if ingredient.meal_origin === 'adjusted'}
+							{:else if shopping_ingredient.meal_origin === 'adjusted'}
 								<Weight class="size-3 text-muted-foreground" />
-							{:else if ingredient.meal_origin === 'ignored'}
+							{:else if shopping_ingredient.meal_origin === 'ignored'}
 								<!-- <X class="size-3 text-muted-foreground" /> -->
-							{:else if ingredient.meal_origin === 'added'}
+							{:else if shopping_ingredient.meal_origin === 'added'}
 								<Plus class="size-3 text-muted-foreground" />
 							{/if}
 
 							<span
 								class={cn(
 									'ml-auto font-medium whitespace-nowrap min-w-0',
-									ingredient.meal_origin === 'ignored' && 'line-through text-muted-foreground/60'
+									shopping_ingredient.meal_origin === 'ignored' &&
+										'line-through text-muted-foreground/60'
 								)}
 							>
-								<NumberFlow value={(ingredient.quantity * meal.servings) / recipe.servings} />
-								{ingredient.unit === 'whole' ? '' : ingredient.unit}
+								<NumberFlow
+									value={(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
+								/>
+								{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
 							</span>
 
 							<!-- <Check class="max-w-3 max-h-3 text-green-600" /> -->

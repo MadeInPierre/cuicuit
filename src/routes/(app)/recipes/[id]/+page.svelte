@@ -328,7 +328,7 @@
 								{/snippet}
 
 								<div class="w-full grid grid-cols-3 gap-x-2 gap-y-4">
-									{#each recipe.ingredients || [] as ing (ing.ingredient_id)}
+									{#each recipe.recipe_ingredients || [] as ing (ing.ingredient_id)}
 										{@render ingredientGrid(ing)}
 									{/each}
 								</div>
@@ -350,7 +350,7 @@
 								{/snippet}
 
 								<div class="w-full grid gap-y-2">
-									{#each recipe.ingredients || [] as ing (ing.ingredient_id)}
+									{#each recipe.recipe_ingredients || [] as ing (ing.ingredient_id)}
 										{@render ingredientList(ing)}
 									{/each}
 								</div>
