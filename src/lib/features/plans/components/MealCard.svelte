@@ -14,6 +14,7 @@
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
+	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -125,8 +126,16 @@
 						const order = { recipe: 0, adjusted: 0, added: 1, ignored: 2 };
 						return order[a.meal_origin as keyof typeof order] - order[b.meal_origin as keyof typeof order];
 					}) as ingredient (ingredient.ingredient_id)}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
-							class="flex items-center gap-2 text-xs text-muted-foreground hover:bg-slate-200 p-0.5 px-2 rounded-sm transition-colors"
+							class="flex items-center gap-2 text-xs text-muted-foreground p-0.5 px-2 rounded-sm transition-colors"
+							class:bg-slate-200={hoveredMealIngredientId.value === ingredient.ingredient_id}
+							onmouseenter={() => {
+								hoveredMealIngredientId.value = ingredient.ingredient_id;
+							}}
+							onmouseleave={() => {
+								hoveredMealIngredientId.value = null;
+							}}
 						>
 							<span
 								class={cn(
