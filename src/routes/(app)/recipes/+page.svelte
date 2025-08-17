@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, Plus } from 'lucide-svelte';
+	import { ArrowRight, BellRing, FunnelPlus, Plus, RotateCcw, Star } from 'lucide-svelte';
 	import { recipeTimesOfDay, recipeTimesOfDayCards } from '$lib/features/recipes/db/recipe-doc';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
@@ -37,7 +37,7 @@
 
 	onMount(async () => {
 		recipes = await getRecipes();
-		await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
+		// await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
 		loading = false;
 	});
 </script>
@@ -46,12 +46,19 @@
 	<div class="space-y-6">
 		<div class="flex items-center">
 			<div class="grid space-y-0.5">
-				<!-- <h2 class="text-2xl font-bold tracking-tight">Recipes</h2> -->
 				<div class="flex gap-6 items-center">
 					<h1 class="text-4xl font-semibold tracking-tight">Ideas for</h1>
 					<ServingsPlusMinus value={counter.value || 1} size="lg" onChange={counter.set} />
+
+					<!-- <Button>
+						<RotateCcw class="size-4" />
+						New search
+					</Button> -->
 				</div>
-				<p class="text-muted-foreground">Here's your daily dose of inspiration.</p>
+				<p class="text-muted-foreground">
+					Discover recipes to inspire your next meal. Adjust the servings to see which recipes can
+					be cooked right now.
+				</p>
 			</div>
 
 			<ImportRecipeDialog dropdownAlign="end">
@@ -102,7 +109,7 @@
 			)}
 
 			{#if categoryRecipes.length > 0}
-				<div class="space-y-6">
+				<div class="space-y-2">
 					<div class="flex justify-between items-center">
 						<div class="flex items-center gap-4">
 							<div
@@ -127,7 +134,29 @@
 
 					<div class="w-full flex flex-wrap gap-4">
 						{#each categoryRecipes as recipe (recipe.id)}
-							<RecipeCard {recipe} showAddToPlanButton showDetails />
+							{#if Math.random() < 0.8}
+								<RecipeCard {recipe} showAddToPlanButton showDetails class="mt-4" />
+							{:else}
+								<div
+									class="grid space-y-1 p-2 rounded-2xl"
+									style="background: linear-gradient(160deg, #fef9c3 0%, #fde68a 100%);"
+								>
+									<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
+										<RecipeCard {recipe} showAddToPlanButton showDetails />
+									</div>
+									<div class="p-2 pb-1 flex items-center gap-2 text-sm text-yellow-700">
+										<BellRing class="size-4" />
+										<span><strong>2</strong> ingredients expire soon!</span>
+										
+										<!-- <Star class="size-4" />
+										<span class="">You love this recipe!</span> -->
+
+										<Button size="icon" variant="link" class="ml-auto w-6 h-6 text-yellow-700">
+											<FunnelPlus class="size-4" />
+										</Button>
+									</div>
+								</div>
+							{/if}
 						{/each}
 					</div>
 				</div>

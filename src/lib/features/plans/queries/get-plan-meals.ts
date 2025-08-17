@@ -1,10 +1,10 @@
 import { supabase } from '$lib/shared/db/supabase-client';
 
-export async function getPlanMeals(spaceId: string) {
+export function getPlanMeals(spaceId: string) {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!spaceId) throw new Error('Space ID not provided');
 
-	const { data, error } = await supabase
+	return supabase
 		.from('space_plan_meals')
 		.select(
 			`*,
@@ -17,8 +17,6 @@ export async function getPlanMeals(spaceId: string) {
 			)`
 		)
 		.eq('space_id', spaceId);
-
-	return { data, error };
 }
 
 export type MealWithIngredients = NonNullable<
