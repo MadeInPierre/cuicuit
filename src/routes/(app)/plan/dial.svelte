@@ -158,7 +158,7 @@
 			<!-- Header -->
 			<div class="flex items-center justify-between px-6 pt-4">
 				<button
-					class="rounded-full p-2 text-neutral-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+					class="rounded-full p-2 text-neutral-300 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-white/30"
 					aria-label="Reset"
 					on:click={reset}
 				>
@@ -174,7 +174,7 @@
 					<p class="mt-1 text-base text-neutral-300">{subtitle} {continuous}</p>
 				</div>
 				<button
-					class="rounded-full p-2 text-neutral-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+					class="rounded-full p-2 text-neutral-300 hover:text-white focus:outline-hidden focus:ring-2 focus:ring-white/30"
 					aria-label="Confirm"
 					on:click={confirm}
 				>
@@ -187,13 +187,13 @@
 			<!-- Buttons -->
 			<div class="mt-3 flex items-center justify-center gap-4">
 				<button
-					class="rounded-2xl bg-neutral-800 px-4 py-2 text-xl shadow hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-white/20"
+					class="rounded-2xl bg-neutral-800 px-4 py-2 text-xl shadow-sm hover:bg-neutral-700 focus:outline-hidden focus:ring-2 focus:ring-white/20"
 					on:click={() => nudge(-1)}
 					aria-label="Decrease">−</button
 				>
-				<div class="rounded-2xl bg-neutral-800 px-5 py-2 text-xl font-semibold shadow">{value}</div>
+				<div class="rounded-2xl bg-neutral-800 px-5 py-2 text-xl font-semibold shadow-sm">{value}</div>
 				<button
-					class="rounded-2xl bg-neutral-800 px-4 py-2 text-xl shadow hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-white/20"
+					class="rounded-2xl bg-neutral-800 px-4 py-2 text-xl shadow-sm hover:bg-neutral-700 focus:outline-hidden focus:ring-2 focus:ring-white/20"
 					on:click={() => nudge(1)}
 					aria-label="Increase">+</button
 				>
@@ -203,7 +203,7 @@
 			<div class="mt-6 px-6 pb-0" bind:this={container}>
 				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<div
-					class="relative mx-auto select-none outline-none"
+					class="relative mx-auto select-none outline-hidden"
 					style={`width:${dialPx}px;height:${120}px`}
 					on:wheel={onWheel}
 					on:pointerdown|preventDefault={beginDrag}

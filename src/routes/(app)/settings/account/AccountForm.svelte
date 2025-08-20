@@ -159,7 +159,7 @@
 			<div class="space-y-2">
 				<Label>
 					<div class="flex items-center">
-						<p class="flex-grow">Primary email</p>
+						<p class="grow">Primary email</p>
 
 						{#if !userState.user.is_anonymous}
 							<Badge
@@ -277,7 +277,7 @@
 									{/if}
 								</Avatar.Root>
 
-								<div class="flex-grow space-y-0.5">
+								<div class="grow space-y-0.5">
 									<Label>
 										{capitalize(identity.provider).replace('.com', '')}
 										{identity.identity_data?.name ? `(${identity.identity_data?.name})` : ''}

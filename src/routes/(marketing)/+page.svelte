@@ -36,7 +36,7 @@
 
 		<PageHeader.Heading
 			class={cn(
-				'font-display z-10 inline-flex w-full flex-col gap-1 bg-gradient-to-r from-20% bg-clip-text py-2 text-center text-4xl font-bold leading-none text-transparent transition sm:text-6xl md:py-4 md:text-7xl lg:text-8xl',
+				'font-display z-10 inline-flex w-full flex-col gap-1 bg-linear-to-r from-20% bg-clip-text py-2 text-center text-4xl font-bold leading-none text-transparent transition sm:text-6xl md:py-4 md:text-7xl lg:text-8xl',
 				gradientColors[currentColor]
 			)}
 		>

@@ -84,7 +84,7 @@
 			{/snippet}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content
-			class="w-[--bits-dropdown-menu-anchor-width] min-w-56 rounded-lg"
+			class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
 			align="start"
 			side="right"
 			sideOffset={4}
