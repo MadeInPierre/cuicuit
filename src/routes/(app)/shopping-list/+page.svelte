@@ -98,22 +98,57 @@
 
 	<Separator class="my-6" />
 
-	<div class="grid gap-2">
-		{#each shoppingList as item (item.ingredient.id)}
-			<IngredientListItem
-				ingredient={item.ingredient}
-				amount={item.mergedQuantity!.amount}
-				unit={item.mergedQuantity!.unit}
-			/>
+	<div class="grid space-y-12">
+		{#each aisles as a (a.aisle)}
+			{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === a.aisle)}
 
-			{#each item.origins as origin (origin.id)}
-				{@const meal = meals.find((m) => m.id === origin.id)}
-				<span class="ml-8 text-xs text-muted-foreground">
-					<NumberFlow value={origin.shoppingIngredient.quantity} />
-					{origin.shoppingIngredient.unit} from {origin.type}
-					{meal ? meal.recipe.title : origin.id}
-				</span>
-			{/each}
+			{#if aisleItems.length > 0}
+				<section>
+					<h3 class="text-lg font-semibold mb-2">{a.aisle}</h3>
+					<div class="grid gap-2 ml-8">
+						{#each aisleItems as item (item.ingredient.id)}
+							<IngredientListItem
+								ingredient={item.ingredient}
+								amount={item.mergedQuantity!.amount}
+								unit={item.mergedQuantity!.unit}
+							/>
+
+							{#each item.origins as origin (origin.id)}
+								{@const meal = meals.find((m) => m.id === origin.id)}
+								<span class="ml-8 text-xs text-muted-foreground">
+									<NumberFlow value={origin.shoppingIngredient.quantity} />
+									{origin.shoppingIngredient.unit} from {origin.type}
+									{meal ? meal.recipe.title : origin.id}
+								</span>
+							{/each}
+						{/each}
+					</div>
+				</section>
+			{/if}
 		{/each}
+
+		{#if shoppingList.some((item) => !item.ingredient.aisle)}
+			<section class="mb-8">
+				<h3 class="text-lg font-semibold mb-2">Other</h3>
+				<div class="grid gap-2">
+					{#each shoppingList.filter((item) => !item.ingredient.aisle) as item (item.ingredient.id)}
+						<IngredientListItem
+							ingredient={item.ingredient}
+							amount={item.mergedQuantity!.amount}
+							unit={item.mergedQuantity!.unit}
+						/>
+
+						{#each item.origins as origin (origin.id)}
+							{@const meal = meals.find((m) => m.id === origin.id)}
+							<span class="ml-8 text-xs text-muted-foreground">
+								<NumberFlow value={origin.shoppingIngredient.quantity} />
+								{origin.shoppingIngredient.unit} from {origin.type}
+								{meal ? meal.recipe.title : origin.id}
+							</span>
+						{/each}
+					{/each}
+				</div>
+			</section>
+		{/if}
 	</div>
 </div>
