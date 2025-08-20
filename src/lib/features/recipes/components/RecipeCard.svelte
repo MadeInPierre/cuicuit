@@ -49,8 +49,8 @@
 {#if recipe}
 	<div class={cn('w-60 group flex flex-col items-start rounded-md', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
-			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-sm">
-				<a href={'/recipes/' + recipe.id} class="flex-shrink-0">
+			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-xs">
+				<a href={'/recipes/' + recipe.id} class="shrink-0">
 					<img
 						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 						alt={recipe.title}
@@ -71,7 +71,7 @@
 						variant="ghost"
 						size="icon"
 						class={cn(
-							'size-8 bg-white rounded-full shadow',
+							'size-8 bg-white rounded-full shadow-sm',
 							bookmarked === false && 'opacity-0 group-hover:opacity-100 transition-opacity'
 						)}
 						aria-label="Bookmark recipe"
@@ -109,7 +109,7 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="size-8 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
+							class="size-8 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
 							aria-label="Add to plan"
 							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}
 						>

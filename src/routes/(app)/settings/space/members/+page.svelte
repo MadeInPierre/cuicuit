@@ -35,7 +35,7 @@
 
 	<div class="grid gap-4 grid-cols-2">
 		{#each activeSpaceMembersProfiles as profile (profile.user_id)}
-			<div class="border rounded-lg p-3 flex items-center gap-4 shadow-sm">
+			<div class="border rounded-lg p-3 flex items-center gap-4 shadow-xs">
 				<UserAvatar {profile} class="size-12" />
 				<div class="grid">
 					<div class="flex items-center text-sm font-medium">

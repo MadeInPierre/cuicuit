@@ -68,7 +68,7 @@
 {#if recipe}
 	<div class="w-full flex flex-col mb-20">
 		<main class="grid flex-1 items-start gap-4 md:gap-8">
-			<div class="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
+			<div class="mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
 				<!-- <div class="flex items-center gap-4">
 					<Button
 						variant="outline"

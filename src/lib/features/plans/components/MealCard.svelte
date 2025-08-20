@@ -31,7 +31,7 @@
 				className
 			)}
 		>
-			<!-- <a href={'/recipes/' + recipe.id} class="flex-shrink-0"> -->
+			<!-- <a href={'/recipes/' + recipe.id} class="shrink-0"> -->
 			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
 				<img
 					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`}
@@ -66,7 +66,7 @@
 			</div>
 
 			{#if !expanded}
-				<div class="flex gap-1 items-center text-xs font-semibold ml-auto flex-shrink-0 relative">
+				<div class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0 relative">
 					<div class="flex items-center gap-1">
 						<span>{meal.servings}</span>
 						<Users class="size-3 inline-block" />
