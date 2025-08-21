@@ -7,7 +7,7 @@
 	type Props = {
 		value: number;
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-		variant?: 'default' | 'secondary' | 'destructive' | 'outline-solid' | 'ghost' | 'link';
+		variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
 		allowDelete?: boolean; // If true, show a trash icon on the minus button when counter is 1
 		class?: string;
 

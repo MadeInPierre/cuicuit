@@ -7,6 +7,11 @@
 	import { toast } from 'svelte-sonner';
 	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
 
+	type Props = {
+		expanded?: boolean
+	}
+	let { expanded = $bindable(false) }: Props = $props();
+
 	const activeSpace = getActiveSpaceState();
 
 	const meals = $derived(activeSpace.activePlan || []);
@@ -61,7 +66,7 @@
 			<!-- <div use:dragHandle class="mt-5">
 				<GripVertical class="size-4 text-muted-foreground cursor-move" />
 			</div> -->
-			<MealCard {meal} expanded />
+			<MealCard {meal} {expanded} />
 		</div>
 	{/each}
 </section>

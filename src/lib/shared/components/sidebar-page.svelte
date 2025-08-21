@@ -24,8 +24,8 @@
 				<!-- <Sidebar.Trigger />
 				<Separator orientation="vertical" class="mr-2 h-4" /> -->
 				<a href="/dashboard" class="ml-6 flex gap-2 items-center">
-					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-5" />
-					<h1 class="text-md font-semibold">Cuicuit</h1>
+					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="size-8" />
+					<h1 class="text-lg font-semibold">Cuicuit</h1>
 				</a>
 				<!-- <Breadcrumb.Root>
 					<Breadcrumb.List>

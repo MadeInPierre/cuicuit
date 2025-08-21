@@ -34,7 +34,7 @@
 {#snippet status(status: string, Icon: any, color: string)}
 	<div class="text-xs flex items-center {color}">
 		<Icon class="size-3.5 inline-block mr-1" />
-		<span>{status}</span>
+		<span class="line-clamp-1 text-left">{status}</span>
 		<!-- <Apple class="size-3.5 inline-block ml-auto text-muted-foreground" />
 						<span class="ml-1 text-xs text-muted-foreground"> 4/5 </span> -->
 	</div>

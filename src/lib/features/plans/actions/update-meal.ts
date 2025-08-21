@@ -63,6 +63,8 @@ export async function deleteMeal(
 		.eq('type', 'meal')
 		.is('deleted_at', null);
 
+	// TODO update meal positions as they may not go from 1 to N anymore
+
 	if (shoppingListError) {
 		throw new Error('Error soft-deleting shopping list items: ' + shoppingListError.message);
 	}
