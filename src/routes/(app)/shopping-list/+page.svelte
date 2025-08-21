@@ -11,6 +11,8 @@
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import NumberFlow from '@number-flow/svelte';
 	import { onMount } from 'svelte';
+	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
+	import PaperBoard from './PaperBoard.svelte';
 
 	// TODO refactor
 
@@ -73,7 +75,9 @@
 			});
 		});
 
-		return Object.values(ingredientMap);
+		return Object.values(ingredientMap).sort((a, b) =>
+			a.ingredient.slug.localeCompare(b.ingredient.slug)
+		);
 	}
 
 	let aisles: Tables<'supermarket_aisles'>[] = $state([]);
@@ -98,57 +102,91 @@
 
 	<Separator class="my-6" />
 
-	<div class="grid space-y-12">
-		{#each aisles as a (a.aisle)}
-			{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === a.aisle)}
+	<!-- Tab to select the shopping list view -->
+	<Tabs.Root value="aisle">
+		<Tabs.List>
+			<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
+			<Tabs.Trigger value="recipes">By Recipe</Tabs.Trigger>
+			<!-- <Tabs.Trigger value="combined">Combined</Tabs.Trigger> -->
+		</Tabs.List>
 
-			{#if aisleItems.length > 0}
-				<section>
-					<h3 class="text-lg font-semibold mb-2">{a.aisle}</h3>
-					<div class="grid gap-2 ml-8">
-						{#each aisleItems as item (item.ingredient.id)}
-							<IngredientListItem
-								ingredient={item.ingredient}
-								amount={item.mergedQuantity!.amount}
-								unit={item.mergedQuantity!.unit}
-							/>
+		<Tabs.Content value="aisle" class="mt-4">
+			<div class="grid space-y-12">
+				{#each aisles as a (a.aisle)}
+					{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === a.aisle)}
 
-							{#each item.origins as origin (origin.id)}
-								{@const meal = meals.find((m) => m.id === origin.id)}
-								<span class="ml-8 text-xs text-muted-foreground">
-									<NumberFlow value={origin.shoppingIngredient.quantity} />
-									{origin.shoppingIngredient.unit} from {origin.type}
-									{meal ? meal.recipe.title : origin.id}
-								</span>
+					{#if aisleItems.length > 0}
+						<section>
+							<h3 class="text-lg font-semibold mb-2">{a.aisle}</h3>
+							<div class="grid gap-2 ml-8">
+								{#each aisleItems as item (item.ingredient.id)}
+									<IngredientListItem
+										ingredient={item.ingredient}
+										amount={item.mergedQuantity!.amount}
+										unit={item.mergedQuantity!.unit}
+									/>
+
+									{#each item.origins as origin (origin.id)}
+										{@const meal = meals.find((m) => m.id === origin.id)}
+										<span class="ml-8 text-xs text-muted-foreground">
+											<NumberFlow value={origin.shoppingIngredient.quantity} />
+											{origin.shoppingIngredient.unit} from {origin.type}
+											{meal ? meal.recipe.title : origin.id}
+										</span>
+									{/each}
+								{/each}
+							</div>
+						</section>
+					{/if}
+				{/each}
+
+				{#if shoppingList.some((item) => !item.ingredient.aisle)}
+					<section class="mb-8">
+						<h3 class="text-lg font-semibold mb-2">Other</h3>
+						<div class="grid gap-2">
+							{#each shoppingList.filter((item) => !item.ingredient.aisle) as item (item.ingredient.id)}
+								<IngredientListItem
+									ingredient={item.ingredient}
+									amount={item.mergedQuantity!.amount}
+									unit={item.mergedQuantity!.unit}
+								/>
+
+								{#each item.origins as origin (origin.id)}
+									{@const meal = meals.find((m) => m.id === origin.id)}
+									<span class="ml-8 text-xs text-muted-foreground">
+										<NumberFlow value={origin.shoppingIngredient.quantity} />
+										{origin.shoppingIngredient.unit} from {origin.type}
+										{meal ? meal.recipe.title : origin.id}
+									</span>
+								{/each}
 							{/each}
-						{/each}
-					</div>
-				</section>
-			{/if}
-		{/each}
+						</div>
+					</section>
+				{/if}
+			</div>
+		</Tabs.Content>
 
-		{#if shoppingList.some((item) => !item.ingredient.aisle)}
-			<section class="mb-8">
-				<h3 class="text-lg font-semibold mb-2">Other</h3>
-				<div class="grid gap-2">
-					{#each shoppingList.filter((item) => !item.ingredient.aisle) as item (item.ingredient.id)}
-						<IngredientListItem
-							ingredient={item.ingredient}
-							amount={item.mergedQuantity!.amount}
-							unit={item.mergedQuantity!.unit}
-						/>
+		<Tabs.Content value="recipes" class="mt-4">
+			<PaperBoard/>
+		</Tabs.Content>
 
-						{#each item.origins as origin (origin.id)}
-							{@const meal = meals.find((m) => m.id === origin.id)}
-							<span class="ml-8 text-xs text-muted-foreground">
-								<NumberFlow value={origin.shoppingIngredient.quantity} />
-								{origin.shoppingIngredient.unit} from {origin.type}
-								{meal ? meal.recipe.title : origin.id}
-							</span>
-						{/each}
-					{/each}
-				</div>
-			</section>
-		{/if}
-	</div>
+		<Tabs.Content value="combined" class="mt-4">
+			<p>
+				TODO This view aims to show a combination variant of the two other "Group by Recipe" and
+				"Group by Aisle" views.
+			</p>
+			<p>
+				It should display the shopping list items grouped by aisle, and display a carousel of
+				recipes on the top.
+			</p>
+			<p>
+				When the user clicks on a recipe, it should filter the shopping list to show only the
+				ingredients needed for that recipe.
+			</p>
+			<p>
+				It also shows recipe ingredients that have been ignored, or not on the list because the
+				pantry is already stocked.
+			</p>
+		</Tabs.Content>
+	</Tabs.Root>
 </div>

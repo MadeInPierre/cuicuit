@@ -138,20 +138,19 @@
 								<RecipeCard {recipe} showAddToPlanButton showDetails class="mt-4" />
 							{:else}
 								<div
-									class="grid space-y-1 p-2 rounded-2xl"
-									style="background: linear-gradient(160deg, #fef9c3 0%, #fde68a 100%);"
+									class="grid space-y-1 p-2 rounded-2xl bg-gradient-to-br from-yellow-200/60 to-yellow-200 dark:from-yellow-900/90 dark:to-yellow-900"
 								>
 									<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
 										<RecipeCard {recipe} showAddToPlanButton showDetails />
 									</div>
-									<div class="p-2 pb-1 flex items-center gap-2 text-sm text-yellow-700">
+									<div class="p-2 pb-1 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
 										<BellRing class="size-4" />
 										<span><strong>2</strong> ingredients expire soon!</span>
 										
 										<!-- <Star class="size-4" />
 										<span class="">You love this recipe!</span> -->
 
-										<Button size="icon" variant="link" class="ml-auto w-6 h-6 text-yellow-700">
+										<Button size="icon" variant="link" class="ml-auto w-6 h-6 text-yellow-700 dark:text-yellow-300">
 											<FunnelPlus class="size-4" />
 										</Button>
 									</div>

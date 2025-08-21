@@ -20,6 +20,8 @@
 	import { Button } from './ui/button';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
+
+	let expandedMealCards = $state(false);
 </script>
 
 <Sidebar.Root
@@ -29,27 +31,38 @@
 	{...restProps}
 >
 	<Sidebar.Header class="border-sidebar-border border-b p-4">
-		<div class="flex items-center gap-8">
+		<div class="flex items-center gap-8 justify-between">
 			<div class="grid">
 				<h1 class="text-md font-semibold">Your plan</h1>
 				<p class="text-xs text-muted-foreground">
 					Drag or add recipes here to create a <br /> meal plan and shopping list.
 				</p>
 			</div>
-			<Button variant="ghost" size="icon" class="px-4" onclick={() => goto('/plan')}>
-				<CalendarPlus class="size-4" />
+			<Button variant="ghost" size="icon" class="size-8" onclick={() => goto('/plan')}>
+				<CalendarPlus class="size-4" size="icon" />
 				<span class="sr-only">Go to plan</span>
 			</Button>
 		</div>
+		<div class="flex gap-2 mt-2">
+			<Input class="h-8 text-xs" placeholder="Search for recipes or items..." />
+			<Button
+				variant="default"
+				size="icon"
+				class="h-8"
+				onclick={() => (expandedMealCards = !expandedMealCards)}
+			>
+				<Settings2 class="size-4" />
+			</Button>
+		</div>
 	</Sidebar.Header>
-	<Sidebar.Content>
+	<Sidebar.Content class="no-scrollbar">
 		<!-- <DatePicker /> -->
 		<!-- <Sidebar.Separator class="mx-0" /> -->
 		<!-- <Calendars calendars={data.calendars} /> -->
 
 		<div class="flex w-full max-w-sm flex-col gap-6">
 			{#snippet sectionHeader(Icon: any, title: string, description: string)}
-				<div class="pt-8 pb-4 flex items-center gap-4">
+				<div class="flex items-center gap-4">
 					<Icon class="size-4" />
 					<div class="grid gap-0.5">
 						<h3 class="text-sm font-semibold">{title}</h3>
@@ -61,33 +74,36 @@
 			<Tabs.Root value="plan" class="p-4">
 				<!-- <Tabs.List class="w-full">
 					<Tabs.Trigger class="w-full" value="plan">Plan</Tabs.Trigger>
-					<Tabs.Trigger class="w-full" value="shopping">Groceries</Tabs.Trigger>
+					<Tabs.Trigger class="w-full" value="shopping">Shopping</Tabs.Trigger>
 				</Tabs.List> -->
-				<Tabs.Content value="plan">
-					<div class="flex gap-2">
-						<Input class="h-8 text-xs" placeholder="Search for recipes or items..." />
-						<Button variant="default" size="icon" class="h-8 w-8">
-							<Settings2 class="w-4 h-4" />
-						</Button>
+				<Tabs.Content value="plan" class="grid space-y-8">
+					<div class="grid space-y-4">
+						{@render sectionHeader(
+							Calendar,
+							'Planned meals',
+							'Reserve pantry ingredients for meals'
+						)}
+						<RecipeList expanded={expandedMealCards} />
 					</div>
 
-					{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients for meals')}
-					<RecipeList />
-
-					{@render sectionHeader(Clock, 'Set aside', "Ideas that don't use the pantry")}
-					<div
-						class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-					>
-						<Clock class="size-8" />
-						<p class="w-28 text-center">Drag recipes here to set aside for later.</p>
+					<div class="grid space-y-4">
+						{@render sectionHeader(Clock, 'Set aside', "Ideas that don't use the pantry")}
+						<div
+							class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+						>
+							<Clock class="size-8" />
+							<p class="w-28 text-center">Drag recipes here to set aside for later.</p>
+						</div>
 					</div>
 
-					{@render sectionHeader(ShoppingBasket, 'Shopping list', 'Add any additional items')}
-					<div
-						class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-					>
-						<ShoppingBasket class="size-8" />
-						<p class="mx-auto w-28 text-center">Search for items to add them here.</p>
+					<div class="grid space-y-4">
+						{@render sectionHeader(ShoppingBasket, 'Shopping list', 'Add any additional items')}
+						<div
+							class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+						>
+							<ShoppingBasket class="size-8" />
+							<p class="mx-auto w-28 text-center">Search for items to add them here.</p>
+						</div>
 					</div>
 				</Tabs.Content>
 				<Tabs.Content value="shopping">Here you can manage your grocery list.</Tabs.Content>
@@ -111,7 +127,7 @@
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem> -->
 			<Sidebar.MenuItem class="group">
-				<Sidebar.MenuButton onclick={() => goto('/list')}>
+				<Sidebar.MenuButton onclick={() => goto('/shopping-list')}>
 					<ScrollText />
 					<span>Shopping List</span>
 					<ArrowRight class="ml-auto opacity-40 group-hover:opacity-100 transition-opacity" />
