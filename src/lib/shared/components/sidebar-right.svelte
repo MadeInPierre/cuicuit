@@ -44,7 +44,7 @@
 			</Button>
 		</div>
 		<div class="flex gap-2 mt-2">
-			<Input class="h-8 text-xs" placeholder="Search for recipes or items..." />
+			<Input class="h-8 text-xs" placeholder="Add a recipe or item..." />
 			<Button
 				variant="default"
 				size="icon"

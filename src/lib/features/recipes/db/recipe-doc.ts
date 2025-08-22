@@ -1,3 +1,4 @@
+import type { UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 import type { Unit } from '$lib/shared/utils/quantity';
 import { Cake, Cookie, Croissant, CupSoda, EggFried, Icon, Salad, Soup } from 'lucide-svelte';
 
@@ -34,51 +35,6 @@ export const recipeTimesOfDay = {
 	drink: 'Drinks'
 } as const;
 export type RecipeTimeOfDayKey = keyof typeof recipeTimesOfDay;
-
-export const recipeTimesOfDayCards = {
-	breakfast: {
-		icon: Croissant,
-		description: 'Start your day with a delicious breakfast recipe.',
-		classes: 'bg-orange-100 text-orange-800'
-	},
-	brunch: {
-		icon: EggFried,
-		description: 'Had a great sleep? Enjoy a delightful brunch recipe.',
-		classes: 'bg-amber-100 text-amber-800'
-	},
-	lunch: {
-		icon: Salad,
-		description: 'Savor a fresh lunch recipe.',
-		classes: 'bg-green-100 text-green-800'
-	},
-	dinner: {
-		icon: Soup,
-		description: 'Indulge in a hearty dinner recipe.',
-		classes: 'bg-purple-100 text-purple-800'
-	},
-	snack: {
-		icon: Cookie,
-		description: 'Treat yourself to a tasty snack recipe.',
-		classes: 'bg-pink-100 text-pink-800'
-	},
-	dessert: {
-		icon: Cake,
-		description: 'End your meal with a sweet dessert recipe.',
-		classes: 'bg-fuchsia-100 text-fuchsia-800'
-	},
-	drink: {
-		icon: CupSoda,
-		description: 'Quench your thirst with a refreshing drink recipe.',
-		classes: 'bg-cyan-100 text-cyan-800'
-	}
-} satisfies Record<
-	RecipeTimeOfDayKey,
-	{
-		icon: typeof Icon;
-		description: string;
-		classes: string;
-	}
->;
 
 export const recipeCourses = {
 	appetizer: 'Appetizer',

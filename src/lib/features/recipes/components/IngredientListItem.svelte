@@ -7,14 +7,16 @@
 		ingredient: IngredientWithTranslations;
 		amount?: number;
 		unit?: string;
+		[key: string]: any;
 	};
 
-	const { ingredient, amount, unit }: Props = $props();
+	const { ingredient, amount, unit, ...others }: Props = $props();
 
-	const translation = ingredient.translations.find((t) => t.language.lang === 'fr-FR') || ingredient.translations[0];
+	const translation =
+		ingredient.translations.find((t) => t.language.lang === 'fr-FR') || ingredient.translations[0];
 </script>
 
-<div class="flex items-center gap-2">
+<div class="flex items-center gap-2" {...others}>
 	<IngredientImage
 		id={ingredient.id}
 		name={translation.name_singular || 'Unknown'}

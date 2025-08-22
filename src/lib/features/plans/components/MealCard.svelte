@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CheckCheck, Plus, Trash2, Users, Weight } from 'lucide-svelte';
+	import { Plus, Trash2, Users, Weight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -11,7 +11,6 @@
 	import NumberFlow from '@number-flow/svelte';
 	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
-	import { Ellipsis } from '@lucide/svelte';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 
 	const activeSpace = getActiveSpaceState();
@@ -22,16 +21,16 @@
 		showExpandedButtons?: boolean;
 		class?: string;
 	}
-	
+
 	let {
 		meal = null,
 		expanded: parentExpanded = false,
 		class: className = '',
-		showExpandedButtons = true
+		showExpandedButtons = false
 	}: Props = $props();
-	
+
 	let localExpanded = $state(false);
-	let finalExpanded = $derived(parentExpanded || localExpanded)
+	let finalExpanded = $derived(parentExpanded || localExpanded);
 </script>
 
 {#if meal}
