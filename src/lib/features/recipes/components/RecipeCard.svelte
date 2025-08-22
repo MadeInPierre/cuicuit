@@ -71,7 +71,7 @@
 						variant="ghost"
 						size="icon"
 						class={cn(
-							'size-8 bg-white rounded-full shadow-sm',
+							'size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm',
 							bookmarked === false && 'opacity-0 group-hover:opacity-100 transition-opacity'
 						)}
 						aria-label="Bookmark recipe"
@@ -109,11 +109,11 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="size-8 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+							class="size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
 							aria-label="Add to plan"
 							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}
 						>
-							<CalendarPlus class="size-4" />
+							<CalendarPlus class="size-4 text-black" />
 						</Button>
 					{/if}
 				</div>

@@ -54,7 +54,7 @@ export async function addRecipeToActivePlan(
 		meal_origin: 'recipe',
 		ingredient_id: ingredient.ingredient_id,
 		name: ingredient.raw_input,
-		quantity: (ingredient.quantity ?? 1) * servings,
+		quantity: ingredient.quantity ?? 1,
 		unit: ingredient.unit
 	}));
 
