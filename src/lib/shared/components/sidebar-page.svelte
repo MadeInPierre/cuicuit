@@ -12,7 +12,7 @@
 	let { children }: Props = $props();
 </script>
 
-<Sidebar.Provider open={false} >
+<Sidebar.Provider open={false}>
 	<SidebarLeft collapsible="icon" />
 	<SidebarRight />
 

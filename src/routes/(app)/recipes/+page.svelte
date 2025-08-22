@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, FunnelPlus, Plus, RotateCcw, Star } from 'lucide-svelte';
-	import { recipeTimesOfDay, recipeTimesOfDayCards } from '$lib/features/recipes/db/recipe-doc';
+	import { ArrowRight, BellRing, FunnelPlus, Plus } from 'lucide-svelte';
+	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
 	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { cn } from '$lib/utils';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
+	import { recipeTimesOfDaySectionHeaders } from '$lib/features/recipes/components/consts';
 
 	// Get all recipes in supabase
 	async function getRecipes() {
@@ -37,7 +38,7 @@
 
 	onMount(async () => {
 		recipes = await getRecipes();
-		// await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
+		await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
 		loading = false;
 	});
 </script>
@@ -76,24 +77,15 @@
 
 	{#if loading}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
-			{@const cardInfo = recipeTimesOfDayCards[key as keyof typeof recipeTimesOfDayCards]}
+			{@const header =
+				recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDaySectionHeaders]}
 			<div class="space-y-6 animate-pulse">
 				<div class="flex justify-between items-center">
-					<div class="flex items-center gap-4">
-						<div class="w-12 aspect-square bg-muted rounded-md flex items-center justify-center">
-							<cardInfo.icon class="size-6 text-muted-foreground" />
-						</div>
-						<div class="grid">
-							<h2 class="text-lg font-bold tracking-tight">{label}</h2>
-							<p class="text-muted-foreground text-sm">
-								{cardInfo.description}
-							</p>
-						</div>
-					</div>
+					<SectionHeader {header} />
 					<div class="h-8 w-20 bg-muted rounded"></div>
 				</div>
 				<div class="w-full flex gap-4">
-					{#each Array(6) as _, i}
+					{#each Array(4) as _, i}
 						<RecipeCard />
 					{/each}
 				</div>
@@ -101,7 +93,7 @@
 		{/each}
 	{:else if recipes && recipes?.length > 0}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
-			{@const cardInfo = recipeTimesOfDayCards[key as keyof typeof recipeTimesOfDayCards]}
+			{@const header = recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDay]}
 			{@const categoryRecipes = recipes.filter((recipe) =>
 				recipe.times_of_day
 					.map((time) => time.timeofday_id)
@@ -111,21 +103,8 @@
 			{#if categoryRecipes.length > 0}
 				<div class="space-y-2">
 					<div class="flex justify-between items-center">
-						<div class="flex items-center gap-4">
-							<div
-								class={cn(
-									'w-12 aspect-square bg-muted rounded-md flex items-center justify-center',
-									cardInfo.classes
-								)}
-							>
-								<cardInfo.icon class={cn('size-6 text-muted-foreground', cardInfo.classes)} />
-							</div>
+						<SectionHeader {header} />
 
-							<div class="grid">
-								<h2 class="text-lg font-bold tracking-tight">{label}</h2>
-								<p class="text-muted-foreground text-sm">{cardInfo.description}</p>
-							</div>
-						</div>
 						<Button variant="link" size="sm" class="flex items-center" href="/recipes">
 							See all
 							<ArrowRight class="size-3.5" />
@@ -135,22 +114,28 @@
 					<div class="w-full flex flex-wrap gap-4">
 						{#each categoryRecipes as recipe (recipe.id)}
 							{#if Math.random() < 0.8}
-								<RecipeCard {recipe} showAddToPlanButton showDetails class="mt-4" />
+								<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
 							{:else}
 								<div
 									class="grid space-y-1 p-2 rounded-2xl bg-gradient-to-br from-yellow-200/60 to-yellow-200 dark:from-yellow-900/90 dark:to-yellow-900"
 								>
 									<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
-										<RecipeCard {recipe} showAddToPlanButton showDetails />
+										<RecipeCard {recipe} showAddToPlanButton />
 									</div>
-									<div class="p-2 pb-1 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
+									<div
+										class="p-2 pb-1 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300"
+									>
 										<BellRing class="size-4" />
 										<span><strong>2</strong> ingredients expire soon!</span>
-										
+
 										<!-- <Star class="size-4" />
 										<span class="">You love this recipe!</span> -->
 
-										<Button size="icon" variant="link" class="ml-auto w-6 h-6 text-yellow-700 dark:text-yellow-300">
+										<Button
+											size="icon"
+											variant="link"
+											class="ml-auto w-6 h-6 text-yellow-700 dark:text-yellow-300"
+										>
 											<FunnelPlus class="size-4" />
 										</Button>
 									</div>

@@ -66,7 +66,7 @@
 			<!-- <div use:dragHandle class="mt-5">
 				<GripVertical class="size-4 text-muted-foreground cursor-move" />
 			</div> -->
-			<MealCard {meal} {expanded} />
+			<MealCard {meal} {expanded} showExpandedButtons />
 		</div>
 	{/each}
 </section>
