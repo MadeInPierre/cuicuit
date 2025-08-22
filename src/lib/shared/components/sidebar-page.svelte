@@ -4,6 +4,7 @@
 	import * as Breadcrumb from '$lib/shared/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/shared/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import { Button } from './ui/button';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -35,6 +36,22 @@
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
+
+				<Button
+					variant="secondary"
+					class="ml-auto mr-8 h-8 text-sm px-2 font-normal text-muted-foreground flex items-center gap-1"
+				>
+					<span>Chat with Cuicuit...</span>
+
+					<div class="ml-5 h-5 px-1 flex items-center text-xs bg-background rounded-sm border">
+						Ctrl
+					</div>
+					<div
+						class="size-5 flex items-center justify-center text-xs bg-background rounded-sm border"
+					>
+						K
+					</div>
+				</Button>
 			</div>
 		</header>
 		<div class="flex flex-1 flex-col gap-4 p-10">

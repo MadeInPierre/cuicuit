@@ -1,5 +1,15 @@
 <script lang="ts">
-	import { Plus, Trash2, Users, Weight } from 'lucide-svelte';
+	import {
+		Ellipsis,
+		Pencil,
+		Plus,
+		Repeat,
+		ShoppingCart,
+		Trash2,
+		Users,
+		Weight,
+		X
+	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -12,6 +22,7 @@
 	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
+	import { CircleSlash } from '@lucide/svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -82,7 +93,7 @@
 			<div
 				transition:slide={{ duration: 300 }}
 				class={cn(
-					'grid space-y-2 bg-muted rounded-b-md px-2 pt-3 -translate-y-1 border relative',
+					'grid space-y-2 bg-muted dark:bg-slate-950 rounded-b-md px-2 pt-3 -translate-y-1 border relative',
 					showExpandedButtons ? 'pb-3 mb-4' : 'pb-2'
 				)}
 			>
@@ -106,12 +117,14 @@
 					{#each [...meal.shopping_ingredients].sort((a, b) => {
 						const order = { recipe: 0, adjusted: 0, added: 1, ignored: 2 };
 						return order[a.meal_origin as keyof typeof order] - order[b.meal_origin as keyof typeof order];
-					}) as shopping_ingredient (shopping_ingredient.ingredient_id)}
+					}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
-							class="flex h-[22px] items-center gap-2 text-xs text-muted-foreground p-0.5 px-2 rounded-sm transition-colors"
-							class:bg-slate-200={hoveredMealIngredientId.value ===
-								shopping_ingredient.ingredient_id}
+							class={cn(
+								'grid text-xs text-muted-foreground rounded-sm transition-colors relative group',
+								hoveredMealIngredientId.value === shopping_ingredient.ingredient_id &&
+									'bg-slate-200 dark:bg-slate-900'
+							)}
 							onmouseenter={() => {
 								hoveredMealIngredientId.value = shopping_ingredient.ingredient_id;
 							}}
@@ -119,46 +132,73 @@
 								hoveredMealIngredientId.value = null;
 							}}
 						>
-							<span
-								class={cn(
-									'line-clamp-2',
-									shopping_ingredient.meal_origin === 'ignored' &&
-										'line-through text-muted-foreground/60'
-								)}
+							<div
+								class="absolute opacity-0 group-hover:opacity-100 transition-opacity top-[3px] -translate-x-1/2 -right-6 z-10 rounded-sm border bg-muted"
 							>
-								{shopping_ingredient.name ||
-									shopping_ingredient.ingredient?.translations[0]?.name_singular}
-							</span>
+								<Ellipsis class="size-3.5" />
+							</div>
 
-							{#if shopping_ingredient.meal_origin === 'recipe'}
-								<!-- <Circle class="size-3 text-muted-foreground" /> -->
-							{:else if shopping_ingredient.meal_origin === 'adjusted'}
-								<Weight class="size-3 text-muted-foreground" />
-							{:else if shopping_ingredient.meal_origin === 'ignored'}
-								<!-- <X class="size-3 text-muted-foreground" /> -->
-							{:else if shopping_ingredient.meal_origin === 'added'}
-								<Plus class="size-3 text-muted-foreground" />
-							{/if}
+							<div class="h-[22px] p-0.5 px-2 flex items-center">
+								<span
+									class={cn(
+										'line-clamp-2',
+										shopping_ingredient.meal_origin === 'ignored' &&
+											'line-through text-muted-foreground/60'
+									)}
+								>
+									{shopping_ingredient.name ||
+										shopping_ingredient.ingredient?.translations[0]?.name_singular}
+								</span>
 
-							<span
-								class={cn(
-									'ml-auto font-medium whitespace-nowrap cursor-ew-resize select-none min-w-8 text-right',
-									shopping_ingredient.meal_origin === 'ignored' &&
-										'line-through text-muted-foreground/60'
-								)}
-							>
-								{#if showExpandedButtons}
-									<NumberFlow
-										value={(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
-									/>
-								{:else}
-									{(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
+								{#if shopping_ingredient.meal_origin === 'recipe'}
+									<!-- <Circle class="size-3 text-muted-foreground" /> -->
+								{:else if shopping_ingredient.meal_origin === 'adjusted'}
+									<Weight class="size-3 text-muted-foreground" />
+								{:else if shopping_ingredient.meal_origin === 'ignored'}
+									<!-- <X class="size-3 text-muted-foreground" /> -->
+								{:else if shopping_ingredient.meal_origin === 'added'}
+									<Plus class="size-3 text-muted-foreground" />
 								{/if}
 
-								{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
-							</span>
+								<span
+									class={cn(
+										'ml-auto font-medium whitespace-nowrap cursor-ew-resize select-none min-w-8 text-right',
+										shopping_ingredient.meal_origin === 'ignored' &&
+											'line-through text-muted-foreground/60'
+									)}
+								>
+									{#if showExpandedButtons}
+										<NumberFlow
+											value={(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
+										/>
+									{:else}
+										{(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
+									{/if}
 
-							<!-- <Check class="max-w-3 max-h-3 text-green-600" /> -->
+									{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
+								</span>
+
+								<!-- <Check class="max-w-3 max-h-3 text-green-600" /> -->
+							</div>
+
+							{#if i === 0}
+								<div class="flex gap-2 px-4 my-2">
+									<Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
+										<CircleSlash />
+										Cook without
+									</Button>
+
+									<!-- <Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
+										<ShoppingCart />
+										Buy Later
+									</Button> -->
+
+									<Button variant="link" size="sm" class="h-6 w-min px-1.5 text-xs rounded-sm">
+										<Ellipsis />
+										<!-- Swap -->
+									</Button>
+								</div>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -193,6 +233,7 @@
 								onclick={() => deleteMeal(activeSpace, meal.id)}
 							>
 								<!-- <Ellipsis class="max-w-3.5 max-h-3.5" /> -->
+								<!-- <Pencil class="max-w-3.5 max-h-3.5" /> -->
 								<Trash2 class="max-w-3.5 max-h-3.5 text-destructive" />
 							</Button>
 						</div>

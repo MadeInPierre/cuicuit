@@ -81,12 +81,12 @@
 						{@render sectionHeader(
 							Calendar,
 							'Planned meals',
-							'Reserve pantry ingredients for meals'
+							'Reserve pantry ingredients'
 						)}
 						<RecipeList expanded={expandedMealCards} />
 					</div>
 
-					<div class="grid space-y-4">
+					<!-- <div class="grid space-y-4">
 						{@render sectionHeader(Clock, 'Set aside', "Ideas that don't use the pantry")}
 						<div
 							class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
@@ -94,7 +94,7 @@
 							<Clock class="size-8" />
 							<p class="w-28 text-center">Drag recipes here to set aside for later.</p>
 						</div>
-					</div>
+					</div> -->
 
 					<div class="grid space-y-4">
 						{@render sectionHeader(ShoppingBasket, 'Shopping list', 'Add any additional items')}

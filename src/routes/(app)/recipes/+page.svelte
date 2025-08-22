@@ -1,7 +1,18 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, FunnelPlus, Plus } from 'lucide-svelte';
+	import {
+		ArrowRight,
+		BellRing,
+		Check,
+		Funnel,
+		FunnelPlus,
+		MessageSquareText,
+		Plus,
+		RotateCcw,
+		Search,
+		Settings2
+	} from 'lucide-svelte';
 	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
@@ -12,6 +23,11 @@
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { recipeTimesOfDaySectionHeaders } from '$lib/features/recipes/components/consts';
+	import Input from '$lib/shared/components/ui/input/input.svelte';
+	import FilterButton from './FilterButton.svelte';
+	import DiscoverDial from './DiscoverDial.svelte';
+	import { flip } from 'svelte/animate';
+	import { fade, slide } from 'svelte/transition';
 
 	// Get all recipes in supabase
 	async function getRecipes() {
@@ -36,9 +52,14 @@
 		fromString: (value: string) => parseInt(value, 10)
 	});
 
+	let searchInput: string = $state('');
+	let searchedRecipes = $derived(
+		recipes.filter((recipe) => recipe.title.toLowerCase().includes(searchInput.toLowerCase()))
+	);
+
 	onMount(async () => {
 		recipes = await getRecipes();
-		await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
+		// await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
 		loading = false;
 	});
 </script>
@@ -48,7 +69,7 @@
 		<div class="flex items-center">
 			<div class="grid space-y-0.5">
 				<div class="flex gap-6 items-center">
-					<h1 class="text-4xl font-semibold tracking-tight">Ideas for</h1>
+					<h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>
 					<ServingsPlusMinus value={counter.value || 1} size="lg" onChange={counter.set} />
 
 					<!-- <Button>
@@ -57,19 +78,52 @@
 					</Button> -->
 				</div>
 				<p class="text-muted-foreground">
-					Discover recipes to inspire your next meal. Adjust the servings to see which recipes can
-					be cooked right now.
+					Discover recipes to inspire your next meal.
+					<!-- Adjust the servings to see which recipes can be cooked right now. -->
 				</p>
 			</div>
 
-			<ImportRecipeDialog dropdownAlign="end">
-				{#snippet trigger({ props })}
-					<ButtonThemed {...props} class="ml-auto">
-						<Plus class="size-4 mr-2" />
-						Add
-					</ButtonThemed>
-				{/snippet}
-			</ImportRecipeDialog>
+			<div class="ml-auto grid space-y-3">
+				<div class="flex gap-2">
+					<!-- <Button variant="outline" size="icon">
+						<Funnel />
+					</Button> -->
+
+					<DiscoverDial />
+
+					<div class="relative h-10 w-80">
+						<Search
+							class="size-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10"
+						/>
+						<Input
+							type="text"
+							placeholder="Search recipes..."
+							class="pl-10 pr-3 py-2"
+							bind:value={searchInput}
+						/>
+					</div>
+
+					<!-- <Input placeholder="Search recipes..." class="w-80" /> -->
+
+					<ImportRecipeDialog dropdownAlign="end">
+						{#snippet trigger({ props })}
+							<ButtonThemed {...props} class="ml-auto">
+								<Plus class="size-4 mr-2" />
+								Add
+							</ButtonThemed>
+						{/snippet}
+					</ImportRecipeDialog>
+				</div>
+
+				<div class="flex justify-end gap-2">
+					<!-- <FilterButton text="" icon={Funnel} primary /> -->
+					<FilterButton text="My Recipes" active />
+					<FilterButton text="Ready to cook" />
+					<FilterButton text="Quick & Easy" />
+					<FilterButton text="Favorites" />
+					<FilterButton icon={FunnelPlus} primary />
+				</div>
+			</div>
 		</div>
 
 		<Separator class="my-6" />
@@ -94,14 +148,14 @@
 	{:else if recipes && recipes?.length > 0}
 		{#each Object.entries(recipeTimesOfDay) as [key, label]}
 			{@const header = recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDay]}
-			{@const categoryRecipes = recipes.filter((recipe) =>
+			{@const categoryRecipes = searchedRecipes.filter((recipe) =>
 				recipe.times_of_day
 					.map((time) => time.timeofday_id)
 					.includes(key as keyof typeof recipeTimesOfDay)
 			)}
 
 			{#if categoryRecipes.length > 0}
-				<div class="space-y-2">
+				<div class="space-y-2" transition:slide>
 					<div class="flex justify-between items-center">
 						<SectionHeader {header} />
 
@@ -114,7 +168,9 @@
 					<div class="w-full flex flex-wrap gap-4">
 						{#each categoryRecipes as recipe (recipe.id)}
 							{#if Math.random() < 0.8}
-								<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
+								<div transition:fade>
+									<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
+								</div>
 							{:else}
 								<div
 									class="grid space-y-1 p-2 rounded-2xl bg-gradient-to-br from-yellow-200/60 to-yellow-200 dark:from-yellow-900/90 dark:to-yellow-900"
