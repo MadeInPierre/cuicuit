@@ -1,19 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import {
-		ArrowRight,
-		BellRing,
-		Check,
-		Funnel,
-		FunnelPlus,
-		MessageSquareText,
-		Plus,
-		RotateCcw,
-		Search,
-		Settings2
-	} from 'lucide-svelte';
-	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
+	import { ArrowRight, BellRing, FunnelPlus, Plus, Search } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
@@ -21,18 +9,50 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
-	import { recipeTimesOfDaySectionHeaders } from '$lib/features/recipes/components/consts';
+	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import Input from '$lib/shared/components/ui/input/input.svelte';
 	import FilterButton from './FilterButton.svelte';
 	import DiscoverDial from './DiscoverDial.svelte';
-	import { flip } from 'svelte/animate';
-	import { fade, slide } from 'svelte/transition';
+	import { slide } from 'svelte/transition';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import FilterDropdown from './FilterDropdown.svelte';
+	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
+	import { recipeTimesOfDaySectionHeaders } from '$lib/features/recipes/components/consts';
+
+	type Parameters = {
+		timeOfDay: string[];
+	};
+
+	const parameters: Parameters = $derived.by(() => {
+		page;
+		return {
+			timeOfDay: page.url.searchParams.get('timeOfDay')?.split(',') || []
+		};
+	});
+
+	function setParameters(newParameters: Parameters) {
+		let query = new URLSearchParams(page.url.searchParams.toString());
+
+		if (newParameters.timeOfDay?.length > 0) {
+			query.set('timeOfDay', newParameters.timeOfDay.join(','));
+		} else {
+			query.delete('timeOfDay');
+		}
+
+		goto(`?${query.toString()}`);
+	}
 
 	// Get all recipes in supabase
-	async function getRecipes() {
+	async function getRecipes(searchText: string = '') {
+		let query = getRecipesDetailed().limit(100);
+
+		if (searchText) {
+			query = query.ilike('title', `%${searchText}%`);
+		}
+
 		// Fetch all recipes from Supabase
-		const { data: recipeData, error: recipeError } = await getRecipesDetailed().limit(100);
+		const { data: recipeData, error: recipeError } = await query;
 
 		if (recipeError) {
 			console.error('Error fetching recipes:', recipeError);
@@ -42,7 +62,7 @@
 		return recipeData;
 	}
 
-	type Recipes = typeof getRecipes extends () => Promise<infer R> ? R : never;
+	type Recipes = NonNullable<typeof getRecipes extends () => Promise<infer R> ? R : never>;
 
 	let recipes: Recipes = $state([]);
 	let loading = $state(true);
@@ -53,12 +73,51 @@
 	});
 
 	let searchInput: string = $state('');
-	let searchedRecipes = $derived(
-		recipes.filter((recipe) => recipe.title.toLowerCase().includes(searchInput.toLowerCase()))
-	);
+
+	let groupBy: string = $state('timeOfDay');
+	let groupedRecipes: {
+		key: string;
+		header: UISectionHeader | null;
+		recipes: Recipes;
+	}[] = $derived.by(() => {
+		if (groupBy === 'timeOfDay') {
+			return Object.keys(recipeTimesOfDay).map((key) => {
+				return {
+					key,
+					header:
+						recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDaySectionHeaders],
+					recipes:
+						recipes?.filter((recipe) =>
+							recipe.times_of_day
+								.map((time) => time.timeofday_id)
+								.includes(key as keyof typeof recipeTimesOfDay)
+						) || []
+				};
+			});
+		} else {
+			return [
+				{
+					key: 'all',
+					header: null,
+					recipes: recipes || []
+				}
+			];
+		}
+	});
+
+	$effect(() => {
+		searchInput; // Trigger this effect when searchInput changes
+
+		// Debounce search input
+		const timeout = setTimeout(async () => {
+			recipes = (await getRecipes(searchInput)) || [];
+		}, 300);
+
+		return () => clearTimeout(timeout);
+	});
 
 	onMount(async () => {
-		recipes = await getRecipes();
+		recipes = (await getRecipes()) || [];
 		// await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
 		loading = false;
 	});
@@ -77,9 +136,10 @@
 						New search
 					</Button> -->
 				</div>
-				<p class="text-muted-foreground">
-					Discover recipes to inspire your next meal.
-					<!-- Adjust the servings to see which recipes can be cooked right now. -->
+
+				<p class="flex gap-1.5 items-center text-muted-foreground">
+					<span class="py-1">Discover recipes grouped by</span>
+					<FilterDropdown bind:value={groupBy} />
 				</p>
 			</div>
 
@@ -103,8 +163,6 @@
 						/>
 					</div>
 
-					<!-- <Input placeholder="Search recipes..." class="w-80" /> -->
-
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
 							<ButtonThemed {...props} class="ml-auto">
@@ -116,8 +174,23 @@
 				</div>
 
 				<div class="flex justify-end gap-2">
-					<!-- <FilterButton text="" icon={Funnel} primary /> -->
 					<FilterButton text="My Recipes" active />
+					<FilterButton
+						dropdown
+						text={parameters.timeOfDay.length === 2
+							? `${recipeTimesOfDay[parameters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} & ${recipeTimesOfDay[parameters.timeOfDay[1] as keyof typeof recipeTimesOfDay]}`
+							: parameters.timeOfDay.length > 2
+								? `${recipeTimesOfDay[parameters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} +${parameters.timeOfDay.length - 1}`
+								: recipeTimesOfDay[parameters.timeOfDay[0] as keyof typeof recipeTimesOfDay] ||
+									'Lunch & Dinner'}
+						active={parameters.timeOfDay.length > 0}
+						onChange={(active) => {
+							setParameters({
+								...parameters,
+								timeOfDay: active ? ['lunch', 'dinner'] : []
+							});
+						}}
+					/>
 					<FilterButton text="Ready to cook" />
 					<FilterButton text="Quick & Easy" />
 					<FilterButton text="Favorites" />
@@ -146,31 +219,34 @@
 			</div>
 		{/each}
 	{:else if recipes && recipes?.length > 0}
-		{#each Object.entries(recipeTimesOfDay) as [key, label]}
-			{@const header = recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDay]}
-			{@const categoryRecipes = searchedRecipes.filter((recipe) =>
-				recipe.times_of_day
-					.map((time) => time.timeofday_id)
-					.includes(key as keyof typeof recipeTimesOfDay)
-			)}
-
-			{#if categoryRecipes.length > 0}
+		{#each groupedRecipes as sectionRecipes (sectionRecipes.key)}
+			{#if sectionRecipes.recipes.length > 0}
 				<div class="space-y-2" transition:slide>
-					<div class="flex justify-between items-center">
-						<SectionHeader {header} />
+					{#if sectionRecipes.header}
+						<div class="flex justify-between items-center">
+							<SectionHeader header={sectionRecipes.header} />
 
-						<Button variant="link" size="sm" class="flex items-center" href="/recipes">
-							See all
-							<ArrowRight class="size-3.5" />
-						</Button>
-					</div>
+							<Button
+								variant="link"
+								size="sm"
+								class="flex items-center"
+								onclick={() => {
+									setParameters({
+										...parameters,
+										timeOfDay: [sectionRecipes.key]
+									});
+								}}
+							>
+								See all
+								<ArrowRight class="size-3.5" />
+							</Button>
+						</div>
+					{/if}
 
 					<div class="w-full flex flex-wrap gap-4">
-						{#each categoryRecipes as recipe (recipe.id)}
+						{#each sectionRecipes.recipes as recipe (recipe.id)}
 							{#if Math.random() < 0.8}
-								<div transition:fade>
-									<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
-								</div>
+								<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
 							{:else}
 								<div
 									class="grid space-y-1 p-2 rounded-2xl bg-gradient-to-br from-yellow-200/60 to-yellow-200 dark:from-yellow-900/90 dark:to-yellow-900"

@@ -1,6 +1,4 @@
-import type { UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 import type { Unit } from '$lib/shared/utils/quantity';
-import { Cake, Cookie, Croissant, CupSoda, EggFried, Icon, Salad, Soup } from 'lucide-svelte';
 
 // Oven, Microwave, Stove, Fridge, Freezer, Blender, Mixer, Food processor, Toaster, Grill,
 // Pressure cooker, Slow cooker, Rice cooker, Steamer, Coffee maker, Kettle, Juicer, Scale,
