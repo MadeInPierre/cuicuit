@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 
 	// The `any` should be `Component` after lucide-svelte updates types
@@ -12,7 +13,18 @@
 		<Sidebar.MenuItem>
 			<Sidebar.MenuButton isActive={item.isActive}>
 				{#snippet child({ props })}
-					<a href={item.url} {...props}>
+					<a
+						href={item.url}
+						{...props}
+						onclick={(e) => {
+							// Don't navigate if the link is already active, this prevents
+							// losing currently active searchParams
+							e.preventDefault();
+							if (window.location.pathname !== item.url) {
+								goto(item.url);
+							}
+						}}
+					>
 						<item.icon />
 						<span>{item.title}</span>
 					</a>
