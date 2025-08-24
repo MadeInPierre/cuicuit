@@ -110,7 +110,13 @@
 		let query = getRecipesDetailed().limit(100);
 
 		if (searchText) {
-			query = query.ilike('title', `%${searchText}%`);
+			// Remove accents from searchText
+			const normalizedSearchText = searchText
+				.trim()
+				.toLowerCase()
+				.normalize('NFD')
+				.replace(/[\u0300-\u036f]/g, '');
+			query = query.ilike('search_term', `%${normalizedSearchText}%`);
 		}
 
 		if (filters?.timeOfDay && filters?.timeOfDay.length > 0) {
