@@ -26,7 +26,11 @@
 			header.classes || ''
 		)}
 	>
-		<header.icon class={cn('size-6 text-muted-foreground', header.classes || '')} />
+		{#if typeof header.icon === 'string'}
+			<span class="text-xl">{header.icon}</span>
+		{:else}
+			<header.icon class={cn('size-6 text-muted-foreground', header.classes || '')} />
+		{/if}
 	</div>
 
 	<div class="grid">
