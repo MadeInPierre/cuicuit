@@ -343,13 +343,15 @@
 	</div>
 
 	{#if loading}
-		{#each Object.entries(recipeTimesOfDay) as [key, label]}
-			{@const header =
-				recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDaySectionHeaders]}
+		{#each groupedRecipes as sectionRecipes (sectionRecipes.key)}
 			<div class="space-y-6 animate-pulse">
 				<div class="flex justify-between items-center">
-					<SectionHeader {header} />
-					<div class="h-8 w-20 bg-muted rounded"></div>
+					{#if sectionRecipes.header}
+						<SectionHeader header={sectionRecipes.header} />
+						<div class="h-8 w-20 bg-muted rounded"></div>
+					{:else}
+						<div class="h-8 w-40 bg-muted rounded"></div>
+					{/if}
 				</div>
 				<div class="w-full flex gap-4">
 					{#each Array(4) as _, i}
