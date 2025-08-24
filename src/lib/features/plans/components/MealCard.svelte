@@ -181,24 +181,24 @@
 								<!-- <Check class="max-w-3 max-h-3 text-green-600" /> -->
 							</div>
 
-							{#if i === 0}
+							<!-- {#if i === 0}
 								<div class="flex gap-2 px-4 my-2">
 									<Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
 										<CircleSlash />
 										Cook without
 									</Button>
 
-									<!-- <Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
+									<Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
 										<ShoppingCart />
 										Buy Later
-									</Button> -->
+									</Button>
 
 									<Button variant="link" size="sm" class="h-6 w-min px-1.5 text-xs rounded-sm">
 										<Ellipsis />
-										<!-- Swap -->
+										Swap
 									</Button>
 								</div>
-							{/if}
+							{/if} -->
 						</div>
 					{/each}
 				</div>

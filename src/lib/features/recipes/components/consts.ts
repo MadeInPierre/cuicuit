@@ -14,9 +14,12 @@ import {
 	Cookie,
 	EggFried,
 	Salad,
-	Soup
+	Soup,
+	Pizza,
+	Sandwich,
+	Utensils
 } from 'lucide-svelte';
-import type { RecipeTimeOfDayKey } from '../db/recipe-doc';
+import type { RecipeCourseKey, RecipeCuisineKey, RecipeTimeOfDayKey } from '../db/recipe-doc';
 import { Bean } from '@lucide/svelte';
 
 export const recipeTimesOfDaySectionHeaders = {
@@ -63,6 +66,96 @@ export const recipeTimesOfDaySectionHeaders = {
 		classes: 'bg-cyan-100 text-cyan-800'
 	}
 } satisfies Record<RecipeTimeOfDayKey, UISectionHeader>;
+
+export const recipeCuisineSectionHeaders = {
+	italian: {
+		title: 'Italian',
+		icon: '🇮🇹',
+		subtitle: 'Delicious Italian recipes.',
+		classes: 'bg-green-100'
+	},
+	chinese: {
+		title: 'Chinese',
+		icon: '🇨🇳',
+		subtitle: 'Tasty Chinese recipes.',
+		classes: 'bg-red-100'
+	},
+	mexican: {
+		title: 'Mexican',
+		icon: '🇲🇽',
+		subtitle: 'Spicy Mexican recipes.',
+		classes: 'bg-green-100'
+	},
+	indian: {
+		title: 'Indian',
+		icon: '🇮🇳',
+		subtitle: 'Flavorful Indian recipes.',
+		classes: 'bg-orange-100'
+	},
+	brazilian: {
+		title: 'Brazilian',
+		icon: '🇧🇷',
+		subtitle: 'Delicious Brazilian recipes.',
+		classes: 'bg-green-100'
+	},
+	french: {
+		title: 'French',
+		icon: '🇫🇷',
+		subtitle: 'Delicious French recipes.',
+		classes: 'bg-blue-100'
+	}
+} as Record<RecipeCuisineKey, UISectionHeader>; // TODO add all and change 'as' to 'satisfies'
+
+export const recipeCoursesSectionHeaders: Record<RecipeCourseKey, UISectionHeader> = {
+	main: {
+		title: 'Main Courses',
+		icon: Pizza,
+		subtitle: 'Savor a hearty main course.',
+		classes: 'bg-green-100 text-green-800'
+	},
+	appetizer: {
+		title: 'Appetizers',
+		icon: Sandwich,
+		subtitle: 'Start your meal with a delicious appetizer.',
+		classes: 'bg-orange-100 text-orange-800'
+	},
+	soup: {
+		title: 'Soups',
+		icon: Soup,
+		subtitle: 'Warm up with a comforting soup.',
+		classes: 'bg-blue-100 text-blue-800'
+	},
+	side: {
+		title: 'Side Dishes',
+		icon: EggFried,
+		subtitle: 'Complement your meal with a tasty side dish.',
+		classes: 'bg-yellow-100 text-yellow-800'
+	},
+	salad: {
+		title: 'Salads',
+		icon: Salad,
+		subtitle: 'Enjoy a fresh and healthy salad.',
+		classes: 'bg-green-100 text-green-800'
+	},
+	dessert: {
+		title: 'Desserts',
+		icon: Cake,
+		subtitle: 'End your meal with a sweet dessert.',
+		classes: 'bg-red-100 text-red-800'
+	},
+	drink: {
+		title: 'Drinks',
+		icon: CupSoda,
+		subtitle: 'Quench your thirst with a refreshing drink.',
+		classes: 'bg-blue-100 text-blue-800'
+	},
+	snack: {
+		title: 'Snacks',
+		icon: Cookie,
+		subtitle: 'Treat yourself to a tasty snack.',
+		classes: 'bg-pink-100 text-pink-800'
+	}
+};
 
 export const supermarketAisleSectionHeaders: Record<string, UISectionHeader> = {
 	beverages: {

@@ -12,7 +12,7 @@ function createUserState() {
 	let userPreferences = $state<UserPreferences | undefined | null>(undefined);
 
 	const { data } = supabase.auth.onAuthStateChange((event, session) => {
-		console.log('Supabase auth state changed:', event, session);
+		// console.log('Supabase auth state changed:', event, session);
 
 		if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
 			userState = session?.user || null;

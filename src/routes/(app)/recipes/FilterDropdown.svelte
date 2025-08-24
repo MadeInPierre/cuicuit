@@ -2,6 +2,13 @@
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { CheckCheck, Clock, Globe, HandPlatter, Sparkle } from 'lucide-svelte';
 
+	type Props = {
+		value: string;
+		onChange: (value: string) => void;
+	};
+
+	let { value = $bindable('timeOfDay'), onChange = () => {} }: Props = $props();
+
 	const options = [
 		{
 			value: 'recommended',
@@ -35,12 +42,17 @@
 		}
 	];
 
-	let { value = $bindable('timeOfDay') } = $props();
-
 	const triggerContent = $derived(options.find((f) => f.value === value)?.label ?? 'recommended');
 </script>
 
-<Select.Root type="single" name="favoriteFruit" bind:value>
+<Select.Root
+	type="single"
+	name="recipeGroupBy"
+	bind:value
+	onValueChange={(val) => {
+		onChange?.(val);
+	}}
+>
 	<Select.Trigger class="w-auto h-min px-2 py-0.5 text-md border-0 bg-muted">
 		<span class="mr-1.5">{triggerContent.toLowerCase()}</span>
 	</Select.Trigger>

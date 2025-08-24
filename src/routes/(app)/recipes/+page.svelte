@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, FunnelPlus, Plus, Search } from 'lucide-svelte';
+	import { ArrowRight, BellRing, FunnelPlus, Plus, Save, Search } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
@@ -17,27 +17,93 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import FilterDropdown from './FilterDropdown.svelte';
-	import { recipeTimesOfDay } from '$lib/features/recipes/db/recipe-doc';
-	import { recipeTimesOfDaySectionHeaders } from '$lib/features/recipes/components/consts';
+	import {
+		recipeCourses,
+		recipeCuisines,
+		recipeTimesOfDay
+	} from '$lib/features/recipes/db/recipe-doc';
+	import {
+		recipeCoursesSectionHeaders,
+		recipeCuisineSectionHeaders,
+		recipeTimesOfDaySectionHeaders
+	} from '$lib/features/recipes/components/consts';
+	import { RotateCcw } from '@lucide/svelte';
 
 	type Parameters = {
-		timeOfDay: string[];
+		groupBy: string;
+		discover: 'familiar' | 'mixed' | 'discover';
+		filters: {
+			timeOfDay: string[];
+			course: string[];
+			cuisine: string[];
+		};
 	};
 
-	const parameters: Parameters = $derived.by(() => {
-		page;
+	// Use a compact encoding: join arrays with ',' and separate keys with '|'
+	function encodeFilters(filters: {
+		timeOfDay: string[];
+		course: string[];
+		cuisine: string[];
+	}): string {
+		const timeOfDay = filters.timeOfDay.join(',');
+		const course = filters.course.join(',');
+		const cuisine = filters.cuisine.join(',');
+		return `${timeOfDay}|${course}|${cuisine}`;
+	}
+
+	function decodeFilters(filters: string | null): {
+		timeOfDay: string[];
+		course: string[];
+		cuisine: string[];
+	} {
+		if (!filters) return { timeOfDay: [], course: [], cuisine: [] };
+		const [timeOfDayStr = '', courseStr = '', cuisineStr = ''] = filters.split('|');
 		return {
-			timeOfDay: page.url.searchParams.get('timeOfDay')?.split(',') || []
+			timeOfDay: timeOfDayStr ? timeOfDayStr.split(',').filter(Boolean) : [],
+			course: courseStr ? courseStr.split(',').filter(Boolean) : [],
+			cuisine: cuisineStr ? cuisineStr.split(',').filter(Boolean) : []
+		};
+	}
+
+	const parameters: Parameters = $derived.by(() => {
+		page; // TODO REMOVE
+		return {
+			groupBy: page.url.searchParams.get('groupBy') || 'course',
+			discover:
+				(page.url.searchParams.get('discover') as 'familiar' | 'mixed' | 'discover') || 'mixed',
+			filters: decodeFilters(page.url.searchParams.get('filters'))
 		};
 	});
 
 	function setParameters(newParameters: Parameters) {
 		let query = new URLSearchParams(page.url.searchParams.toString());
 
-		if (newParameters.timeOfDay?.length > 0) {
-			query.set('timeOfDay', newParameters.timeOfDay.join(','));
+		if (!newParameters.groupBy || newParameters.groupBy === 'course') {
+			query.delete('groupBy');
 		} else {
-			query.delete('timeOfDay');
+			query.set('groupBy', newParameters.groupBy);
+		}
+
+		if (!newParameters.discover || newParameters.discover === 'mixed') {
+			query.delete('discover');
+		} else {
+			query.set('discover', newParameters.discover);
+		}
+
+		const filtersObj = {
+			timeOfDay: newParameters.filters.timeOfDay,
+			course: newParameters.filters.course,
+			cuisine: newParameters.filters.cuisine
+		};
+		const filtersStr = encodeFilters(filtersObj);
+		if (
+			newParameters.filters.timeOfDay.length > 0 ||
+			newParameters.filters.course.length > 0 ||
+			newParameters.filters.cuisine.length > 0
+		) {
+			query.set('filters', filtersStr);
+		} else {
+			query.delete('filters');
 		}
 
 		goto(`?${query.toString()}`);
@@ -74,7 +140,7 @@
 
 	let searchInput: string = $state('');
 
-	let groupBy: string = $state('timeOfDay');
+	let groupBy: string = $derived(parameters.groupBy || 'timeOfDay');
 	let groupedRecipes: {
 		key: string;
 		header: UISectionHeader | null;
@@ -94,15 +160,41 @@
 						) || []
 				};
 			});
-		} else {
-			return [
-				{
-					key: 'all',
-					header: null,
-					recipes: recipes || []
-				}
-			];
+		} else if (groupBy === 'cuisine') {
+			return Object.keys(recipeCuisines).map((key) => {
+				return {
+					key,
+					header: recipeCuisineSectionHeaders[key as keyof typeof recipeCuisineSectionHeaders],
+					recipes:
+						recipes?.filter((recipe) =>
+							recipe.cuisines
+								.map((cuisine) => cuisine.cuisine_id)
+								.includes(key as keyof typeof recipeCuisines)
+						) || []
+				};
+			});
+		} else if (groupBy === 'course') {
+			return Object.keys(recipeCourses).map((key) => {
+				return {
+					key,
+					header: recipeCoursesSectionHeaders[key as keyof typeof recipeCoursesSectionHeaders],
+					recipes:
+						recipes?.filter((recipe) =>
+							recipe.courses
+								.map((course) => course.course_id)
+								.includes(key as keyof typeof recipeCourses)
+						) || []
+				};
+			});
 		}
+
+		return [
+			{
+				key: 'all',
+				header: null,
+				recipes: recipes || []
+			}
+		];
 	});
 
 	$effect(() => {
@@ -139,17 +231,27 @@
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
 					<span class="py-1">Discover recipes grouped by</span>
-					<FilterDropdown bind:value={groupBy} />
+					<FilterDropdown
+						value={parameters.groupBy}
+						onChange={(value) => setParameters({ ...parameters, groupBy: value })}
+					/>
+					<!-- <Button size="sm" class="h-7 ml-1">
+						<Save class="size-4" />
+						Save view
+					</Button> -->
 				</p>
 			</div>
 
 			<div class="ml-auto grid space-y-3">
-				<div class="flex gap-2">
+				<div class="flex gap-2 justify-end">
 					<!-- <Button variant="outline" size="icon">
 						<Funnel />
 					</Button> -->
 
-					<DiscoverDial />
+					<DiscoverDial
+						value={parameters.discover}
+						onChange={(value) => setParameters({ ...parameters, discover: value })}
+					/>
 
 					<div class="relative h-10 w-80">
 						<Search
@@ -165,7 +267,7 @@
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
-							<ButtonThemed {...props} class="ml-auto">
+							<ButtonThemed {...props}>
 								<Plus class="size-4 mr-2" />
 								Add
 							</ButtonThemed>
@@ -174,23 +276,68 @@
 				</div>
 
 				<div class="flex justify-end gap-2">
+					{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
+						<Button
+							variant="ghost"
+							class="h-7 px-2 text-muted-foreground"
+							onclick={() => {
+								searchInput = '';
+								setParameters({
+									...parameters,
+									filters: {
+										timeOfDay: [],
+										course: [],
+										cuisine: []
+									}
+								});
+							}}
+						>
+							<RotateCcw class="size-4" />
+						</Button>
+					{/if}
+
 					<FilterButton text="My Recipes" active />
 					<FilterButton
 						dropdown
-						text={parameters.timeOfDay.length === 2
-							? `${recipeTimesOfDay[parameters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} & ${recipeTimesOfDay[parameters.timeOfDay[1] as keyof typeof recipeTimesOfDay]}`
-							: parameters.timeOfDay.length > 2
-								? `${recipeTimesOfDay[parameters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} +${parameters.timeOfDay.length - 1}`
-								: recipeTimesOfDay[parameters.timeOfDay[0] as keyof typeof recipeTimesOfDay] ||
-									'Lunch & Dinner'}
-						active={parameters.timeOfDay.length > 0}
+						text={parameters.filters.timeOfDay.length === 2
+							? `${recipeTimesOfDay[parameters.filters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} & ${recipeTimesOfDay[parameters.filters.timeOfDay[1] as keyof typeof recipeTimesOfDay]}`
+							: parameters.filters.timeOfDay.length > 2
+								? `${recipeTimesOfDay[parameters.filters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} +${parameters.filters.timeOfDay.length - 1}`
+								: recipeTimesOfDay[
+										parameters.filters.timeOfDay[0] as keyof typeof recipeTimesOfDay
+									] || 'Lunch & Dinner'}
+						active={parameters.filters.timeOfDay.length > 0}
 						onChange={(active) => {
 							setParameters({
 								...parameters,
-								timeOfDay: active ? ['lunch', 'dinner'] : []
+								filters: {
+									...parameters.filters,
+									timeOfDay: active ? ['lunch', 'dinner'] : []
+								}
 							});
 						}}
 					/>
+
+					<FilterButton
+						dropdown
+						text={parameters.filters.course.length === 2
+							? `${recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses]} & ${recipeCourses[parameters.filters.course[1] as keyof typeof recipeCourses]}`
+							: parameters.filters.course.length > 2
+								? `${recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses]} +${parameters.filters.course.length - 1}`
+								: recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses] ||
+									'Main Course'}
+						active={parameters.filters.course.length > 0}
+						onChange={(active) => {
+							setParameters({
+								...parameters,
+								filters: {
+									...parameters.filters,
+									course: active ? ['main'] : []
+								}
+							});
+						}}
+					/>
+
 					<FilterButton text="Ready to cook" />
 					<FilterButton text="Quick & Easy" />
 					<FilterButton text="Favorites" />
@@ -233,7 +380,10 @@
 								onclick={() => {
 									setParameters({
 										...parameters,
-										timeOfDay: [sectionRecipes.key]
+										filters: {
+											...parameters.filters,
+											[parameters.groupBy]: [sectionRecipes.key]
+										}
 									});
 								}}
 							>
