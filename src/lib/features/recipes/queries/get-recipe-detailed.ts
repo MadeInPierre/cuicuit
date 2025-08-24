@@ -19,12 +19,7 @@ export function getRecipesDetailed() {
 					language:languages(*)
 				)
 			)
-		), 
-		courses:recipe_courses(*), 
-		cuisines:recipe_cuisines(*), 
-		times_of_day:recipe_times_of_day(*), 
-		tags:recipe_tags(*), 
-		tools:recipe_tools(*)`
+		)`
 	);
 }
 

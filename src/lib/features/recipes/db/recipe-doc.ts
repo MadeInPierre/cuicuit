@@ -30,19 +30,19 @@ export const recipeTimesOfDay = {
 	dinner: 'Dinner',
 	snack: 'Snacks',
 	dessert: 'Desserts',
-	drink: 'Drinks'
+	drinks: 'Drinks'
 } as const;
 export type RecipeTimeOfDayKey = keyof typeof recipeTimesOfDay;
 
 export const recipeCourses = {
 	appetizer: 'Appetizer',
-	soup: 'Soup',
 	main: 'Main Course',
 	side: 'Side Dish',
+	soup: 'Soup',
 	salad: 'Salad',
 	dessert: 'Dessert',
+	snack: 'Snack',
 	drink: 'Drink',
-	snack: 'Snack'
 } as const;
 export type RecipeCourseKey = keyof typeof recipeCourses;
 

@@ -17,7 +17,7 @@
 		ChevronUp,
 		Plus,
 		X,
-		Loader2,
+		LoaderCircle,
 		Users,
 		Minus,
 		GripVertical,
@@ -117,11 +117,11 @@
 				f.imageIds = recipeData.image_ids || [];
 
 				// Filters
-				f.course_ids = recipeData.courses.map((course) => course.course_id.toString()) || [];
-				f.cuisine_ids = recipeData.cuisines.map((cuisine) => cuisine.cuisine_id.toString()) || [];
-				f.tag_ids = recipeData.tags.map((tag) => tag.tag_id.toString()) || [];
-				f.timesofday_ids = recipeData.times_of_day.map((tod) => tod.timeofday_id.toString()) || [];
-				f.tool_ids = recipeData.tools.map((tool) => tool.tool_id.toString()) || [];
+				f.timesofday_ids = recipeData.times_of_day || [];
+				f.course_ids = recipeData.courses || [];
+				f.cuisine_ids = recipeData.cuisines || [];
+				// f.tag_ids = recipeData.tags || []; // TODO revisit later
+				f.tool_ids = recipeData.tools || [];
 
 				// Levels
 				f.effortLevel = recipeData.effort_level || 'low';
@@ -208,6 +208,13 @@
 				effort_level: data.effortLevel,
 				skill_level: data.skillLevel,
 
+				// Multi-select filters
+				times_of_day: data.timesofday_ids,
+				courses: data.course_ids,
+				cuisines: data.cuisine_ids,
+				// tags: data.tag_ids, // TODO revisit
+				tools: data.tool_ids,
+
 				// Cook times
 				time_prep_minutes: data.timePrep,
 				time_cook_minutes: data.timeCook,
@@ -229,7 +236,7 @@
 			return;
 		}
 
-		// If it's an existing recipe, we need to delete the old relations first
+		// If it's an existing recipe, we need to delete the old ingredients first
 		if (!isNewRecipe) {
 			const { error: deleteError } = await supabase
 				.from('recipe_ingredients')
@@ -268,56 +275,6 @@
 			toast.error('Failed to add ingredients.');
 			loading = false;
 			return;
-		}
-
-		// Add the other relations like courses, cuisines, times of day, tags, and tools
-		const relations = [
-			{ table: 'recipe_courses', ids: data.course_ids, column: 'course_id' },
-			{ table: 'recipe_cuisines', ids: data.cuisine_ids, column: 'cuisine_id' },
-			{ table: 'recipe_times_of_day', ids: data.timesofday_ids, column: 'timeofday_id' },
-			{ table: 'recipe_tags', ids: data.tag_ids, column: 'tag_id' },
-			{ table: 'recipe_tools', ids: data.tool_ids, column: 'tool_id' }
-		] as {
-			table: keyof Database['public']['Tables'];
-			ids: (number | string)[];
-			column: string;
-		}[];
-
-		for (const { table, ids, column } of relations) {
-			// Always delete existing relations for this recipe before upserting
-			const { error: deleteRelationError } = await supabase
-				.from(table)
-				.delete()
-				.eq('recipe_id', recipeIdData.id);
-
-			if (deleteRelationError) {
-				console.error(`Error deleting old ${table}:`, deleteRelationError);
-				toast.error(`Failed to delete old ${table}.`);
-				loading = false;
-				return;
-			}
-
-			if (ids.length > 0) {
-				const { error: relationError } = await supabase
-					.from(table)
-					.insert(
-						ids.map(
-							(id) =>
-								({
-									recipe_id: recipeIdData.id,
-									[column]: id
-								}) as Tables<typeof table>
-						)
-					)
-					.select();
-
-				if (relationError) {
-					console.error(`Error adding ${table}:`, relationError);
-					toast.error(`Failed to add ${table}.`);
-					loading = false;
-					return;
-				}
-			}
 		}
 
 		// Go to the recipe view page
@@ -394,7 +351,7 @@
 
 						<ButtonThemed size="sm" type="submit" class="w-14 flex gap-2" disabled={loading}>
 							{#if loading}
-								<Loader2 class="h-4 w-4 animate-spin" />
+								<LoaderCircle class="h-4 w-4 animate-spin" />
 							{:else}
 								Save
 							{/if}

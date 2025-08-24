@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          variables?: Json
+          extensions?: Json
           operationName?: string
           query?: string
-          extensions?: Json
+          variables?: Json
         }
         Returns: Json
       }
@@ -34,33 +34,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      courses: {
-        Row: {
-          id: string
-        }
-        Insert: {
-          id: string
-        }
-        Update: {
-          id?: string
-        }
-        Relationships: []
-      }
-      cuisines: {
-        Row: {
-          id: string
-          region: string | null
-        }
-        Insert: {
-          id: string
-          region?: string | null
-        }
-        Update: {
-          id?: string
-          region?: string | null
-        }
-        Relationships: []
-      }
       ingredient_substitutions: {
         Row: {
           id: string
@@ -238,66 +211,6 @@ export type Database = {
         }
         Relationships: []
       }
-      recipe_courses: {
-        Row: {
-          course_id: string
-          recipe_id: string
-        }
-        Insert: {
-          course_id: string
-          recipe_id: string
-        }
-        Update: {
-          course_id?: string
-          recipe_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_courses_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_courses_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      recipe_cuisines: {
-        Row: {
-          cuisine_id: string
-          recipe_id: string
-        }
-        Insert: {
-          cuisine_id: string
-          recipe_id: string
-        }
-        Update: {
-          cuisine_id?: string
-          recipe_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_cuisines_cuisine_id_fkey"
-            columns: ["cuisine_id"]
-            isOneToOne: false
-            referencedRelation: "cuisines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_cuisines_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       recipe_ingredients: {
         Row: {
           details: string | null
@@ -350,95 +263,14 @@ export type Database = {
           },
         ]
       }
-      recipe_tags: {
-        Row: {
-          recipe_id: string
-          tag_id: number
-        }
-        Insert: {
-          recipe_id: string
-          tag_id: number
-        }
-        Update: {
-          recipe_id?: string
-          tag_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_tags_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      recipe_times_of_day: {
-        Row: {
-          recipe_id: string
-          timeofday_id: string
-        }
-        Insert: {
-          recipe_id: string
-          timeofday_id: string
-        }
-        Update: {
-          recipe_id?: string
-          timeofday_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_times_of_day_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_times_of_day_timeofday_id_fkey"
-            columns: ["timeofday_id"]
-            isOneToOne: false
-            referencedRelation: "times_of_day"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      recipe_tools: {
-        Row: {
-          recipe_id: string
-          tool_id: string
-        }
-        Insert: {
-          recipe_id: string
-          tool_id: string
-        }
-        Update: {
-          recipe_id?: string
-          tool_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_tools_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       recipes: {
         Row: {
           author_id: string
           cleanup_level: Database["public"]["Enums"]["cleanup_level"]
           cost_level: Database["public"]["Enums"]["cost_level"]
+          courses: Database["public"]["Enums"]["course"][]
           created_at: string
+          cuisines: Database["public"]["Enums"]["cuisine"][]
           description: string | null
           effort_level: Database["public"]["Enums"]["effort_level"]
           id: string
@@ -455,14 +287,18 @@ export type Database = {
           time_prep_minutes: number | null
           time_rest_minutes: number | null
           time_total_minutes: number | null
+          times_of_day: Database["public"]["Enums"]["time_of_day"][]
           title: string
+          tools: Database["public"]["Enums"]["recipe_tool"][]
           updated_at: string
         }
         Insert: {
           author_id: string
           cleanup_level: Database["public"]["Enums"]["cleanup_level"]
           cost_level: Database["public"]["Enums"]["cost_level"]
+          courses: Database["public"]["Enums"]["course"][]
           created_at?: string
+          cuisines: Database["public"]["Enums"]["cuisine"][]
           description?: string | null
           effort_level: Database["public"]["Enums"]["effort_level"]
           id?: string
@@ -479,14 +315,18 @@ export type Database = {
           time_prep_minutes?: number | null
           time_rest_minutes?: number | null
           time_total_minutes?: number | null
+          times_of_day: Database["public"]["Enums"]["time_of_day"][]
           title: string
+          tools: Database["public"]["Enums"]["recipe_tool"][]
           updated_at?: string
         }
         Update: {
           author_id?: string
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"]
           cost_level?: Database["public"]["Enums"]["cost_level"]
+          courses?: Database["public"]["Enums"]["course"][]
           created_at?: string
+          cuisines?: Database["public"]["Enums"]["cuisine"][]
           description?: string | null
           effort_level?: Database["public"]["Enums"]["effort_level"]
           id?: string
@@ -503,7 +343,9 @@ export type Database = {
           time_prep_minutes?: number | null
           time_rest_minutes?: number | null
           time_total_minutes?: number | null
+          times_of_day?: Database["public"]["Enums"]["time_of_day"][]
           title?: string
+          tools?: Database["public"]["Enums"]["recipe_tool"][]
           updated_at?: string
         }
         Relationships: [
@@ -703,45 +545,6 @@ export type Database = {
         }
         Relationships: []
       }
-      tags: {
-        Row: {
-          id: number
-          name: string
-        }
-        Insert: {
-          id?: number
-          name: string
-        }
-        Update: {
-          id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      times_of_day: {
-        Row: {
-          id: string
-        }
-        Insert: {
-          id: string
-        }
-        Update: {
-          id?: string
-        }
-        Relationships: []
-      }
-      tools: {
-        Row: {
-          id: string
-        }
-        Insert: {
-          id: string
-        }
-        Update: {
-          id?: string
-        }
-        Relationships: []
-      }
       user_preferences: {
         Row: {
           created_at: string
@@ -930,8 +733,8 @@ export type Database = {
       }
       match_ingredient: {
         Args:
+          | { lang: string; n_matches?: number; query: string }
           | { lang: string; query: string }
-          | { lang: string; query: string; n_matches?: number }
         Returns: {
           commonly_used: Database["public"]["Enums"]["commonly_used_level"]
           fts: unknown | null
@@ -955,7 +758,7 @@ export type Database = {
         Returns: string[]
       }
       slugify: {
-        Args: { value: string; max_length?: number }
+        Args: { max_length?: number; value: string }
         Returns: string
       }
       sparsevec_out: {
@@ -1012,6 +815,34 @@ export type Database = {
         | "rare"
         | "never"
       cost_level: "minimal" | "budget" | "average" | "premium"
+      course:
+        | "appetizer"
+        | "main"
+        | "side"
+        | "salad"
+        | "soup"
+        | "dessert"
+        | "snack"
+        | "drink"
+      cuisine:
+        | "italian"
+        | "mexican"
+        | "indian"
+        | "chinese"
+        | "french"
+        | "japanese"
+        | "mediterranean"
+        | "american"
+        | "spanish"
+        | "thai"
+        | "greek"
+        | "korean"
+        | "vietnamese"
+        | "middleeast"
+        | "british"
+        | "brazilian"
+        | "caribbean"
+        | "african"
       effort_level: "none" | "low" | "medium" | "high"
       group_condition: "all" | "at_least_one" | "at_least_n"
       ingredient_base_unit: "g" | "ml" | "unit"
@@ -1028,6 +859,17 @@ export type Database = {
         | "south-america"
         | "oceania"
       recipe_source_type: "website" | "user-manual"
+      recipe_tool:
+        | "blender"
+        | "fryer"
+        | "juicer"
+        | "kettle"
+        | "microwave"
+        | "mixer"
+        | "oven"
+        | "scale"
+        | "stove"
+        | "toaster"
       skill_level: "beginner" | "intermediate" | "advanced" | "chef"
       substitution_strength: "equivalent" | "close" | "far"
       supermarket_aisle:
@@ -1045,6 +887,14 @@ export type Database = {
         | "pet-supplies"
         | "snacks-sweets"
         | "unknown"
+      time_of_day:
+        | "breakfast"
+        | "brunch"
+        | "lunch"
+        | "dinner"
+        | "dessert"
+        | "snack"
+        | "drinks"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1052,21 +902,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1084,14 +938,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1107,14 +963,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1130,14 +988,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1145,14 +1005,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
@@ -1166,6 +1028,36 @@ export const Constants = {
       cleanup_level: ["none", "low", "medium", "high"],
       commonly_used_level: ["daily", "common", "occasionally", "rare", "never"],
       cost_level: ["minimal", "budget", "average", "premium"],
+      course: [
+        "appetizer",
+        "main",
+        "side",
+        "salad",
+        "soup",
+        "dessert",
+        "snack",
+        "drink",
+      ],
+      cuisine: [
+        "italian",
+        "mexican",
+        "indian",
+        "chinese",
+        "french",
+        "japanese",
+        "mediterranean",
+        "american",
+        "spanish",
+        "thai",
+        "greek",
+        "korean",
+        "vietnamese",
+        "middleeast",
+        "british",
+        "brazilian",
+        "caribbean",
+        "african",
+      ],
       effort_level: ["none", "low", "medium", "high"],
       group_condition: ["all", "at_least_one", "at_least_n"],
       ingredient_base_unit: ["g", "ml", "unit"],
@@ -1184,6 +1076,18 @@ export const Constants = {
         "oceania",
       ],
       recipe_source_type: ["website", "user-manual"],
+      recipe_tool: [
+        "blender",
+        "fryer",
+        "juicer",
+        "kettle",
+        "microwave",
+        "mixer",
+        "oven",
+        "scale",
+        "stove",
+        "toaster",
+      ],
       skill_level: ["beginner", "intermediate", "advanced", "chef"],
       substitution_strength: ["equivalent", "close", "far"],
       supermarket_aisle: [
@@ -1201,6 +1105,15 @@ export const Constants = {
         "pet-supplies",
         "snacks-sweets",
         "unknown",
+      ],
+      time_of_day: [
+        "breakfast",
+        "brunch",
+        "lunch",
+        "dinner",
+        "dessert",
+        "snack",
+        "drinks",
       ],
     },
   },

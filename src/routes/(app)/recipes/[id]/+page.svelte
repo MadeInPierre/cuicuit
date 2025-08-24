@@ -2,17 +2,18 @@
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import {
 		ArrowUpRight,
+		BatteryFull,
 		BicepsFlexed,
 		CalendarPlus,
 		Camera,
 		Equal,
-		ForkKnife,
 		Globe,
 		Grid,
 		HandCoins,
 		List,
 		Plus,
-		Salad
+		Salad,
+		Utensils
 	} from 'lucide-svelte';
 	import {
 		recipeCourses,
@@ -27,7 +28,7 @@
 	import { capitalize } from '$lib/utils';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import {
 		getRecipeDetailed,
 		type RecipeDetailedWithAuthor
@@ -198,7 +199,7 @@
 						<div class="grid grid-cols-3 gap-6 justify-items-center">
 							{#snippet recipeFilter(Icon: any, title: string, values: string[])}
 								<div class="flex gap-4 w-40">
-									<div class="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+									<div class="min-w-10 h-10 bg-muted rounded-full flex items-center justify-center">
 										<Icon class="size-5" />
 									</div>
 									<div class="w-full flex flex-col gap-0.5">
@@ -212,33 +213,33 @@
 								</div>
 							{/snippet}
 
-							{@render recipeFilter(BicepsFlexed, 'Effort', [capitalize(recipe.effort_level)])}
-							<!-- {@render recipeFilter(BicepsFlexed, 'Cost', capitalize(recipe.cost_level))} -->
-							{@render recipeFilter(BicepsFlexed, 'Skill', [capitalize(recipe.skill_level)])}
+							{@render recipeFilter(BatteryFull, 'Effort', [capitalize(recipe.effort_level)])}
 							{@render recipeFilter(HandCoins, 'Cleanup', [capitalize(recipe.cleanup_level)])}
+							{@render recipeFilter(BicepsFlexed, 'Skill', [capitalize(recipe.skill_level)])}
+							<!-- {@render recipeFilter(BicepsFlexed, 'Cost', capitalize(recipe.cost_level))} -->
 
 							{@render recipeFilter(
-								ForkKnife,
+								Utensils,
 								recipe.times_of_day?.length > 1 ? 'Times of Day' : 'Time of Day',
 								recipe.times_of_day?.map(
-									(t) => recipeTimesOfDay[t.timeofday_id as keyof typeof recipeTimesOfDay]
-								) ?? ['Unknown']
+									(t) => recipeTimesOfDay[t as keyof typeof recipeTimesOfDay]
+								) || ['Unknown']
 							)}
 
 							{@render recipeFilter(
 								Salad,
 								'Cuisine',
-								recipe.cuisines?.map(
-									(c) => recipeCuisines[c.cuisine_id as keyof typeof recipeCuisines]
-								) ?? ['Unknown']
+								recipe.cuisines?.map((c) => recipeCuisines[c as keyof typeof recipeCuisines]) || [
+									'Unknown'
+								]
 							)}
 
 							{@render recipeFilter(
 								Globe,
 								'Course',
-								recipe.courses?.map(
-									(c) => recipeCourses[c.course_id as keyof typeof recipeCourses]
-								) ?? ['Unknown']
+								recipe.courses?.map((c) => recipeCourses[c as keyof typeof recipeCourses]) || [
+									'Unknown'
+								]
 							)}
 						</div>
 
