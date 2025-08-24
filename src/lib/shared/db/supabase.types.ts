@@ -277,6 +277,7 @@ export type Database = {
           image_ids: string[] | null
           language_id: number
           notes: string | null
+          search_term: string | null
           servings: number
           skill_level: Database["public"]["Enums"]["skill_level"]
           slug: string
@@ -305,6 +306,7 @@ export type Database = {
           image_ids?: string[] | null
           language_id: number
           notes?: string | null
+          search_term?: string | null
           servings: number
           skill_level: Database["public"]["Enums"]["skill_level"]
           slug: string
@@ -333,6 +335,7 @@ export type Database = {
           image_ids?: string[] | null
           language_id?: number
           notes?: string | null
+          search_term?: string | null
           servings?: number
           skill_level?: Database["public"]["Enums"]["skill_level"]
           slug?: string
