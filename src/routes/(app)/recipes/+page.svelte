@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, FunnelPlus, Plus, Save, Search } from 'lucide-svelte';
+	import { ArrowRight, BellRing, FunnelPlus, Plus } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
@@ -10,7 +10,6 @@
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
-	import Input from '$lib/shared/components/ui/input/input.svelte';
 	import FilterButton from './FilterButton.svelte';
 	import DiscoverDial from './DiscoverDial.svelte';
 	import { slide } from 'svelte/transition';
@@ -28,6 +27,7 @@
 		recipeTimesOfDaySectionHeaders
 	} from '$lib/features/recipes/components/consts';
 	import { RotateCcw } from '@lucide/svelte';
+	import SearchBar from './SearchBar.svelte';
 
 	type Parameters = {
 		groupBy: string;
@@ -139,6 +139,7 @@
 	});
 
 	let searchInput: string = $state('');
+	let searchLoading: boolean = $state(false);
 
 	let groupBy: string = $derived(parameters.groupBy || 'timeOfDay');
 	let groupedRecipes: {
@@ -199,10 +200,12 @@
 
 	$effect(() => {
 		searchInput; // Trigger this effect when searchInput changes
+		searchLoading = true;
 
 		// Debounce search input
 		const timeout = setTimeout(async () => {
 			recipes = (await getRecipes(searchInput)) || [];
+			searchLoading = false;
 		}, 300);
 
 		return () => clearTimeout(timeout);
@@ -253,17 +256,7 @@
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
 					/>
 
-					<div class="relative h-10 w-80">
-						<Search
-							class="size-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10"
-						/>
-						<Input
-							type="text"
-							placeholder="Search recipes..."
-							class="pl-10 pr-3 py-2"
-							bind:value={searchInput}
-						/>
-					</div>
+					<SearchBar class="h-10 w-80" bind:value={searchInput} loading={searchLoading} />
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
