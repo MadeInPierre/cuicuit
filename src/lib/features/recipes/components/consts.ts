@@ -59,7 +59,7 @@ export const recipeTimesOfDaySectionHeaders = {
 		subtitle: 'End your meal with a sweet dessert recipe.',
 		classes: 'bg-fuchsia-100 text-fuchsia-800'
 	},
-	drink: {
+	drinks: {
 		title: 'Drinks',
 		icon: CupSoda,
 		subtitle: 'Quench your thirst with a refreshing drink recipe.',
@@ -143,17 +143,17 @@ export const recipeCoursesSectionHeaders: Record<RecipeCourseKey, UISectionHeade
 		subtitle: 'End your meal with a sweet dessert.',
 		classes: 'bg-red-100 text-red-800'
 	},
-	drink: {
-		title: 'Drinks',
-		icon: CupSoda,
-		subtitle: 'Quench your thirst with a refreshing drink.',
-		classes: 'bg-blue-100 text-blue-800'
-	},
 	snack: {
 		title: 'Snacks',
 		icon: Cookie,
 		subtitle: 'Treat yourself to a tasty snack.',
 		classes: 'bg-pink-100 text-pink-800'
+	},
+	drink: {
+		title: 'Drinks',
+		icon: CupSoda,
+		subtitle: 'Quench your thirst with a refreshing drink.',
+		classes: 'bg-blue-100 text-blue-800'
 	}
 };
 

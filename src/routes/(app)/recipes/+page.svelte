@@ -5,7 +5,10 @@
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { onMount } from 'svelte';
-	import { getRecipesDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import {
+		getRecipesDetailed,
+		type RecipeDetailed
+	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { Button } from '$lib/shared/components/ui/button';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
@@ -29,33 +32,29 @@
 	import { RotateCcw } from '@lucide/svelte';
 	import SearchBar from './SearchBar.svelte';
 
-	type Parameters = {
-		groupBy: string;
-		discover: 'familiar' | 'mixed' | 'discover';
-		filters: {
-			timeOfDay: string[];
-			course: string[];
-			cuisine: string[];
-		};
-	};
-
-	// Use a compact encoding: join arrays with ',' and separate keys with '|'
-	function encodeFilters(filters: {
+	type RecipeSearchFilters = {
 		timeOfDay: string[];
 		course: string[];
 		cuisine: string[];
-	}): string {
+	};
+
+	type GroupByKey = 'recommended' | 'cookableState' | 'timeOfDay' | 'course' | 'cuisine';
+	type DiscoverKey = 'familiar' | 'mixed' | 'discover';
+	type PageParameters = {
+		groupBy: GroupByKey;
+		discover: DiscoverKey;
+		filters: RecipeSearchFilters;
+	};
+
+	// Use a compact encoding: join arrays with ',' and separate keys with '|'
+	function encodeFilters(filters: RecipeSearchFilters): string {
 		const timeOfDay = filters.timeOfDay.join(',');
 		const course = filters.course.join(',');
 		const cuisine = filters.cuisine.join(',');
 		return `${timeOfDay}|${course}|${cuisine}`;
 	}
 
-	function decodeFilters(filters: string | null): {
-		timeOfDay: string[];
-		course: string[];
-		cuisine: string[];
-	} {
+	function decodeFilters(filters: string | null): RecipeSearchFilters {
 		if (!filters) return { timeOfDay: [], course: [], cuisine: [] };
 		const [timeOfDayStr = '', courseStr = '', cuisineStr = ''] = filters.split('|');
 		return {
@@ -65,17 +64,13 @@
 		};
 	}
 
-	const parameters: Parameters = $derived.by(() => {
-		page; // TODO REMOVE
-		return {
-			groupBy: page.url.searchParams.get('groupBy') || 'course',
-			discover:
-				(page.url.searchParams.get('discover') as 'familiar' | 'mixed' | 'discover') || 'mixed',
-			filters: decodeFilters(page.url.searchParams.get('filters'))
-		};
+	const parameters: PageParameters = $derived({
+		groupBy: (page.url.searchParams.get('groupBy') as GroupByKey) || 'course',
+		discover: (page.url.searchParams.get('discover') as DiscoverKey) || 'mixed',
+		filters: decodeFilters(page.url.searchParams.get('filters'))
 	});
 
-	function setParameters(newParameters: Parameters) {
+	function setParameters(newParameters: PageParameters) {
 		let query = new URLSearchParams(page.url.searchParams.toString());
 
 		if (!newParameters.groupBy || newParameters.groupBy === 'course') {
@@ -94,7 +89,8 @@
 			timeOfDay: newParameters.filters.timeOfDay,
 			course: newParameters.filters.course,
 			cuisine: newParameters.filters.cuisine
-		};
+		} satisfies RecipeSearchFilters;
+
 		const filtersStr = encodeFilters(filtersObj);
 		if (
 			newParameters.filters.timeOfDay.length > 0 ||
@@ -110,11 +106,21 @@
 	}
 
 	// Get all recipes in supabase
-	async function getRecipes(searchText: string = '') {
+	async function getRecipes(searchText: string = '', filters: RecipeSearchFilters | null = null) {
 		let query = getRecipesDetailed().limit(100);
 
 		if (searchText) {
 			query = query.ilike('title', `%${searchText}%`);
+		}
+
+		if (filters?.timeOfDay && filters?.timeOfDay.length > 0) {
+			query = query.overlaps('times_of_day', filters.timeOfDay);
+		}
+		if (filters?.course && filters?.course.length > 0) {
+			query = query.overlaps('courses', filters.course);
+		}
+		if (filters?.cuisine && filters?.cuisine.length > 0) {
+			query = query.overlaps('cuisines', filters.cuisine);
 		}
 
 		// Fetch all recipes from Supabase
@@ -125,6 +131,14 @@
 			return;
 		}
 
+		console.log(
+			'Fetched recipes with search:',
+			searchText,
+			'and filters:',
+			filters,
+			'result:',
+			recipeData
+		);
 		return recipeData;
 	}
 
@@ -141,52 +155,47 @@
 	let searchInput: string = $state('');
 	let searchLoading: boolean = $state(false);
 
-	let groupBy: string = $derived(parameters.groupBy || 'timeOfDay');
+	let groupBy = $derived(parameters.groupBy || 'timeOfDay');
+
 	let groupedRecipes: {
 		key: string;
 		header: UISectionHeader | null;
 		recipes: Recipes;
 	}[] = $derived.by(() => {
-		if (groupBy === 'timeOfDay') {
-			return Object.keys(recipeTimesOfDay).map((key) => {
-				return {
-					key,
-					header:
-						recipeTimesOfDaySectionHeaders[key as keyof typeof recipeTimesOfDaySectionHeaders],
-					recipes:
-						recipes?.filter((recipe) =>
-							recipe.times_of_day
-								.map((time) => time.timeofday_id)
-								.includes(key as keyof typeof recipeTimesOfDay)
-						) || []
-				};
-			});
-		} else if (groupBy === 'cuisine') {
-			return Object.keys(recipeCuisines).map((key) => {
-				return {
-					key,
-					header: recipeCuisineSectionHeaders[key as keyof typeof recipeCuisineSectionHeaders],
-					recipes:
-						recipes?.filter((recipe) =>
-							recipe.cuisines
-								.map((cuisine) => cuisine.cuisine_id)
-								.includes(key as keyof typeof recipeCuisines)
-						) || []
-				};
-			});
-		} else if (groupBy === 'course') {
-			return Object.keys(recipeCourses).map((key) => {
-				return {
-					key,
-					header: recipeCoursesSectionHeaders[key as keyof typeof recipeCoursesSectionHeaders],
-					recipes:
-						recipes?.filter((recipe) =>
-							recipe.courses
-								.map((course) => course.course_id)
-								.includes(key as keyof typeof recipeCourses)
-						) || []
-				};
-			});
+		const groupConfigs = {
+			timeOfDay: {
+				keys: (parameters.filters.timeOfDay.length
+					? parameters.filters.timeOfDay
+					: Object.keys(recipeTimesOfDay)) as string[],
+				sectionHeaders: recipeTimesOfDaySectionHeaders,
+				getRecipeKeys: (recipe: RecipeDetailed) => recipe.times_of_day as string[]
+			},
+			cuisine: {
+				keys: (parameters.filters.cuisine.length
+					? parameters.filters.cuisine
+					: Object.keys(recipeCuisines)) as string[],
+				sectionHeaders: recipeCuisineSectionHeaders,
+				getRecipeKeys: (recipe: RecipeDetailed) => recipe.cuisines as string[]
+			},
+			course: {
+				keys: (parameters.filters.course.length
+					? parameters.filters.course
+					: Object.keys(recipeCourses)) as string[],
+				sectionHeaders: recipeCoursesSectionHeaders,
+				getRecipeKeys: (recipe: RecipeDetailed) => recipe.courses as string[]
+			}
+		} as const;
+
+		const config = groupConfigs[groupBy as keyof typeof groupConfigs] || null;
+		if (config) {
+			return config.keys.map((key: string) => ({
+				key,
+				header:
+					config.keys.length === 1
+						? null
+						: config.sectionHeaders[key as keyof typeof config.sectionHeaders],
+				recipes: recipes?.filter((recipe) => config.getRecipeKeys(recipe).includes(key)) || []
+			}));
 		}
 
 		return [
@@ -200,11 +209,13 @@
 
 	$effect(() => {
 		searchInput; // Trigger this effect when searchInput changes
-		searchLoading = true;
+		parameters.filters; // Trigger this effect when filters change
+
+		if (searchInput) searchLoading = true;
 
 		// Debounce search input
 		const timeout = setTimeout(async () => {
-			recipes = (await getRecipes(searchInput)) || [];
+			recipes = (await getRecipes(searchInput, parameters.filters)) || [];
 			searchLoading = false;
 		}, 300);
 
@@ -236,7 +247,7 @@
 					<span class="py-1">Discover recipes grouped by</span>
 					<FilterDropdown
 						value={parameters.groupBy}
-						onChange={(value) => setParameters({ ...parameters, groupBy: value })}
+						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
 					/>
 					<!-- <Button size="sm" class="h-7 ml-1">
 						<Save class="size-4" />
@@ -373,6 +384,7 @@
 								size="sm"
 								class="flex items-center"
 								onclick={() => {
+									console.log('See all for', parameters.groupBy, sectionRecipes.key);
 									setParameters({
 										...parameters,
 										filters: {
