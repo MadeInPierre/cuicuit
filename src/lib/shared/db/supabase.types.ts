@@ -650,12 +650,6 @@ export type Database = {
           },
         ]
       }
-      supermarket_aisles: {
-        Row: {
-          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       binary_quantize: {

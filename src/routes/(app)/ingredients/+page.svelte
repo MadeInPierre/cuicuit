@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
-	import { getSupermarketAisles } from '$lib/features/recipes/queries/get-supermarket-aisles';
+	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
 		try {
@@ -28,27 +28,7 @@
 	}
 	type Ingredients = typeof fetchIngredients extends () => Promise<infer R> ? R : never;
 
-	async function fetchAisles() {
-		try {
-			const { data, error } = await getSupermarketAisles();
-
-			if (error) {
-				console.error('Error fetching ingredients:', error);
-				return [];
-			}
-
-			return data;
-		} catch (err) {
-			error = 'Failed to load ingredients';
-			console.error(err);
-		}
-
-		return [];
-	}
-	type Aisle = typeof fetchAisles extends () => Promise<infer R> ? R : never;
-
 	let ingredients: Ingredients = [];
-	let aisles: Aisle = [];
 	let error: string | null = null;
 
 	onMount(async () => {
@@ -56,7 +36,6 @@
 			start: 0,
 			end: 1000
 		});
-		aisles = await fetchAisles();
 	});
 </script>
 
@@ -66,14 +45,14 @@
 	<p>No ingredients found.</p>
 {:else}
 	<ul>
-		{#each aisles as aisle}
+		{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
 			<li>
-				<strong class="text-center w-full">{aisle.aisle}</strong>
-				{#if ingredients.filter((ingredient) => ingredient.aisle === aisle.aisle).length > 0}
+				<strong class="text-center w-full">{aisleHeader.title}</strong>
+				{#if ingredients.filter((ingredient) => ingredient.aisle === aisleKey).length > 0}
 					<div
 						style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem;"
 					>
-						{#each ingredients.filter((ingredient) => ingredient.aisle === aisle.aisle) as ingredient}
+						{#each ingredients.filter((ingredient) => ingredient.aisle === aisleKey) as ingredient}
 							<div class="flex flex-col items-center">
 								<img
 									src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}

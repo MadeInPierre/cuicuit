@@ -5,12 +5,9 @@
 	} from '$lib/features/plans/queries/get-plan-meals';
 	import IngredientListItem from '$lib/features/recipes/components/IngredientListItem.svelte';
 	import type { IngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { getSupermarketAisles } from '$lib/features/recipes/queries/get-supermarket-aisles';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import type { Tables } from '$lib/shared/db/supabase.types';
 	import NumberFlow from '@number-flow/svelte';
-	import { onMount } from 'svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import PaperBoard from './PaperBoard.svelte';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
@@ -86,15 +83,6 @@
 			a.ingredient.slug.localeCompare(b.ingredient.slug)
 		);
 	}
-
-	let aisles: Tables<'supermarket_aisles'>[] = $state([]);
-
-	onMount(() => {
-		// Fetch aisles from the database
-		getSupermarketAisles().then((response) => {
-			aisles = response.data || [];
-		});
-	});
 </script>
 
 <div class="space-y-6 pb-16 min-h-full">
@@ -120,16 +108,13 @@
 		<Tabs.Content value="aisle" class="mt-8">
 			<div class="grid grid-cols-[3fr_0.1fr_1fr]">
 				<div class="grid space-y-12">
-					{#each aisles as a (a.aisle)}
-						{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === a.aisle)}
-						{@const header =
-							supermarketAisleSectionHeaders[
-								a.aisle as keyof typeof supermarketAisleSectionHeaders
-							]}
+					{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
+						{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === aisleKey)}
 
 						{#if aisleItems.length > 0}
 							<section>
-								<SectionHeader {header} size="sm" class="mb-4" />
+								<SectionHeader header={aisleHeader} size="sm" class="mb-4" />
+
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
 								<div class="grid ml-5 border-l-2 pl-4 space-y-2">
 									{#each aisleItems as item (item.ingredient.id)}

@@ -4,7 +4,6 @@
 	import { ArrowRight, BellRing, FunnelPlus, Plus } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
-	import { onMount } from 'svelte';
 	import {
 		getRecipesDetailed,
 		type RecipeDetailed
@@ -85,19 +84,8 @@
 			query.set('discover', newParameters.discover);
 		}
 
-		const filtersObj = {
-			timeOfDay: newParameters.filters.timeOfDay,
-			course: newParameters.filters.course,
-			cuisine: newParameters.filters.cuisine
-		} satisfies RecipeSearchFilters;
-
-		const filtersStr = encodeFilters(filtersObj);
-		if (
-			newParameters.filters.timeOfDay.length > 0 ||
-			newParameters.filters.course.length > 0 ||
-			newParameters.filters.cuisine.length > 0
-		) {
-			query.set('filters', filtersStr);
+		if (Object.values(newParameters.filters).some((arr) => arr.length > 0)) {
+			query.set('filters', encodeFilters(newParameters.filters));
 		} else {
 			query.delete('filters');
 		}
@@ -106,7 +94,11 @@
 	}
 
 	// Get all recipes in supabase
-	async function getRecipes(searchText: string = '', filters: RecipeSearchFilters | null = null) {
+	async function getRecipes(
+		searchText: string = '',
+		filters: RecipeSearchFilters | null = null,
+		discover: DiscoverKey | null = null
+	) {
 		let query = getRecipesDetailed().limit(100);
 
 		if (searchText) {
@@ -129,28 +121,30 @@
 			query = query.overlaps('cuisines', filters.cuisine);
 		}
 
-		// Fetch all recipes from Supabase
-		const { data: recipeData, error: recipeError } = await query;
+		// TODO add discover dial
 
-		if (recipeError) {
-			console.error('Error fetching recipes:', recipeError);
+		// Fetch all recipes from Supabase
+		const { data, error } = await query;
+
+		if (error) {
+			console.error('Error fetching recipes:', error);
 			return;
 		}
 
 		console.log(
-			'Fetched recipes with search:',
-			searchText,
-			'and filters:',
+			`Fetched recipes with search '${searchText}' and filters:`,
 			filters,
 			'result:',
-			recipeData
+			data
 		);
-		return recipeData;
+		return data;
 	}
 
-	type Recipes = NonNullable<typeof getRecipes extends () => Promise<infer R> ? R : never>;
+	/**
+	 * STATES
+	 */
 
-	let recipes: Recipes = $state([]);
+	let recipes: RecipeDetailed[] = $state([]);
 	let loading = $state(true);
 
 	let counter = createPersistentState<number>('global-recipe-page-servings', 2, {
@@ -166,7 +160,7 @@
 	let groupedRecipes: {
 		key: string;
 		header: UISectionHeader | null;
-		recipes: Recipes;
+		recipes: RecipeDetailed[];
 	}[] = $derived.by(() => {
 		const groupConfigs = {
 			timeOfDay: {
@@ -213,25 +207,55 @@
 		];
 	});
 
+	// If the current groupBy has also exactly 1 active filter of the same type,
+	// then the UI will not be interesting (only one category)
+	// So we change the groupBy to the next preference
 	$effect(() => {
-		searchInput; // Trigger this effect when searchInput changes
-		parameters.filters; // Trigger this effect when filters change
+		// All filters have 1 value, do not change groupBy to avoid infinite loop
+		if (
+			Object.keys(parameters.filters).every(
+				(key) => parameters.filters[key as keyof typeof parameters.filters].length === 1
+			)
+		)
+			return;
 
-		if (searchInput) searchLoading = true;
-
-		// Debounce search input
-		const timeout = setTimeout(async () => {
-			recipes = (await getRecipes(searchInput, parameters.filters)) || [];
-			searchLoading = false;
-		}, 300);
-
-		return () => clearTimeout(timeout);
+		if (groupBy === 'timeOfDay' && parameters.filters.timeOfDay.length === 1) {
+			setParameters({ ...parameters, groupBy: 'course' });
+		} else if (groupBy === 'course' && parameters.filters.course.length === 1) {
+			setParameters({ ...parameters, groupBy: 'cuisine' });
+		} else if (groupBy === 'cuisine' && parameters.filters.cuisine.length === 1) {
+			setParameters({ ...parameters, groupBy: 'timeOfDay' });
+		}
 	});
 
-	onMount(async () => {
-		recipes = (await getRecipes()) || [];
-		// await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate loading delay
+	async function fetchRecipes() {
+		const data = await getRecipes(searchInput, parameters.filters, parameters.discover);
+		recipes = data || [];
+		searchLoading = false;
 		loading = false;
+	}
+
+	// Search recipes with text search and filters when the search input
+	// or filters change, and on the first page load
+	let _firstRun = $state(true);
+	$effect(() => {
+		// Trigger this effect when searchInput or filters change
+		searchInput;
+		parameters.filters;
+		parameters.discover;
+
+		// Show loading indicator on the search bar
+		if (searchInput) searchLoading = true;
+
+		// Fetch recipes with text search and filters
+		let timeout: any;
+		if (_firstRun) {
+			_firstRun = false;
+			fetchRecipes();
+		} else timeout = setTimeout(fetchRecipes, 500); // Debounce search input
+
+		// Debounce search input
+		return () => clearTimeout(timeout);
 	});
 </script>
 
@@ -306,7 +330,6 @@
 						</Button>
 					{/if}
 
-					<FilterButton text="My Recipes" active />
 					<FilterButton
 						dropdown
 						text={parameters.filters.timeOfDay.length === 2
@@ -335,7 +358,7 @@
 							: parameters.filters.course.length > 2
 								? `${recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses]} +${parameters.filters.course.length - 1}`
 								: recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses] ||
-									'Main Course'}
+									recipeCourses.main}
 						active={parameters.filters.course.length > 0}
 						onChange={(active) => {
 							setParameters({
@@ -348,9 +371,29 @@
 						}}
 					/>
 
+					<FilterButton
+						dropdown
+						text={parameters.filters.cuisine.length === 2
+							? `${recipeCuisines[parameters.filters.cuisine[0] as keyof typeof recipeCuisines]} & ${recipeCuisines[parameters.filters.cuisine[1] as keyof typeof recipeCuisines]}`
+							: parameters.filters.cuisine.length > 2
+								? `${recipeCuisines[parameters.filters.cuisine[0] as keyof typeof recipeCuisines]} +${parameters.filters.cuisine.length - 1}`
+								: recipeCuisines[parameters.filters.cuisine[0] as keyof typeof recipeCuisines] ||
+									recipeCuisines.french}
+						active={parameters.filters.cuisine.length > 0}
+						onChange={(active) => {
+							setParameters({
+								...parameters,
+								filters: {
+									...parameters.filters,
+									cuisine: active ? ['french'] : []
+								}
+							});
+						}}
+					/>
+
+					<FilterButton text="My Recipes" />
 					<FilterButton text="Ready to cook" />
 					<FilterButton text="Quick & Easy" />
-					<FilterButton text="Favorites" />
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
 			</div>

@@ -157,7 +157,7 @@ export const recipeCoursesSectionHeaders: Record<RecipeCourseKey, UISectionHeade
 	}
 };
 
-export const supermarketAisleSectionHeaders: Record<string, UISectionHeader> = {
+export const supermarketAisleSectionHeaders = {
 	beverages: {
 		title: 'Beverages',
 		subtitle: 'Drinks and refreshments',
@@ -218,4 +218,6 @@ export const supermarketAisleSectionHeaders: Record<string, UISectionHeader> = {
 		icon: Candy,
 		classes: 'bg-pink-100 text-pink-800'
 	}
-};
+} as const satisfies Record<string, UISectionHeader>;
+
+export type SupermarketAisleKey = keyof typeof supermarketAisleSectionHeaders;
