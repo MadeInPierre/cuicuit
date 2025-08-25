@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, FunnelPlus, Plus } from 'lucide-svelte';
+	import { ArrowRight, BellRing, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import {
@@ -30,6 +30,7 @@
 	} from '$lib/features/recipes/components/consts';
 	import { RotateCcw } from '@lucide/svelte';
 	import SearchBar from './SearchBar.svelte';
+	import FilterButtonMulti from './FilterButtonMulti.svelte';
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];
@@ -330,15 +331,13 @@
 						</Button>
 					{/if}
 
-					<FilterButton
+					<!-- <FilterButton
 						dropdown
-						text={parameters.filters.timeOfDay.length === 2
-							? `${recipeTimesOfDay[parameters.filters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} & ${recipeTimesOfDay[parameters.filters.timeOfDay[1] as keyof typeof recipeTimesOfDay]}`
-							: parameters.filters.timeOfDay.length > 2
-								? `${recipeTimesOfDay[parameters.filters.timeOfDay[0] as keyof typeof recipeTimesOfDay]} +${parameters.filters.timeOfDay.length - 1}`
-								: recipeTimesOfDay[
-										parameters.filters.timeOfDay[0] as keyof typeof recipeTimesOfDay
-									] || 'Lunch & Dinner'}
+						text={formatFilterText(
+							parameters.filters.timeOfDay,
+							recipeTimesOfDay,
+							'Lunch & Dinner'
+						)}
 						active={parameters.filters.timeOfDay.length > 0}
 						onChange={(active) => {
 							setParameters({
@@ -349,51 +348,38 @@
 								}
 							});
 						}}
-					/>
+					/> -->
 
-					<FilterButton
-						dropdown
-						text={parameters.filters.course.length === 2
-							? `${recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses]} & ${recipeCourses[parameters.filters.course[1] as keyof typeof recipeCourses]}`
-							: parameters.filters.course.length > 2
-								? `${recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses]} +${parameters.filters.course.length - 1}`
-								: recipeCourses[parameters.filters.course[0] as keyof typeof recipeCourses] ||
-									recipeCourses.main}
-						active={parameters.filters.course.length > 0}
-						onChange={(active) => {
-							setParameters({
-								...parameters,
-								filters: {
-									...parameters.filters,
-									course: active ? ['main'] : []
-								}
-							});
+					<FilterButtonMulti
+						title="course"
+						options={Object.entries(recipeCourses).map(([value, label]) => ({
+							value,
+							label
+						}))}
+						defaultValue={['main']}
+						values={parameters.filters.course}
+						onChange={(values) => {
+							setParameters({ ...parameters, filters: { ...parameters.filters, course: values } });
 						}}
 					/>
 
-					<FilterButton
-						dropdown
-						text={parameters.filters.cuisine.length === 2
-							? `${recipeCuisines[parameters.filters.cuisine[0] as keyof typeof recipeCuisines]} & ${recipeCuisines[parameters.filters.cuisine[1] as keyof typeof recipeCuisines]}`
-							: parameters.filters.cuisine.length > 2
-								? `${recipeCuisines[parameters.filters.cuisine[0] as keyof typeof recipeCuisines]} +${parameters.filters.cuisine.length - 1}`
-								: recipeCuisines[parameters.filters.cuisine[0] as keyof typeof recipeCuisines] ||
-									recipeCuisines.french}
-						active={parameters.filters.cuisine.length > 0}
-						onChange={(active) => {
-							setParameters({
-								...parameters,
-								filters: {
-									...parameters.filters,
-									cuisine: active ? ['french'] : []
-								}
-							});
+					<FilterButtonMulti
+						title="cuisine"
+						options={Object.entries(recipeCuisines).map(([value, label]) => ({
+							value,
+							label
+						}))}
+						defaultValue={['french']}
+						values={parameters.filters.cuisine}
+						onChange={(values) => {
+							setParameters({ ...parameters, filters: { ...parameters.filters, cuisine: values } });
 						}}
 					/>
 
-					<FilterButton text="My Recipes" />
 					<FilterButton text="Ready to cook" />
+					<FilterButton text="My Recipes" />
 					<FilterButton text="Quick & Easy" />
+					<FilterButton text="Expire soon" />
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
 			</div>
@@ -485,8 +471,20 @@
 			{/if}
 		{/each}
 	{:else}
-		<div class="flex items-center justify-center h-64">
-			<p class="text-muted-foreground">No recipes found. Start by adding one!</p>
+		<div class="flex flex-col items-center max-w-60 mx-auto my-32">
+			<ChefHat class="size-16 text-slate-300" />
+
+			<p class="mt-4 mb-16 text-muted-foreground text-center text-balance">
+				<strong>No recipes found.</strong>
+				Start by adding one!
+			</p>
+
+			{#if Object.values(parameters.filters).some((value) => value.length > 0)}
+				<Button>
+					<RotateCcw class="size-4 mr-2" />
+					Reset filters
+				</Button>
+			{/if}
 		</div>
 	{/if}
 </div>
