@@ -17,7 +17,7 @@
 	import { slide } from 'svelte/transition';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import FilterDropdown from './FilterDropdown.svelte';
+	import FilterDropdown from './FilterSelect.svelte';
 	import {
 		recipeCourses,
 		recipeCuisines,
@@ -275,7 +275,7 @@
 				</div>
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
-					<span class="py-1">Discover recipes grouped by</span>
+					<span class="py-1">Find recipes grouped by</span>
 					<FilterDropdown
 						value={parameters.groupBy}
 						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
@@ -331,21 +331,18 @@
 						</Button>
 					{/if}
 
-					<!-- <FilterButton
-						dropdown
-						text={formatFilterText(
-							parameters.filters.timeOfDay,
-							recipeTimesOfDay,
-							'Lunch & Dinner'
-						)}
-						active={parameters.filters.timeOfDay.length > 0}
-						onChange={(active) => {
+					<!-- <FilterButtonMulti
+						title="time of day"
+						options={Object.entries(recipeTimesOfDay).map(([value, label]) => ({
+							value,
+							label
+						}))}
+						defaultValue={['lunch', 'dinner']}
+						values={parameters.filters.timeOfDay}
+						onChange={(values) => {
 							setParameters({
 								...parameters,
-								filters: {
-									...parameters.filters,
-									timeOfDay: active ? ['lunch', 'dinner'] : []
-								}
+								filters: { ...parameters.filters, timeOfDay: values }
 							});
 						}}
 					/> -->
@@ -480,7 +477,15 @@
 			</p>
 
 			{#if Object.values(parameters.filters).some((value) => value.length > 0)}
-				<Button>
+				<Button
+					onclick={() => {
+						searchInput = '';
+						setParameters({
+							...parameters,
+							filters: { course: [], cuisine: [], timeOfDay: [] }
+						});
+					}}
+				>
 					<RotateCcw class="size-4 mr-2" />
 					Reset filters
 				</Button>

@@ -146,7 +146,7 @@
 	<!-- Dialog -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="fixed inset-0 z-50 grid place-items-center p-4"
+		class="place-items-center p-4"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="scale-title"
