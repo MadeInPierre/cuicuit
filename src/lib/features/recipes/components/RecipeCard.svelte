@@ -47,7 +47,7 @@
 </script>
 
 {#if recipe}
-	<div class={cn('w-60 group flex flex-col items-start rounded-md', className)}>
+	<div class={cn('max-w-60 group flex flex-col items-start rounded-md', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
 			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-xs">
 				<a href={'/recipes/' + recipe.id} class="shrink-0">

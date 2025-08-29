@@ -1,12 +1,6 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import Dial from './dial.svelte';
-
-	interface Props {
-		children?: import('svelte').Snippet;
-	}
-
-	let { children }: Props = $props();
+	import PlanList from '../../../lib/features/plans/components/PlanList.svelte';
 </script>
 
 <div class="space-y-6 pb-16 min-h-full">
@@ -19,7 +13,7 @@
 
 	<Separator class="my-6" />
 
-	<Dial subtitle="Pears" min={0} max={12} step={0.25} initial={1} value={1} />
+	<!-- <Dial subtitle="Pears" min={0} max={12} step={0.25} initial={1} value={1} /> -->
 
-	{@render children?.()}
+	<PlanList />
 </div>

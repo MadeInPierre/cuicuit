@@ -1,36 +1,25 @@
 <script lang="ts">
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
-	import * as Breadcrumb from '$lib/shared/components/ui/breadcrumb/index.js';
-	import { Separator } from '$lib/shared/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import {
-		Calendar,
-		Camera,
-		ChefHat,
-		ClipboardList,
-		Icon,
-		MessageSquare,
-		Mic,
-		Refrigerator,
-		ShoppingCart,
-		User
-	} from 'lucide-svelte';
+	import { IsMobile } from '../hooks/is-mobile.svelte';
 	import { Button } from './ui/button';
-	import { cn } from '$lib/utils';
-	import { page } from '$app/state';
-	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
+
+	const isMobile = new IsMobile();
 
 	let { children }: Props = $props();
 </script>
 
 <Sidebar.Provider open={false}>
 	<SidebarLeft collapsible="icon" />
-	<SidebarRight />
+
+	{#if !isMobile.current}
+		<SidebarRight />
+	{/if}
 
 	<Sidebar.Inset>
 		<header
@@ -54,7 +43,7 @@
 
 				<Button
 					variant="secondary"
-					class="ml-auto mr-8 h-8 text-sm px-2 font-normal text-muted-foreground flex items-center gap-1"
+					class="ml-auto hidden md:flex mr-8 h-8 text-sm px-2 font-normal text-muted-foreground items-center gap-1"
 				>
 					<span>Chat with Cuicuit...</span>
 
@@ -69,88 +58,9 @@
 				</Button>
 			</div>
 		</header>
-		<div class="flex flex-1 flex-col gap-4 p-10">
+
+		<div class="flex flex-1 flex-col gap-4 p-6 md:p-10">
 			{@render children?.()}
 		</div>
-
-		<!-- <nav
-			class="sticky bottom-0 z-50 bg-background border-t flex justify-around items-center py-2.5 px-4 md:hidden"
-		>
-			{#snippet navItem(label: string, Icon: any, href: string)}
-				<a
-					{href}
-					class="w-16 flex flex-col gap-1 items-center justify-center text-xs text-foreground"
-				>
-					<div
-						class={cn(
-							'w-full py-1 rounded-full flex items-center justify-center',
-							page.url.pathname.startsWith(href) && 'bg-muted'
-						)}
-					>
-						<Icon class="size-6" />
-					</div>
-					<span>{label}</span>
-				</a>
-			{/snippet}
-
-			{@render navItem('Groceries', ShoppingCart, '/shopping-list')}
-			{@render navItem('Recipes', ChefHat, '/recipes')}
-			{@render navItem('Plan', Calendar, '/plan')}
-			{@render navItem('Chat', MessageSquare, '/chat')}
-			{@render navItem('Settings', User, '/settings')}
-		</nav> -->
-
-		<nav
-			class="sticky bottom-0 z-50 bg-background border-t flex justify-around items-center gap-6 py-2.5 px-6 md:hidden"
-		>
-			<a href="/recipes">
-				<ChefHat class="size-5" />
-				<span class="sr-only">Recipes</span>
-			</a>
-			<!-- <a href="/shopping-list">
-				<ShoppingCart class="size-5" />
-				<span class="sr-only">Groceries</span>
-			</a> -->
-			<a href="/plan">
-				<ClipboardList class="size-5" />
-				<span class="sr-only">Plan</span>
-			</a>
-			<a href="/pantry">
-				<Refrigerator class="size-5" />
-				<span class="sr-only">Pantry</span>
-			</a>
-			<a
-				href="/chat"
-				class="w-full h-8 bg-muted rounded-full text-xs text-muted-foreground/80 flex items-center px-0.5"
-			>
-				<Button
-					variant="ghost"
-					size="icon"
-					class="size-8 rounded-full mr-1"
-					onclick={() => {
-						// TODO Handle camera button click
-						toast.success('Camera button clicked');
-					}}
-				>
-					<Camera class="size-4" />
-				</Button>
-				<span>Ask anything...</span>
-				<Button
-					variant="ghost"
-					size="icon"
-					class="size-8 rounded-full ml-auto"
-					onclick={() => {
-						// TODO Handle mic button click
-						toast.success('Mic button clicked');
-					}}
-				>
-					<Mic class="size-4" />
-				</Button>
-			</a>
-			<a href="/settings">
-				<User class="size-5" />
-				<span class="sr-only">Settings</span>
-			</a>
-		</nav>
 	</Sidebar.Inset>
 </Sidebar.Provider>
