@@ -331,22 +331,6 @@
 						</Button>
 					{/if}
 
-					<!-- <FilterButtonMulti
-						title="time of day"
-						options={Object.entries(recipeTimesOfDay).map(([value, label]) => ({
-							value,
-							label
-						}))}
-						defaultValue={['lunch', 'dinner']}
-						values={parameters.filters.timeOfDay}
-						onChange={(values) => {
-							setParameters({
-								...parameters,
-								filters: { ...parameters.filters, timeOfDay: values }
-							});
-						}}
-					/> -->
-
 					<FilterButtonMulti
 						title="course"
 						options={Object.entries(recipeCourses).map(([value, label]) => ({
