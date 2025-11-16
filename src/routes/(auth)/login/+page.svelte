@@ -13,8 +13,8 @@
 				console.warn('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');
 			} else {
-				console.warn('User has finished onboarding, going to dashboard.');
-				goto('/dashboard');
+				console.warn('User has finished onboarding, going to app.');
+				goto('/recipes');
 			}
 		}
 	});

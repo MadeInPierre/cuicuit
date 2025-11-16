@@ -5,7 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
-	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
+	// Redirect the user to app if already logged in (or welcome if not done yet)
 	$effect(() => {
 		// If the user is already logged in...
 		if (browser && userState.user?.id && userState.preferences) {
@@ -13,8 +13,8 @@
 				console.warn('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');
 			} else {
-				console.warn('User has finished onboarding, going to dashboard.');
-				goto('/dashboard');
+				console.warn('User has finished onboarding, going to app.');
+				goto('/recipes');
 			}
 		}
 	});

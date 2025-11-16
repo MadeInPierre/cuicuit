@@ -121,7 +121,7 @@
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class={cn(
-								'grid text-xs text-muted-foreground rounded-sm transition-colors relative group',
+								'grid text-xs text-muted-foreground rounded-sm transition-colors duration-75 relative group',
 								hoveredMealIngredientId.value === shopping_ingredient.ingredient_id &&
 									'bg-slate-200 dark:bg-slate-900'
 							)}
@@ -132,11 +132,11 @@
 								hoveredMealIngredientId.value = null;
 							}}
 						>
-							<div
+							<!-- <div
 								class="absolute opacity-0 group-hover:opacity-100 transition-opacity top-[3px] -translate-x-1/2 -right-6 z-10 rounded-sm border bg-muted"
 							>
 								<Ellipsis class="size-3.5" />
-							</div>
+							</div> -->
 
 							<div class="h-[22px] p-0.5 px-2 flex items-center">
 								<span
