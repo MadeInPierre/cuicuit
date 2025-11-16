@@ -61,12 +61,12 @@ export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod
 		return;
 	}
 
-	// Valid user with verified email, welcome them if they're new or go to dashboard
+	// Valid user with verified email, welcome them if they're new or go to the app
 	if (createdUserDoc) {
 		console.log('New user, going to welcome page.');
 		goto('/welcome'); // If the user is new, go to the welcome page
 	} else {
-		console.log('Existing user, going to dashboard.');
-		goto('/dashboard'); // If the user is not new, go to the dashboard
+		console.log('Existing user, going to app.');
+		goto('/recipes'); // If the user is not new, go to the app
 	}
 }

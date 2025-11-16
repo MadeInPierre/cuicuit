@@ -31,7 +31,7 @@
 		</nav>
 
 		<!-- <UserFullSignedIn> -->
-		<!-- <Button href="/dashboard" size="sm">Go to dashboard</Button> -->
+		<!-- <Button href="/recipes" size="sm">Go to dashboard</Button> -->
 		<!-- </UserFullSignedIn> -->
 		<!-- <UserFullSignedOut> -->
 		<Button href="/login" size="sm" variant="link">Log in</Button>

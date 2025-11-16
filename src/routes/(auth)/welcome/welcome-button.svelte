@@ -3,7 +3,7 @@
 	import { ArrowRight } from 'lucide-svelte';
 </script>
 
-<Button href="/dashboard" variant="ghost" class="flex items-center gap-1">
+<Button href="/recipes" variant="ghost" class="flex items-center gap-1">
 	Skip
 	<ArrowRight class="h-4 w-4" />
 	<!-- TODO logic -->

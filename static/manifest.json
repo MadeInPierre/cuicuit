@@ -2,7 +2,7 @@
     "id": "cuicuit-web",
     "name": "Cuicuit",
     "short_name": "Cuicuit",
-    "start_url": "/dashboard",
+    "start_url": "/recipes",
     "scope": "/",
     "display": "standalone",
     "orientation": "any",

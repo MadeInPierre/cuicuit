@@ -29,8 +29,8 @@
 			userState.preferences &&
 			userState.preferences.onboarding_status === 'finished'
 		) {
-			console.log('User has finished onboarding, going to dashboard.');
-			goto('/dashboard');
+			console.log('User has finished onboarding, going to app.');
+			goto('/recipes');
 		}
 	});
 
@@ -69,8 +69,8 @@
 					return;
 				}
 
-				// Done, go to dashboard!
-				goto('/dashboard');
+				// Done, go to app!
+				goto('/recipes');
 			}
 		}
 	});
