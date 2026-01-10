@@ -13,12 +13,12 @@
 		{ label: 'Ready to cook', icon: CheckCheck, color: 'text-green-600 dark:text-green-500' },
 		{ label: 'Ready for minimal recipe', icon: Check, color: 'text-teal-600 dark:text-teal-500' },
 		{
-			label: 'Ready with 2 close substitutions',
+			label: '2 close substitutions',
 			icon: EqualApproximately,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: 'Ready with 2 far substitutions',
+			label: '2 far substitutions',
 			icon: EqualApproximately,
 			color: 'text-yellow-600 dark:text-yellow-500'
 		},

@@ -31,6 +31,7 @@
 	import { RotateCcw } from '@lucide/svelte';
 	import SearchBar from './SearchBar.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
+	import RecipeCarousel from './RecipeCarousel.svelte';
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];
@@ -390,7 +391,7 @@
 	{:else if recipes && recipes?.length > 0}
 		{#each groupedRecipes as sectionRecipes (sectionRecipes.key)}
 			{#if sectionRecipes.recipes.length > 0}
-				<div class="space-y-2" transition:slide>
+				<div class="grid space-y-2" transition:slide>
 					{#if sectionRecipes.header}
 						<div class="flex justify-between items-center">
 							<SectionHeader header={sectionRecipes.header} />
@@ -399,6 +400,7 @@
 								variant="link"
 								size="sm"
 								class="flex items-center"
+								disabled={sectionRecipes.recipes.length <= 6 * 3}
 								onclick={() => {
 									console.log('See all for', parameters.groupBy, sectionRecipes.key);
 									setParameters({
@@ -416,9 +418,11 @@
 						</div>
 					{/if}
 
-					<div class="w-full flex flex-wrap gap-4">
+					<RecipeCarousel recipes={sectionRecipes.recipes.slice(0, 6 * 3)} />
+
+					<!-- <div class="w-full flex flex-wrap gap-4">
 						{#each sectionRecipes.recipes as recipe (recipe.id)}
-							{#if Math.random() < 0.8}
+							{#if Math.random() <= 1.0}
 								<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
 							{:else}
 								<div
@@ -433,8 +437,8 @@
 										<BellRing class="size-4" />
 										<span><strong>2</strong> ingredients expire soon!</span>
 
-										<!-- <Star class="size-4" />
-										<span class="">You love this recipe!</span> -->
+										<Star class="size-4" />
+										<span class="">You love this recipe!</span>
 
 										<Button
 											size="icon"
@@ -447,7 +451,7 @@
 								</div>
 							{/if}
 						{/each}
-					</div>
+					</div> -->
 				</div>
 			{/if}
 		{/each}

@@ -38,9 +38,9 @@
 </script>
 
 {#if recipe}
-	<div class={cn('w-full max-w-60 group flex flex-col items-start rounded-md', className)}>
+	<div class={cn('w-full group flex flex-col items-start', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
-			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-xs">
+			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-sm">
 				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block">
 					<img
 						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
@@ -51,11 +51,6 @@
 						}}
 					/>
 				</a>
-				{#if recipe.image_ids.length === 0}
-					<a href={'/recipes/' + recipe.id} class="bg-gray-800">
-						<ChefHat class="size-12 text-gray-400 mx-auto my-auto" />
-					</a>
-				{/if}
 
 				{#if recipe.source_type === 'website'}
 					<div
@@ -146,8 +141,9 @@
 				<!-- <CardBookmark class="absolute -top-[12px] right-[8px] size-10" /> -->
 			</div>
 		{:else}
-			<div class="w-full aspect-square bg-gray-200 rounded-md"></div>
+			<div class="w-full aspect-square bg-gray-200 rounded-xl"></div>
 		{/if}
+
 		<div class="flex items-center gap-2 p-2 w-full">
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
 				<h3 class="text-sm font-semibold line-clamp-1">{recipe.title}</h3>
