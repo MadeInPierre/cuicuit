@@ -90,7 +90,7 @@ export type Database = {
       ingredient_translations: {
         Row: {
           commonly_used: Database["public"]["Enums"]["commonly_used_level"]
-          fts: unknown | null
+          fts: unknown
           ingredient_id: string
           language_id: number
           name_general: string
@@ -99,7 +99,7 @@ export type Database = {
         }
         Insert: {
           commonly_used?: Database["public"]["Enums"]["commonly_used_level"]
-          fts?: unknown | null
+          fts?: unknown
           ingredient_id: string
           language_id: number
           name_general: string
@@ -108,7 +108,7 @@ export type Database = {
         }
         Update: {
           commonly_used?: Database["public"]["Enums"]["commonly_used_level"]
-          fts?: unknown | null
+          fts?: unknown
           ingredient_id?: string
           language_id?: number
           name_general?: string
@@ -652,156 +652,47 @@ export type Database = {
       }
     }
     Functions: {
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: string
-      }
-      match_ingredient: {
-        Args:
-          | { lang: string; n_matches?: number; query: string }
-          | { lang: string; query: string }
-        Returns: {
-          commonly_used: Database["public"]["Enums"]["commonly_used_level"]
-          fts: unknown | null
-          ingredient_id: string
-          language_id: number
-          name_general: string
-          name_plural: string | null
-          name_singular: string | null
-        }[]
-      }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
-      slugify: {
-        Args: { max_length?: number; value: string }
-        Returns: string
-      }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      unaccent: {
-        Args: { "": string }
-        Returns: string
-      }
-      unaccent_init: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
+      match_ingredient:
+        | {
+            Args: { lang: string; query: string }
+            Returns: {
+              commonly_used: Database["public"]["Enums"]["commonly_used_level"]
+              fts: unknown
+              ingredient_id: string
+              language_id: number
+              name_general: string
+              name_plural: string | null
+              name_singular: string | null
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "ingredient_translations"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
+        | {
+            Args: { lang: string; n_matches?: number; query: string }
+            Returns: {
+              commonly_used: Database["public"]["Enums"]["commonly_used_level"]
+              fts: unknown
+              ingredient_id: string
+              language_id: number
+              name_general: string
+              name_plural: string | null
+              name_singular: string | null
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "ingredient_translations"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      slugify: { Args: { max_length?: number; value: string }; Returns: string }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       cleanup_level: "none" | "low" | "medium" | "high"

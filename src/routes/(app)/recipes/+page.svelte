@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
+	import { ArrowRight, BellRing, ChefHat, Funnel, FunnelPlus, Plus } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import {
@@ -287,18 +287,18 @@
 				</p>
 			</div>
 
-			<div class="ml-auto grid space-y-3">
+			<div class="hidden sm:grid ml-auto space-y-3">
 				<div class="flex gap-2 justify-end">
 					<!-- <Button variant="outline" size="icon">
 						<Funnel />
 					</Button> -->
 
-					<DiscoverDial
+					<!-- <DiscoverDial
 						value={parameters.discover}
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
-					/>
+					/> -->
 
-					<SearchBar class="h-10 w-80" bind:value={searchInput} loading={searchLoading} />
+					<SearchBar class="h-10 w-40 lg:w-80" bind:value={searchInput} loading={searchLoading} />
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
@@ -357,10 +357,10 @@
 						}}
 					/>
 
-					<FilterButton text="Ready to cook" />
+					<!-- <FilterButton text="Ready to cook" />
 					<FilterButton text="My Recipes" />
 					<FilterButton text="Quick & Easy" />
-					<FilterButton text="Expire soon" />
+					<FilterButton text="Expire soon" /> -->
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
 			</div>
