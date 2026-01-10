@@ -8,6 +8,7 @@
 	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
 	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 	import { createDraftRecipe } from '../actions/create-draft-recipe';
+	import { toast } from 'svelte-sonner';
 
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
@@ -61,6 +62,10 @@
 			<DropdownMenu.Item
 				onclick={async () => {
 					const recipeId = await createDraftRecipe('user-manual', 'fr-FR');
+					if(!recipeId){
+						toast.error('Failed to create a new recipe draft.');
+						return;
+					}
 					goto(`/recipes/${recipeId}/edit`);
 				}}
 			>

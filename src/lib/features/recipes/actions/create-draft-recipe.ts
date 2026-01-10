@@ -57,6 +57,12 @@ export async function createDraftRecipe(
 				effort_level: 'low',
 				skill_level: 'beginner',
 
+				// Filters (multi select enums)
+				courses: ['main'],
+				cuisines: [],
+				times_of_day: [],
+				tools: [],
+
 				// Cook times
 				time_prep_minutes: 0,
 				time_cook_minutes: 0,
@@ -67,7 +73,7 @@ export async function createDraftRecipe(
 
 				// Steps
 				steps: []
-			}
+			} as Database['public']['Tables']['recipes']['Insert']
 		])
 		.select('id')
 		.single();

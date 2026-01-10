@@ -2,27 +2,18 @@
 	import {
 		Bookmark,
 		CalendarPlus,
-		Check,
-		CheckCheck,
-		EqualApproximately,
-		Loader2,
+		ChefHat,
 		LoaderCircle,
-		Repeat,
-		Scale,
-		ShoppingBasket,
 		Signal,
 		SignalHigh,
 		SignalLow,
-		SignalMedium,
-		Star,
-		Users
+		SignalMedium
 	} from 'lucide-svelte';
-	import { capitalize, cn } from '$lib/utils';
+	import { cn } from '$lib/utils';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import CookableStatus from './CookableStatus.svelte';
@@ -47,16 +38,24 @@
 </script>
 
 {#if recipe}
-	<div class={cn('max-w-60 group flex flex-col items-start rounded-md', className)}>
+	<div class={cn('w-full max-w-60 group flex flex-col items-start rounded-md', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
 			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-xs">
-				<a href={'/recipes/' + recipe.id} class="shrink-0">
+				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block">
 					<img
 						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 						alt={recipe.title}
 						class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+						onerror={(e) => {
+							if (e.target) (e.target as HTMLImageElement).style.display = 'none';
+						}}
 					/>
 				</a>
+				{#if recipe.image_ids.length === 0}
+					<a href={'/recipes/' + recipe.id} class="bg-gray-800">
+						<ChefHat class="size-12 text-gray-400 mx-auto my-auto" />
+					</a>
+				{/if}
 
 				{#if recipe.source_type === 'website'}
 					<div
