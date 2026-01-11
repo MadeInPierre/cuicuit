@@ -13,7 +13,7 @@
 		{
 			value: 'recommended',
 			label: 'Recommended',
-			description: "Let Cuicuit decide what's best",
+			description: "Best picks for you",
 			icon: Sparkle
 		},
 		{

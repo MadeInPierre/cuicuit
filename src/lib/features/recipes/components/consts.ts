@@ -17,7 +17,8 @@ import {
 	Soup,
 	Pizza,
 	Sandwich,
-	Utensils
+	Clock,
+	ShoppingBag
 } from 'lucide-svelte';
 import type { RecipeCourseKey, RecipeCuisineKey, RecipeTimeOfDayKey } from '../db/recipe-doc';
 import { Bean } from '@lucide/svelte';
@@ -64,8 +65,14 @@ export const recipeTimesOfDaySectionHeaders = {
 		icon: CupSoda,
 		subtitle: 'Quench your thirst with a refreshing drink recipe.',
 		classes: 'bg-cyan-100 text-cyan-800'
+	},
+	default: {
+		title: 'Others',
+		icon: Clock,
+		subtitle: 'Recipes for any time of the day.',
+		classes: 'bg-slate-100'
 	}
-} satisfies Record<RecipeTimeOfDayKey, UISectionHeader>;
+} satisfies Record<RecipeTimeOfDayKey, UISectionHeader> & { default: UISectionHeader };
 
 export const recipeCuisineSectionHeaders = {
 	italian: {
@@ -103,10 +110,22 @@ export const recipeCuisineSectionHeaders = {
 		icon: '🇫🇷',
 		subtitle: 'Delicious French recipes.',
 		classes: 'bg-blue-100'
+	},
+	american: {
+		title: 'American',
+		icon: '🇺🇸',
+		subtitle: 'Delicious American recipes.',
+		classes: 'bg-red-100'
+	},
+	default: {
+		title: 'Around the World',
+		icon: '🌍',
+		subtitle: 'A variety of delicious recipes from around the world.',
+		classes: 'bg-slate-100'
 	}
-} as Record<RecipeCuisineKey, UISectionHeader>; // TODO add all and change 'as' to 'satisfies'
+} as Record<RecipeCuisineKey, UISectionHeader> & { default: UISectionHeader }; // TODO add all and change 'as' to 'satisfies'
 
-export const recipeCoursesSectionHeaders: Record<RecipeCourseKey, UISectionHeader> = {
+export const recipeCoursesSectionHeaders = {
 	main: {
 		title: 'Main Courses',
 		icon: Pizza,
@@ -154,8 +173,14 @@ export const recipeCoursesSectionHeaders: Record<RecipeCourseKey, UISectionHeade
 		icon: CupSoda,
 		subtitle: 'Quench your thirst with a refreshing drink.',
 		classes: 'bg-blue-100 text-blue-800'
+	},
+	default: {
+		title: 'Other',
+		icon: Clock,
+		subtitle: 'Various courses and dishes.',
+		classes: 'bg-slate-100'
 	}
-};
+} satisfies Record<RecipeCourseKey, UISectionHeader> & { default: UISectionHeader };
 
 export const supermarketAisleSectionHeaders = {
 	beverages: {
@@ -217,7 +242,13 @@ export const supermarketAisleSectionHeaders = {
 		subtitle: 'Chips, candy, and treats',
 		icon: Candy,
 		classes: 'bg-pink-100 text-pink-800'
+	},
+	default: {
+		title: 'Other',
+		icon: ShoppingBag,
+		subtitle: 'Various supermarket items',
+		classes: 'bg-slate-100'
 	}
-} as const satisfies Record<string, UISectionHeader>;
+} satisfies Record<string, UISectionHeader> & { default: UISectionHeader };
 
 export type SupermarketAisleKey = keyof typeof supermarketAisleSectionHeaders;
