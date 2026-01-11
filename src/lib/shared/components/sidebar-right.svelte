@@ -5,16 +5,7 @@
 	import MealList from '$lib/features/plans/components/sidebar/meal-list.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import {
-		ArrowRight,
-		Calendar,
-		CalendarPlus,
-		Clock,
-		FunnelPlus,
-		ScrollText,
-		Settings2,
-		ShoppingBasket
-	} from 'lucide-svelte';
+	import { ArrowRight, CalendarPlus, ScrollText, Settings2 } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
 	import Input from './ui/input/input.svelte';
 	import { Button } from './ui/button';
@@ -57,9 +48,9 @@
 		</div>
 	</Sidebar.Header>
 	<Sidebar.Content class="p-4 no-scrollbar">
-		<!-- <DatePicker /> -->
-		<!-- <Sidebar.Separator class="mx-0" /> -->
-		<!-- <Calendars calendars={data.calendars} /> -->
+		<!-- <DatePicker />
+		<Sidebar.Separator class="mx-0" />
+		<Calendars calendars={data.calendars} /> -->
 
 		<PlanList expanded={expandedMealCards} />
 	</Sidebar.Content>

@@ -148,22 +148,23 @@
 
 	let recipes: RecipeDetailed[] = $state([]);
 	let loading = $state(true);
+	let searchLoading: boolean = $state(false);
+
+	let groupBy = $derived(parameters.groupBy || 'timeOfDay');
+
+	let searchInput: string = $state('');
 
 	let counter = createPersistentState<number>('global-recipe-page-servings', 2, {
 		toString: (value: number) => value.toString(),
 		fromString: (value: string) => parseInt(value, 10)
 	});
 
-	let searchInput: string = $state('');
-	let searchLoading: boolean = $state(false);
-
-	let groupBy = $derived(parameters.groupBy || 'timeOfDay');
-
 	let groupedRecipes: {
 		key: string;
 		header: UISectionHeader | null;
 		recipes: RecipeDetailed[];
 	}[] = $derived.by(() => {
+		// Define grouping configurations for each groupBy option
 		const groupConfigs = {
 			timeOfDay: {
 				keys: (parameters.filters.timeOfDay.length
@@ -188,26 +189,23 @@
 			}
 		} as const;
 
+		// Get the config for the current groupBy
 		const config = groupConfigs[groupBy as keyof typeof groupConfigs] || null;
-		if (config) {
-			return config.keys.map((key: string) => ({
-				key,
-				header:
-					config.keys.length === 1
-						? null
-						: config.sectionHeaders[key as keyof typeof config.sectionHeaders],
-				recipes: recipes?.filter((recipe) => config.getRecipeKeys(recipe).includes(key)) || []
-			}));
-		}
 
-		return [
-			{
-				key: 'all',
-				header: null,
-				recipes: recipes || []
-			}
-		];
+		// Default: all recipes in one group
+		if (!config) return [{ key: 'all', header: null, recipes: recipes || [] }];
+
+		// Group recipes accordingly
+		return config.keys.map((key: string) => ({
+			key,
+			header: Object.keys(config.sectionHeaders).includes(key)
+				? config.sectionHeaders[key as keyof typeof config.sectionHeaders]
+				: config.sectionHeaders['default'],
+			recipes: recipes?.filter((recipe) => config.getRecipeKeys(recipe).includes(key)) || []
+		}));
 	});
+
+	$inspect(groupedRecipes);
 
 	// If the current groupBy has also exactly 1 active filter of the same type,
 	// then the UI will not be interesting (only one category)
@@ -237,8 +235,7 @@
 		loading = false;
 	}
 
-	// Search recipes with text search and filters when the search input
-	// or filters change, and on the first page load
+	// Search recipes with text search and filters when the search input or filters change, and on the first page load
 	let _firstRun = $state(true);
 	$effect(() => {
 		// Trigger this effect when searchInput or filters change
@@ -254,7 +251,10 @@
 		if (_firstRun) {
 			_firstRun = false;
 			fetchRecipes();
-		} else timeout = setTimeout(fetchRecipes, 500); // Debounce search input
+		} else {
+			// Debounce search input
+			timeout = setTimeout(fetchRecipes, 500);
+		}
 
 		// Debounce search input
 		return () => clearTimeout(timeout);
@@ -294,10 +294,10 @@
 						<Funnel />
 					</Button> -->
 
-					<!-- <DiscoverDial
+					<DiscoverDial
 						value={parameters.discover}
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
-					/> -->
+					/>
 
 					<SearchBar class="h-10 w-40 lg:w-80" bind:value={searchInput} loading={searchLoading} />
 
@@ -358,9 +358,9 @@
 						}}
 					/>
 
-					<!-- <FilterButton text="Ready to cook" />
+					<FilterButton text="Cookable" />
 					<FilterButton text="My Recipes" />
-					<FilterButton text="Quick & Easy" />
+					<!-- <FilterButton text="Quick & Easy" />
 					<FilterButton text="Expire soon" /> -->
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
@@ -391,7 +391,7 @@
 	{:else if recipes && recipes?.length > 0}
 		{#each groupedRecipes as sectionRecipes (sectionRecipes.key)}
 			{#if sectionRecipes.recipes.length > 0}
-				<div class="grid space-y-2" transition:slide>
+				<div class="grid space-y-4" transition:slide>
 					{#if sectionRecipes.header}
 						<div class="flex justify-between items-center">
 							<SectionHeader header={sectionRecipes.header} />

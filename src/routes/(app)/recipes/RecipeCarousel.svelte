@@ -8,8 +8,7 @@
 
 	let api = $state<CarouselAPI>();
 
-	const itemsPerPage = 6;
-	const totalItems = recipes.length;
+	const itemsPerPage = 6; // TODO Adjust based on screen size
 
 	const totalSlides = $derived(api ? api.scrollSnapList().length : 0);
 	let currentSlide = $state(0);
@@ -29,11 +28,11 @@
 		slidesToScroll: itemsPerPage
 	}}
 	setApi={(emblaApi) => (api = emblaApi)}
-	class="mt-4 w-full overflow-x-hidden"
+	class="w-full overflow-x-hidden"
 >
 	<Carousel.Content class="w-full">
 		{#each recipes as recipe (recipe.id)}
-			<Carousel.Item class="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/6 my-1">
+			<Carousel.Item class="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 my-1">
 				<RecipeCard {recipe} showAddToPlanButton class="" />
 			</Carousel.Item>
 		{/each}

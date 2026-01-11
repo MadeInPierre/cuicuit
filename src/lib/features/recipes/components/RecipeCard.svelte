@@ -46,9 +46,6 @@
 						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 						alt={recipe.title}
 						class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-						onerror={(e) => {
-							if (e.target) (e.target as HTMLImageElement).style.display = 'none';
-						}}
 					/>
 				</a>
 
@@ -141,7 +138,13 @@
 				<!-- <CardBookmark class="absolute -top-[12px] right-[8px] size-10" /> -->
 			</div>
 		{:else}
-			<div class="w-full aspect-square bg-gray-200 rounded-xl"></div>
+			<a
+				href={'/recipes/' + recipe.id}
+				class="w-full aspect-square bg-gray-200 rounded-xl flex items-center justify-center"
+				aria-label={'Recipe ' + recipe.title}
+			>
+				<ChefHat class="size-1/4 text-gray-300" />
+			</a>
 		{/if}
 
 		<div class="flex items-center gap-2 p-2 w-full">

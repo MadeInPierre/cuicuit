@@ -10,15 +10,15 @@
 	} from 'lucide-svelte';
 
 	const statuses = [
-		{ label: 'Ready to cook', icon: CheckCheck, color: 'text-green-600 dark:text-green-500' },
-		{ label: 'Ready for minimal recipe', icon: Check, color: 'text-teal-600 dark:text-teal-500' },
+		{ label: 'Cookable', icon: CheckCheck, color: 'text-green-600 dark:text-green-500' },
+		{ label: 'Cookable, probably', icon: Check, color: 'text-teal-600 dark:text-teal-500' },
 		{
-			label: '2 close substitutions',
+			label: 'Cookable, 2 close substitutions',
 			icon: EqualApproximately,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: '2 far substitutions',
+			label: 'Cookable, 2 far substitutions',
 			icon: EqualApproximately,
 			color: 'text-yellow-600 dark:text-yellow-500'
 		},
