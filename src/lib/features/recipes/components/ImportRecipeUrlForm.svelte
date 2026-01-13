@@ -9,13 +9,13 @@
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
 	import { importFromUrl } from '../actions/import-from-url';
 	import { goto } from '$app/navigation';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	type Props = {
 		openDialog?: boolean;
-		recipeId?: string | undefined;
 	};
 
-	let { openDialog = $bindable(), recipeId = $bindable(undefined) }: Props = $props();
+	let { openDialog = $bindable() }: Props = $props();
 
 	const form = superForm(defaults(zod(importRecipeUrlSchema)), {
 		SPA: true,
@@ -33,17 +33,27 @@
 	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
 		loading = true;
 		try {
-			// TODO
-			// const result = await importFromUrl(data.url, userDocState, recipeId); // TODO migrate to Supabase
-			// if (result.isComplete) {
-			// 	toast.success('Recipe imported successfully!');
-			// 	openDialog = false;
-			// 	goto(`/recipes/${result.id}`);
-			// } else {
-			// 	toast.warning('Some fields are missing, please complete the recipe.');
-			// 	openDialog = false;
-			// 	goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
-			// }
+			// Get the user
+			const userId = userState.user?.id;
+			if (!userId) {
+				toast.error('You must be logged in to import a recipe.');
+				loading = false;
+				return;
+			}
+
+			// Import the recipe from the URL
+			const result = await importFromUrl(data.url, userId);
+
+			// Navigate based on completeness
+			if (result.isComplete) {
+				toast.success('Recipe imported successfully!');
+				openDialog = false;
+				goto(`/recipes/${result.id}`);
+			} else {
+				toast.warning('Some fields are missing, please complete the recipe.');
+				openDialog = false;
+				goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
+			}
 		} catch (error) {
 			toast.error('Failed to import recipe. Please try again.');
 		}
@@ -70,12 +80,12 @@
 	</div>
 
 	<div class="space-y-2">
-		{#if recipeId}
+		<!-- {#if recipeId}
 			<div class="border border-yellow-800 bg-yellow-50 p-2 rounded-md text-yellow-800 text-xs">
 				<span class="font-bold"> Warning: </span>
 				This will overwrite the current data.
 			</div>
-		{/if}
+		{/if} -->
 
 		<Dialog.Footer class="mt-4">
 			<Form.Button type="submit" disabled={loading || !$formData.url} class="w-full">

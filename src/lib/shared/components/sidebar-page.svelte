@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CommandMenu from '$lib/features/command/CommandMenu.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
@@ -41,21 +42,7 @@
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
 
-				<Button
-					variant="secondary"
-					class="ml-auto hidden md:flex mr-8 h-8 text-sm px-2 font-normal text-muted-foreground items-center gap-1"
-				>
-					<span>Chat with Cuicuit...</span>
-
-					<div class="ml-5 h-5 px-1 flex items-center text-xs bg-background rounded-sm border">
-						Ctrl
-					</div>
-					<div
-						class="size-5 flex items-center justify-center text-xs bg-background rounded-sm border"
-					>
-						K
-					</div>
-				</Button>
+				<CommandMenu />
 			</div>
 		</header>
 

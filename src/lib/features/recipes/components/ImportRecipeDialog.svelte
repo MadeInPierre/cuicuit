@@ -13,14 +13,12 @@
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
 		openDialog?: boolean;
-		recipeId?: string | undefined;
 		dropdownAlign?: 'start' | 'center' | 'end';
 	};
 
 	let {
 		trigger = undefined,
 		openDialog = $bindable(false),
-		recipeId = undefined,
 		dropdownAlign = 'start'
 	}: Props = $props();
 
@@ -62,7 +60,7 @@
 			<DropdownMenu.Item
 				onclick={async () => {
 					const recipeId = await createDraftRecipe('user-manual', 'fr-FR');
-					if(!recipeId){
+					if (!recipeId) {
 						toast.error('Failed to create a new recipe draft.');
 						return;
 					}
@@ -117,7 +115,7 @@
 
 				{@render tabList()}
 
-				<ImportRecipeUrlForm bind:openDialog {recipeId} />
+				<ImportRecipeUrlForm bind:openDialog />
 			</Tabs.Content>
 
 			<Tabs.Content value="image" class="">
