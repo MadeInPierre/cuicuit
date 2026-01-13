@@ -1,17 +1,7 @@
 <script lang="ts">
-	import {
-		Ellipsis,
-		Pencil,
-		Plus,
-		Repeat,
-		ShoppingCart,
-		Trash2,
-		Users,
-		Weight,
-		X
-	} from 'lucide-svelte';
+	import { Plus, Trash2, Users, Weight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
-	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
@@ -22,7 +12,6 @@
 	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
-	import { CircleSlash } from '@lucide/svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -60,6 +49,12 @@
 					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`}
 					alt="Recipe"
 					class="aspect-square size-10 rounded-md object-cover border"
+					onerror={(e) => {
+						if (meal.recipe.image_ids && meal.recipe.image_ids[0]) {
+							(e.currentTarget as HTMLImageElement).src =
+								`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`;
+						}
+					}}
 				/>
 			{:else}
 				<div class="aspect-square size-10 bg-gray-200 rounded-md"></div>

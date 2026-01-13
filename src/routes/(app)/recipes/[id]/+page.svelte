@@ -9,6 +9,7 @@
 		Equal,
 		Globe,
 		Grid,
+		Grid3x3,
 		HandCoins,
 		List,
 		Plus,
@@ -28,13 +29,14 @@
 	import { capitalize } from '$lib/utils';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import {
 		getRecipeDetailed,
 		type RecipeDetailedWithAuthor
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
 	const activeSpace = getActiveSpaceState();
@@ -119,6 +121,10 @@
 												src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${pageRecipeId}/${imgId}`}
 												alt="Recipe"
 												class="w-full aspect-[1.618] object-cover rounded-md"
+												onerror={(e) => {
+													(e.currentTarget as HTMLImageElement).src =
+														`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${pageRecipeId}/${imgId}`;
+												}}
 											/>
 										</Card.Root>
 									</Carousel.Item>
@@ -144,10 +150,13 @@
 
 							<div class="flex">
 								<div class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm">
-									<!-- <UserAvatar profile={doc?.author?.profile} class="ml-auto size-5" /> -->
-									<span class="">Added by {'@' + recipe.author.user_name}</span>
+									<UserAvatar profile={recipe.author} class="ml-auto size-5" />
+									<span>
+										{recipe.source_url ? 'Imported' : 'Created'}
+										by {'@' + recipe.author.user_name}
+									</span>
 								</div>
-								{#if recipe.source_type && recipe.source_type != 'user-manual'}
+								{#if recipe.source_url}
 									<Button
 										class="p-0 gap-1"
 										variant="link"
@@ -155,7 +164,7 @@
 										target="_blank"
 										rel="noopener"
 									>
-										View on {recipe.source_url?.includes('youtube') ? 'YouTube' : 'website'}
+										View on {new URL(recipe.source_url).hostname.replace(/^www\./, '')}
 										<ArrowUpRight class="size-4 inline-block ml-1" />
 									</Button>
 								{/if}
@@ -293,27 +302,19 @@
 
 								<Button
 									variant="ghost"
-									disabled={ingredientsView.value === 'grid'}
 									size="icon"
 									class="ml-auto h-7 w-7"
 									onclick={() => {
-										ingredientsView.set('grid');
+										ingredientsView.set(ingredientsView.value === 'grid' ? 'list' : 'grid');
 									}}
 								>
-									<Grid class="min-w-4 h-4" />
-									<span class="sr-only">Grid view</span>
-								</Button>
-								<Button
-									variant="ghost"
-									disabled={ingredientsView.value === 'list'}
-									size="icon"
-									class="h-7 w-7"
-									onclick={() => {
-										ingredientsView.set('list');
-									}}
-								>
-									<List class="min-w-4 h-4" />
-									<span class="sr-only">List view</span>
+									{#if ingredientsView.value === 'grid'}
+										<List class="min-w-4 h-4" />
+										<span class="sr-only">Switch to list view</span>
+									{:else}
+										<Grid3x3 class="min-w-4 h-4" />
+										<span class="sr-only">Switch to grid view</span>
+									{/if}
 								</Button>
 							</div>
 

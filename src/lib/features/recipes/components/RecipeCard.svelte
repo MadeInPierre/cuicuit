@@ -11,7 +11,7 @@
 	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -46,6 +46,12 @@
 						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 						alt={recipe.title}
 						class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+						onerror={(e) => {
+							if (recipe.image_ids && recipe.image_ids[0]) {
+								(e.currentTarget as HTMLImageElement).src =
+									`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`;
+							}
+						}}
 					/>
 				</a>
 
@@ -149,7 +155,7 @@
 
 		<div class="flex items-center gap-2 p-2 w-full">
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
-				<h3 class="text-sm font-semibold line-clamp-1">{recipe.title}</h3>
+				<h3 class="text-sm font-semibold line-clamp-2">{recipe.title}</h3>
 
 				<!-- {#if showDetails}
 					<div class="text-xs text-muted-foreground flex items-center">

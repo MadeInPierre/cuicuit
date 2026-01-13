@@ -1,6 +1,9 @@
 import { uploadRecipeImage } from './upload-recipe-image';
 import { createDraftRecipe } from './create-draft-recipe';
 import { capitalize } from '$lib/utils';
+import { supabase } from '$lib/shared/db/supabase-client';
+import type { Database } from '$lib/shared/db/supabase.types';
+import { getLanguageId } from '../queries/get-language-id';
 
 const SCRAPER_API_URL = 'http://localhost:8000/scrape-recipe';
 
@@ -43,90 +46,74 @@ type ScraperResponse = {
  */
 export async function importFromUrl(
 	url: string,
-	// userDocState: UserDocState,
-	recipeId?: string | null
-	//: Promise<{ id: string; isComplete: boolean }>
-) {
-	// // TODO Move to server?
-	// if (!userDocState.user || !userDocState.doc) throw new Error('No user to import the recipe for');
-	// const response = await fetch(SCRAPER_API_URL, {
-	// 	method: 'POST',
-	// 	headers: {
-	// 		'Content-Type': 'application/json'
-	// 	},
-	// 	body: JSON.stringify({ url })
-	// });
-	// const data = (await response.json()) as ScraperResponse;
-	// console.log('fetched recipe data', data);
-	// // Create an empty draft recipe if no existing recipe document ID is provided
-	// if (!recipeId) {
-	// 	recipeId = await createDraftRecipe(userDocState);
-	// }
-	// const docRef = doc(firestore, 'recipes', recipeId);
-	// // Get the current recipe document
-	// const docSnap = (await getDoc(docRef)).data() as RecipeDoc;
-	// // Download & store the image to firestore, and update the recipe
-	// try {
-	// 	const imgResponse = await fetch(data.image);
-	// 	const blob = await imgResponse.blob();
-	// 	await uploadRecipeImage(recipeId, docSnap, blob);
-	// } catch (error) {
-	// 	console.error('Failed to download the image:', error);
-	// }
-	// // Add the imported data to the draft recipe (existing data will be overwritten)
-	// await updateDoc(docRef, {
-	// 	modified_t: new Date(),
-	// 	language: data.language as 'fr' | 'en',
-	// 	source: {
-	// 		name: data.source.name,
-	// 		domain: data.source.domain,
-	// 		url: data.source.url,
-	// 		author: data.author
-	// 	},
-	// 	author: {
-	// 		uid: userDocState.user.uid,
-	// 		profile: {
-	// 			firstName: userDocState.doc.firstName,
-	// 			lastName: userDocState.doc.lastName,
-	// 			userName: userDocState.doc.userName,
-	// 			avatar: userDocState.doc.avatar
-	// 		}
-	// 	},
-	// 	title: capitalize(data.title),
-	// 	description: capitalize(data.description || ''),
-	// 	// The image is handled above
-	// 	time: {
-	// 		prep: parseInt(data.time.prep),
-	// 		cook: parseInt(data.time.cook),
-	// 		rest: parseInt(data.time.rest),
-	// 		total: parseInt(data.time.total)
-	// 	},
-	// 	servings: parseInt(data.servings),
-	// 	ratings: {
-	// 		1: 0,
-	// 		2: 0,
-	// 		3: 0,
-	// 		4: 0,
-	// 		5: 0,
-	// 		count: 0,
-	// 		average: parseFloat(data.ratings)
-	// 	},
-	// 	steps: data.instructions.map((instruction, _) => ({
-	// 		description: instruction,
-	// 		ingredients: [] as RecipeIngredient[]
-	// 	})),
-	// 	ingredients: data.ingredients.flatMap((group) =>
-	// 		group.ingredients.map(
-	// 			(ingredient) =>
-	// 				({
-	// 					name: ingredient,
-	// 					amount: -1,
-	// 					unit: 'g'
-	// 				}) as RecipeIngredient
-	// 		)
-	// 	)
-	// } as RecipeDoc);
-	// // Check if the data is complete
-	// const isComplete = false; // TODO
-	// return { id: docRef.id, isComplete };
+	userId: string
+): Promise<{ id: string; isComplete: boolean }> {
+	console.log('Importing URL:', url);
+
+	const response = await fetch(SCRAPER_API_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ url })
+	});
+	const data = (await response.json()) as ScraperResponse;
+	console.log('Fetched recipe object:', data);
+
+	if (!data.title || !data.instructions || data.instructions.length === 0) {
+		throw new Error('Failed to extract recipe data from the provided URL.');
+	}
+
+	const { data: languageIdData, error: languageIdError } = await getLanguageId(data.language);
+	if (languageIdError || !languageIdData?.id) {
+		throw new Error('Unsupported language for imported recipe.');
+	}
+	console.log('Detected language ID:', languageIdData.id);
+
+	/// New Supabase-based implementation
+	const recipeId = await createDraftRecipe('website', languageIdData.lang);
+
+	if (!recipeId) {
+		throw new Error('Failed to create draft recipe.');
+	}
+
+	// Download & store the image to Supabase, and get the image ID
+	try {
+		const imgResponse = await fetch(data.image);
+		const blob = await imgResponse.blob();
+		const file = new File([blob], 'imported-image.jpg', { type: blob.type });
+		await uploadRecipeImage(file, recipeId, []);
+	} catch (error) {
+		console.warn('Failed to download & upload the image, skipping:', error);
+	}
+
+	// Insert the imported data into the new recipe row
+	const { data: insertData, error: insertError } = await supabase
+		.from('recipes')
+		.update({
+			author_id: userId,
+			source_type: 'website',
+			source_url: data.source.url,
+			title: capitalize(data.title),
+			description: capitalize(data.description || ''),
+			time_prep_minutes: parseInt(data.time.prep) || null,
+			time_cook_minutes: parseInt(data.time.cook) || null,
+			time_rest_minutes: parseInt(data.time.rest) || null,
+			servings: parseInt(data.servings) || 4,
+			language_id: languageIdData?.id || 0,
+			updated_at: new Date().toISOString(),
+			steps: data.instructions
+			// Ingredients will be handled separately
+		} satisfies Database['public']['Tables']['recipes']['Update'])
+		.eq('id', recipeId)
+		.select()
+		.single();
+
+	if (insertError || !insertData) {
+		console.error('Error inserting imported recipe data:', insertError);
+		throw new Error('Failed to insert imported recipe data.');
+	}
+
+	// TODO Complete is false to make the user review the imported data for now, will implement LLM auto-completion later
+	return { id: recipeId, isComplete: false };
 }

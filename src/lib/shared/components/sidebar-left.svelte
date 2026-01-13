@@ -80,6 +80,11 @@
 		],
 		favorites: [
 			{
+				name: 'Dashboard',
+				url: '/dashboard',
+				emoji: '📊'
+			},
+			{
 				name: 'Ingredients',
 				url: '/ingredients',
 				emoji: '🍏'
