@@ -23,18 +23,12 @@
 	interface Props {
 		recipe?: Tables<'recipes'> | null; // Allow recipe to be null for loading state
 		showAddToPlanButton?: boolean; // Optional prop to control visibility of Add to Plan button
-		showDetails?: boolean; // Optional prop to control visibility of details
 		class?: string;
 	}
 
 	let bookmarked: boolean | undefined = $state(false); // TODO
 
-	let {
-		recipe = null,
-		class: className = '',
-		showAddToPlanButton = false,
-		showDetails = false
-	}: Props = $props();
+	let { recipe = null, class: className = '', showAddToPlanButton = false }: Props = $props();
 </script>
 
 {#if recipe}
@@ -116,7 +110,9 @@
 				</div>
 
 				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-xs">
-					<div class="bg-white rounded-full px-2 py-0.5 flex items-center gap-1">
+					<div
+						class="bg-white dark:bg-background/60 rounded-full px-2 py-0.5 flex items-center gap-1"
+					>
 						<div class="relative flex items-center" style="width: 1rem; height: 1rem;">
 							<Signal class="absolute top-0 left-0 size-3.5 text-muted rounded-full" />
 
@@ -155,18 +151,21 @@
 
 		<div class="flex items-center gap-2 p-2 w-full">
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
-				<h3 class="text-sm font-semibold line-clamp-2">{recipe.title}</h3>
+				<h3 class="text-sm font-semibold line-clamp-2">
+					<!-- <span class="mr-2 text-muted-foreground text-xs font-normal">{recipe.servings} 
+						<Users class="size-3 inline-block -translate-y-[1px]" />
+					</span> -->
+					{recipe.title}
+				</h3>
 
-				<!-- {#if showDetails}
-					<div class="text-xs text-muted-foreground flex items-center">
-						<span class="mr-4">{recipe.time_total_minutes}min</span>
+				<!-- <div class="text-xs text-muted-foreground flex items-center">
+					<span>{recipe.servings}</span>
+					<Users class="size-3 inline-block ml-0.5 mr-4" />
 
-						<span class="mr-4">{capitalize(recipe.effort_level)} effort</span>
+					<span class="mr-4">{recipe.time_total_minutes}min</span>
 
-						<span>{recipe.servings}</span>
-						<Users class="size-3 inline-block ml-0.5 mr-4" />
-					</div>
-				{/if} -->
+					<span class="">{capitalize(recipe.effort_level)} effort</span>
+				</div> -->
 
 				<CookableStatus />
 			</a>
@@ -183,16 +182,16 @@
 		<div class="flex items-center gap-2 p-2 w-full">
 			<div class="grid w-full">
 				<div class="h-4 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></div>
-				{#if showDetails}
-					<div class="mt-2 flex items-center text-xs text-muted-foreground">
-						<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-						<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-						<span class="h-3 w-6 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-						<span
-							class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"
-						></span>
-					</div>
-				{/if}
+
+				<!-- <div class="mt-2 flex items-center text-xs text-muted-foreground">
+					<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+					<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+					<span class="h-3 w-6 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
+					<span
+						class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"
+					></span>
+				</div> -->
+
 				<div class="flex flex-col gap-1 mt-2">
 					<div class="h-3 w-24 bg-gray-200 dark:bg-gray-900 rounded animate-pulse mb-1"></div>
 				</div>
