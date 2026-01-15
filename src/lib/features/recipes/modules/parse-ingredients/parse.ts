@@ -17,26 +17,23 @@ import { volumeAliases, weightAliases, wholeAliases, type Unit } from '$lib/shar
  * Represents the structured result of parsing an ingredient search input.
  */
 export interface ParsedSearchInput {
-	/** The original raw input string. */
-	raw: string;
-	/** The parsed components of the input string. */
-	parsed: {
-		/** The quantity of the ingredient, or null if not specified. */
-		quantity: {
-			/** The numeric amount of the quantity. */
-			amount: number;
-			/** The unit of the quantity (e.g., "cup", "g", "ml"). */
-			unit: string;
-			/** The standardized key for the unit (e.g., "cup", "gram", "milliliter"). */
-			unitKey: Unit;
-		} | null;
-		/** The linking word used between the quantity and ingredient (e.g., "of", "de"). */
-		linkWord: string | undefined;
-		/** The name of the ingredient. */
-		ingredientText: string;
-		/** Any additional description or preparation instructions. */
-		description: string | undefined;
-	};
+	/** The original source text of the ingredient input. */
+	sourceText?: string;
+	/** The quantity of the ingredient, or null if not specified. */
+	quantity: {
+		/** The numeric amount of the quantity. */
+		amount: number;
+		/** The unit of the quantity (e.g., "cup", "g", "ml"). */
+		unit: string;
+		/** The standardized key for the unit (e.g., "cup", "gram", "milliliter"). */
+		unitKey: Unit;
+	} | null;
+	/** The linking word used between the quantity and ingredient (e.g., "of", "de"). */
+	linkWord: string | undefined;
+	/** The name of the ingredient. */
+	ingredientText: string;
+	/** Any additional description or preparation instructions. */
+	description: string | undefined;
 }
 
 /**
@@ -78,32 +75,6 @@ const allUnitAliases = { ...volumeAliases, ...weightAliases };
 const regex = /^([\d\.\/\s-]+)\s*([a-zA-Z]+)?\s*(?:of\s+)?([^,]+)(?:,\s*(.*))?$/i;
 
 /**
- * Represents the structured result of parsing an ingredient search input.
- */
-export interface ParsedSearchInput {
-	/** The original raw input string. */
-	raw: string;
-	/** The parsed components of the input string. */
-	parsed: {
-		/** The quantity of the ingredient, or null if not specified. */
-		quantity: {
-			/** The numeric amount of the quantity. */
-			amount: number;
-			/** The unit of the quantity (e.g., "cup", "g", "ml"). */
-			unit: string;
-			/** The standardized key for the unit (e.g., "cup", "gram", "milliliter"). */
-			unitKey: Unit;
-		} | null;
-		/** The linking word used between the quantity and ingredient (e.g., "of", "de"). */
-		linkWord: string | undefined;
-		/** The name of the ingredient. */
-		ingredientText: string;
-		/** Any additional description or preparation instructions. */
-		description: string | undefined;
-	};
-}
-
-/**
  * Converts a fractional string to its decimal equivalent.
  *
  * @param fraction The fractional string (e.g., "1/2", "3/4").
@@ -123,7 +94,7 @@ function convertFractionToDecimal(fraction: string): number {
  * @param input The raw ingredient search input string.
  * @returns A `ParsedSearchInput` object.
  */
-export function parseIngredientSearchInput(input: string): ParsedSearchInput {
+export function parseIngredientString(input: string): ParsedSearchInput {
 	input = input.trim(); // Remove extra spaces from input
 
 	// Manual override for ingredient/description separation
@@ -131,8 +102,8 @@ export function parseIngredientSearchInput(input: string): ParsedSearchInput {
 	if (commaIndex !== -1) {
 		const ingredientText = input.slice(0, commaIndex).trim();
 		const description = input.slice(commaIndex + 1).trim();
-		const result = parseIngredientSearchInput(ingredientText);
-		result.parsed.description = description;
+		const result = parseIngredientString(ingredientText);
+		result.description = description;
 		return result;
 	}
 
@@ -197,12 +168,10 @@ export function parseIngredientSearchInput(input: string): ParsedSearchInput {
 	}
 
 	return {
-		raw: input,
-		parsed: {
-			quantity: amount !== null ? { amount, unit, unitKey: unitKey as Unit } : null,
-			linkWord,
-			ingredientText,
-			description: undefined
-		}
-	};
+		sourceText: input,
+		quantity: amount !== null ? { amount, unit, unitKey: unitKey as Unit } : null,
+		linkWord,
+		ingredientText,
+		description: undefined
+	} satisfies ParsedSearchInput;
 }

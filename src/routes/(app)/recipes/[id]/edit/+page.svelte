@@ -52,14 +52,15 @@
 	import { slide } from 'svelte/transition';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import IngredientSearch from './IngredientSearch.svelte';
-	import type { ParsedSearchInput } from './_parse-ingredient-input';
-	import type { Database, Tables } from '$lib/shared/db/supabase.types';
+	import type { Tables } from '$lib/shared/db/supabase.types';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getLanguageId } from '$lib/features/recipes/queries/get-language-id';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import type { ParsedSearchInput } from '$lib/features/recipes/modules/parse-ingredients/parse';
+	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id;
@@ -104,8 +105,6 @@
 			return;
 		}
 
-		console.log('Fetched recipe:', recipeData);
-
 		formData.update(
 			(f) => {
 				// General info
@@ -139,7 +138,17 @@
 				f.ingredientIds = recipeData.recipe_ingredients.map((ing) => ing.ingredient_id);
 				f.ingredientAmounts = recipeData.recipe_ingredients.map((ing) => ing.quantity || 1);
 				f.ingredientUnits = recipeData.recipe_ingredients.map((ing) => ing.unit || 'whole');
-				f.ingredientNames = recipeData.recipe_ingredients.map((ing) => ing.raw_input || '');
+
+				f.ingredientNames = recipeData.recipe_ingredients.map((ing) => {
+					const amount = ing.quantity || 1;
+					const translation = ing.ingredient.translations?.[0];
+					if (!translation) return 'Unknown ingredient';
+					const name =
+						amount > 1
+							? translation.name_plural || translation.name_singular
+							: translation.name_singular || translation.name_plural;
+					return name || 'Unknown ingredient';
+				});
 
 				// Steps
 				f.stepDescriptions = recipeData.steps || [''];
@@ -149,18 +158,33 @@
 		);
 	});
 
-	function onAddIngredient({
-		ingredient,
-		parsedInput
-	}: {
-		ingredient: Tables<'ingredient_translations'>;
-		parsedInput: ParsedSearchInput | null;
-	}) {
+	function onAddIngredient(
+		ingredientProcessed: IngredientProcessed | null,
+		chosenMatchIndex: number
+	) {
+		if (!ingredientProcessed) {
+			toast.error('Some error occurred while processing your input.');
+			return;
+		}
+
+		const chosenMatch = ingredientProcessed.matches[chosenMatchIndex];
+		const amount = ingredientProcessed.parsed.quantity?.amount ?? 1;
+		const unit = ingredientProcessed.parsed.quantity?.unitKey ?? 'whole';
+		const name =
+			amount > 1
+				? chosenMatch.name_plural || chosenMatch.name_singular
+				: chosenMatch.name_singular || chosenMatch.name_plural;
+
+		if (!chosenMatch.ingredient_id || !name) {
+			toast.error('Failed to add ingredient. Please try again.');
+			return;
+		}
+
 		formData.update((f) => {
-			f.ingredientIds.push(ingredient.ingredient_id);
-			f.ingredientAmounts.push(parsedInput?.parsed.quantity?.amount ?? 1);
-			f.ingredientUnits.push(parsedInput?.parsed.quantity?.unitKey ?? 'whole');
-			f.ingredientNames.push(ingredient.name_singular ?? parsedInput?.parsed.ingredientText ?? '');
+			f.ingredientIds.push(chosenMatch.ingredient_id);
+			f.ingredientAmounts.push(amount);
+			f.ingredientUnits.push(unit);
+			f.ingredientNames.push(name);
 			return f;
 		});
 	}
@@ -383,7 +407,7 @@
 									<Card.Title>Recipe Details</Card.Title>
 									<Card.Description>This is the main information about the recipe</Card.Description>
 								</div>
-								<ImportRecipeDialog recipeId={pageRecipeId} />
+								<ImportRecipeDialog />
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
