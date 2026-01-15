@@ -1,53 +1,42 @@
 <script lang="ts">
-	import { matchIngredients } from '$lib/features/recipes/actions/match-ingredients';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { processIngredientStrings } from '$lib/features/recipes/modules/parse-ingredients/process';
 
-	const defaultIngredients = {
+	const benchmarkIngredients = {
 		'en-US': `2 Red bell peppers, diced\n29.57 mL Olive oil\n1 medium Onion, finely chopped\n1 Red bell pepper, diced\n3 Garlic cloves, minced\n4.93 mL Smoked paprika\n1.23 mL Cayenne pepper (optional, for heat)\nSalt, to taste\nFreshly ground black pepper, to taste\n4 large Eggs\n120 mL Greek yogurt (full-fat recommended)\nFresh parsley, chopped, for garnish\nFeta cheese crumbles (optional), for garnish\n1 tablespoon Fresh lemon juice\n0.25 cup Reserved pasta cooking water\n0.25 cup (50g) sugar (adjust for sweetness)\n2 tablespoons Water or milk (only if needed)`,
 		'fr-FR': `2 poivrons rouges, coupés en dés\n29,57 mL d'huile d'olive\n1 oignon moyen, finement haché\n1 poivron rouge, coupé en dés\n3 gousses d'ail, hachées\n4,93 mL de paprika fumé\n1,23 mL de piment de Cayenne (facultatif, pour le piquant)\nSel, au goût\nPoivre noir fraîchement moulu, au goût\n4 gros œufs\n120 mL de yaourt grec (de préférence entier)\nPersil frais, haché, pour la garniture\nÉmietté de feta (facultatif), pour la garniture\n1 cuillère à soupe de jus de citron frais\n0,25 tasse d'eau de cuisson des pâtes réservée\n0,25 tasse (50g) de sucre (ajuster selon la douceur)\n2 cuillères à soupe d'eau ou de lait (seulement si nécessaire)`
 	};
 
 	let selectedLang = 'en-US';
-	let ingredientsText = defaultIngredients[selectedLang as keyof typeof defaultIngredients];
+	let ingredientsText = benchmarkIngredients[selectedLang as keyof typeof benchmarkIngredients];
 
 	let isLoading = false;
-	let results: { original: string; match: any }[] = [];
+	let results: { sourceText: string; match: any }[] = [];
 
 	async function handleMatchIngredients() {
 		if (!ingredientsText.trim()) return;
 		isLoading = true;
 		results = [];
 
-		// Split textarea content into an array of non-empty lines
-		const ingredientList = ingredientsText.split('\n').filter((line) => line.trim() !== '');
+		const processedIngredients = await processIngredientStrings(
+			ingredientsText.split('\n'),
+			selectedLang
+		);
 
-		try {
-			const { data, error } = await matchIngredients(ingredientList.join('\n'), selectedLang);
+		results = processedIngredients.map((item) => ({
+			sourceText: item.sourceText,
+			match: item.matches && item.matches.length > 0 ? item.matches[0] : null
+		}));
 
-			if (error) {
-				throw error;
-			}
-
-			// Take the best match from the matches returned by the edge function
-			results = data.matches.map((item: any) => ({
-				original: item.original,
-				match: item.bestMatches && item.bestMatches.length > 0 ? item.bestMatches[0] : null
-			}));
-		} catch (e: any) {
-			console.error('Error invoking edge function:', e);
-			alert('An error occurred: ' + e.message);
-		} finally {
-			isLoading = false;
-		}
+		isLoading = false;
 	}
 
 	// Update the textarea when the language changes, but only if the user hasn't edited the text
 	$: if (
 		selectedLang &&
-		(ingredientsText === defaultIngredients['en-US'] ||
-			ingredientsText === defaultIngredients['fr-FR'])
+		(ingredientsText === benchmarkIngredients['en-US'] ||
+			ingredientsText === benchmarkIngredients['fr-FR'])
 	) {
-		ingredientsText = defaultIngredients[selectedLang as keyof typeof defaultIngredients];
+		ingredientsText = benchmarkIngredients[selectedLang as keyof typeof benchmarkIngredients];
 	}
 
 	const languages = {
@@ -89,7 +78,7 @@
 		<ul>
 			{#each results as result}
 				<li>
-					<span class="original-text">{result.original}</span>
+					<span>{result.sourceText}</span>
 					{#if result.match}
 						<span class="match-found">
 							✅ Matched: <strong>{result.match.name_singular}</strong> (General: {result.match
@@ -147,9 +136,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
-	}
-	.original-text {
-		color: #666;
 	}
 	.match-found {
 		color: #16a34a;

@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
 				original: originalText,
 				// The function returns an array, we take the first result
 				bestMatches: data,
-				message: 'Matches found'
+				message: data?.length > 0 ? 'Found matches.' : 'No matches found.'
 			};
 		});
 

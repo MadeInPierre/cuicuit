@@ -4,7 +4,7 @@ import { capitalize } from '$lib/utils';
 import { supabase } from '$lib/shared/db/supabase-client';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { getLanguageId } from '../queries/get-language-id';
-
+import { processIngredientStrings } from '../modules/parse-ingredients/process';
 const SCRAPER_API_URL = 'http://localhost:8000/scrape-recipe';
 
 // See the scraper source code for the expected response format,
@@ -70,7 +70,7 @@ export async function importFromUrl(
 	}
 	console.log('Detected language ID:', languageIdData.id);
 
-	/// New Supabase-based implementation
+	// New Supabase-based implementation
 	const recipeId = await createDraftRecipe('website', languageIdData.lang);
 
 	if (!recipeId) {
@@ -113,6 +113,53 @@ export async function importFromUrl(
 		console.error('Error inserting imported recipe data:', insertError);
 		throw new Error('Failed to insert imported recipe data.');
 	}
+
+	// Insert ingredients
+	const processedIngredients = await processIngredientStrings(
+		data.ingredients.flatMap((group) => group.ingredients),
+		languageIdData.lang
+	);
+
+	if (!processedIngredients || processedIngredients.length === 0) {
+		console.warn('No ingredients matched during import.');
+	} else {
+		console.log('Matched ingredients for import:', processedIngredients);
+
+		for (const processed of processedIngredients) {
+			// Insert the ingredient into recipe_ingredients
+			const bestMatch = processed.matches?.[0];
+			if (!bestMatch) {
+				console.warn('No match found for ingredient, skipping add to DB:', processed.sourceText);
+				continue;
+			}
+
+			const { data: ingredientInsertData, error: ingredientInsertError } = await supabase
+				.from('recipe_ingredients')
+				.insert([
+					{
+						recipe_id: recipeId,
+						raw_input: processed.sourceText,
+						ingredient_id: bestMatch.ingredient_id,
+						quantity: processed.parsed.quantity?.amount || 1,
+						unit: processed.parsed.quantity?.unitKey || 'whole',
+						details: processed.parsed.description || '',
+						notes: ''
+					} as Database['public']['Tables']['recipe_ingredients']['Insert']
+				])
+				.select()
+				.single();
+
+			if (ingredientInsertError || !ingredientInsertData) {
+				console.error(
+					'Error inserting imported ingredient:',
+					processed.sourceText,
+					ingredientInsertError
+				);
+			}
+		}
+	}
+
+	// TODO call an LLM to enhance & complete the data (e.g. automatic nutrition facts, missing fields, etc.)
 
 	// TODO Complete is false to make the user review the imported data for now, will implement LLM auto-completion later
 	return { id: recipeId, isComplete: false };

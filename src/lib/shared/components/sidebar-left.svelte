@@ -88,6 +88,11 @@
 				name: 'Ingredients',
 				url: '/ingredients',
 				emoji: '🍏'
+			},
+			{
+				name: 'Match',
+				url: '/match',
+				emoji: '🔍'
 			}
 			// {
 			// 	name: 'Project Management & Task Tracking',
