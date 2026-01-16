@@ -55,6 +55,11 @@ function preprocessIngredient(text: string): string {
 	return cleanedText;
 }
 
+/**
+ * Supabase Edge Function to match ingredient strings against the ingredient database.
+ * Expects a JSON body with an "ingredients" array and optional "lang" parameter.
+ * Returns the best database matches for each ingredient.
+ */
 Deno.serve(async (req) => {
 	// Handle CORS preflight request
 	if (req.method === 'OPTIONS') {
