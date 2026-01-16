@@ -132,13 +132,6 @@
 			console.error('Error fetching recipes:', error);
 			return;
 		}
-
-		console.log(
-			`Fetched recipes with search '${searchText}' and filters:`,
-			filters,
-			'result:',
-			data
-		);
 		return data;
 	}
 
@@ -204,8 +197,6 @@
 			recipes: recipes?.filter((recipe) => config.getRecipeKeys(recipe).includes(key)) || []
 		}));
 	});
-
-	$inspect(groupedRecipes);
 
 	// If the current groupBy has also exactly 1 active filter of the same type,
 	// then the UI will not be interesting (only one category)
@@ -400,7 +391,7 @@
 								variant="link"
 								size="sm"
 								class="flex items-center"
-								disabled={sectionRecipes.recipes.length <= 6 * 3}
+								disabled={sectionRecipes.recipes.length <= 4}
 								onclick={() => {
 									console.log('See all for', parameters.groupBy, sectionRecipes.key);
 									setParameters({
@@ -418,7 +409,7 @@
 						</div>
 					{/if}
 
-					<RecipeCarousel recipes={sectionRecipes.recipes.slice(0, 6 * 3)} />
+					<RecipeCarousel recipes={sectionRecipes.recipes} />
 
 					<!-- <div class="w-full flex flex-wrap gap-4">
 						{#each sectionRecipes.recipes as recipe (recipe.id)}

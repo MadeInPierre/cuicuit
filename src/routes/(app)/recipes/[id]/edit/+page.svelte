@@ -135,11 +135,11 @@
 
 				// Servings & Ingredients
 				f.servings = recipeData.servings || 4;
-				f.ingredientIds = recipeData.recipe_ingredients.map((ing) => ing.ingredient_id);
-				f.ingredientAmounts = recipeData.recipe_ingredients.map((ing) => ing.quantity || 1);
-				f.ingredientUnits = recipeData.recipe_ingredients.map((ing) => ing.unit || 'whole');
+				f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
+				f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
+				f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
 
-				f.ingredientNames = recipeData.recipe_ingredients.map((ing) => {
+				f.ingredientNames = recipeData.ingredients.map((ing) => {
 					const amount = ing.quantity || 1;
 					const translation = ing.ingredient.translations?.[0];
 					if (!translation) return 'Unknown ingredient';

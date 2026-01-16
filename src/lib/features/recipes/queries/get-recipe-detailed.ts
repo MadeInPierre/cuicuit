@@ -10,13 +10,22 @@ export function getRecipesDetailed() {
 	return supabase.from('recipes').select(
 		`*,
 		language:languages(*), 
-		recipe_ingredients:recipe_ingredients(
+		ingredients:recipe_ingredients(
 			*,
 			ingredient:ingredients(
 				*,
 				translations:ingredient_translations(
 					*,
 					language:languages(*)
+				),
+				substitutes:ingredient_substitutions!ingredient_substitutions_original_ingredient_id_fkey(
+					*,
+					original_ingredient:ingredients!ingredient_substitutions_original_ingredient_id_fkey(*,
+						translations:ingredient_translations(*)
+					),
+					substitute_ingredient:ingredients!ingredient_substitutions_substitute_ingredient_id_fkey(*,
+						translations:ingredient_translations(*)
+					)
 				)
 			)
 		)`
@@ -68,10 +77,13 @@ export type RecipeDetailed = NonNullable<
 >[number];
 export type RecipeIngredientWithTranslations = NonNullable<
 	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
->['recipe_ingredients'][number];
+>['ingredients'][number];
 export type IngredientWithTranslations = NonNullable<
 	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
->['recipe_ingredients'][number]['ingredient'];
+>['ingredients'][number]['ingredient'];
 export type RecipeDetailedWithAuthor = NonNullable<
 	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
 >;
+export type RecipeIngredient = NonNullable<
+	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
+>['ingredients'][number];

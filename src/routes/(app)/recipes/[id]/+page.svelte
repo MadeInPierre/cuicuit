@@ -8,7 +8,6 @@
 		Camera,
 		Equal,
 		Globe,
-		Grid,
 		Grid3x3,
 		HandCoins,
 		List,
@@ -32,7 +31,8 @@
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import {
 		getRecipeDetailed,
-		type RecipeDetailedWithAuthor
+		type RecipeDetailedWithAuthor,
+		type RecipeIngredient
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
@@ -329,29 +329,54 @@
 								{/snippet}
 
 								<div class="w-full grid grid-cols-3 gap-x-2 gap-y-4">
-									{#each recipe.recipe_ingredients || [] as ing (ing.ingredient_id)}
+									{#each recipe.ingredients || [] as ing (ing.ingredient_id)}
 										{@render ingredientGrid(ing)}
 									{/each}
 								</div>
 							{:else}
-								{#snippet ingredientList(ing: Tables<'recipe_ingredients'>)}
-									<div class="flex items-center gap-2">
-										<IngredientImage
-											id={ing.ingredient_id}
-											name={ing.raw_input}
-											class="w-12 h-12"
-										/>
-										<div class="flex-1 ml-4">
-											<span class="text-sm font-medium">{ing.raw_input}</span>
-											<span class="text-xs text-balance line-clamp-2">
-												{ing.quantity + ' ' + (ing.unit == 'whole' ? '' : ing.unit)}
-											</span>
+								{#snippet ingredientList(ing: RecipeIngredient)}
+									<div class="grid">
+										<div class="flex items-center gap-2">
+											<IngredientImage
+												id={ing.ingredient_id}
+												name={ing.raw_input}
+												class="w-12 h-12"
+											/>
+											<div class="flex-1 ml-4">
+												<span class="text-sm font-medium">{ing.raw_input}</span>
+												<span class="text-xs text-balance line-clamp-2">
+													{ing.quantity + ' ' + (ing.unit == 'whole' ? '' : ing.unit)}
+												</span>
+											</div>
 										</div>
+										{#each ing.ingredient.substitutes || [] as sub (sub.id)}
+											<div class="flex items-center gap-2 mt-2 ml-8 text-muted-foreground">
+												<IngredientImage
+													id={sub.substitute_ingredient.id}
+													name={sub.substitute_ingredient.translations[0]?.name_singular ||
+														'Ingredient'}
+													class="w-10 h-10"
+												/>
+												<div class="flex-1 ml-4">
+													<span class="text-sm font-medium"
+														>{sub.substitute_ingredient.translations[0]?.name_singular ||
+															'Ingredient'}</span
+													>
+													<span class="text-xs text-balance line-clamp-2">
+														{sub.original_to_substitute_ratio * (ing.quantity || 1)}
+
+														{ing.unit == 'whole' ? '' : ing.unit}
+
+														({sub.strength})
+													</span>
+												</div>
+											</div>
+										{/each}
 									</div>
 								{/snippet}
 
 								<div class="w-full grid gap-y-2">
-									{#each recipe.recipe_ingredients || [] as ing (ing.ingredient_id)}
+									{#each recipe.ingredients || [] as ing (ing.ingredient_id)}
 										{@render ingredientList(ing)}
 									{/each}
 								</div>
@@ -376,11 +401,11 @@
 					</div>
 				</div>
 
-				<div
+				<!-- <div
 					class="justify-center flex-1 items-center gap-0.5 text-center text-xs text-muted-foreground"
 				>
 					<p>Recipe id: {pageRecipeId}</p>
-				</div>
+				</div> -->
 			</div>
 		</main>
 	</div>

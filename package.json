@@ -68,8 +68,6 @@
 		"@number-flow/svelte": "^0.3.9",
 		"@supabase/supabase-js": "^2.50.3",
 		"dotenv": "^16.4.7",
-		"firebase": "^11.0.1",
-		"firebase-admin": "^12.6.0",
 		"fuse.js": "^7.1.0",
 		"paneforge": "^1.0.0-next.6",
 		"svelte-copy": "^2.0.0"

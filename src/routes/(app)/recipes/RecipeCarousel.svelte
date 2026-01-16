@@ -7,8 +7,7 @@
 
 	const { recipes }: { recipes: RecipeDetailed[] } = $props();
 
-	let api = $state<CarouselAPI>();
-
+	// Page size based on screen size
 	const media = useMedia();
 	const itemsPerPage = $derived.by(() => {
 		if (media['2xl']) return 5;
@@ -18,9 +17,23 @@
 		return 2;
 	});
 
+	// Display only full pages of recipes (up to 4 pages)
+	const displayRecipes = $derived(
+		recipes.slice(
+			0,
+			Math.min(
+				itemsPerPage * 4,
+				Math.max(itemsPerPage, Math.floor(recipes.length / itemsPerPage) * itemsPerPage)
+			)
+		)
+	);
+
+	// Carousel state
+	let api = $state<CarouselAPI>();
 	const totalSlides = $derived(api ? api.scrollSnapList().length : 0);
 	let currentSlide = $state(0);
 
+	// Sync this component with the carousel API
 	$effect(() => {
 		if (api) {
 			currentSlide = api.selectedScrollSnap() + 1;
@@ -39,7 +52,7 @@
 	class="w-full overflow-x-hidden"
 >
 	<Carousel.Content class="w-full">
-		{#each recipes as recipe (recipe.id)}
+		{#each displayRecipes as recipe (recipe.id)}
 			<Carousel.Item class="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/5 my-1">
 				<RecipeCard {recipe} showAddToPlanButton class="" />
 			</Carousel.Item>
