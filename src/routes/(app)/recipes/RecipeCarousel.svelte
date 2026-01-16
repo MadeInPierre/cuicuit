@@ -3,12 +3,20 @@
 	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import type { RecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 
 	const { recipes }: { recipes: RecipeDetailed[] } = $props();
 
 	let api = $state<CarouselAPI>();
 
-	const itemsPerPage = 5; // TODO Adjust based on screen size
+	const media = useMedia();
+	const itemsPerPage = $derived.by(() => {
+		if (media['2xl']) return 5;
+		if (media.xl) return 5;
+		if (media.lg) return 4;
+		if (media.md) return 3;
+		return 2;
+	});
 
 	const totalSlides = $derived(api ? api.scrollSnapList().length : 0);
 	let currentSlide = $state(0);
