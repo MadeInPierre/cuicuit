@@ -49,7 +49,6 @@
 			console.error('Error fetching recipe:', recipeError);
 			return null;
 		}
-		console.log('Fetched recipe:', recipeData);
 		return recipeData;
 	}
 

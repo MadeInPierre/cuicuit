@@ -7,6 +7,7 @@
 	import UserIcon from '@lucide/svelte/icons/user';
 	import * as Command from '$lib/shared/components/ui/command/index.js';
 	import { Button } from '$lib/shared/components/ui/button';
+	import { cmdOrCtrl } from '$lib/shared/hooks/is-mac.svelte';
 
 	let open = $state(false);
 
@@ -15,17 +16,6 @@
 			e.preventDefault();
 			open = !open;
 		}
-	}
-
-	function isMacLike() {
-		if (typeof navigator !== 'undefined') {
-			return (
-				navigator.userAgent.includes('Mac') ||
-				navigator.userAgent.includes('iPhone') ||
-				navigator.userAgent.includes('iPad')
-			);
-		}
-		return false;
 	}
 </script>
 
@@ -39,11 +29,7 @@
 	<span>Chat with Cuicuit...</span>
 
 	<div class="flex ml-5 h-5 px-1 items-center text-xs bg-background rounded-sm border">
-		{#if isMacLike()}
-			⌘
-		{:else}
-			Ctrl
-		{/if}
+		{cmdOrCtrl}
 	</div>
 	<div class="size-5 flex items-center justify-center text-xs bg-background rounded-sm border">
 		K

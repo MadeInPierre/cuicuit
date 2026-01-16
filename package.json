@@ -38,6 +38,7 @@
 		"eslint-plugin-svelte": "^2.36.0",
 		"formsnap": "^2.0.1",
 		"globals": "^15.0.0",
+		"jsrepo": "^3.0.11",
 		"lucide-svelte": "^0.539.0",
 		"mode-watcher": "^0.4.1",
 		"postcss": "^8.4.47",
