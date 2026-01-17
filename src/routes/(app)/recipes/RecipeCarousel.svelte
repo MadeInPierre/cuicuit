@@ -17,13 +17,28 @@
 		return 2;
 	});
 
+	// Rows per page based on screen size
+	const rowsPerPage = $derived.by(() => {
+		if (media['2xl']) return 2;
+		if (media.xl) return 2;
+		if (media.lg) return 2;
+		if (media.md) return 1;
+		return 1;
+	});
+
+	// Total items per carousel page
+	const itemsPerCarouselPage = $derived(itemsPerPage * rowsPerPage);
+
 	// Display only full pages of recipes (up to 4 pages)
 	const displayRecipes = $derived(
 		recipes.slice(
 			0,
 			Math.min(
-				itemsPerPage * 4,
-				Math.max(itemsPerPage, Math.floor(recipes.length / itemsPerPage) * itemsPerPage)
+				itemsPerCarouselPage * 4,
+				Math.max(
+					itemsPerCarouselPage,
+					Math.floor(recipes.length / itemsPerCarouselPage) * itemsPerCarouselPage
+				)
 			)
 		)
 	);
@@ -46,14 +61,18 @@
 
 <Carousel.Root
 	opts={{
-		slidesToScroll: itemsPerPage
+		active: totalSlides > 1,
+		slidesToScroll: itemsPerCarouselPage
 	}}
 	setApi={(emblaApi) => (api = emblaApi)}
 	class="w-full overflow-x-hidden"
 >
-	<Carousel.Content class="w-full">
+	<Carousel.Content class="w-full flex-wrap" style="height: auto;">
 		{#each displayRecipes as recipe (recipe.id)}
-			<Carousel.Item class="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/5 my-1">
+			<Carousel.Item
+				class="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/5 my-1"
+				style="flex: 0 0 {100 / itemsPerPage}%;"
+			>
 				<RecipeCard {recipe} showAddToPlanButton class="" />
 			</Carousel.Item>
 		{/each}
