@@ -12,29 +12,41 @@
  * - "sugar" (no quantity)
  */
 import { volumeAliases, weightAliases, wholeAliases, type Unit } from '$lib/shared/utils/quantity';
+import { z } from 'zod';
 
 /**
  * Represents the structured result of parsing an ingredient search input.
  */
-export interface ParsedSearchInput {
-	/** The original source text of the ingredient input. */
-	sourceText?: string;
-	/** The quantity of the ingredient, or null if not specified. */
-	quantity: {
-		/** The numeric amount of the quantity. */
-		amount: number;
-		/** The unit of the quantity (e.g., "cup", "g", "ml"). */
-		unit: string;
-		/** The standardized key for the unit (e.g., "cup", "gram", "milliliter"). */
-		unitKey: Unit;
-	} | null;
-	/** The linking word used between the quantity and ingredient (e.g., "of", "de"). */
-	linkWord: string | undefined;
-	/** The name of the ingredient. */
-	ingredientText: string;
+export const parsedSearchInputSchema = z.object({
+	sourceText: z.string().optional().describe('The original source text of the ingredient input.'),
+	quantity: z
+		.object({
+			amount: z.number().describe('The numeric amount of the quantity.'),
+			unit: z.string().describe('The unit of the quantity (e.g., "cup", "g", "ml").'),
+			unitKey: z.custom<Unit>().describe('The standardized key for the unit used in the database.')
+		})
+		.nullable(),
+	linkWord: z
+		.string()
+		.optional()
+		.describe(
+			'The linking word used between the quantity and ingredient (e.g., "of", "de", "d\'").'
+		),
+	ingredientText: z
+		.string()
+		.describe(
+			'The name or description of the ingredient. Must be edible and easy to find in a database of common ingredients.'
+		),
 	/** Any additional description or preparation instructions. */
-	description: string | undefined;
-}
+	description: z
+		.string()
+		.optional()
+		.describe(
+			'Additional description, ingredient variant/subitem, or preparation instructions (e.g., "chopped").'
+		)
+});
+
+export type ParsedSearchInput = z.infer<typeof parsedSearchInputSchema>;
 
 /**
  * Common words that link a quantity and an ingredient.

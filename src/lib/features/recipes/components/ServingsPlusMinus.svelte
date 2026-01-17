@@ -75,7 +75,7 @@
 		}
 	};
 
-	const currentVariant = variants.size[size];
+	const currentVariant = $derived(variants.size[size]);
 
 	function onButtonIncrement() {
 		value = value + 1;

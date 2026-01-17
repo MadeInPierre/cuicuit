@@ -1,11 +1,14 @@
 import { matchIngredients, type IngredientMatch } from './match';
 import { parseIngredientString, type ParsedSearchInput } from './parse';
+import { z } from 'zod';
 
-export type IngredientProcessed = {
-	sourceText: string;
-	parsed: ParsedSearchInput;
-	matches: IngredientMatch[];
-};
+export const ingredientProcessedSchema = z.object({
+	sourceText: z.string(),
+	parsed: z.custom<ParsedSearchInput>(),
+	matches: z.array(z.custom<IngredientMatch>())
+});
+
+export type IngredientProcessed = z.infer<typeof ingredientProcessedSchema>;
 
 export async function processIngredientStrings(
 	input: string[],

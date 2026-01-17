@@ -18,8 +18,9 @@
 		"db:deploy": "npx --yes supabase db push  # Deploy local changes to the database",
 		"db:reset": "npx --yes supabase db reset  # Reset the database to the latest migration",
 		"db:serve": "npx --yes supabase functions serve  # Serve supabase functions locally",
-		"db:types:cloud": "npx --yes supabase gen types typescript --project-id qyeioetcqxvpsqmyqohf > src/lib/shared/db/supabase.types.ts  # run npx supabase login first",
-		"db:types:local": "npx --yes supabase gen types typescript --local > src/lib/shared/db/supabase.types.ts"
+		"db:types:cloud": "npx --yes supabase gen types typescript --project-id qyeioetcqxvpsqmyqohf > src/lib/shared/db/supabase.types.ts && npm run supazod:update",
+		"db:types:local": "npx --yes supabase gen types typescript --local > src/lib/shared/db/supabase.types.ts && npm run supazod:update",
+		"supazod:update": "npx supazod -i src/lib/shared/db/supabase.types.ts -o src/lib/shared/db/supazod.schemas.ts --inline-types"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.6.0",
@@ -46,6 +47,7 @@
 		"prettier-plugin-svelte": "^3.1.2",
 		"rollup-plugin-visualizer": "^5.12.0",
 		"supabase": "^2.30.4",
+		"supazod": "^4.5.0",
 		"svelte": "^5.38.2",
 		"svelte-check": "^4.0.0",
 		"svelte-dnd-action": "^0.9.64",
@@ -64,9 +66,11 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@ai-sdk/mistral": "^3.0.9",
 		"@huggingface/inference": "^2.8.1",
 		"@number-flow/svelte": "^0.3.9",
 		"@supabase/supabase-js": "^2.50.3",
+		"ai": "^6.0.38",
 		"dotenv": "^16.4.7",
 		"fuse.js": "^7.1.0",
 		"paneforge": "^1.0.0-next.6",
