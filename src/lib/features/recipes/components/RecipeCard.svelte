@@ -35,11 +35,22 @@
 	<div class={cn('w-full group flex flex-col items-start', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
 			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-sm">
-				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block">
+				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block relative">
+					{#if recipe.image_ids[0]}
+						<div
+							class="absolute inset-0 bg-gray-200 dark:bg-gray-900 animate-pulse flex items-center justify-center"
+						>
+							<ChefHat class="size-12 text-gray-300" />
+						</div>
+					{/if}
 					<img
 						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 						alt={recipe.title}
-						class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+						class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-10"
+						onload={(e) => {
+							const placeholder = (e.currentTarget as HTMLImageElement).previousElementSibling;
+							if (placeholder) placeholder.remove();
+						}}
 						onerror={(e) => {
 							if (recipe.image_ids && recipe.image_ids[0]) {
 								(e.currentTarget as HTMLImageElement).src =
