@@ -15,6 +15,7 @@
 	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { Calendar, House, ShoppingCart } from 'lucide-svelte';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
 
 	// TODO refactor
 
@@ -136,7 +137,7 @@
 													unit={item.mergedQuantity!.unit}
 												/>
 
-												<div class="ml-auto w-28 flex items-center gap-2 text-sm">
+												<!-- <div class="ml-auto w-28 flex items-center gap-2 text-sm">
 													<House class="size-5" />
 													<span>
 														<strong>
@@ -164,7 +165,24 @@
 														</strong>
 														{item.mergedQuantity!.unit?.replace('whole', '')}
 													</span>
-												</div>
+												</div> -->
+
+												<Button
+													variant="outline"
+													size="icon"
+													class="ml-auto"
+													aria-label="Add to cart"
+												>
+													<ShoppingCart class="size-5" />
+												</Button>
+												<Button
+													variant="outline"
+													size="icon"
+													class=""
+													aria-label="Already have at home"
+												>
+													<House class="size-5" />
+												</Button>
 											</div>
 
 											<!-- <div class="grid">

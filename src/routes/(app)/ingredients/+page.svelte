@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
-	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
@@ -55,7 +55,7 @@
 						{#each ingredients.filter((ingredient) => ingredient.aisle === aisleKey) as ingredient}
 							<div class="flex flex-col items-center">
 								<img
-									src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}
+									src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}
 									alt={ingredient.name_singular}
 									class="aspect-square w-24 h-24 object-cover rounded-md"
 									onerror={(e) => {

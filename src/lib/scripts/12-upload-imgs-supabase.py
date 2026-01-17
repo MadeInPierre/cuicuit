@@ -3,13 +3,14 @@ import json
 import unicodedata  # Added for slug normalization
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from rich import print
 
 # Load environment variables from .env file
 load_dotenv()
 
 # --- Supabase Configuration ---
-SUPABASE_URL = os.getenv("PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("PUBLIC_SUPABASE_ANON_KEY")
+SUPABASE_URL = os.getenv("PUBLIC_SUPABASE_URL_CLOUD")
+SUPABASE_KEY = os.getenv("PUBLIC_SUPABASE_ANON_KEY_CLOUD")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("Supabase URL and Key must be set in the .env file")
@@ -44,7 +45,29 @@ def fetch_ingredient_slug_to_uuid_map():
     print("Fetching ingredient slugs and UUIDs from Supabase...")
     slug_to_uuid_map = {}
     try:
-        response = supabase.table("ingredients").select("id, slug").execute()
+        all_data = []
+        page_size = 1000
+        current_offset = 0
+
+        while True:
+            response = (
+                supabase.table("ingredients")
+                .select("id, slug")
+                .range(current_offset, current_offset + page_size - 1)
+                .execute()
+            )
+
+            if not response.data:
+                break
+
+            all_data.extend(response.data)
+
+            if len(response.data) < page_size:
+                break
+
+            current_offset += page_size
+
+        response.data = all_data
         if response.data:
             for row in response.data:
                 slug_to_uuid_map[row["slug"]] = row["id"]
@@ -73,6 +96,7 @@ def upload_images_to_storage():
     if not slug_to_uuid:
         print("Cannot proceed with image upload: No ingredient UUIDs found.")
         return
+
 
     # Filter for common image extensions
     image_files = [
@@ -119,14 +143,14 @@ def upload_images_to_storage():
                     storage_path, f.read(), {"content-type": str(content_type)}
                 )
 
-                if response.data:
+                if response.path:
                     public_url = supabase.storage.from_(STORAGE_BUCKET_NAME).get_public_url(storage_path)
                     print(
-                        f"Uploaded '{filename}' (normalized to '{slug_from_filename_normalized}') as '{storage_path}'. Public URL: {public_url}"
+                        f"[blue]Uploaded '{filename}' (normalized to '{slug_from_filename_normalized}') as '{storage_path}'. Public URL: {public_url}"
                     )
                     uploaded_count += 1
                 else:
-                    print(f"Failed to upload '{filename}' as '{storage_path}': {response.error}")
+                    print(f"Failed to upload '{filename}' as '{storage_path}': {response.full_path}")
                     error_count += 1
 
         except FileNotFoundError:
@@ -140,6 +164,8 @@ def upload_images_to_storage():
 
         if (i + 1) % 50 == 0:
             print(f"Processed {i + 1} of {len(image_files)} images.")
+        
+        # exit(0) 
 
     print("\n--- Image upload process completed ---")
     print(f"Total images processed: {len(image_files)}")

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -12,7 +12,7 @@
 </script>
 
 <img
-	src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/ingredients/images-marmiton/${id}.jpg`}
+	src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${id}.jpg`}
 	alt={name}
 	class={cn('aspect-square w-full object-cover rounded-md', className)}
 	onerror={(e) => {
