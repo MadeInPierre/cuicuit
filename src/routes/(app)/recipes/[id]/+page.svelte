@@ -37,6 +37,10 @@
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import {
+		enrichRecipe,
+		type EnrichedRecipeOutput
+	} from '$lib/features/recipes/modules/enrich-recipe.remote';
 
 	const pageRecipeId = $derived(page.params.id);
 	const activeSpace = getActiveSpaceState();
@@ -65,6 +69,17 @@
 			recipe = result;
 		});
 	});
+
+	// Temporary function to enrich recipe
+	let recipeEnriched: EnrichedRecipeOutput | undefined = $state(undefined);
+	async function enrich() {
+		if (!recipe) return;
+		const { ingredients, ...strippedRecipe } = recipe;
+		recipeEnriched = await enrichRecipe({
+			recipe: strippedRecipe,
+			ingredients: ingredients?.map((ing) => ing.raw_input) || []
+		});
+	}
 </script>
 
 {#if recipe}
@@ -324,7 +339,7 @@
 										<span class="text-sm font-medium">
 											{ing.quantity + ' ' + (ing.unit == 'whole' ? '' : ing.unit)}
 										</span>
-										<span class="text-xs text-balance line-clamp-2 px-1">{ing.raw_input}</span>
+										<span class="text-sm text-balance line-clamp-2 px-1">{ing.raw_input}</span>
 									</div>
 								{/snippet}
 
@@ -406,6 +421,9 @@
 				>
 					<p>Recipe id: {pageRecipeId}</p>
 				</div> -->
+
+				<Button onclick={enrich}>(Temporary) Enrich Recipe</Button>
+				<pre>{JSON.stringify(recipeEnriched, null, 2)}</pre>
 			</div>
 		</main>
 	</div>

@@ -1,4 +1,5 @@
 import { supabase } from '$lib/shared/db/supabase-client';
+import type { Tables } from '$lib/shared/db/supabase.types';
 
 /**
  * Fetches detailed information about recipes, including their language, ingredients,

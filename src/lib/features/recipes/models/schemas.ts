@@ -29,7 +29,7 @@ export const createRecipeFormSchema = z
 		timesofday_ids: z
 			.array(z.string())
 			.min(1, { message: 'Please select at least one time of day.' }),
-		tool_ids: z.array(z.string()).min(1, { message: 'Please select at least one tool.' }),
+		tool_ids: z.array(z.string()),
 
 		// Cook times
 		timePrep: z

@@ -59,11 +59,10 @@
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getLanguageId } from '$lib/features/recipes/queries/get-language-id';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
-	import type { ParsedSearchInput } from '$lib/features/recipes/modules/parse-ingredients/parse';
 	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 
 	// Load the recipe document
-	const pageRecipeId = page.params.id;
+	const pageRecipeId = page.params.id as string;
 	const isNewRecipe = pageRecipeId === 'new';
 
 	const banner = page.url.searchParams.get('banner') || undefined;
@@ -532,7 +531,7 @@
 									class="mb-3"
 								/>
 
-								<!-- <Label>Required</Label> -->
+								<Label>Required</Label>
 
 								{#each $formData.ingredientIds as id, i (id)}
 									<div class="grid gap-3">
@@ -650,10 +649,10 @@
 									</div>
 								{/each}
 
-								<!-- <Label>Optional</Label>
+								<Label>Optional</Label>
 								<p class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md">
 									Drag ingredients here to mark them as optional
-								</p> -->
+								</p>
 							</Card.Content>
 						</Card.Root>
 						<Card.Root>

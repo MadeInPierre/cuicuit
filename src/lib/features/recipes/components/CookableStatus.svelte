@@ -11,10 +11,19 @@
 
 	const statuses = [
 		{ label: 'Cookable', icon: CheckCheck, color: 'text-green-600 dark:text-green-500' },
-		{ label: 'Cookable, probably', icon: Check, color: 'text-teal-600 dark:text-teal-500' },
+		{
+			label: 'Cookable, missing optionals',
+			icon: Check,
+			color: 'text-teal-600 dark:text-teal-500'
+		},
 		{
 			label: 'Cookable, 2 close substitutions',
 			icon: EqualApproximately,
+			color: 'text-emerald-600 dark:text-emerald-500'
+		},
+		{
+			label: 'Almost cookable',
+			icon: CircleQuestionMark,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
@@ -22,9 +31,21 @@
 			icon: EqualApproximately,
 			color: 'text-yellow-600 dark:text-yellow-500'
 		},
-		{ label: 'Enough for 2 servings', icon: Scale, color: 'text-yellow-600 dark:text-yellow-500' },
-		{ label: 'Change of plans', icon: Repeat, color: 'text-amber-600 dark:text-amber-500' },
-		{ label: '1 missing', icon: ShoppingBasket, color: 'text-red-600 dark:text-red-500' }
+		{
+			label: 'Enough for 2 servings',
+			icon: Scale,
+			color: 'text-yellow-600 dark:text-yellow-500'
+		},
+		{
+			label: 'Change of plans',
+			icon: Repeat,
+			color: 'text-amber-600 dark:text-amber-500'
+		},
+		{
+			label: '1 missing',
+			icon: ShoppingBasket,
+			color: 'text-red-600 dark:text-red-500'
+		}
 	];
 
 	// TODO - Replace with actual logic to determine the status of the recipe

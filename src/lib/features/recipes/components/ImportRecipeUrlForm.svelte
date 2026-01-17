@@ -7,7 +7,7 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
-	import { importFromUrl } from '../actions/import-from-url';
+	import { importRecipeFromUrl } from '../actions/import-from-url';
 	import { goto } from '$app/navigation';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
@@ -42,7 +42,7 @@
 			}
 
 			// Import the recipe from the URL
-			const result = await importFromUrl(data.url, userId);
+			const result = await importRecipeFromUrl(data.url, userId);
 
 			// Navigate based on completeness
 			if (result.isComplete) {

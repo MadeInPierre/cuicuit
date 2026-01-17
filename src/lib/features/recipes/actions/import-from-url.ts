@@ -4,11 +4,17 @@ import { capitalize } from '$lib/utils';
 import { supabase } from '$lib/shared/db/supabase-client';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { getLanguageId } from '../queries/get-language-id';
-import { processIngredientStrings } from '../modules/parse-ingredients/process';
+import {
+	processIngredientStrings,
+	type IngredientProcessed
+} from '../modules/parse-ingredients/process';
+import { enrichRecipe } from '../modules/enrich-recipe.remote';
+import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
+import { matchIngredients } from '../modules/parse-ingredients/match';
 const SCRAPER_API_URL = 'http://localhost:8000/scrape-recipe';
 
-// See the scraper source code for the expected response format,
-// don't forget to update this type if the scraper response changes.
+// See the scraper source code for the expected response format.
+// Don't forget to update this type if the scraper response changes.
 type ScraperResponse = {
 	source: {
 		name: string;
@@ -44,7 +50,7 @@ type ScraperResponse = {
  * @returns An object containing the ID of the imported recipe
  * and a boolean indicating if the data is complete.
  */
-export async function importFromUrl(
+export async function importRecipeFromUrl(
 	url: string,
 	userId: string
 ): Promise<{ id: string; isComplete: boolean }> {
@@ -87,24 +93,27 @@ export async function importFromUrl(
 		console.warn('Failed to download & upload the image, skipping:', error);
 	}
 
-	// Insert the imported data into the new recipe row
+	// Using the raw parsed data, create a new recipe row
+	let recipeRow: Partial<PublicRecipesRow> = {
+		author_id: userId,
+		source_type: 'website',
+		source_url: data.source.url,
+		title: capitalize(data.title?.trim()),
+		description: capitalize(data.description?.trim() || ''),
+		time_prep_minutes: parseInt(data.time.prep) || null,
+		time_cook_minutes: parseInt(data.time.cook) || null,
+		time_rest_minutes: parseInt(data.time.rest) || null,
+		servings: parseInt(data.servings) || 4,
+		language_id: languageIdData?.id || 0,
+		updated_at: new Date().toISOString(),
+		steps: data.instructions
+		// Ingredients will be handled separately
+	};
+
+	// Insert the imported data into the database
 	const { data: insertData, error: insertError } = await supabase
 		.from('recipes')
-		.update({
-			author_id: userId,
-			source_type: 'website',
-			source_url: data.source.url,
-			title: capitalize(data.title),
-			description: capitalize(data.description || ''),
-			time_prep_minutes: parseInt(data.time.prep) || null,
-			time_cook_minutes: parseInt(data.time.cook) || null,
-			time_rest_minutes: parseInt(data.time.rest) || null,
-			servings: parseInt(data.servings) || 4,
-			language_id: languageIdData?.id || 0,
-			updated_at: new Date().toISOString(),
-			steps: data.instructions
-			// Ingredients will be handled separately
-		} satisfies Database['public']['Tables']['recipes']['Update'])
+		.update(recipeRow)
 		.eq('id', recipeId)
 		.select()
 		.single();
@@ -114,12 +123,82 @@ export async function importFromUrl(
 		throw new Error('Failed to insert imported recipe data.');
 	}
 
-	// Insert ingredients
-	const processedIngredients = await processIngredientStrings(
-		data.ingredients.flatMap((group) => group.ingredients),
-		languageIdData.lang
-	);
+	// This will hold the processed ingredients (locally or via LLM), and will then be inserted into the database
+	let processedIngredients: IngredientProcessed[] = [];
 
+	// Try to call an LLM to enhance & complete the data before inserting
+	try {
+		// Call the LLM remote function
+		const enrichedRecipe = await enrichRecipe({
+			recipe: insertData,
+			ingredients: data.ingredients.flatMap((group) => group.ingredients)
+		});
+
+		// Use the enriched ingredients to match against the ingredient database
+		const { data: matchData, error: matchError } = await matchIngredients(
+			enrichedRecipe.ingredients
+				.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
+				.map((p, i) => p.ingredientText || p.ingredientText || 'Unknown'),
+			languageIdData.lang
+		);
+
+		// Abort if matching failed
+		if (matchError) throw matchError;
+
+		// Save the better matched & enriched ingredients
+		processedIngredients = enrichedRecipe.ingredients.map(
+			(p, i) =>
+				({
+					sourceText: p.sourceText || 'Unknown',
+					parsed: p,
+					matches: matchData?.matches[i].bestMatches || []
+				}) satisfies IngredientProcessed
+		);
+		console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
+
+		// Update the recipe with the enriched LLM data
+		const { data: enrichedInsertData, error: enrichedInsertError } = await supabase
+			.from('recipes')
+			.update({
+				// Don't overwrite database IDs and automatic fields, only the user-editable fields
+				cleanup_level: recipeRow.cleanup_level,
+				cost_level: recipeRow.cost_level,
+				skill_level: recipeRow.skill_level,
+				effort_level: recipeRow.effort_level,
+				title: recipeRow.title,
+				description: recipeRow.description,
+				time_prep_minutes: recipeRow.time_prep_minutes,
+				time_cook_minutes: recipeRow.time_cook_minutes,
+				time_rest_minutes: recipeRow.time_rest_minutes,
+				servings: recipeRow.servings,
+				steps: recipeRow.steps,
+				courses: recipeRow.courses,
+				cuisines: recipeRow.cuisines,
+				times_of_day: recipeRow.times_of_day,
+				tools: recipeRow.tools,
+				notes: recipeRow.notes,
+				updated_at: new Date().toISOString()
+			} satisfies Partial<PublicRecipesRow>)
+			.eq('id', recipeId)
+			.select()
+			.single();
+
+		// Abort if update failed to trigger local processing fallback
+		if (enrichedInsertError || !enrichedInsertData) {
+			console.error('Error inserting enriched recipe data:', enrichedInsertError);
+			throw new Error('Failed to insert enriched recipe data.');
+		}
+	} catch (error) {
+		console.warn('Failed to enrich imported recipe data, proceeding with raw data:', error);
+
+		// Fallback to locally processing the ingredients
+		processedIngredients = await processIngredientStrings(
+			data.ingredients.flatMap((group) => group.ingredients), // TODO support groups
+			languageIdData.lang
+		);
+	}
+
+	// Insert the ingredients
 	if (!processedIngredients || processedIngredients.length === 0) {
 		console.warn('No ingredients matched during import.');
 	} else {
@@ -144,7 +223,7 @@ export async function importFromUrl(
 						unit: processed.parsed.quantity?.unitKey || 'whole',
 						details: processed.parsed.description || '',
 						notes: ''
-					} as Database['public']['Tables']['recipe_ingredients']['Insert']
+					} satisfies Database['public']['Tables']['recipe_ingredients']['Row']
 				])
 				.select()
 				.single();
@@ -159,8 +238,14 @@ export async function importFromUrl(
 		}
 	}
 
-	// TODO call an LLM to enhance & complete the data (e.g. automatic nutrition facts, missing fields, etc.)
-
-	// TODO Complete is false to make the user review the imported data for now, will implement LLM auto-completion later
+	// TODO Complete is false to make the user review the imported data for now
 	return { id: recipeId, isComplete: false };
+}
+
+function importLocally() {
+	throw new Error('Not implemented');
+}
+
+function importRemotely() {
+	throw new Error('Not implemented');
 }
