@@ -35,8 +35,8 @@ export const recipeTimesOfDay = {
 export type RecipeTimeOfDayKey = keyof typeof recipeTimesOfDay;
 
 export const recipeCourses = {
-	appetizer: 'Appetizer',
 	main: 'Main Course',
+	appetizer: 'Appetizer',
 	side: 'Side Dish',
 	soup: 'Soup',
 	salad: 'Salad',

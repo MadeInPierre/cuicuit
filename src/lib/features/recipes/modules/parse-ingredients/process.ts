@@ -1,10 +1,10 @@
 import { matchIngredients, type IngredientMatch } from './match';
-import { parseIngredientString, type ParsedSearchInput } from './parse';
+import { parsedSearchInputSchema, parseIngredientString } from './parse';
 import { z } from 'zod';
 
 export const ingredientProcessedSchema = z.object({
 	sourceText: z.string(),
-	parsed: z.custom<ParsedSearchInput>(),
+	parsed: parsedSearchInputSchema,
 	matches: z.array(z.custom<IngredientMatch>())
 });
 

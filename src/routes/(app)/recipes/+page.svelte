@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, ChefHat, Funnel, FunnelPlus, Plus } from 'lucide-svelte';
+	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import {
@@ -351,8 +351,8 @@
 
 					<FilterButton text="Cookable" />
 					<FilterButton text="My Recipes" />
-					<!-- <FilterButton text="Quick & Easy" />
-					<FilterButton text="Expire soon" /> -->
+					<FilterButton text="Quick & Easy" />
+					<FilterButton text="Expire soon" />
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
 			</div>
@@ -384,7 +384,7 @@
 			{#if sectionRecipes.recipes.length > 0}
 				<div class="grid space-y-4" transition:slide>
 					{#if sectionRecipes.header}
-						<div class="flex justify-between items-center">
+						<div class="flex justify-between items-center mb-6">
 							<SectionHeader header={sectionRecipes.header} />
 
 							<Button

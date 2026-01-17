@@ -20,11 +20,9 @@
 		LoaderCircle,
 		Users,
 		Minus,
-		GripVertical,
 		Camera,
 		Trash2
 	} from 'lucide-svelte';
-	import { unitLabels } from '$lib/shared/utils/quantity';
 	import {
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
@@ -44,22 +42,21 @@
 	import { capitalize, cn } from '$lib/utils';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { toast } from 'svelte-sonner';
-	import { goto } from '$app/navigation';
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
-	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import { slide } from 'svelte/transition';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import IngredientSearch from './IngredientSearch.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
-	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getLanguageId } from '$lib/features/recipes/queries/get-language-id';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
+	import IngredientEditItem from './IngredientEditItem.svelte';
+	import { goto } from '$app/navigation';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id as string;
@@ -86,7 +83,7 @@
 			}
 		}
 	});
-	const { form: formData, enhance, errors, tainted, isTainted } = form;
+	const { form: formData, enhance, errors, tainted, isTainted, submit } = form;
 
 	let dirty = $derived(isTainted($tainted));
 
@@ -137,6 +134,8 @@
 				f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
 				f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
 				f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
+				f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
+				f.ingredientRawInputs = recipeData.ingredients.map((ing) => ing.raw_input || '');
 
 				f.ingredientNames = recipeData.ingredients.map((ing) => {
 					const amount = ing.quantity || 1;
@@ -169,6 +168,7 @@
 		const chosenMatch = ingredientProcessed.matches[chosenMatchIndex];
 		const amount = ingredientProcessed.parsed.quantity?.amount ?? 1;
 		const unit = ingredientProcessed.parsed.quantity?.unitKey ?? 'whole';
+		const isOptional = ingredientProcessed.parsed.isOptional ?? false;
 		const name =
 			amount > 1
 				? chosenMatch.name_plural || chosenMatch.name_singular
@@ -179,13 +179,18 @@
 			return;
 		}
 
-		formData.update((f) => {
-			f.ingredientIds.push(chosenMatch.ingredient_id);
-			f.ingredientAmounts.push(amount);
-			f.ingredientUnits.push(unit);
-			f.ingredientNames.push(name);
-			return f;
-		});
+		formData.update(
+			(f) => {
+				f.ingredientIds.push(chosenMatch.ingredient_id);
+				f.ingredientAmounts.push(amount);
+				f.ingredientUnits.push(unit);
+				f.ingredientNames.push(name);
+				f.ingredientIsOptional.push(isOptional);
+				f.ingredientRawInputs.push(ingredientProcessed.sourceText || '');
+				return f;
+			},
+			{ taint: true }
+		);
 	}
 
 	let loading = $state(false);
@@ -281,14 +286,16 @@
 				data.ingredientIds.map(
 					(id, i) =>
 						({
+							raw_input: data.ingredientRawInputs[i],
 							recipe_id: recipeIdData.id,
 							ingredient_id: id,
 							quantity: data.ingredientAmounts[i],
 							unit: data.ingredientUnits[i],
 							details: '',
 							notes: '',
-							raw_input: data.ingredientNames[i]
-						}) as Tables<'recipe_ingredients'>
+							preparation: '',
+							is_optional: data.ingredientIsOptional[i]
+						}) satisfies Tables<'recipe_ingredients'>
 				)
 			)
 			.select();
@@ -301,9 +308,9 @@
 		}
 
 		// Go to the recipe view page
-		console.log('Created or edited recipe ID:', recipeIdData?.id);
+		console.log('Created or edited recipe ID:', `/recipes/${recipeIdData.id}`);
+		await goto(`/recipes/${recipeIdData.id}`);
 		loading = false;
-		goto(`/recipes/${recipeIdData?.id}`);
 	}
 
 	function onImagesChanged(imageIds: string[]) {
@@ -313,6 +320,24 @@
 				return f;
 			},
 			{ taint: false }
+		);
+	}
+
+	function onDeleteIngredient(id: string) {
+		formData.update(
+			(f) => {
+				const indexToDelete = $formData.ingredientIds.indexOf(id);
+				if (indexToDelete === -1) return f;
+
+				f.ingredientIds.splice(indexToDelete, 1);
+				f.ingredientAmounts.splice(indexToDelete, 1);
+				f.ingredientUnits.splice(indexToDelete, 1);
+				f.ingredientNames.splice(indexToDelete, 1);
+				f.ingredientIsOptional.splice(indexToDelete, 1);
+				f.ingredientRawInputs.splice(indexToDelete, 1);
+				return f;
+			},
+			{ taint: true }
 		);
 	}
 
@@ -372,7 +397,13 @@
 							</Button>
 						{/if}
 
-						<ButtonThemed size="sm" type="submit" class="w-14 flex gap-2" disabled={loading}>
+						<ButtonThemed
+							size="sm"
+							type="submit"
+							class="w-14 flex gap-2"
+							disabled={loading}
+							onclick={submit}
+						>
 							{#if loading}
 								<LoaderCircle class="h-4 w-4 animate-spin" />
 							{:else}
@@ -406,7 +437,6 @@
 									<Card.Title>Recipe Details</Card.Title>
 									<Card.Description>This is the main information about the recipe</Card.Description>
 								</div>
-								<ImportRecipeDialog />
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
@@ -532,127 +562,10 @@
 								/>
 
 								<Label>Required</Label>
+								{@render ingredientList(false)}
 
-								{#each $formData.ingredientIds as id, i (id)}
-									<div class="grid gap-3">
-										<div class="grid gap-2">
-											<div class="w-full flex gap-2 items-center">
-												<GripVertical class="size-6 text-muted-foreground cursor-grab" />
-												<!-- <IngredientSelectDropdown /> -->
-
-												<IngredientImage
-													id={$formData.ingredientIds[i]}
-													name={$formData.ingredientNames[i]}
-													class="w-10 h-10"
-												/>
-
-												<div class="flex">
-													<Form.Field {form} name="ingredientAmounts" class="space-y-0">
-														<Form.Control>
-															{#snippet children({ props })}
-																<Input
-																	{...props}
-																	disabled={loading}
-																	name="ingredientAmounts"
-																	type="number"
-																	step="0.1"
-																	class="w-20 rounded-r-none border-r-0"
-																	bind:value={$formData.ingredientAmounts[i]}
-																/>
-															{/snippet}
-														</Form.Control>
-													</Form.Field>
-
-													<Form.Field {form} name="ingredientUnits" class="space-y-0">
-														<Form.Control>
-															{#snippet children({ props })}
-																<Select.Root
-																	type="single"
-																	bind:value={$formData.ingredientUnits[i]}
-																	name={props.name}
-																>
-																	<Select.Trigger
-																		{...props}
-																		class="gap-1 bg-muted/40 rounded-l-none w-20"
-																	>
-																		{$formData.ingredientUnits[i]}
-																	</Select.Trigger>
-																	<Select.Content>
-																		{#each Object.entries(unitLabels) as [key, label]}
-																			<Select.Item value={key} {label} />
-																		{/each}
-																	</Select.Content>
-																</Select.Root>
-																<!-- <input hidden bind:value={$formData.foodType} name={props.name} /> -->
-															{/snippet}
-														</Form.Control>
-														<Form.FieldErrors />
-													</Form.Field>
-												</div>
-
-												<Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
-													<Form.Control>
-														{#snippet children({ props })}
-															<Input
-																{...props}
-																disabled={loading}
-																name="ingredientNames"
-																type="text"
-																placeholder="Tomatoes, Flour, ..."
-																bind:value={$formData.ingredientNames[i]}
-															/>
-														{/snippet}
-													</Form.Control>
-												</Form.Field>
-
-												<Button
-													variant="ghost"
-													size="icon"
-													class="ml-auto h-6 w-6 min-w-6"
-													disabled={loading || $formData.ingredientAmounts.length <= 2}
-													onclick={() => {
-														$formData.ingredientIds = $formData.ingredientIds.filter(
-															(_, j) => j !== i
-														);
-														$formData.ingredientAmounts = $formData.ingredientAmounts.filter(
-															(_, j) => j !== i
-														);
-														$formData.ingredientUnits = $formData.ingredientUnits.filter(
-															(_, j) => j !== i
-														);
-														$formData.ingredientNames = $formData.ingredientNames.filter(
-															(_, j) => j !== i
-														);
-													}}
-												>
-													<X class="size-4" />
-													<span class="sr-only">Delete</span>
-												</Button>
-											</div>
-										</div>
-
-										{#if $errors.ingredientAmounts?.[i]}
-											<p class="ml-6 text-destructive text-sm font-medium">
-												{$errors.ingredientAmounts[i]}
-											</p>
-										{/if}
-										{#if $errors.ingredientUnits?.[i]}
-											<p class="ml-6 text-destructive text-sm font-medium">
-												{$errors.ingredientUnits[i]}
-											</p>
-										{/if}
-										{#if $errors.ingredientNames?.[i]}
-											<p class="ml-6 text-destructive text-sm font-medium">
-												{$errors.ingredientNames[i]}
-											</p>
-										{/if}
-									</div>
-								{/each}
-
-								<Label>Optional</Label>
-								<p class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md">
-									Drag ingredients here to mark them as optional
-								</p>
+								<Label class="mt-3">Optional</Label>
+								{@render ingredientList(true)}
 							</Card.Content>
 						</Card.Root>
 						<Card.Root>
@@ -1225,3 +1138,27 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
+
+{#snippet ingredientList(isOptional: boolean)}
+	{#each $formData.ingredientIds
+		.map((id, idx) => ({ id, idx }))
+		.filter(({ idx }) => $formData.ingredientIsOptional?.[idx] === isOptional) as { id, idx } (id)}
+		<IngredientEditItem
+			{form}
+			{id}
+			bind:name={$formData.ingredientNames[idx]}
+			bind:amount={$formData.ingredientAmounts[idx]}
+			bind:unit={$formData.ingredientUnits[idx]}
+			bind:isOptional={$formData.ingredientIsOptional[idx]}
+			disabled={loading}
+			disableDelete={$formData.ingredientIds.length <= 2}
+			onDelete={() => {
+				onDeleteIngredient(id);
+			}}
+		/>
+	{:else}
+		<p class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md">
+			Drag ingredients here to add {isOptional ? 'optional' : 'required'} ingredients
+		</p>
+	{/each}
+{/snippet}
