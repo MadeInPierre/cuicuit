@@ -22,8 +22,8 @@
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: 'Almost cookable',
-			icon: CircleQuestionMark,
+			label: 'Cookable, limited quantities',
+			icon: Scale,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{

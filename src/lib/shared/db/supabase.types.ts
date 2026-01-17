@@ -215,7 +215,9 @@ export type Database = {
         Row: {
           details: string | null
           ingredient_id: string
+          is_optional: boolean
           notes: string | null
+          preparation: string | null
           quantity: number | null
           raw_input: string
           recipe_id: string
@@ -224,7 +226,9 @@ export type Database = {
         Insert: {
           details?: string | null
           ingredient_id: string
+          is_optional?: boolean
           notes?: string | null
+          preparation?: string | null
           quantity?: number | null
           raw_input: string
           recipe_id: string
@@ -233,7 +237,9 @@ export type Database = {
         Update: {
           details?: string | null
           ingredient_id?: string
+          is_optional?: boolean
           notes?: string | null
+          preparation?: string | null
           quantity?: number | null
           raw_input?: string
           recipe_id?: string

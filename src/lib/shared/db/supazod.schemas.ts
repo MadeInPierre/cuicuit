@@ -366,7 +366,9 @@ export const publicLanguagesUpdateSchema = z.object({
 export const publicRecipeIngredientsRowSchema = z.object({
   details: z.string().nullable(),
   ingredient_id: z.string(),
+  is_optional: z.boolean(),
   notes: z.string().nullable(),
+  preparation: z.string().nullable(),
   quantity: z.number().nullable(),
   raw_input: z.string(),
   recipe_id: z.string(),
@@ -376,7 +378,9 @@ export const publicRecipeIngredientsRowSchema = z.object({
 export const publicRecipeIngredientsInsertSchema = z.object({
   details: z.string().optional().nullable(),
   ingredient_id: z.string(),
+  is_optional: z.boolean().optional(),
   notes: z.string().optional().nullable(),
+  preparation: z.string().optional().nullable(),
   quantity: z.number().optional().nullable(),
   raw_input: z.string(),
   recipe_id: z.string(),
@@ -386,7 +390,9 @@ export const publicRecipeIngredientsInsertSchema = z.object({
 export const publicRecipeIngredientsUpdateSchema = z.object({
   details: z.string().optional().nullable(),
   ingredient_id: z.string().optional(),
+  is_optional: z.boolean().optional(),
   notes: z.string().optional().nullable(),
+  preparation: z.string().optional().nullable(),
   quantity: z.number().optional().nullable(),
   raw_input: z.string().optional(),
   recipe_id: z.string().optional(),

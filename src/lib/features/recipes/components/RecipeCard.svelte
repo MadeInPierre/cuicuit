@@ -162,7 +162,7 @@
 
 		<div class="flex items-center gap-2 p-2 w-full">
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
-				<h3 class="text-sm font-semibold line-clamp-2">
+				<h3 class="text-sm font-semibold line-clamp-1">
 					<!-- <span class="mr-2 text-muted-foreground text-xs font-normal">{recipe.servings} 
 						<Users class="size-3 inline-block -translate-y-[1px]" />
 					</span> -->

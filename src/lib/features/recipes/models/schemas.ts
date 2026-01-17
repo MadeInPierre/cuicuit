@@ -86,7 +86,9 @@ export const createRecipeFormSchema = z
 						message: 'The ingredient name must be at most 50 characters long.'
 					})
 			)
-			.default(['', '']),
+			.default(['Test', 'Test2']),
+		ingredientIsOptional: z.array(z.boolean()).default([false, false]),
+		ingredientRawInputs: z.array(z.string()).default(['', '']),
 
 		// Steps
 		stepDescriptions: z

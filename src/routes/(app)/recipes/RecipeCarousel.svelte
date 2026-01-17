@@ -43,6 +43,16 @@
 		)
 	);
 
+	// Chunk into pages to render exactly rowsPerPage x itemsPerPage per slide
+	const pages = $derived.by(() => {
+		const size = itemsPerCarouselPage;
+		const res: RecipeDetailed[][] = [];
+		for (let i = 0; i < displayRecipes.length; i += size) {
+			res.push(displayRecipes.slice(i, i + size));
+		}
+		return res;
+	});
+
 	// Carousel state
 	let api = $state<CarouselAPI>();
 	const totalSlides = $derived(api ? api.scrollSnapList().length : 0);
@@ -61,19 +71,24 @@
 
 <Carousel.Root
 	opts={{
-		active: totalSlides > 1,
-		slidesToScroll: itemsPerCarouselPage
+		active: recipes.length > itemsPerCarouselPage,
+		slidesToScroll: 1
 	}}
 	setApi={(emblaApi) => (api = emblaApi)}
 	class="w-full overflow-x-hidden"
 >
-	<Carousel.Content class="w-full flex-wrap" style="height: auto;">
-		{#each displayRecipes as recipe (recipe.id)}
-			<Carousel.Item
-				class="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/5 my-1"
-				style="flex: 0 0 {100 / itemsPerPage}%;"
-			>
-				<RecipeCard {recipe} showAddToPlanButton class="" />
+	<!-- Render one slide per page; remove flex-wrap -->
+	<Carousel.Content class="w-full">
+		{#each pages as page, i (i)}
+			<Carousel.Item class="">
+				<div
+					class="grid gap-4"
+					style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(${rowsPerPage}, auto);`}
+				>
+					{#each page as recipe (recipe.id)}
+						<RecipeCard {recipe} showAddToPlanButton class="" />
+					{/each}
+				</div>
 			</Carousel.Item>
 		{/each}
 	</Carousel.Content>
@@ -87,5 +102,6 @@
 </Carousel.Root>
 
 <!-- <div class="text-muted-foreground py-2 text-center text-sm">
-	Slide {currentSlide} of {totalSlides}
+	Slide {currentSlide} of {totalSlides}, showing {displayRecipes.length} of {recipes.length} recipes
+	({itemsPerPage} per row, {rowsPerPage} rows per page)
 </div> -->

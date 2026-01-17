@@ -161,22 +161,22 @@ export async function importRecipeFromUrl(
 			.from('recipes')
 			.update({
 				// Don't overwrite database IDs and automatic fields, only the user-editable fields
-				cleanup_level: recipeRow.cleanup_level,
-				cost_level: recipeRow.cost_level,
-				skill_level: recipeRow.skill_level,
-				effort_level: recipeRow.effort_level,
-				title: recipeRow.title,
-				description: recipeRow.description,
-				time_prep_minutes: recipeRow.time_prep_minutes,
-				time_cook_minutes: recipeRow.time_cook_minutes,
-				time_rest_minutes: recipeRow.time_rest_minutes,
-				servings: recipeRow.servings,
-				steps: recipeRow.steps,
-				courses: recipeRow.courses,
-				cuisines: recipeRow.cuisines,
-				times_of_day: recipeRow.times_of_day,
-				tools: recipeRow.tools,
-				notes: recipeRow.notes,
+				title: enrichedRecipe.recipe.title,
+				description: enrichedRecipe.recipe.description,
+				servings: enrichedRecipe.recipe.servings,
+				time_prep_minutes: enrichedRecipe.recipe.time_prep_minutes,
+				time_cook_minutes: enrichedRecipe.recipe.time_cook_minutes,
+				time_rest_minutes: enrichedRecipe.recipe.time_rest_minutes,
+				cleanup_level: enrichedRecipe.recipe.cleanup_level,
+				cost_level: enrichedRecipe.recipe.cost_level,
+				skill_level: enrichedRecipe.recipe.skill_level,
+				effort_level: enrichedRecipe.recipe.effort_level,
+				courses: enrichedRecipe.recipe.courses,
+				cuisines: enrichedRecipe.recipe.cuisines,
+				times_of_day: enrichedRecipe.recipe.times_of_day,
+				tools: enrichedRecipe.recipe.tools,
+				steps: enrichedRecipe.recipe.steps,
+				notes: enrichedRecipe.recipe.notes,
 				updated_at: new Date().toISOString()
 			} satisfies Partial<PublicRecipesRow>)
 			.eq('id', recipeId)
@@ -222,6 +222,10 @@ export async function importRecipeFromUrl(
 						quantity: processed.parsed.quantity?.amount || 1,
 						unit: processed.parsed.quantity?.unitKey || 'whole',
 						details: processed.parsed.description || '',
+						preparation: processed.parsed.preparation || '',
+						is_optional: processed.parsed.isOptional || false,
+						// group_name: '', // TODO support groups
+						// display_order: 0, // TODO determine order
 						notes: ''
 					} satisfies Database['public']['Tables']['recipe_ingredients']['Row']
 				])
