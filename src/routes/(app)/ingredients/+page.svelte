@@ -7,10 +7,9 @@
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
 		try {
 			const { data, error } = await supabase
-				.from('ingredients_with_translations')
-				.select('id, hierarchy, aisle, name_singular, name_plural, base_unit, aisle')
-				.eq('lang', 'fr-FR')
-				.order('name_singular', { ascending: true })
+				.from('ingredients')
+				.select('*, translations:ingredient_translations(*, language:languages!inner(*))')
+				.eq('translations.language.lang', 'fr-FR')
 				.range(start, end);
 
 			if (error) {
@@ -56,7 +55,7 @@
 							<div class="flex flex-col items-center">
 								<img
 									src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}
-									alt={ingredient.name_singular}
+									alt={ingredient.translations[0].name_singular}
 									class="aspect-square w-24 h-24 object-cover rounded-md"
 									onerror={(e) => {
 										const el = e.currentTarget as HTMLImageElement;
@@ -70,7 +69,7 @@
 									}}
 								/>
 								<div style="margin-top: 0.5rem; text-align: center;">
-									{ingredient.name_singular}
+									{ingredient.translations[0].name_singular}
 								</div>
 							</div>
 						{/each}

@@ -15,7 +15,7 @@ export type ScraperResponse = {
 	image: string;
 	author: string;
 	servings: string;
-	ingredients: [{ ingredients: string[]; purpose: string }]; // TODO slice quantities
+	ingredients: [{ ingredients: string[]; purpose: string }]; // Array of ingredient groups
 	instructions: string[];
 	time: {
 		prep: string;
