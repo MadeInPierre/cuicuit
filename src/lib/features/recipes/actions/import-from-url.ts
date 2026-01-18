@@ -11,35 +11,7 @@ import {
 import { enrichRecipe } from '../modules/enrich-recipe.remote';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import { matchIngredients } from '../modules/parse-ingredients/match';
-import { PUBLIC_CUICUIT_SCRAPER_URL } from '$env/static/public';
-
-const SCRAPER_API_URL = `${PUBLIC_CUICUIT_SCRAPER_URL}/scrape-recipe`;
-
-// See the scraper source code for the expected response format.
-// Don't forget to update this type if the scraper response changes.
-type ScraperResponse = {
-	source: {
-		name: string;
-		domain: string;
-		url: string;
-	};
-	title: string;
-	description: string;
-	image: string;
-	author: string;
-	servings: string;
-	ingredients: [{ ingredients: string[]; purpose: string }]; // TODO slice quantities
-	instructions: string[];
-	time: {
-		prep: string;
-		cook: string;
-		rest: string;
-		total: string;
-	};
-	ratings: string;
-	category: string;
-	language: string;
-};
+import type { ScraperResponse } from '../../../../routes/api/recipes/import-from-url/+server';
 
 /**
  * Imports a recipe from a URL and creates a new recipe
@@ -58,7 +30,7 @@ export async function importRecipeFromUrl(
 ): Promise<{ id: string; isComplete: boolean }> {
 	console.log('Importing URL:', url);
 
-	const response = await fetch(SCRAPER_API_URL, {
+	const response = await fetch('/api/recipes/import-from-url', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'
