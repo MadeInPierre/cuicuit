@@ -1,0 +1,40 @@
+# Docker Compose file used in CasaOS
+name: cuicuit-scraper
+services:
+  cuicuit-scraper:
+    container_name: cuicuit-scraper
+    # Use the published image by default; Compose will build locally if you run `docker compose build`
+    image: madeinpierre/cuicuit-scraper:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    cpu_shares: 50
+    command: []
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    environment: []
+    hostname: cuicuit-scraper
+    labels:
+      icon: https://cdn-icons-png.freepik.com/256/8222/8222194.png
+    volumes: []
+    devices: []
+    cap_add: []
+    network_mode: bridge
+    privileged: false
+x-casaos:
+  author: self
+  category: self
+  hostname: ""
+  icon: https://static.vecteezy.com/system/resources/previews/016/013/312/non_2x/scraper-creative-icon-design-free-vector.jpg
+  index: /
+  is_uncontrolled: false
+  port_map: ""
+  scheme: http
+  store_app_id: cuicuit-scraper
+  title:
+    custom: Cuicuit Scraper
