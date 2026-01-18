@@ -44,7 +44,7 @@ export async function uploadRecipeImage(
 		return;
 	}
 
-	toast.success('Recipe updated with new image ID.');
+	console.log('Recipe updated with new image ID.');
 	return imageId;
 }
 

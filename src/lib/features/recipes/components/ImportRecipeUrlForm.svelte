@@ -7,7 +7,7 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
-	import { importRecipeFromUrl } from '../actions/import-from-url';
+	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url';
 	import { goto } from '$app/navigation';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 

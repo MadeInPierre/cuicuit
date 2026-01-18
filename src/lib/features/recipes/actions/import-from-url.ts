@@ -11,7 +11,9 @@ import {
 import { enrichRecipe } from '../modules/enrich-recipe.remote';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import { matchIngredients } from '../modules/parse-ingredients/match';
-const SCRAPER_API_URL = 'http://localhost:8000/scrape-recipe';
+import { PUBLIC_CUICUIT_SCRAPER_URL } from '$env/static/public';
+
+const SCRAPER_API_URL = `${PUBLIC_CUICUIT_SCRAPER_URL}/scrape-recipe`;
 
 // See the scraper source code for the expected response format.
 // Don't forget to update this type if the scraper response changes.
@@ -244,12 +246,4 @@ export async function importRecipeFromUrl(
 
 	// TODO Complete is false to make the user review the imported data for now
 	return { id: recipeId, isComplete: false };
-}
-
-function importLocally() {
-	throw new Error('Not implemented');
-}
-
-function importRemotely() {
-	throw new Error('Not implemented');
 }
