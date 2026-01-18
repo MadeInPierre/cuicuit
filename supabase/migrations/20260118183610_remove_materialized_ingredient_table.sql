@@ -1,0 +1,1 @@
+drop materialized view if exists ingredients_with_translations;
