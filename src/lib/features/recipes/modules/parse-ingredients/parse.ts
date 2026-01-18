@@ -11,7 +11,7 @@
  * - "1/2 tsp of salt"
  * - "sugar" (no quantity)
  */
-import { volumeAliases, weightAliases, wholeAliases, type Unit } from '$lib/shared/utils/quantity';
+import { unitSchema, volumeAliases, weightAliases, wholeAliases, type Unit } from '$lib/shared/utils/quantity';
 import { z } from 'zod';
 
 /**
@@ -23,7 +23,7 @@ export const parsedSearchInputSchema = z.object({
 		.object({
 			amount: z.number().describe('The numeric amount of the quantity.'),
 			unitText: z.string().describe('The unit of the quantity (e.g., "cup", "g", "ml").'),
-			unitKey: z.custom<Unit>().describe('The standardized key for the unit used in the database.')
+			unitKey: unitSchema.describe('The standardized key for the unit used in the database.')
 		})
 		.nullable(),
 	linkWord: z

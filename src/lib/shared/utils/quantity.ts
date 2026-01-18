@@ -3,6 +3,7 @@
 // TODO use this library in the rest of the app
 
 import { ingredientDensities, type IngredientDensityKey } from '$lib/data/ingredient-densities';
+import z from 'zod';
 
 // Define the conversion rates for each unit in a map (separately for volume and weight):
 const volumeConversionRates = {
@@ -52,6 +53,22 @@ export type WeightUnit = keyof typeof weightConversionRates;
 export type Unit = VolumeUnit | WeightUnit | 'whole';
 export type UnitType = 'volume' | 'weight' | 'whole';
 export type UnitRegion = 'US' | 'UK' | 'EU' | 'AU';
+
+// Define a Zod schema for all unit keys
+export const unitSchema = z
+	.union(
+		Object.keys(volumeConversionRates).map((k) =>
+			z.literal(k as keyof typeof volumeConversionRates)
+		) as [z.ZodLiteral<VolumeUnit>, z.ZodLiteral<VolumeUnit>, ...z.ZodLiteral<VolumeUnit>[]]
+	)
+	.or(
+		z.union(
+			Object.keys(weightConversionRates).map((k) =>
+				z.literal(k as keyof typeof weightConversionRates)
+			) as [z.ZodLiteral<WeightUnit>, z.ZodLiteral<WeightUnit>, ...z.ZodLiteral<WeightUnit>[]]
+		)
+	)
+	.or(z.literal('whole'));
 
 // Define aliases for each unit to parse free text input
 export const volumeAliases = {

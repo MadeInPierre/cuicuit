@@ -57,8 +57,8 @@ export const createRecipeFormSchema = z
 			.array(
 				z
 					.number()
-					.min(1, {
-						message: 'The amount must be at least 1.'
+					.min(0.1, {
+						message: 'The amount must be at least 0.1.'
 					})
 					.max(1000, {
 						message: 'The amount must be less than 1000.'
