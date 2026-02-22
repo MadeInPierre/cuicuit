@@ -579,7 +579,7 @@ export type Database = {
     }
     Functions: {
       match_ingredient: {
-        Args: { lang: string; n_matches?: number; query: string }
+        Args: { lang_code: string; n_matches?: number; query_text: string }
         Returns: {
           commonly_used: Database["public"]["Enums"]["commonly_used_level"]
           fts: unknown

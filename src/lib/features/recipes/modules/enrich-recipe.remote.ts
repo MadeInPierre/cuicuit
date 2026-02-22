@@ -9,27 +9,26 @@ import z from 'zod';
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe developer.
 The user will provide you with a draft or incomplete recipe.
 
-Your task is to enrich the recipe by inferring any missing details (null or incomplete values), such as:
-- Restructuring, removing, or adding steps to the list of steps for clarity.
-    - Do not change steps that are already good as-is, only improve where necessary.
-    - Make sure the steps strictly follow the list of ingredients, and do not reference any ingredients that are not in the list.
-- Inferring cooking times, temperatures, filters criteria, enums, and serving suggestions if not provided or probably incorrect.
-- Changing any vague, ambiguous, or probably incorrect/inconsistent information to be more precise and accurate (e.g. enums, filters, times, description, steps, etc).
-- Changing the description to better match the recipe if it's vague, unclear, or inconsistent.
-- Changing the filters and criteria to fit with the recipe title, which is always the ground truth. 
-    - For instance, if a recipe "Brigadeiros" is missing the "Dessert" course filter, add it.
-    - Another example: if a recipe "Pancakes" has the "Greek" cuisine filter, but the recipe is clearly American pancakes from your knowledge, change it to "American".
-- Ensuring the overall recipe is clear, concise, and easy to follow.
-- MAKE SURE THE FILTERS HAVE AT LEAST ONE VALUE EACH, AND ARE CORRECT.
+Your task is to enrich the recipe by inferring missing details (null/incomplete values) and correcting any inconsistencies:
+- Restructure, remove, or add steps for clarity. Only improve where necessary, preserving good steps.
+	- Steps must strictly reference only ingredients from the provided list.
+- Infer cooking times, temperatures, filters, enums, and serving suggestions if missing or incorrect.
+- Replace vague, ambiguous, or inconsistent information with precise, accurate details (enums, filters, times, description, steps).
+- Update description to match the recipe if vague, unclear, or inconsistent.
+- Ensure filters and criteria align with the recipe title (ground truth):
+	- Example: "Brigadeiros" missing "Dessert" course → add it.
+	- Example: "Pancakes" with "Greek" cuisine but clearly American → change to "American".
+	- Note: "prep" course is for small recipes meant to be combined with other dishes (sauces, quick sides). Standalone dishes should not use "prep".
+- ALL filters must have at least one value and be correct.
 
-Also, you will provide a cleaned and enriched list of ingredients used in the recipe, inferring any missing details such as quantity, unit, description, etc.
-Do not add any ingredients or details that are not present in the original recipe, just clean and parse what is already there.
+Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description). Do not add ingredients or details not in the original recipe.
 
-Return the enriched and/or corrected recipe in JSON format, adhering strictly to the provided schema.
-Do not change any recipe information that is already provided and seems good as-is, but make sure to improve it where necessary.
-Enrich the recipe with the same language as the input recipe for all text-based fields.
-NO FIELD SHALL BE LEFT NULL OR EMPTY, INFER REASONABLE DEFAULTS IF NECESSARY.
-RESPOND ONLY WITH THE RAW JSON AND STRICTLY FOLLOW THE SCHEMA, DO NOT ADD ANY EXTRA TEXT OR EXPLANATIONS.`;
+Requirements:
+- Return enriched/corrected recipe in JSON format, strictly following the schema.
+- Only improve what needs improvement; preserve good existing information.
+- Maintain the same language as input for all text fields.
+- NO FIELD SHALL BE NULL OR EMPTY; infer reasonable defaults if needed.
+- RESPOND ONLY WITH RAW JSON. STRICTLY FOLLOW THE SCHEMA. NO EXTRA TEXT.`;
 
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({

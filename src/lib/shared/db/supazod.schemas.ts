@@ -712,9 +712,9 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
 });
 
 export const publicMatchIngredientArgsSchema = z.object({
-  lang: z.string(),
+  lang_code: z.string(),
   n_matches: z.number().optional(),
-  query: z.string(),
+  query_text: z.string(),
 });
 
 export const publicMatchIngredientReturnsSchema = z.array(

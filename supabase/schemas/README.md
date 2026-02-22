@@ -27,7 +27,12 @@ This will create a new migration file in the `supabase/migrations` folder. Go in
 supabase migrations up
 ```
 
-4. To apply the migration to your production database, run:
+4. Update your app's TypeScript definitions to reflect the new schema:
+```bash
+npm run db:types:local
+```
+
+5. To apply the migration to your online production database, run:
 ```bash
 supabase db push
 ```

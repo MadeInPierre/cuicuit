@@ -112,7 +112,7 @@ export async function importRecipeFromUrl(
 		const { data: matchData, error: matchError } = await matchIngredients(
 			enrichedRecipe.ingredients
 				.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
-				.map((p, i) => p.ingredientText || p.ingredientText || 'Unknown'),
+				.map((p) => p.ingredientText || 'Unknown'),
 			languageIdData.lang
 		);
 
