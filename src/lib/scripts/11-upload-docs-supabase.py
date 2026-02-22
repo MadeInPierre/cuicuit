@@ -28,7 +28,7 @@ COMMON_LEVEL_MAP = {
     "never": "never",
     # Add mappings for any values not directly in the enum
     "uncommon": "occasionally",  # Mapping 'uncommon' to 'occasionally'
-    "default": "common",  # Mapping 'default' frequency to 'common'
+    # "default": "common",  # Mapping 'default' frequency to 'common'
 }
 
 SUBSTITUTION_STRENGTH_MAP = {

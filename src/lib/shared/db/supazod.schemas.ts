@@ -32,6 +32,7 @@ export const publicCourseSchema = z.union([
   z.literal("appetizer"),
   z.literal("main"),
   z.literal("side"),
+  z.literal("prep"),
   z.literal("salad"),
   z.literal("soup"),
   z.literal("dessert"),
@@ -153,27 +154,6 @@ export const graphqlPublicGraphqlArgsSchema = z.object({
 
 export const graphqlPublicGraphqlReturnsSchema = jsonSchema;
 
-export const publicGroupConditionSchema = z.union([
-  z.literal("all"),
-  z.literal("at_least_one"),
-  z.literal("at_least_n"),
-]);
-
-export const publicRecipeRegionSchema = z.union([
-  z.literal("africa"),
-  z.literal("asia"),
-  z.literal("europe"),
-  z.literal("north-america"),
-  z.literal("south-america"),
-  z.literal("oceania"),
-]);
-
-export const publicSubstitutionStrengthSchema = z.union([
-  z.literal("equivalent"),
-  z.literal("close"),
-  z.literal("far"),
-]);
-
 export const publicIngredientSubstitutionsRowSchema = z.object({
   id: z.string(),
   original_ingredient_id: z.string(),
@@ -210,29 +190,11 @@ export const publicIngredientSubstitutionsRelationshipsSchema = z.tuple([
   }),
   z.object({
     foreignKeyName: z.literal(
-      "ingredient_substitutions_original_ingredient_id_fkey",
-    ),
-    columns: z.tuple([z.literal("original_ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients_with_translations"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal(
       "ingredient_substitutions_substitute_ingredient_id_fkey",
     ),
     columns: z.tuple([z.literal("substitute_ingredient_id")]),
     isOneToOne: z.literal(false),
     referencedRelation: z.literal("ingredients"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal(
-      "ingredient_substitutions_substitute_ingredient_id_fkey",
-    ),
-    columns: z.tuple([z.literal("substitute_ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients_with_translations"),
     referencedColumns: z.tuple([z.literal("id")]),
   }),
 ]);
@@ -273,13 +235,6 @@ export const publicIngredientTranslationsRelationshipsSchema = z.tuple([
     columns: z.tuple([z.literal("ingredient_id")]),
     isOneToOne: z.literal(false),
     referencedRelation: z.literal("ingredients"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("ingredient_translations_ingredient_id_fkey"),
-    columns: z.tuple([z.literal("ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients_with_translations"),
     referencedColumns: z.tuple([z.literal("id")]),
   }),
   z.object({
@@ -405,13 +360,6 @@ export const publicRecipeIngredientsRelationshipsSchema = z.tuple([
     columns: z.tuple([z.literal("ingredient_id")]),
     isOneToOne: z.literal(false),
     referencedRelation: z.literal("ingredients"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("recipe_ingredients_ingredient_id_fkey"),
-    columns: z.tuple([z.literal("ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients_with_translations"),
     referencedColumns: z.tuple([z.literal("id")]),
   }),
   z.object({
@@ -661,13 +609,6 @@ export const publicSpacePlanShoppingListsRelationshipsSchema = z.tuple([
     referencedColumns: z.tuple([z.literal("id")]),
   }),
   z.object({
-    foreignKeyName: z.literal("space_plan_shopping_lists_ingredient_id_fkey"),
-    columns: z.tuple([z.literal("ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients_with_translations"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
     foreignKeyName: z.literal("space_plan_shopping_lists_meal_id_fkey"),
     columns: z.tuple([z.literal("meal_id")]),
     isOneToOne: z.literal(false),
@@ -770,49 +711,23 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
   user_name: z.string().optional(),
 });
 
-export const publicIngredientsWithTranslationsRowSchema = z.object({
-  aisle: publicSupermarketAisleSchema.nullable(),
-  base_unit: publicIngredientBaseUnitSchema.nullable(),
-  commonly_used: publicCommonlyUsedLevelSchema.nullable(),
-  embedding: z.string().nullable(),
-  g_per_ml: z.number().nullable(),
-  g_per_unit: jsonSchema.nullable(),
-  hierarchy: z.array(z.string()).nullable(),
-  id: z.string().nullable(),
-  ingredient_id: z.string().nullable(),
-  lang: z.string().nullable(),
-  language_id: z.number().nullable(),
-  name_general: z.string().nullable(),
-  name_plural: z.string().nullable(),
-  name_singular: z.string().nullable(),
-  slug: z.string().nullable(),
-  slug_general: z.string().nullable(),
-  unit_frequencies: jsonSchema.nullable(),
+export const publicMatchIngredientArgsSchema = z.object({
+  lang: z.string(),
+  n_matches: z.number().optional(),
+  query: z.string(),
 });
 
-export const publicIngredientsWithTranslationsRelationshipsSchema = z.tuple([
+export const publicMatchIngredientReturnsSchema = z.array(
   z.object({
-    foreignKeyName: z.literal("ingredient_translations_ingredient_id_fkey"),
-    columns: z.tuple([z.literal("ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients"),
-    referencedColumns: z.tuple([z.literal("id")]),
+    commonly_used: publicCommonlyUsedLevelSchema,
+    fts: z.unknown(),
+    ingredient_id: z.string(),
+    language_id: z.number(),
+    name_general: z.string(),
+    name_plural: z.string().nullable(),
+    name_singular: z.string().nullable(),
   }),
-  z.object({
-    foreignKeyName: z.literal("ingredient_translations_ingredient_id_fkey"),
-    columns: z.tuple([z.literal("ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients_with_translations"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("ingredient_translations_language_id_fkey"),
-    columns: z.tuple([z.literal("language_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("languages"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+);
 
 export const publicShowLimitArgsSchema = z.never();
 
@@ -866,11 +781,6 @@ export type GraphqlPublicGraphqlArgs = z.infer<
 >;
 export type GraphqlPublicGraphqlReturns = z.infer<
   typeof graphqlPublicGraphqlReturnsSchema
->;
-export type PublicGroupCondition = z.infer<typeof publicGroupConditionSchema>;
-export type PublicRecipeRegion = z.infer<typeof publicRecipeRegionSchema>;
-export type PublicSubstitutionStrength = z.infer<
-  typeof publicSubstitutionStrengthSchema
 >;
 export type PublicIngredientSubstitutionsRow = z.infer<
   typeof publicIngredientSubstitutionsRowSchema
@@ -979,11 +889,11 @@ export type PublicUserPublicProfilesInsert = z.infer<
 export type PublicUserPublicProfilesUpdate = z.infer<
   typeof publicUserPublicProfilesUpdateSchema
 >;
-export type PublicIngredientsWithTranslationsRow = z.infer<
-  typeof publicIngredientsWithTranslationsRowSchema
+export type PublicMatchIngredientArgs = z.infer<
+  typeof publicMatchIngredientArgsSchema
 >;
-export type PublicIngredientsWithTranslationsRelationships = z.infer<
-  typeof publicIngredientsWithTranslationsRelationshipsSchema
+export type PublicMatchIngredientReturns = z.infer<
+  typeof publicMatchIngredientReturnsSchema
 >;
 export type PublicShowLimitArgs = z.infer<typeof publicShowLimitArgsSchema>;
 export type PublicShowLimitReturns = z.infer<

@@ -38,6 +38,7 @@ export const recipeCourses = {
 	main: 'Main Course',
 	appetizer: 'Appetizer',
 	side: 'Side Dish',
+	prep: 'Preparation',
 	soup: 'Soup',
 	salad: 'Salad',
 	dessert: 'Dessert',

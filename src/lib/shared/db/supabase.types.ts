@@ -65,24 +65,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ingredient_substitutions_original_ingredient_id_fkey"
-            columns: ["original_ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "ingredient_substitutions_substitute_ingredient_id_fkey"
             columns: ["substitute_ingredient_id"]
             isOneToOne: false
             referencedRelation: "ingredients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ingredient_substitutions_substitute_ingredient_id_fkey"
-            columns: ["substitute_ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -121,13 +107,6 @@ export type Database = {
             columns: ["ingredient_id"]
             isOneToOne: false
             referencedRelation: "ingredients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ingredient_translations_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -251,13 +230,6 @@ export type Database = {
             columns: ["ingredient_id"]
             isOneToOne: false
             referencedRelation: "ingredients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_ingredients_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -499,13 +471,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "space_plan_shopping_lists_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "space_plan_shopping_lists_meal_id_fkey"
             columns: ["meal_id"]
             isOneToOne: false
@@ -610,91 +575,27 @@ export type Database = {
       }
     }
     Views: {
-      ingredients_with_translations: {
-        Row: {
-          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null
-          base_unit: Database["public"]["Enums"]["ingredient_base_unit"] | null
-          commonly_used:
-            | Database["public"]["Enums"]["commonly_used_level"]
-            | null
-          embedding: string | null
-          g_per_ml: number | null
-          g_per_unit: Json | null
-          hierarchy: string[] | null
-          id: string | null
-          ingredient_id: string | null
-          lang: string | null
-          language_id: number | null
-          name_general: string | null
-          name_plural: string | null
-          name_singular: string | null
-          slug: string | null
-          slug_general: string | null
-          unit_frequencies: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ingredient_translations_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ingredient_translations_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ingredient_translations_language_id_fkey"
-            columns: ["language_id"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
-      match_ingredient:
-        | {
-            Args: { lang: string; query: string }
-            Returns: {
-              commonly_used: Database["public"]["Enums"]["commonly_used_level"]
-              fts: unknown
-              ingredient_id: string
-              language_id: number
-              name_general: string
-              name_plural: string | null
-              name_singular: string | null
-            }[]
-            SetofOptions: {
-              from: "*"
-              to: "ingredient_translations"
-              isOneToOne: false
-              isSetofReturn: true
-            }
-          }
-        | {
-            Args: { lang: string; n_matches?: number; query: string }
-            Returns: {
-              commonly_used: Database["public"]["Enums"]["commonly_used_level"]
-              fts: unknown
-              ingredient_id: string
-              language_id: number
-              name_general: string
-              name_plural: string | null
-              name_singular: string | null
-            }[]
-            SetofOptions: {
-              from: "*"
-              to: "ingredient_translations"
-              isOneToOne: false
-              isSetofReturn: true
-            }
-          }
+      match_ingredient: {
+        Args: { lang: string; n_matches?: number; query: string }
+        Returns: {
+          commonly_used: Database["public"]["Enums"]["commonly_used_level"]
+          fts: unknown
+          ingredient_id: string
+          language_id: number
+          name_general: string
+          name_plural: string | null
+          name_singular: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ingredient_translations"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { max_length?: number; value: string }; Returns: string }
@@ -713,6 +614,7 @@ export type Database = {
         | "appetizer"
         | "main"
         | "side"
+        | "prep"
         | "salad"
         | "soup"
         | "dessert"
@@ -738,20 +640,12 @@ export type Database = {
         | "caribbean"
         | "african"
       effort_level: "none" | "low" | "medium" | "high"
-      group_condition: "all" | "at_least_one" | "at_least_n"
       ingredient_base_unit: "g" | "ml" | "unit"
       ingredient_substitution_strength:
         | "equivalent"
         | "close"
         | "far"
         | "variant"
-      recipe_region:
-        | "africa"
-        | "asia"
-        | "europe"
-        | "north-america"
-        | "south-america"
-        | "oceania"
       recipe_source_type: "website" | "user-manual"
       recipe_tool:
         | "blender"
@@ -765,7 +659,6 @@ export type Database = {
         | "stove"
         | "toaster"
       skill_level: "beginner" | "intermediate" | "advanced" | "chef"
-      substitution_strength: "equivalent" | "close" | "far"
       supermarket_aisle:
         | "beverages"
         | "bread-pastries"
@@ -926,6 +819,7 @@ export const Constants = {
         "appetizer",
         "main",
         "side",
+        "prep",
         "salad",
         "soup",
         "dessert",
@@ -953,21 +847,12 @@ export const Constants = {
         "african",
       ],
       effort_level: ["none", "low", "medium", "high"],
-      group_condition: ["all", "at_least_one", "at_least_n"],
       ingredient_base_unit: ["g", "ml", "unit"],
       ingredient_substitution_strength: [
         "equivalent",
         "close",
         "far",
         "variant",
-      ],
-      recipe_region: [
-        "africa",
-        "asia",
-        "europe",
-        "north-america",
-        "south-america",
-        "oceania",
       ],
       recipe_source_type: ["website", "user-manual"],
       recipe_tool: [
@@ -983,7 +868,6 @@ export const Constants = {
         "toaster",
       ],
       skill_level: ["beginner", "intermediate", "advanced", "chef"],
-      substitution_strength: ["equivalent", "close", "far"],
       supermarket_aisle: [
         "beverages",
         "bread-pastries",
