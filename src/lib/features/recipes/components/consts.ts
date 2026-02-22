@@ -18,7 +18,8 @@ import {
 	Pizza,
 	Sandwich,
 	Clock,
-	ShoppingBag
+	ShoppingBag,
+	Blocks
 } from 'lucide-svelte';
 import type { RecipeCourseKey, RecipeCuisineKey, RecipeTimeOfDayKey } from '../db/recipe-doc';
 import { Bean } from '@lucide/svelte';
@@ -149,6 +150,12 @@ export const recipeCoursesSectionHeaders = {
 		icon: EggFried,
 		subtitle: 'Complement your meal with a tasty side dish.',
 		classes: 'bg-yellow-100 text-yellow-800'
+	},
+	prep: {
+		title: 'Preparation',
+		icon: Blocks,
+		subtitle: 'Quick recipes that you can combine with other dishes.',
+		classes: 'bg-teal-100 text-teal-800'
 	},
 	salad: {
 		title: 'Salads',

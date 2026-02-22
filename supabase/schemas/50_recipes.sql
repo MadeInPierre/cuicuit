@@ -24,6 +24,7 @@ CREATE TYPE "public"."course" AS ENUM(
     'appetizer',
     'main',
     'side',
+    'prep',
     'salad',
     'soup',
     'dessert',

@@ -17,26 +17,26 @@ const volumeConversionRates = {
 	gallon: 3785.411784,
 	// EU
 	eutsp: 5,
-	eudstspn: 10,
+	eudstsp: 10,
 	eutbsp: 15,
 	eucup: 250,
 	// US
 	ustsp: 4.9289216,
-	usdstspn: 9.8578432,
+	usdstsp: 9.8578432,
 	ustbsp: 14.786765,
 	uscup: 236.58824,
 	usfloz: 29.57353,
 	uspint: 473.17647,
 	// UK
 	uktsp: 4.9289216,
-	ukdstspn: 9.8578432,
+	ukdstsp: 9.8578432,
 	uktbsp: 14.786765,
 	ukcup: 236.58824,
 	ukfloz: 28.413063,
 	ukpint: 568.26125,
 	// AU
 	autsp: 5,
-	audstspn: 10,
+	audstsp: 10,
 	autbsp: 20,
 	aucup: 250
 } as const;
@@ -78,7 +78,7 @@ export const volumeAliases = {
 	l: ['liter', 'litre', 'liters', 'litres'],
 	tsp: ['teaspoon', 'teaspoons'],
 	tbsp: ['tablespoon', 'tablespoons'],
-	dstspn: ['dessertspoon', 'dessertspoons'],
+	dstsp: ['dessertspoon', 'dessertspoons'],
 	cup: ['cups', 'c'],
 	quart: ['quarts', 'qt', 'qts'],
 	gallon: ['gallons', 'gal', 'gals'],
@@ -100,7 +100,7 @@ export const unitLabels = {
 	l: 'L',
 	tsp: 'teaspoon',
 	tbsp: 'tablespoon',
-	dstspn: 'desert spoon',
+	dstsp: 'desert spoon',
 	cup: 'cup',
 	quart: 'quart',
 	gallon: 'gallon',
