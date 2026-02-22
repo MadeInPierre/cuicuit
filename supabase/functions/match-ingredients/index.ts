@@ -1,31 +1,15 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
-
-// Setup type definitions for built-in Supabase Runtime APIs
-
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 import { corsHeaders } from '../_shared/cors.ts';
 
-// Extended regular expression to remove quantities, units, preparation words, and common descriptors in English and French.
+// We only remove numbers, fractions, units, and action verbs.
+// We DO NOT remove adjectives (rouge, frais, gros) because they differentiate ingredients.
 const noiseRegex = new RegExp(
 	[
-		// Quantities (e.g., 1, 1.5, 1/2, 50g)
-		'\\b\\d+\\/\\d+\\b', // Fractions like 1/2
-		'\\b\\d*\\.?\\d+\\s*(g|kg|grammes?|oz|lb|ml|l|cl|cup|tasse|tbsp|c.à.s|càs|c.à.c|cac|tsp|teaspoon|tablespoon|cuillère(?:s)? à soupe|cuillère(?:s)? à café|clove|gousse(?:s)?|pinch|pincée|tranche(?:s)?|morceau(?:x)?)s?\\b', // Numbers with units (EN/FR)
+		'\\b\\d+\\/\\d+\\b', // Fractions
+		'\\b\\d*\\.?\\d+\\s*(g|kg|grammes?|oz|lb|ml|l|cl|cup|tasses?|tbsp|c\\.à\\.s|càs|c\\.à\\.c|cac|tsp|teaspoons?|tablespoons?|cuillères? à soupe|cuillères? à café|cloves?|gousses?|pinch|pincées?|tranches?|morceaux?)\\b',
 		'\\b\\d+\\b', // Standalone numbers
-
-		// Common preparation words and descriptors (EN/FR)
-		'\\b(diced|chopped|minced|sliced|julienned|crushed|ground|peeled|seeded|cored|halved|quartered|freshly|fresh|large|medium|small|optional|for garnish|to taste|finely|roughly|frais|hach[ée]s?|émietté|entier|vert|jaune|rouge|noir|gros|moyen|petit|facultatif|pour la garniture|au goût|de préférence entier|seulement si nécessaire)\\b',
-
-		// French partitive/articles
-		"\\b(de|du|des|d'|la|le|les)\\b",
-
-		// Punctuation and parentheticals
-		'\\s*\\(.*?\\)', // Text in parentheses
-		'[,\\.]' // Commas and periods
+		'\\b(diced|chopped|minced|sliced|julienned|crushed|peeled|seeded|cored|halved|quartered|optional|for garnish|to taste|finely|roughly|hach[ée]s?|émietté|facultatif|pour la garniture|au goût)\\b'
 	].join('|'),
 	'gi'
 );
@@ -33,43 +17,28 @@ const noiseRegex = new RegExp(
 function preprocessIngredient(text: string): string {
 	if (!text) return '';
 
-	// Convert to lowercase and ignore everything after the first comma
-	let cleanedText = text.toLowerCase().trim().split(',')[0];
+	// Convert to lowercase and take primary ingredient before comma
+	let cleaned = text.toLowerCase().split(',')[0];
 
-	// Remove noise using the regex
-	cleanedText = cleanedText.replace(noiseRegex, '');
+	// Strip mathematical/action noise
+	cleaned = cleaned.replace(noiseRegex, ' ');
 
-	// Remove French partitive/articles at the start (again, for edge cases)
-	cleanedText = cleanedText.replace(/^(de|du|des|d'|la|le|les)\s+/g, '');
+	// Safely remove leading articles without destroying internal words
+	cleaned = cleaned.replace(/^(de |du |des |d'|la |le |les |un |une )/i, '');
 
-	// Remove trailing/plural 's' for basic French plural normalization
-	cleanedText = cleanedText.replace(/\b(\w+)s\b/g, '$1');
+	// We will let PostgreSQL handle plurals via its language dictionaries. No naive 's' removal here.
 
-	// Trim whitespace from start/end and remove extra spaces in the middle
-	cleanedText = cleanedText.trim().replace(/\s+/g, ' ');
-
-	// Remove any lingering leading/trailing punctuation or spaces
-	cleanedText = cleanedText.replace(/^[,\.\-\s]+|[,\.\-\s]+$/g, '');
-
-	console.log(`Final cleaned text: ${cleanedText}`);
-	return cleanedText;
+	// Cleanup spacing and punctuation
+	return cleaned.replace(/[,\.\-\s]+/g, ' ').trim();
 }
 
-/**
- * Supabase Edge Function to match ingredient strings against the ingredient database.
- * Expects a JSON body with an "ingredients" array and optional "lang" parameter.
- * Returns the best database matches for each ingredient.
- */
 Deno.serve(async (req) => {
-	// Handle CORS preflight request
-	if (req.method === 'OPTIONS') {
-		return new Response('ok', { headers: corsHeaders });
-	}
+	if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
 	try {
 		const { ingredients, lang } = await req.json();
 		if (!ingredients || !Array.isArray(ingredients)) {
-			throw new Error('Missing "ingredients" array in the request body.');
+			throw new Error('Missing "ingredients" array.');
 		}
 
 		const supabaseClient = createClient(
@@ -78,35 +47,25 @@ Deno.serve(async (req) => {
 			{ global: { headers: { Authorization: req.headers.get('Authorization')! } } }
 		);
 
-		// Process all ingredients in parallel
 		const matchPromises = ingredients.map(async (originalText: string) => {
 			const cleanedText = preprocessIngredient(originalText);
 
-			// If cleaning results in an empty string, don't query the database
 			if (!cleanedText) {
-				return {
-					original: originalText,
-					bestMatches: [],
-					message: 'No valid ingredient text after cleaning.'
-				};
+				return { original: originalText, bestMatches: [], message: 'Empty after cleaning.' };
 			}
 
 			const { data, error } = await supabaseClient.rpc('match_ingredient', {
-				query: cleanedText,
-				lang: lang || 'fr-FR', // Default to French if no language provided
-				n_matches: 10 // Limit to top 10 matches
+				query_text: cleanedText, // Renamed to avoid SQL reserved word conflicts
+				lang_code: lang || 'fr-FR',
+				n_matches: 10
 			});
 
-			if (error) {
-				console.error(`Error matching '${cleanedText}':`, error.message);
-				return { original: originalText, bestMatches: [], message: error.message };
-			}
+			if (error) throw error;
 
 			return {
 				original: originalText,
-				// The function returns an array, we take the first result
-				bestMatches: data,
-				message: data?.length > 0 ? 'Found matches.' : 'No matches found.'
+				cleaned: cleanedText, // Good for debugging in your frontend
+				bestMatches: data || []
 			};
 		});
 

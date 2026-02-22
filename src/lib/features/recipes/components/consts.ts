@@ -152,9 +152,9 @@ export const recipeCoursesSectionHeaders = {
 		classes: 'bg-yellow-100 text-yellow-800'
 	},
 	prep: {
-		title: 'Preparation',
+		title: 'Preparations',
 		icon: Blocks,
-		subtitle: 'Quick recipes that you can combine with other dishes.',
+		subtitle: 'Small recipes that can be combined with other dishes.',
 		classes: 'bg-teal-100 text-teal-800'
 	},
 	salad: {
