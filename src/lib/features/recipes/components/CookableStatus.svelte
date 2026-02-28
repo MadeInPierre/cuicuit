@@ -17,7 +17,7 @@
 			color: 'text-teal-600 dark:text-teal-500'
 		},
 		{
-			label: 'Cookable, 2 close substitutions',
+			label: 'Cookable, 2 close subs',
 			icon: EqualApproximately,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
@@ -27,7 +27,7 @@
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: 'Cookable, 2 far substitutions',
+			label: 'Cookable, 2 far subs',
 			icon: EqualApproximately,
 			color: 'text-yellow-600 dark:text-yellow-500'
 		},

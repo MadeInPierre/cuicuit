@@ -13,7 +13,15 @@
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import { Calendar, House, ShoppingCart } from 'lucide-svelte';
+	import {
+		Calendar,
+		ChefHat,
+		Circle,
+		CircleCheck,
+		CircleCheckBig,
+		House,
+		ShoppingCart
+	} from 'lucide-svelte';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 
@@ -42,7 +50,7 @@
 	/**
 	 * Combines ingredients from meals into a single list with unique ingredients,
 	 * summing their quantities and keeping track of their origins.
-	 * (e.g., "12 apples coming from 3 for Meal 1, 9 for Meal 2").
+	 * (e.g., "12 apples coming from 3 for Meal 1, 5 for Meal 2, and 4 by Pierre").
 	 */
 	function generateShoppingList(meals: MealWithRecipeAndIngredients[]): ShoppingListItem[] {
 		const ingredientMap: Record<string, ShoppingListItem> = {};
@@ -72,7 +80,7 @@
 					}
 				});
 
-				// TODO Merge quantities (simple sum, assumes same unit)
+				// TODO Merge quantities (simple sum, assumes same unit for now, but should handle unit conversions and weight/volume mismatches)
 				ingredientMap[key].mergedQuantity!.amount +=
 					(shoppingIngredient.quantity * meal.servings) / meal.recipe.servings;
 				ingredientMap[key].mergedQuantity!.unit =
@@ -107,7 +115,7 @@
 		</Tabs.List>
 
 		<Tabs.Content value="aisle" class="mt-8">
-			<div class="grid grid-cols-[3fr_0.1fr_1fr]">
+			<div class="grid grid-cols-1 md:grid-cols-[3fr_0.1fr_1fr]">
 				<div class="grid space-y-12">
 					{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
 						{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === aisleKey)}
@@ -116,11 +124,13 @@
 							<section>
 								<SectionHeader header={aisleHeader} size="sm" class="mb-4" />
 
-								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<div class="grid ml-5 border-l-2 pl-4 space-y-2">
+								<div
+									class="grid grid-cols-1 md:grid-cols-2 ml-5 pl-6 md:pl-12 space-y-4 border-l-2 gap-4"
+								>
 									{#each aisleItems as item (item.ingredient.id)}
+										<!-- svelte-ignore a11y_no_static_element_interactions -->
 										<div
-											class="grid"
+											class="flex group"
 											onmouseenter={() => {
 												hoveredMealIngredientId.value = item.ingredient.id;
 												hoveredListIngredientId = item.ingredient.id;
@@ -130,73 +140,57 @@
 												hoveredListIngredientId = null;
 											}}
 										>
-											<div class="flex items-center gap-8 mr-8">
-												<IngredientListItem
-													ingredient={item.ingredient}
-													amount={item.mergedQuantity!.amount}
-													unit={item.mergedQuantity!.unit}
-												/>
+											<IngredientListItem
+												ingredient={item.ingredient}
+												amount={item.mergedQuantity!.amount}
+												unit={item.mergedQuantity!.unit}
+											>
+												<span class="md:hidden text-xs text-muted-foreground/80 flex gap-3">
+													<div class="flex items-center gap-1">
+														<House class="size-3 inline-block" />
+														400 ml
+													</div>
 
-												<!-- <div class="ml-auto w-28 flex items-center gap-2 text-sm">
-													<House class="size-5" />
-													<span>
-														<strong>
-															<NumberFlow value={item.mergedQuantity!.amount} />
-														</strong>
-														{item.mergedQuantity!.unit?.replace('whole', '')}
-													</span>
-												</div>
-
-												<div class="w-28 flex items-center gap-2 text-sm">
-													<Calendar class="size-5" />
-													<span>
-														<strong>
-															<NumberFlow value={item.mergedQuantity!.amount} />
-														</strong>
-														{item.mergedQuantity!.unit?.replace('whole', '')}
-													</span>
-												</div>
-
-												<div class="w-28 flex items-center gap-2 text-sm">
-													<ShoppingCart class="size-5" />
-													<span>
-														<strong>
-															<NumberFlow value={item.mergedQuantity!.amount} />
-														</strong>
-														{item.mergedQuantity!.unit?.replace('whole', '')}
-													</span>
-												</div> -->
-
-												<Button
-													variant="outline"
-													size="icon"
-													class="ml-auto"
-													aria-label="Add to cart"
-												>
-													<ShoppingCart class="size-5" />
-												</Button>
-												<Button
-													variant="outline"
-													size="icon"
-													class=""
-													aria-label="Already have at home"
-												>
-													<House class="size-5" />
-												</Button>
-											</div>
-
-											<!-- <div class="grid">
-											{#each item.origins as origin (origin.id)}
-												{@const meal = meals.find((m) => m.id === origin.id)}
-
-												<MealCard {meal} expanded />
-												<span class="ml-8 text-xs text-muted-foreground">
-													<NumberFlow value={origin.shoppingIngredient.quantity} />
-													{origin.shoppingIngredient.unit} from {origin.type}
-													{meal ? meal.recipe.title : origin.id}
+													{#if item.origins.length > 0}
+														<div class="flex items-center gap-1">
+															<ChefHat class="size-3 inline-block" />
+															{item.origins.length}
+														</div>
+													{/if}
 												</span>
-											{/each}
-										</div> -->
+
+												<div class="hidden md:grid">
+													{#each item.origins as origin (origin.id)}
+														{@const meal = meals.find((m) => m.id === origin.id)}
+
+														<span class="text-xs text-muted-foreground line-clamp-1">
+															{#if item.origins.length > 1}
+																<NumberFlow value={origin.shoppingIngredient.quantity} />
+																{origin.shoppingIngredient.unit === 'whole'
+																	? ''
+																	: origin.shoppingIngredient.unit}
+																for
+															{/if}
+															{meal ? meal.recipe.title : origin.id}
+														</span>
+													{/each}
+												</div>
+
+												<!-- <div class="grid grid-cols-1 gap-3 mt-2">
+													{#each item.origins as origin (origin.id)}
+														{@const meal = meals.find((m) => m.id === origin.id)}
+														<MealCard {meal} showServings={false} class="border-none p-0 " />
+													{/each}
+												</div> -->
+											</IngredientListItem>
+
+											<Button
+												size="default"
+												variant="ghost"
+												class="mt-1 ml-auto w-8 h-8 rounded-full"
+											>
+												<Circle class="w-8 h-8 text-muted-foreground/60" />
+											</Button>
 										</div>
 									{/each}
 								</div>
@@ -229,10 +223,10 @@
 					{/if}
 				</div>
 
-				<Separator orientation="vertical" class="mx-4" />
+				<Separator orientation="vertical" class="mx-4 hidden md:block" />
 
 				<!-- Show all meal origins of the hovered list ingredient -->
-				<div class="">
+				<div class="hidden md:block">
 					<div class="grid space-y-4">
 						{#each shoppingList.find((item) => item.ingredient.id === hoveredListIngredientId)?.origins || [] as origin (origin.type + origin.id)}
 							{@const meal = meals.find((m) => m.id === origin.id)}
@@ -244,7 +238,15 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="recipes" class="mt-4">
-			<PaperBoard />
+			<div class="grid grid-cols-1 md:grid-cols-4 gap-4 space-y-4 overflow-auto">
+				{#each meals as meal (meal.id)}
+					<div class="w-full">
+						<MealCard {meal} expanded />
+					</div>
+				{/each}
+			</div>
+
+			<!-- <PaperBoard /> -->
 		</Tabs.Content>
 
 		<Tabs.Content value="combined" class="mt-4">

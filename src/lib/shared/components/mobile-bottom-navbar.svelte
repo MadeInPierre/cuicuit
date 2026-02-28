@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChefHat, User, ClipboardList, Refrigerator, Camera, Mic } from 'lucide-svelte';
+	import { ChefHat, User, ClipboardList, Refrigerator, Camera, Mic, ShoppingCart } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
 </script>
@@ -43,6 +43,10 @@
 		<ClipboardList class="size-6" />
 		<span class="sr-only">Plan</span>
 	</a>
+	<a href="/shopping-list">
+		<ShoppingCart class="size-6" />
+		<span class="sr-only">Shopping List</span>
+	</a>
 	<a href="/pantry">
 		<Refrigerator class="size-6" />
 		<span class="sr-only">Pantry</span>
@@ -62,7 +66,7 @@
 		>
 			<Camera class="size-5" />
 		</Button>
-		<span>Ask anything...</span>
+		<span>Ask...</span>
 		<Button
 			variant="ghost"
 			size="icon"
@@ -75,8 +79,8 @@
 			<Mic class="size-5" />
 		</Button>
 	</a>
-	<a href="/settings">
+	<!-- <a href="/settings">
 		<User class="size-6" />
 		<span class="sr-only">Settings</span>
-	</a>
+	</a> -->
 </nav>
