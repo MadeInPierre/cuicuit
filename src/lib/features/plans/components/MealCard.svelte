@@ -1,5 +1,18 @@
 <script lang="ts">
-	import { Plus, Trash2, Users, Weight } from 'lucide-svelte';
+	import {
+		Check,
+		Circle,
+		CircleSlash,
+		Ellipsis,
+		EqualApproximately,
+		Pencil,
+		Plus,
+		ShoppingCart,
+		Trash2,
+		Users,
+		Weight,
+		X
+	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -18,6 +31,7 @@
 	interface Props {
 		meal?: MealWithRecipeAndIngredients | null; // null for loading state
 		expanded?: boolean; // Show expanded view with ingredients and controls
+		showServings?: boolean; // Whether to show servings count in collapsed view
 		showExpandedButtons?: boolean;
 		class?: string;
 	}
@@ -26,6 +40,7 @@
 		meal = null,
 		expanded: parentExpanded = false,
 		class: className = '',
+		showServings = true,
 		showExpandedButtons = false
 	}: Props = $props();
 
@@ -74,7 +89,7 @@
 				<CookableStatus />
 			</div>
 
-			{#if !finalExpanded || !showExpandedButtons}
+			{#if showServings && (!finalExpanded || !showExpandedButtons)}
 				<div class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0 relative">
 					<div class="flex items-center gap-1">
 						<span>{meal.servings}</span>
@@ -110,9 +125,17 @@
 					{/if}
 
 					{#each [...meal.shopping_ingredients].sort((a, b) => {
-						const order = { recipe: 0, adjusted: 0, added: 1, ignored: 2 };
-						return order[a.meal_origin as keyof typeof order] - order[b.meal_origin as keyof typeof order];
+						// Sort by adjusted quantity first (considering meal servings), then by name
+						const aQty = (a.quantity * meal.servings) / meal.recipe.servings;
+						const bQty = (b.quantity * meal.servings) / meal.recipe.servings;
+
+						if (aQty === bQty) {
+							return (a.name || a.ingredient?.translations[0]?.name_singular || '').localeCompare(b.name || b.ingredient?.translations[0]?.name_singular || '');
+						}
+						return bQty - aQty;
 					}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
+						{@const t = shopping_ingredient.ingredient?.translations[0]}
+
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class={cn(
@@ -136,13 +159,14 @@
 							<div class="h-[22px] p-0.5 px-2 flex items-center">
 								<span
 									class={cn(
-										'line-clamp-2',
+										'line-clamp-1',
 										shopping_ingredient.meal_origin === 'ignored' &&
 											'line-through text-muted-foreground/60'
 									)}
 								>
-									{shopping_ingredient.name ||
-										shopping_ingredient.ingredient?.translations[0]?.name_singular}
+									{shopping_ingredient.quantity > 1
+										? t?.name_plural || t?.name_singular
+										: t?.name_singular || t?.name_plural || shopping_ingredient.name}
 								</span>
 
 								{#if shopping_ingredient.meal_origin === 'recipe'}
@@ -157,7 +181,7 @@
 
 								<span
 									class={cn(
-										'ml-auto font-medium whitespace-nowrap cursor-ew-resize select-none min-w-8 text-right',
+										'ml-auto font-medium whitespace-nowrap select-none min-w-8 text-right text-green-600',
 										shopping_ingredient.meal_origin === 'ignored' &&
 											'line-through text-muted-foreground/60'
 									)}
@@ -173,7 +197,8 @@
 									{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
 								</span>
 
-								<!-- <Check class="max-w-3 max-h-3 text-green-600" /> -->
+								<!-- <Check class="ml-1 max-w-3 max-h-3 text-green-600" /> -->
+								<EqualApproximately class="ml-1 max-w-3 max-h-3 text-teal-600" />
 							</div>
 
 							<!-- {#if i === 0}
@@ -197,11 +222,6 @@
 						</div>
 					{/each}
 				</div>
-
-				<!-- <Button variant="default" size="sm" class="w-full text-xs flex items-center gap-1">
-					<Pencil class="size-3.5" />
-					Edit Ingredients
-				</Button> -->
 
 				{#if showExpandedButtons}
 					<div

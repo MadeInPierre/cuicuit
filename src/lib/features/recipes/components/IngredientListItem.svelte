@@ -2,31 +2,43 @@
 	import IngredientImage from './IngredientImage.svelte';
 	import type { IngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import NumberFlow from '@number-flow/svelte';
+	import { ChefHat, House } from 'lucide-svelte';
 
 	type Props = {
 		ingredient: IngredientWithTranslations;
 		amount?: number;
 		unit?: string;
 		[key: string]: any;
+		children?: any;
 	};
 
-	const { ingredient, amount, unit, ...others }: Props = $props();
+	const { ingredient, amount, unit, children, ...others }: Props = $props();
 
-	const translation =
-		ingredient.translations.find((t) => t.language.lang === 'fr-FR') || ingredient.translations[0];
+	const translation = $derived(
+		ingredient.translations.find((t) => t.language.lang === 'fr-FR') || ingredient.translations[0]
+	);
+
+	const name = $derived(
+		amount && amount > 1
+			? translation.name_plural || translation.name_singular
+			: translation?.name_singular || translation?.name_plural
+	);
 </script>
 
-<div class="flex items-center gap-2" {...others}>
-	<IngredientImage
-		id={ingredient.id}
-		name={translation.name_singular || 'Unknown'}
-		class="w-12 h-12"
-	/>
-	<div class="flex-1 ml-4">
-		<span class="text-sm font-medium">{translation.name_singular || 'Unknown'}</span>
-		<span class="text-xs text-balance line-clamp-2">
-			<NumberFlow value={amount} />
-			{unit == 'whole' ? '' : unit}
+<div class="flex items-start gap-2" {...others}>
+	<IngredientImage id={ingredient.id} name={name || 'Unknown'} class="w-12 h-12" />
+	<div class="grid space-y-0.5 ml-4">
+		<span class="text-md">
+			<span class="font-medium mr-1">
+				<NumberFlow value={amount} />
+				{unit == 'whole' ? '' : unit}
+			</span>
+
+			<span class="">
+				{name || 'Unknown'}
+			</span>
 		</span>
+
+		{@render children?.()}
 	</div>
 </div>

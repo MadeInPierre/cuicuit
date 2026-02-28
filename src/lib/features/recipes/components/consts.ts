@@ -190,6 +190,12 @@ export const recipeCoursesSectionHeaders = {
 } satisfies Record<RecipeCourseKey, UISectionHeader> & { default: UISectionHeader };
 
 export const supermarketAisleSectionHeaders = {
+	'fruits-vegetables': {
+		title: 'Vegetables & Fruits',
+		subtitle: 'Fresh produce',
+		icon: Carrot,
+		classes: 'bg-green-100 text-green-800'
+	},
 	beverages: {
 		title: 'Beverages',
 		subtitle: 'Drinks and refreshments',
@@ -213,12 +219,6 @@ export const supermarketAisleSectionHeaders = {
 		subtitle: 'Frozen meals and quick snacks',
 		icon: Snowflake,
 		classes: 'bg-slate-100 text-slate-800'
-	},
-	'fruits-vegetables': {
-		title: 'Vegetables & Fruits',
-		subtitle: 'Fresh produce',
-		icon: Carrot,
-		classes: 'bg-green-100 text-green-800'
 	},
 	'grain-products': {
 		title: 'Grain Products',

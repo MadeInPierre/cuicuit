@@ -294,7 +294,8 @@
 									size="sm"
 									type="submit"
 									class="flex gap-2 ml-auto"
-									onclick={() => recipe && addRecipeToActivePlan(activeSpace, recipe.id, 1)}
+									onclick={() =>
+										recipe && addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings || 1)}
 								>
 									<CalendarPlus class="size-4" />
 									Add meal
