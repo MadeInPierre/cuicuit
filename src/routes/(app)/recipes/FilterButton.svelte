@@ -27,10 +27,10 @@
 	variant={primary ? 'default' : 'secondary'}
 	class={cn(
 		'h-7 flex items-center gap-1.5 text-sm rounded-sm px-2 font-normal',
-		!primary && 'bg-muted',
+		!primary && 'bg-muted dark:text-muted-foreground dark:hover:bg-muted/60',
 		!primary &&
 			active &&
-			'bg-muted-foreground/25 hover:bg-muted-foreground/20 dark:bg-slate-500 dark:hover:bg-slate-600',
+			'bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 text-white',
 		className
 	)}
 	onclick={() => {

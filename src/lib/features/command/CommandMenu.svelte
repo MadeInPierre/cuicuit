@@ -23,7 +23,7 @@
 
 <Button
 	variant="secondary"
-	class="ml-auto hidden md:flex mr-8 h-8 text-sm px-2 font-normal text-muted-foreground items-center gap-1"
+	class="ml-auto hidden md:flex mr-8 h-8 text-sm px-2 font-normal text-muted-foreground items-center gap-1 bg-muted"
 	onclick={() => (open = true)}
 >
 	<span>Chat with Cuicuit...</span>

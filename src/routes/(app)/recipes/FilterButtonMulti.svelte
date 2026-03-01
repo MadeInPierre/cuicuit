@@ -77,9 +77,9 @@
 						{...props}
 						variant="secondary"
 						class={cn(
-							'h-7 rounded-r-sm rounded-l-none px-1 font-normal bg-muted',
+							'h-7 rounded-r-sm rounded-l-none px-1 font-normal bg-muted dark:text-muted-foreground dark:hover:bg-muted/60',
 							values.length > 0 &&
-								'bg-muted-foreground/25 hover:bg-muted-foreground/20 dark:bg-slate-500 dark:hover:bg-slate-600'
+								'bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 text-white'
 						)}
 					>
 						<ChevronDown class="size-3.5" />

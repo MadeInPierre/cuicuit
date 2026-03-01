@@ -30,7 +30,7 @@
 		{...others}
 		type="text"
 		placeholder="Search recipes..."
-		class="pl-10 pr-3 py-2"
+		class="pl-10 pr-3 py-2 border-inherit"
 		bind:value
 		bind:this={inputRef}
 	/>

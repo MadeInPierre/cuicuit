@@ -33,6 +33,10 @@
 							<a href={item.url} {...props}>
 								<item.icon />
 								<span>{item.title}</span>
+
+								{#if item.badge && !sidebar.open}
+									<span class="absolute top-0.5 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+								{/if}
 							</a>
 						{/snippet}
 
@@ -40,6 +44,7 @@
 							<span>{item.title}</span>
 						{/snippet}
 					</Sidebar.MenuButton>
+
 					{#if item.badge}
 						<Sidebar.MenuBadge class="bg-red-500 rounded-full text-white text-xs">
 							{item.badge}

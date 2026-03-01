@@ -53,7 +53,7 @@
 		<button
 			use:dragHandle
 			class={cn(
-				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md border relative group',
+				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group',
 				className
 			)}
 			ondblclick={() => (localExpanded = !localExpanded)}
@@ -63,7 +63,7 @@
 				<img
 					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`}
 					alt="Recipe"
-					class="aspect-square size-10 rounded-md object-cover border"
+					class="aspect-square size-11 rounded-md object-cover"
 					onerror={(e) => {
 						if (meal.recipe.image_ids && meal.recipe.image_ids[0]) {
 							(e.currentTarget as HTMLImageElement).src =
@@ -103,7 +103,7 @@
 			<div
 				transition:slide={{ duration: 300 }}
 				class={cn(
-					'grid space-y-2 bg-muted dark:bg-slate-950 rounded-b-md px-2 pt-6 -translate-y-4 border relative',
+					'grid space-y-2 bg-muted dark:bg-slate-950 rounded-b-md px-2 pt-6 -translate-y-4 relative',
 					showExpandedButtons ? 'pb-3 mb-4' : 'pb-2'
 				)}
 			>

@@ -17,17 +17,17 @@
 			color: 'text-teal-600 dark:text-teal-500'
 		},
 		{
-			label: 'Cookable, 2 close subs',
+			label: 'Cookable, 2 close subs.',
 			icon: EqualApproximately,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: 'Cookable, limited quantities',
+			label: 'Cookable, close quantities',
 			icon: Scale,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: 'Cookable, 2 far subs',
+			label: 'Cookable, 2 far subs.',
 			icon: EqualApproximately,
 			color: 'text-yellow-600 dark:text-yellow-500'
 		},
