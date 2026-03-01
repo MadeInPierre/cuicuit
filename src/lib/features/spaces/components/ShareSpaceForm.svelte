@@ -7,6 +7,7 @@
 	import { toast } from 'svelte-sonner';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 	import ButtonThemed from './ButtonThemed.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 
 	let copied = $state(false);
 
@@ -42,7 +43,7 @@
 		<div class="flex w-full gap-2">
 			<Input id="name" value={inviteUrl} readonly tabindex={-1} />
 
-			<ButtonThemed onclick={copyLink}>
+			<Button onclick={copyLink}>
 				{#if copied}
 					<div class="flex items-center gap-2">
 						Copied!
@@ -54,7 +55,7 @@
 						<Copy class="size-4" />
 					</div>
 				{/if}
-			</ButtonThemed>
+			</Button>
 		</div>
 
 		<p class="text-xs text-muted-foreground">Share this link with your friends to invite them!</p>

@@ -35,6 +35,10 @@
 								<span>{item.title}</span>
 							</a>
 						{/snippet}
+
+						{#snippet tooltipContent()}
+							<span>{item.title}</span>
+						{/snippet}
 					</Sidebar.MenuButton>
 					{#if item.badge}
 						<Sidebar.MenuBadge class="bg-red-500 rounded-full text-white text-xs">

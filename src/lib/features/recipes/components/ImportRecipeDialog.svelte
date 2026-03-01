@@ -4,11 +4,11 @@
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
-	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
 	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 	import { createDraftRecipe } from '../actions/create-draft-recipe';
 	import { toast } from 'svelte-sonner';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
 
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
@@ -49,10 +49,10 @@
 				{#if trigger}
 					{@render trigger({ props })}
 				{:else}
-					<ButtonThemed {...props} class="ml-auto" size="sm">
+					<Button {...props} class="ml-auto" size="sm">
 						<Download class="mx-2 h-4 w-4" />
 						<span>Import</span>
-					</ButtonThemed>
+					</Button>
 				{/if}
 			{/snippet}
 		</DropdownMenu.Trigger>

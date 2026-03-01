@@ -44,10 +44,10 @@
 			<div class="grid space-y-4">
 				{@render sectionHeader(ShoppingBasket, 'Anything else?', 'Add items to your grocery list')}
 				<div
-					class="py-10 text-center text-xs text-slate-400 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+					class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
 				>
 					<ShoppingBasket class="size-8" />
-					<p class="mx-auto w-28 text-center">Search for items to add them here.</p>
+					<p class="mx-auto w-28 text-center">Search for items to add them here</p>
 				</div>
 			</div>
 		</Tabs.Content>

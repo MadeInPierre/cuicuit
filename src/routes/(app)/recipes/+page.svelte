@@ -267,7 +267,7 @@
 				</div>
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
-					<span class="py-1">Find recipes grouped by</span>
+					<span class="py-1">Recipes grouped by</span>
 					<FilterDropdown
 						value={parameters.groupBy}
 						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
@@ -294,10 +294,10 @@
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
-							<ButtonThemed {...props}>
+							<Button {...props}>
 								<Plus class="size-4 mr-2" />
 								Add
-							</ButtonThemed>
+							</Button>
 						{/snippet}
 					</ImportRecipeDialog>
 				</div>
@@ -387,25 +387,26 @@
 						<div class="flex justify-between items-center mb-6">
 							<SectionHeader header={sectionRecipes.header} />
 
-							<Button
-								variant="link"
-								size="sm"
-								class="flex items-center"
-								disabled={sectionRecipes.recipes.length <= 4}
-								onclick={() => {
-									console.log('See all for', parameters.groupBy, sectionRecipes.key);
-									setParameters({
-										...parameters,
-										filters: {
-											...parameters.filters,
-											[parameters.groupBy]: [sectionRecipes.key]
-										}
-									});
-								}}
-							>
-								See all
-								<ArrowRight class="size-3.5" />
-							</Button>
+							{#if sectionRecipes.recipes.length > 4}
+								<Button
+									variant="link"
+									size="sm"
+									class="flex items-center"
+									disabled={sectionRecipes.recipes.length <= 4}
+									onclick={() => {
+										setParameters({
+											...parameters,
+											filters: {
+												...parameters.filters,
+												[parameters.groupBy]: [sectionRecipes.key]
+											}
+										});
+									}}
+								>
+									See all
+									<ArrowRight class="size-3.5" />
+								</Button>
+							{/if}
 						</div>
 					{/if}
 
