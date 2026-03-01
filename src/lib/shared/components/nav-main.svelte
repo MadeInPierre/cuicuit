@@ -29,6 +29,10 @@
 						<span>{item.title}</span>
 					</a>
 				{/snippet}
+
+				{#snippet tooltipContent()}
+					<span>{item.title}</span>
+				{/snippet}
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 	{/each}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChefHat, User, ClipboardList, Refrigerator, Camera, Mic, ShoppingCart } from 'lucide-svelte';
+	import { ChefHat, User, ClipboardList, Refrigerator, Camera, Mic, ShoppingCart, Calendar } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
 </script>
@@ -40,7 +40,7 @@
 				<span class="sr-only">Groceries</span>
 			</a> -->
 	<a href="/plan">
-		<ClipboardList class="size-6" />
+		<Calendar class="size-6" />
 		<span class="sr-only">Plan</span>
 	</a>
 	<a href="/shopping-list">

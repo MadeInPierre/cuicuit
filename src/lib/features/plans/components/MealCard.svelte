@@ -79,7 +79,7 @@
 			<div class="grid">
 				<h3
 					class={cn(
-						'text-xs text-start text-primary font-semibold leading-tight mb-0.5 line-clamp-1',
+						'text-xs text-start font-semibold leading-tight mb-0.5 line-clamp-1',
 						meal.deleted_at && 'line-through text-muted-foreground'
 					)}
 				>
@@ -103,7 +103,7 @@
 			<div
 				transition:slide={{ duration: 300 }}
 				class={cn(
-					'grid space-y-2 bg-muted dark:bg-slate-950 rounded-b-md px-2 pt-3 -translate-y-1 border relative',
+					'grid space-y-2 bg-muted dark:bg-slate-950 rounded-b-md px-2 pt-6 -translate-y-4 border relative',
 					showExpandedButtons ? 'pb-3 mb-4' : 'pb-2'
 				)}
 			>
@@ -141,7 +141,7 @@
 							class={cn(
 								'grid text-xs text-muted-foreground rounded-sm transition-colors duration-75 relative group',
 								hoveredMealIngredientId.value === shopping_ingredient.ingredient_id &&
-									'bg-slate-200 dark:bg-slate-900'
+									'bg-muted-foreground/10'
 							)}
 							onmouseenter={() => {
 								hoveredMealIngredientId.value = shopping_ingredient.ingredient_id;
@@ -197,8 +197,8 @@
 									{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
 								</span>
 
-								<!-- <Check class="ml-1 max-w-3 max-h-3 text-green-600" /> -->
-								<EqualApproximately class="ml-1 max-w-3 max-h-3 text-teal-600" />
+								<Check class="ml-1 max-w-3 max-h-3 text-green-600" />
+								<!-- <EqualApproximately class="ml-1 max-w-3 max-h-3 text-teal-600" /> -->
 							</div>
 
 							<!-- {#if i === 0}

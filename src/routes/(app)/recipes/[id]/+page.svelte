@@ -290,7 +290,7 @@
 							<div class="flex gap-2 items-center">
 								<h2 class="text-xl font-semibold">Plan</h2>
 
-								<ButtonThemed
+								<Button
 									size="sm"
 									type="submit"
 									class="flex gap-2 ml-auto"
@@ -299,7 +299,7 @@
 								>
 									<CalendarPlus class="size-4" />
 									Add meal
-								</ButtonThemed>
+								</Button>
 							</div>
 
 							<div
@@ -425,9 +425,13 @@
 		<span class="text-sm font-medium">
 			{ing.quantity + ' ' + (ing.unit == 'whole' ? '' : ing.unit)}
 		</span>
-		<span class="text-sm text-balance line-clamp-2 px-1"
-			>{ing.ingredient.translations[0]?.name_singular || 'Ingredient'}</span
-		>
+		<span class="text-sm text-balance line-clamp-2 px-1">
+			{ing.quantity && ing.quantity > 1
+				? ing.ingredient.translations[0]?.name_plural ||
+					ing.ingredient.translations[0]?.name_singular
+				: ing.ingredient.translations[0]?.name_singular ||
+					ing.ingredient.translations[0]?.name_plural}
+		</span>
 	</div>
 {/snippet}
 

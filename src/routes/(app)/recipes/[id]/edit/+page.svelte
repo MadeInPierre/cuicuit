@@ -397,7 +397,7 @@
 							</Button>
 						{/if}
 
-						<ButtonThemed
+						<Button
 							size="sm"
 							type="submit"
 							class="w-14 flex gap-2"
@@ -409,7 +409,7 @@
 							{:else}
 								Save
 							{/if}
-						</ButtonThemed>
+						</Button>
 					</div>
 				</div>
 
@@ -580,10 +580,11 @@
 									{#snippet toolButton(key: RecipeToolKey, label: string)}
 										<button
 											disabled={loading}
-											class={$formData.tool_ids.includes(key)
-												? 'aspect-square rounded-md text-center border-2 font-semibold ' +
-													`border-${activeSpace.activeMember?.theme}-600 text-${activeSpace.activeMember?.theme}-600`
-												: 'border-2 aspect-square rounded-md text-center'}
+											class={cn(
+												'transition-all aspect-square rounded-md text-center border-2',
+												$formData.tool_ids.includes(key) &&
+													'font-semibold border-primary text-primary ring-2 ring-primary/50'
+											)}
 											onclick={(e) => {
 												e.preventDefault(); // Don't submit the form
 												$formData.tool_ids = $formData.tool_ids.includes(key)
