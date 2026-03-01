@@ -52,13 +52,13 @@
 				url: '/cookbooks',
 				icon: Notebook,
 				isActive: page.url.pathname.startsWith('/cookbooks')
-			},
-			{
-				title: 'Chat',
-				url: '/chat',
-				icon: BotMessageSquare,
-				isActive: page.url.pathname.startsWith('/chat')
 			}
+			// {
+			// 	title: 'Chat',
+			// 	url: '/chat',
+			// 	icon: BotMessageSquare,
+			// 	isActive: page.url.pathname.startsWith('/chat')
+			// }
 		],
 		navSecondary: [
 			// {
@@ -74,8 +74,8 @@
 			{
 				title: "What's new",
 				url: '/changelog',
-				icon: Megaphone
-				// badge: '2'
+				icon: Megaphone,
+				badge: '2'
 			}
 		],
 		favorites: [

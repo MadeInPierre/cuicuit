@@ -1,7 +1,7 @@
 <script lang="ts">
 	import MealList from '$lib/features/plans/components/sidebar/meal-list.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import { Calendar, ShoppingBasket } from 'lucide-svelte';
+	import { BellPlus, Calendar, ShoppingBasket, Sparkle } from 'lucide-svelte';
 
 	type Props = {
 		expanded?: boolean;
@@ -31,23 +31,26 @@
 				<MealList {expanded} />
 			</div>
 
-			<!-- <div class="grid space-y-4">
-				{@render sectionHeader(Clock, 'Set aside', "Ideas that don't use the pantry")}
-				<div
-					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-				>
-					<Clock class="size-8" />
-					<p class="w-28 text-center">Drag recipes here to set aside for later.</p>
-				</div>
-			</div> -->
-
 			<div class="grid space-y-4">
 				{@render sectionHeader(ShoppingBasket, 'Anything else?', 'Add items to your grocery list')}
 				<div
-					class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
 				>
 					<ShoppingBasket class="size-8" />
 					<p class="mx-auto w-28 text-center">Search for items to add them here</p>
+				</div>
+			</div>
+
+			<div class="grid space-y-4">
+				{@render sectionHeader(BellPlus, 'Refill suggestions', 'Ingredients that are running low')}
+				<div
+					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+				>
+					<BellPlus class="size-8" />
+					<p class="w-28 text-center">
+						No low ingredients yet,
+						<a class="underline decoration-dotted" href="?#">see rules</a>
+					</p>
 				</div>
 			</div>
 		</Tabs.Content>

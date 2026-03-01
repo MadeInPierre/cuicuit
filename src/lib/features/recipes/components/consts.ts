@@ -196,10 +196,16 @@ export const supermarketAisleSectionHeaders = {
 		icon: Carrot,
 		classes: 'bg-green-100 text-green-800'
 	},
-	beverages: {
-		title: 'Beverages',
-		subtitle: 'Drinks and refreshments',
-		icon: CupSoda,
+	'meat-fish': {
+		title: 'Meat & Fish',
+		subtitle: 'Fresh and frozen meats',
+		icon: Beef,
+		classes: 'bg-red-100 text-red-800'
+	},
+	'milk-cheese': {
+		title: 'Milk & Cheese',
+		subtitle: 'Dairy products',
+		icon: Milk,
 		classes: 'bg-blue-100 text-blue-800'
 	},
 	'bread-pastries': {
@@ -207,18 +213,6 @@ export const supermarketAisleSectionHeaders = {
 		subtitle: 'Freshly baked goods',
 		icon: Croissant,
 		classes: 'bg-yellow-100 text-yellow-800'
-	},
-	'care-health': {
-		title: 'Care & Health',
-		subtitle: 'Health and personal care products',
-		icon: Cross,
-		classes: 'bg-red-100 text-red-800'
-	},
-	'frozen-convenience': {
-		title: 'Frozen & Convenience',
-		subtitle: 'Frozen meals and quick snacks',
-		icon: Snowflake,
-		classes: 'bg-slate-100 text-slate-800'
 	},
 	'grain-products': {
 		title: 'Grain Products',
@@ -232,23 +226,29 @@ export const supermarketAisleSectionHeaders = {
 		icon: Bean,
 		classes: 'bg-amber-100 text-amber-800'
 	},
-	'meat-fish': {
-		title: 'Meat & Fish',
-		subtitle: 'Fresh and frozen meats',
-		icon: Beef,
-		classes: 'bg-red-100 text-red-800'
-	},
-	'milk-cheese': {
-		title: 'Milk & Cheese',
-		subtitle: 'Dairy products',
-		icon: Milk,
+	beverages: {
+		title: 'Beverages',
+		subtitle: 'Drinks and refreshments',
+		icon: CupSoda,
 		classes: 'bg-blue-100 text-blue-800'
+	},
+	'frozen-convenience': {
+		title: 'Frozen & Convenience',
+		subtitle: 'Frozen meals and quick snacks',
+		icon: Snowflake,
+		classes: 'bg-slate-100 text-slate-800'
 	},
 	'snacks-sweets': {
 		title: 'Snacks & Sweets',
 		subtitle: 'Chips, candy, and treats',
 		icon: Candy,
 		classes: 'bg-pink-100 text-pink-800'
+	},
+	'care-health': {
+		title: 'Care & Health',
+		subtitle: 'Health and personal care products',
+		icon: Cross,
+		classes: 'bg-red-100 text-red-800'
 	},
 	default: {
 		title: 'Other',

@@ -14,7 +14,7 @@
 <img
 	src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${id}.jpg`}
 	alt={name}
-	class={cn('aspect-square w-full object-contain rounded-md bg-white p-0.5', className)}
+	class={cn('aspect-square w-full object-contain rounded-lg bg-white p-0.5', className)}
 	onerror={(e) => {
 		const el = e.currentTarget as HTMLImageElement;
 		el.style.display = 'none';
