@@ -25,7 +25,7 @@
 	}: Props = $props();
 
 	const translation = $derived(
-		ingredient.translations.find((t) => t.language.lang === 'fr-FR') || ingredient.translations[0]
+		ingredient.translations.find((t) => t.language?.lang === 'fr-FR') || ingredient.translations[0]
 	);
 
 	const name = $derived(
