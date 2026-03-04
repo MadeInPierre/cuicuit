@@ -61,28 +61,17 @@
 
 	let recipe: RecipeDetailedWithAuthor | undefined | null = $state(undefined);
 
+	// Fetch the recipe from Supabase when the component mounts or when the pageRecipeId changes
 	$effect(() => {
 		if (!pageRecipeId) {
 			console.error('No recipe ID found in page parameters');
 			return;
 		}
 
-		// Fetch the recipe from Supabase
 		getRecipe(pageRecipeId).then((result) => {
 			recipe = result;
 		});
 	});
-
-	// Temporary function to enrich recipe
-	let recipeEnriched: EnrichedRecipeOutput | undefined = $state(undefined);
-	async function enrich() {
-		if (!recipe) return;
-		const { ingredients, ...strippedRecipe } = recipe;
-		recipeEnriched = await enrichRecipe({
-			recipe: strippedRecipe,
-			ingredients: ingredients?.map((ing) => ing.raw_input) || []
-		});
-	}
 </script>
 
 {#if recipe}
@@ -378,15 +367,6 @@
 						</div>
 					</div>
 				</div>
-
-				<!-- <div
-					class="justify-center flex-1 items-center gap-0.5 text-center text-xs text-muted-foreground"
-				>
-					<p>Recipe id: {pageRecipeId}</p>
-				</div> -->
-
-				<Button onclick={enrich}>(Temporary) Enrich Recipe</Button>
-				<pre>{JSON.stringify(recipeEnriched, null, 2)}</pre>
 			</div>
 		</main>
 	</div>

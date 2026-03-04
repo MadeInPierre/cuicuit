@@ -5,6 +5,8 @@
 	let { children } = $props();
 </script>
 
-<SiteHeader><NavContent /></SiteHeader>
+<SiteHeader>
+	<NavContent />
+</SiteHeader>
 
 {@render children()}

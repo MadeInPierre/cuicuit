@@ -2,10 +2,10 @@
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
-	import type { RecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 
-	const { recipes }: { recipes: RecipeDetailed[] } = $props();
+	const { recipes }: { recipes: Recipe[] } = $props();
 
 	// Page size based on screen size
 	const media = useMedia();
@@ -46,7 +46,7 @@
 	// Chunk into pages to render exactly rowsPerPage x itemsPerPage per slide
 	const pages = $derived.by(() => {
 		const size = itemsPerCarouselPage;
-		const res: RecipeDetailed[][] = [];
+		const res: Recipe[][] = [];
 		for (let i = 0; i < displayRecipes.length; i += size) {
 			res.push(displayRecipes.slice(i, i + size));
 		}
@@ -77,7 +77,6 @@
 	setApi={(emblaApi) => (api = emblaApi)}
 	class="w-full overflow-x-hidden"
 >
-	<!-- Render one slide per page; remove flex-wrap -->
 	<Carousel.Content class="w-full">
 		{#each pages as page, i (i)}
 			<Carousel.Item class="">

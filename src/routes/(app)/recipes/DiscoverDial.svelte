@@ -5,12 +5,13 @@
 	type Props = {
 		value?: 'familiar' | 'mixed' | 'discover';
 		onChange?: (value: 'familiar' | 'mixed' | 'discover') => void;
+		class?: string;
 	};
 
-	let { value = $bindable('mixed'), onChange = () => {} }: Props = $props();
+	let { value = $bindable('familiar'), onChange = () => {}, class: className = '' }: Props = $props();
 </script>
 
-<div class="h-10 px-[3px] flex items-center gap-0.5 border rounded-md">
+<div class={cn("h-10 px-[3px] flex items-center gap-0.5 border rounded-md", className)}>
 	{#snippet button(key: 'familiar' | 'mixed' | 'discover', className: string = '')}
 		<Button
 			class={cn('h-8 rounded-sm font-normal', value === key && '', className)}
@@ -25,6 +26,6 @@
 	{/snippet}
 
 	{@render button('familiar', 'w-20')}
-	{@render button('mixed', 'w-20')}
+	{@render button('mixed', 'w-20 hidden xl:flex')}
 	{@render button('discover', 'w-20')}
 </div>

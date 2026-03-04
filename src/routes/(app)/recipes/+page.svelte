@@ -67,7 +67,7 @@
 
 	const parameters: PageParameters = $derived({
 		groupBy: (page.url.searchParams.get('groupBy') as GroupByKey) || 'course',
-		discover: (page.url.searchParams.get('discover') as DiscoverKey) || 'mixed',
+		discover: (page.url.searchParams.get('discover') as DiscoverKey) || 'familiar',
 		filters: decodeFilters(page.url.searchParams.get('filters'))
 	});
 
@@ -290,7 +290,7 @@
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
 					/>
 
-					<SearchBar class="h-10 w-40 lg:w-80" bind:value={searchInput} loading={searchLoading} />
+					<SearchBar class="h-10 w-40 2xl:w-80" bind:value={searchInput} loading={searchLoading} />
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
@@ -351,8 +351,8 @@
 
 					<FilterButton text="Cookable" />
 					<FilterButton text="My Recipes" />
-					<FilterButton text="Quick & Easy" />
-					<FilterButton text="Expire soon" />
+					<FilterButton text="Expire soon" class="hidden lg:flex" />
+					<FilterButton text="Quick & Easy" class="hidden 2xl:flex" />
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
 			</div>
@@ -373,7 +373,7 @@
 					{/if}
 				</div>
 				<div class="w-full flex gap-4">
-					{#each Array(4) as _, i}
+					{#each Array(5) as _, i}
 						<RecipeCard />
 					{/each}
 				</div>
