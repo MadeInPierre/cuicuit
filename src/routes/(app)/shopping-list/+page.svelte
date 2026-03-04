@@ -4,7 +4,7 @@
 		type ShoppingIngredient
 	} from '$lib/features/plans/queries/get-plan-meals';
 	import ShoppingListItem from '$lib/features/recipes/components/ShoppingListItem.svelte';
-	import type { IngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import NumberFlow from '@number-flow/svelte';
@@ -16,10 +16,8 @@
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import RecipeCarousel from '../recipes/RecipeCarousel.svelte';
 
-	// TODO refactor
-
 	type ShoppingListItem = {
-		ingredient: IngredientWithTranslations;
+		ingredient: RecipeIngredientWithTranslations;
 		origins: {
 			type: 'meal';
 			id: string; // Meal ID, TODO could also be raw ingredient ID or household item ID
@@ -97,7 +95,6 @@
 
 	<Separator class="my-6" />
 
-	<!-- Tab to select the shopping list view -->
 	<Tabs.Root value="aisle">
 		<Tabs.List>
 			<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
@@ -106,10 +103,11 @@
 
 		<Tabs.Content value="aisle" class="mt-8">
 			<h3 class="text-xl font-semibold mb-6">Planned meals</h3>
+
 			<RecipeCarousel recipes={meals.map((meal) => meal.recipe)} />
 
 			<h3 class="mt-6 text-xl font-semibold mb-6">Shopping list</h3>
-			<!-- <div class="grid grid-cols-1 md:grid-cols-[3fr_0.1fr_1fr]"> -->
+
 			<div class="grid grid-cols-1">
 				<div class="grid space-y-12">
 					{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
@@ -172,7 +170,6 @@
 															<ChefHat class="size-3 inline-block" />
 
 															{#if item.origins.length > 1}
-																<!-- <NumberFlow value={origin.shoppingIngredient.quantity} /> -->
 																{origin.shoppingIngredient.quantity}
 																{origin.shoppingIngredient.unit === 'whole'
 																	? ''
@@ -191,14 +188,6 @@
 													{/each}
 												</div> -->
 											</ShoppingListItem>
-
-											<!-- <Button
-												size="default"
-												variant="ghost"
-												class="mt-1 ml-auto w-8 h-8 rounded-full"
-											>
-												<Circle class="w-8 h-8 text-muted-foreground/60" />
-											</Button> -->
 										</div>
 									{/each}
 								</div>
@@ -257,8 +246,6 @@
 			<span>
 				TODO show not-expanded planned meals that already have all ingredients in the pantry
 			</span>
-
-			<!-- <PaperBoard /> -->
 		</Tabs.Content>
 	</Tabs.Root>
 </div>

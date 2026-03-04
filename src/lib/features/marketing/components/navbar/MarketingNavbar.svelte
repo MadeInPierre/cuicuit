@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import NavDesktop from '$lib/features/marketing/components/navbar/NavDesktop.svelte';
 	import NavMobile from '$lib/features/marketing/components/navbar/NavMobile.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
@@ -27,7 +26,6 @@
 					<span class="sr-only">GitHub</span>
 				</Button>
 			</a>
-			<ThemeButton />
 		</nav>
 
 		<!-- <UserFullSignedIn> -->

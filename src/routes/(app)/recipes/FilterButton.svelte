@@ -27,7 +27,7 @@
 	variant={primary ? 'default' : 'secondary'}
 	class={cn(
 		'h-7 flex items-center gap-1.5 text-sm rounded-sm px-2 font-normal',
-		!primary && 'bg-muted dark:text-muted-foreground dark:hover:bg-muted/60',
+		!primary && 'bg-accent dark:text-accent-foreground dark:hover:bg-muted/60',
 		!primary &&
 			active &&
 			'bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 text-white',
