@@ -221,6 +221,7 @@
 
 	async function fetchRecipes() {
 		const data = await getRecipes(searchInput, parameters.filters, parameters.discover);
+		await new Promise((resolve) => setTimeout(resolve, 3000)); // Artificial delay to show loading state
 		recipes = data || [];
 		searchLoading = false;
 		loading = false;
@@ -363,20 +364,17 @@
 
 	{#if loading}
 		{#each groupedRecipes as sectionRecipes (sectionRecipes.key)}
-			<div class="space-y-6 animate-pulse">
-				<div class="flex justify-between items-center">
-					{#if sectionRecipes.header}
+			<div class="grid space-y-4">
+				{#if sectionRecipes.header}
+					<div class="flex justify-between items-center mb-6">
 						<SectionHeader header={sectionRecipes.header} />
 						<div class="h-8 w-20 bg-muted rounded"></div>
-					{:else}
-						<div class="h-8 w-40 bg-muted rounded"></div>
-					{/if}
-				</div>
-				<div class="w-full flex gap-4">
-					{#each Array(5) as _, i}
-						<RecipeCard />
-					{/each}
-				</div>
+					</div>
+				{:else}
+					<div class="h-8 w-40 bg-muted rounded mb-6"></div>
+				{/if}
+
+				<RecipeCarousel recipes={[]} />
 			</div>
 		{/each}
 	{:else if recipes && recipes?.length > 0}

@@ -7,6 +7,9 @@
 
 	const { recipes }: { recipes: Recipe[] } = $props();
 
+	// Check if we're in loading state
+	const isLoading = $derived(recipes.length === 0);
+
 	// Page size based on screen size
 	const media = useMedia();
 	const itemsPerPage = $derived.by(() => {
@@ -22,8 +25,8 @@
 		if (media['2xl']) return 2;
 		if (media.xl) return 2;
 		if (media.lg) return 2;
-		if (media.md) return 1;
-		return 1;
+		if (media.md) return 2;
+		return 2;
 	});
 
 	// Total items per carousel page
@@ -45,6 +48,12 @@
 
 	// Chunk into pages to render exactly rowsPerPage x itemsPerPage per slide
 	const pages = $derived.by(() => {
+		// If loading, create skeleton pages
+		if (isLoading) {
+			const skeletonPage: Recipe[] = Array(itemsPerCarouselPage).fill(undefined);
+			return [skeletonPage];
+		}
+
 		const size = itemsPerCarouselPage;
 		const res: Recipe[][] = [];
 		for (let i = 0; i < displayRecipes.length; i += size) {
@@ -71,7 +80,7 @@
 
 <Carousel.Root
 	opts={{
-		active: recipes.length > itemsPerCarouselPage,
+		active: recipes.length > itemsPerCarouselPage && !isLoading,
 		slidesToScroll: 1
 	}}
 	setApi={(emblaApi) => (api = emblaApi)}
@@ -84,7 +93,7 @@
 					class="grid gap-4"
 					style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(${rowsPerPage}, auto);`}
 				>
-					{#each page as recipe (recipe.id)}
+					{#each page as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
 						<RecipeCard {recipe} showAddToPlanButton class="" />
 					{/each}
 				</div>
@@ -92,10 +101,10 @@
 		{/each}
 	</Carousel.Content>
 
-	{#if currentSlide > 1}
+	{#if currentSlide > 1 && !isLoading}
 		<Carousel.Previous class="left-8 -translate-y-10" />
 	{/if}
-	{#if currentSlide < totalSlides}
+	{#if currentSlide < totalSlides && !isLoading}
 		<Carousel.Next class="right-8 -translate-y-10" />
 	{/if}
 </Carousel.Root>
