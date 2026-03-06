@@ -67,7 +67,7 @@
 			// 	icon: Settings2
 			// },
 			{
-				title: 'Feedback',
+				title: 'Send feedback',
 				url: '#',
 				icon: Send
 			},

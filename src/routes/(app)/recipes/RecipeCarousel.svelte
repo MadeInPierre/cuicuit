@@ -4,6 +4,8 @@
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { BellRing, Star, FunnelPlus } from 'lucide-svelte';
 
 	const { recipes }: { recipes: Recipe[] } = $props();
 
@@ -90,11 +92,36 @@
 		{#each pages as page, i (i)}
 			<Carousel.Item class="">
 				<div
-					class="grid gap-4"
+					class="grid"
 					style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(${rowsPerPage}, auto);`}
 				>
 					{#each page as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
-						<RecipeCard {recipe} showAddToPlanButton class="" />
+						<RecipeCard {recipe} showAddToPlanButton class="p-2" />
+
+						<!-- <div
+							class="grid space-y-1 p-2 mb-4 rounded-2xl bg-gradient-to-br from-amber-200/60 to-amber-200 dark:from-amber-900/90 dark:to-amber-900 group"
+						>
+							<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
+								<RecipeCard {recipe} showAddToPlanButton />
+							</div>
+							<div
+								class="p-2 pb-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300"
+							>
+								<BellRing class="size-4" />
+								<span><strong>2</strong> ingredients expire!</span>
+
+								<Star class="size-4" />
+								<span class="">You love this recipe!</span> 
+
+								<Button
+									size="icon"
+									variant="ghost"
+									class="ml-auto w-6 h-6 text-amber-700 dark:text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-amber-100 dark:hover:bg-amber-800"
+								>
+									<FunnelPlus class="size-4" />
+								</Button>
+							</div>
+						</div> -->
 					{/each}
 				</div>
 			</Carousel.Item>

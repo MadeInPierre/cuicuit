@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MealCard from '$lib/features/plans/components/MealCard.svelte';
+	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { flip } from 'svelte/animate';
 	import { dragHandleZone } from 'svelte-dnd-action';
@@ -66,7 +66,7 @@
 			<!-- <div use:dragHandle class="mt-5">
 				<GripVertical class="size-4 text-muted-foreground cursor-move" />
 			</div> -->
-			<MealCard {meal} {expanded} showExpandedButtons />
+			<MealListItem {meal} {expanded} showExpandedButtons />
 		</div>
 	{/each}
 </section>

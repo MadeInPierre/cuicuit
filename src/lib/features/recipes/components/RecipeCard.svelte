@@ -7,9 +7,11 @@
 		Signal,
 		SignalHigh,
 		SignalLow,
-		SignalMedium
+		SignalMedium,
+		Star,
+		Users
 	} from 'lucide-svelte';
-	import { cn } from '$lib/utils';
+	import { capitalize, cn } from '$lib/utils';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
@@ -17,6 +19,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import CookableStatus from './CookableStatus.svelte';
+	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -68,7 +71,7 @@
 					</div>
 				{/if}
 
-				<div class="absolute top-2 right-2 grid space-y-2">
+				<div class="absolute top-2 right-2 grid space-y-2 z-10">
 					<Button
 						variant="ghost"
 						size="icon"
@@ -120,7 +123,7 @@
 					{/if}
 				</div>
 
-				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-xs">
+				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-xs z-10">
 					<div
 						class="bg-white dark:bg-background/60 rounded-full px-2 py-0.5 flex items-center gap-1"
 					>
@@ -142,13 +145,11 @@
 					</div>
 
 					<!-- <div class="bg-white rounded-full px-2 pl-0.5 py-0.5 flex items-center gap-1">
-						<Star class="size-3.5 ml-1 text-amber-400" fill="#fef08a" />
+						<Star class="size-3.5 ml-1 text-amber-400" fill="#fbbf24" />
 						<span>4.5</span>
 						<span class="text-[10px] text-muted-foreground">(134)</span>
 					</div> -->
 				</div>
-
-				<!-- <CardBookmark class="absolute -top-[12px] right-[8px] size-10" /> -->
 			</div>
 		{:else}
 			<a
@@ -170,12 +171,12 @@
 				</h3>
 
 				<!-- <div class="text-xs text-muted-foreground flex items-center">
-					<span>{recipe.servings}</span>
-					<Users class="size-3 inline-block ml-0.5 mr-4" />
-
 					<span class="mr-4">{recipe.time_total_minutes}min</span>
 
-					<span class="">{capitalize(recipe.effort_level)} effort</span>
+					<span class="mr-4">{capitalize(recipe.effort_level)} effort</span>
+
+					<span>{recipe.servings}</span>
+					<Users class="size-3 inline-block ml-0.5 mr-4" />
 				</div> -->
 
 				<CookableStatus />

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
+	import { ArrowRight, BellRing, ChefHat, FunnelPlus, Plus, Star } from 'lucide-svelte';
 	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import {
@@ -80,7 +80,7 @@
 			query.set('groupBy', newParameters.groupBy);
 		}
 
-		if (!newParameters.discover || newParameters.discover === 'mixed') {
+		if (!newParameters.discover || newParameters.discover === 'familiar') {
 			query.delete('discover');
 		} else {
 			query.set('discover', newParameters.discover);
@@ -221,7 +221,6 @@
 
 	async function fetchRecipes() {
 		const data = await getRecipes(searchInput, parameters.filters, parameters.discover);
-		await new Promise((resolve) => setTimeout(resolve, 3000)); // Artificial delay to show loading state
 		recipes = data || [];
 		searchLoading = false;
 		loading = false;
@@ -409,39 +408,6 @@
 					{/if}
 
 					<RecipeCarousel recipes={sectionRecipes.recipes} />
-
-					<!-- <div class="w-full flex flex-wrap gap-4">
-						{#each sectionRecipes.recipes as recipe (recipe.id)}
-							{#if Math.random() <= 1.0}
-								<RecipeCard {recipe} showAddToPlanButton class="mt-4" />
-							{:else}
-								<div
-									class="grid space-y-1 p-2 rounded-2xl bg-gradient-to-br from-yellow-200/60 to-yellow-200 dark:from-yellow-900/90 dark:to-yellow-900"
-								>
-									<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
-										<RecipeCard {recipe} showAddToPlanButton />
-									</div>
-									<div
-										class="p-2 pb-1 flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300"
-									>
-										<BellRing class="size-4" />
-										<span><strong>2</strong> ingredients expire soon!</span>
-
-										<Star class="size-4" />
-										<span class="">You love this recipe!</span>
-
-										<Button
-											size="icon"
-											variant="link"
-											class="ml-auto w-6 h-6 text-yellow-700 dark:text-yellow-300"
-										>
-											<FunnelPlus class="size-4" />
-										</Button>
-									</div>
-								</div>
-							{/if}
-						{/each}
-					</div> -->
 				</div>
 			{/if}
 		{/each}
