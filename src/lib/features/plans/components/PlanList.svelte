@@ -54,6 +54,7 @@
 								ingredient={si.ingredient!}
 								amount={si.quantity}
 								unit={si.unit === 'whole' ? '' : si.unit || ''}
+								size="sm"
 							/>
 						{/each}
 					{/each}

@@ -12,7 +12,7 @@
 	const statuses = [
 		{ label: 'Cookable', icon: CheckCheck, color: 'text-green-600 dark:text-green-500' },
 		{
-			label: 'Cookable, missing optionals',
+			label: 'Cookable, incomplete',
 			icon: Check,
 			color: 'text-teal-600 dark:text-teal-500'
 		},
@@ -22,7 +22,7 @@
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
 		{
-			label: 'Cookable, close quantities',
+			label: 'Cookable, almost', // Close quantities
 			icon: Scale,
 			color: 'text-emerald-600 dark:text-emerald-500'
 		},
@@ -42,7 +42,7 @@
 			color: 'text-amber-600 dark:text-amber-500'
 		},
 		{
-			label: '1 missing',
+			label: 'Oeufs, Lait, Farine +1',
 			icon: ShoppingBasket,
 			color: 'text-red-600 dark:text-red-500'
 		}

@@ -1,19 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Calendars from '$lib/shared/components/calendars.svelte';
-	import DatePicker from '$lib/shared/components/date-picker.svelte';
-	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { ArrowRight, CalendarPlus, ScrollText, Settings2 } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
 	import Input from './ui/input/input.svelte';
 	import { Button } from './ui/button';
 	import PlanList from '$lib/features/plans/components/PlanList.svelte';
+	import { slide } from 'svelte/transition';
+	import { cn } from '$lib/utils';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 
 	let expandedMealCards = $state(false);
+	let searchInput = $state('');
 </script>
 
 <Sidebar.Root
@@ -26,25 +25,44 @@
 		<div class="flex items-center gap-8 justify-between">
 			<div class="grid">
 				<h1 class="text-md font-semibold">Your plan</h1>
-				<p class="text-xs text-muted-foreground">
-					Drag or add recipes here to create <br /> a meal plan and shopping list.
-				</p>
+				<p class="text-xs text-muted-foreground">Add recipes and items to get a shopping list.</p>
 			</div>
-			<Button variant="ghost" size="icon" class="size-8" onclick={() => goto('/plan')}>
+			<!-- <Button variant="ghost" size="icon" class="size-8" onclick={() => goto('/plan')}>
 				<CalendarPlus class="size-4" size="icon" />
 				<span class="sr-only">Go to plan</span>
-			</Button>
+			</Button> -->
 		</div>
-		<div class="flex gap-2 mt-2">
-			<Input class="h-8 text-xs" placeholder="Add a recipe or item..." />
-			<Button
-				variant="default"
-				size="icon"
-				class="h-8"
-				onclick={() => (expandedMealCards = !expandedMealCards)}
-			>
-				<Settings2 class="size-4" />
-			</Button>
+
+		<div
+			class={cn(
+				'grid gap-2 rounded-md transition-all py-2',
+				searchInput.trim() !== '' && 'bg-muted px-2'
+			)}
+		>
+			<div class="flex gap-2">
+				<Input
+					class="h-8 text-xs"
+					placeholder="Add an item or recipe..."
+					bind:value={searchInput}
+				/>
+
+				<Button
+					variant="default"
+					size="icon"
+					class="h-8"
+					onclick={() => (expandedMealCards = !expandedMealCards)}
+				>
+					<Settings2 class="size-4" />
+				</Button>
+			</div>
+
+			{#if searchInput.trim() !== ''}
+				<div class="grid space-y-4" transition:slide>
+					<div class="py-24 text-sm text-muted-foreground flex flex-col items-center">
+						No results.
+					</div>
+				</div>
+			{/if}
 		</div>
 	</Sidebar.Header>
 	<Sidebar.Content class="p-4 no-scrollbar">

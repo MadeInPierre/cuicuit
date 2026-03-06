@@ -53,7 +53,7 @@
 		<button
 			use:dragHandle
 			class={cn(
-				'flex w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group',
+				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group',
 				className
 			)}
 			ondblclick={() => (localExpanded = !localExpanded)}
