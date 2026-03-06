@@ -38,9 +38,9 @@
 				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block relative">
 					{#if recipe.image_ids[0]}
 						<div
-							class="absolute inset-0 bg-gray-200 dark:bg-gray-900 animate-pulse flex items-center justify-center"
+							class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
 						>
-							<ChefHat class="size-12 text-gray-300" />
+							<ChefHat class="size-12 text-muted-foreground" />
 						</div>
 					{/if}
 					<img
@@ -153,10 +153,10 @@
 		{:else}
 			<a
 				href={'/recipes/' + recipe.id}
-				class="w-full aspect-square bg-gray-200 rounded-xl flex items-center justify-center"
+				class="w-full aspect-square bg-muted rounded-xl flex items-center justify-center"
 				aria-label={'Recipe ' + recipe.title}
 			>
-				<ChefHat class="size-1/4 text-gray-300" />
+				<ChefHat class="size-1/4 text-muted-foreground" />
 			</a>
 		{/if}
 
@@ -183,29 +183,19 @@
 		</div>
 	</div>
 {:else}
-	<div
-		class={cn('w-60 group flex flex-col items-start bg-white dark:bg-muted rounded-md', className)}
-	>
-		<div
-			class="w-full aspect-square bg-gray-200 dark:bg-gray-900 rounded-xl overflow-hidden animate-pulse"
-		></div>
+	<div class={cn('w-full group flex flex-col items-start', className)}>
+		<div class="relative w-full aspect-square rounded-xl overflow-hidden">
+			<div
+				class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
+			>
+				<!-- <ChefHat class="size-12 text-muted-foreground" /> -->
+			</div>
+		</div>
 
 		<div class="flex items-center gap-2 p-2 w-full">
 			<div class="grid w-full">
-				<div class="h-4 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></div>
-
-				<!-- <div class="mt-2 flex items-center text-xs text-muted-foreground">
-					<span class="mr-4 h-3 w-8 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-					<span class="mr-4 h-3 w-10 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-					<span class="h-3 w-6 bg-gray-200 dark:bg-gray-900 rounded animate-pulse"></span>
-					<span
-						class="size-3 inline-block ml-0.5 mr-4 bg-gray-200 dark:bg-gray-900 rounded-full animate-pulse"
-					></span>
-				</div> -->
-
-				<div class="flex flex-col gap-1 mt-2">
-					<div class="h-3 w-24 bg-gray-200 dark:bg-gray-900 rounded animate-pulse mb-1"></div>
-				</div>
+				<div class="h-4 bg-muted dark:bg-muted rounded animate-pulse"></div>
+				<div class="h-3 w-20 bg-muted dark:bg-muted rounded animate-pulse mt-2"></div>
 			</div>
 		</div>
 	</div>
