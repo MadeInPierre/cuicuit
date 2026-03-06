@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import Calendars from '$lib/shared/components/calendars.svelte';
 	import DatePicker from '$lib/shared/components/date-picker.svelte';
-	import MealList from '$lib/features/plans/components/sidebar/meal-list.svelte';
+	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { ArrowRight, CalendarPlus, ScrollText, Settings2 } from 'lucide-svelte';
@@ -27,7 +27,7 @@
 			<div class="grid">
 				<h1 class="text-md font-semibold">Your plan</h1>
 				<p class="text-xs text-muted-foreground">
-					Drag or add recipes here to create a <br /> meal plan and shopping list.
+					Drag or add recipes here to create <br /> a meal plan and shopping list.
 				</p>
 			</div>
 			<Button variant="ghost" size="icon" class="size-8" onclick={() => goto('/plan')}>

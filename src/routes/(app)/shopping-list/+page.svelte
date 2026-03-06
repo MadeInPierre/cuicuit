@@ -13,7 +13,7 @@
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { Calendar, ChefHat, House, User } from 'lucide-svelte';
-	import MealCard from '$lib/features/plans/components/MealCard.svelte';
+	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import RecipeCarousel from '../recipes/RecipeCarousel.svelte';
 
 	type ShoppingListItem = {
@@ -51,7 +51,7 @@
 
 				if (!ingredientMap[key]) {
 					ingredientMap[key] = {
-						ingredient: shoppingIngredient.ingredient!, // TODO ! correct?
+						ingredient: shoppingIngredient.ingredient!, // TODO ! incorrect with unknown shopping items added by the user
 						origins: [],
 						mergedQuantity: {
 							amount: 0,

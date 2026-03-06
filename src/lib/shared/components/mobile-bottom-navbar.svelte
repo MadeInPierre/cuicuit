@@ -66,7 +66,7 @@
 		>
 			<Camera class="size-5" />
 		</Button>
-		<span>Ask...</span>
+		<span>Search or ask...</span>
 		<Button
 			variant="ghost"
 			size="icon"
