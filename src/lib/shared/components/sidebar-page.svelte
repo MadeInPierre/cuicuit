@@ -3,6 +3,7 @@
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import { cmdOrCtrl } from '../hooks/is-mac.svelte';
 	import { IsMobile } from '../hooks/is-mobile.svelte';
 	import { Button } from './ui/button';
 	import { Separator } from './ui/separator';
@@ -68,7 +69,14 @@
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
 
-				<CommandMenu />
+				<!-- <CommandMenu /> -->
+
+				<Button
+					variant="secondary"
+					class="ml-auto flex mr-8 h-8 text-sm px-4 font-normal text-muted-foreground items-center gap-1 bg-muted"
+				>
+					<span>Chat with Cuicuit...</span>
+				</Button>
 			</div>
 		</header>
 

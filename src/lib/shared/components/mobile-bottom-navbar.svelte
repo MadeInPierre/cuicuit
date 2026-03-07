@@ -23,8 +23,8 @@
 	>
 		<div
 			class={cn(
-				'w-full py-1 rounded-full flex items-center justify-center transition-colors',
-				page.url.pathname.startsWith(href) && 'bg-muted'
+				'w-full min-w-14 py-1 rounded-full flex items-center justify-center transition-colors',
+				page.url.pathname.startsWith(href) && 'bg-secondary'
 			)}
 		>
 			<Icon class="size-6" />
@@ -48,7 +48,7 @@
 		class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent md:hidden"
 	></div>
 	<nav
-		class="z-50 sticky bottom-4 bg-background border flex justify-around items-center mx-4 p-2.5 rounded-full drop-shadow-md/5 md:hidden"
+		class="z-50 sticky bottom-4 border border-border/60 flex justify-around items-center mx-4 py-2.5 px-4 rounded-full drop-shadow-md/5 bg-background/80 backdrop-blur-md md:hidden"
 	>
 		{@render navItem('Recipes', ChefHat, '/recipes')}
 		{@render navItem('Plan', Calendar, '/plan')}
@@ -60,14 +60,8 @@
 	<nav
 		class="sticky bottom-0 z-40 bg-background border-t flex justify-around items-center gap-6 py-3 px-6 md:hidden max-w-screen"
 	>
-		<a href="/recipes" class="flex flex-col items-center gap-1 w-full">
-			<ChefHat class="size-6" />
-			<span class="text-[12px] font-medium">Recipes</span>
-		</a>
-		<a href="/plan" class="flex flex-col items-center gap-1 w-full">
-			<Calendar class="size-6" />
-			<span class="text-[12px] font-medium">Plan</span>
-		</a>
+		{@render navItem('Recipes', ChefHat, '/recipes')}
+		{@render navItem('Plan', Calendar, '/plan')}
 
 		<a
 			href="/chat"
@@ -97,13 +91,8 @@
 				<Mic class="size-5" />
 			</Button>
 		</a>
-		<a href="/shopping-list" class="flex flex-col items-center gap-1 w-full">
-			<ShoppingBasket class="size-6" />
-			<span class="text-[12px] font-medium">Shopping</span>
-		</a>
-		<a href="/pantry" class="flex flex-col items-center gap-1 w-full">
-			<Refrigerator class="size-6" />
-			<span class="text-[12px] font-medium">Pantry</span>
-		</a>
+
+		{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
+		{@render navItem('Pantry', Refrigerator, '/pantry')}
 	</nav>
 {/if}
