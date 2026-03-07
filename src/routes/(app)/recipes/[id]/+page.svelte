@@ -23,7 +23,6 @@
 	import { page } from '$app/state';
 	import * as Card from '$lib/shared/components/ui/card/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
-	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
@@ -31,15 +30,11 @@
 	import {
 		getRecipeDetailed,
 		type RecipeDetailedWithAuthor,
-		type RecipeIngredient
+		type RecipeIngredientDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import {
-		enrichRecipe,
-		type EnrichedRecipeOutput
-	} from '$lib/features/recipes/modules/enrich-recipe.remote';
 
 	const pageRecipeId = $derived(page.params.id);
 	const activeSpace = getActiveSpaceState();
@@ -152,7 +147,9 @@
 
 						<div class="space-y-2">
 							<h1 class="text-3xl font-bold">{recipe?.title || 'Loading...'}</h1>
-							<h3 class="text-lg text-muted-foreground">{recipe?.description || ''}</h3>
+							<h3 class="text-lg text-muted-foreground text-justify">
+								{recipe?.description || ''}
+							</h3>
 
 							<div class="flex">
 								<div class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm">
@@ -378,7 +375,7 @@
 {/if}
 
 {#snippet displayIngredients(
-	ingredients: RecipeIngredient[],
+	ingredients: RecipeIngredientDetailed[],
 	view: 'grid' | 'list',
 	optional: boolean
 )}
@@ -395,7 +392,7 @@
 	</div>
 {/snippet}
 
-{#snippet ingredientsGrid(ing: RecipeIngredient)}
+{#snippet ingredientsGrid(ing: RecipeIngredientDetailed)}
 	<div class="flex-1 text-center">
 		<IngredientImage
 			id={ing.ingredient_id}
@@ -415,7 +412,7 @@
 	</div>
 {/snippet}
 
-{#snippet ingredientsList(ing: RecipeIngredient)}
+{#snippet ingredientsList(ing: RecipeIngredientDetailed)}
 	<div class="grid">
 		<div class="flex items-center gap-2">
 			<IngredientImage id={ing.ingredient_id} name={ing.raw_input} class="w-12 h-12" />

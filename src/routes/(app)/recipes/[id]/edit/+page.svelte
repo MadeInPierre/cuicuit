@@ -166,22 +166,26 @@
 		}
 
 		const chosenMatch = ingredientProcessed.matches[chosenMatchIndex];
+
+		const translation =
+			chosenMatch.translations.find((t) => t.language?.lang === $formData.language) ||
+			chosenMatch.translations[0];
 		const amount = ingredientProcessed.parsed.quantity?.amount ?? 1;
 		const unit = ingredientProcessed.parsed.quantity?.unitKey ?? 'whole';
 		const isOptional = ingredientProcessed.parsed.isOptional ?? false;
 		const name =
 			amount > 1
-				? chosenMatch.name_plural || chosenMatch.name_singular
-				: chosenMatch.name_singular || chosenMatch.name_plural;
+				? translation.name_plural || translation.name_singular
+				: translation.name_singular || translation.name_plural;
 
-		if (!chosenMatch.ingredient_id || !name) {
+		if (!chosenMatch.id || !name) {
 			toast.error('Failed to add ingredient. Please try again.');
 			return;
 		}
 
 		formData.update(
 			(f) => {
-				f.ingredientIds.push(chosenMatch.ingredient_id);
+				f.ingredientIds.push(chosenMatch.id);
 				f.ingredientAmounts.push(amount);
 				f.ingredientUnits.push(unit);
 				f.ingredientNames.push(name);
