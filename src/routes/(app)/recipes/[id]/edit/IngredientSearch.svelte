@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { Label } from '$lib/shared/components/ui/label';
 	import { slide } from 'svelte/transition';
 	import { cn } from '$lib/utils';
 	import {
@@ -9,32 +8,57 @@
 		type IngredientProcessed
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
 	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
+	import type { Snippet } from 'svelte';
+	import { Bird, ScanSearch, Search } from 'lucide-svelte';
 
 	type Props = {
 		language: LanguageKey;
 		onSelect: (processedIngredient: IngredientProcessed | null, chosenMatchIndex: number) => void;
+		input?: Snippet<
+			[{ oninput: (e: any) => void; onfocus: () => void; onblur: () => void; onsubmit: () => void }]
+		>;
+		value?: string;
+		loading?: boolean;
 		class?: string;
+		displayRows?: 1 | 2 | 3;
+		displayColumns?: number;
 	};
 
-	const { language, onSelect, class: className }: Props = $props();
+	let {
+		language,
+		onSelect,
+		input,
+		value = $bindable(''),
+		loading = $bindable(false),
+		class: className,
+		displayRows = 1,
+		displayColumns = 3
+	}: Props = $props();
 
-	let searchInput = $state('');
 	let processedIngredient: IngredientProcessed | null = $state(null);
 	let debounceTimeout: NodeJS.Timeout;
 
+	let isSearchFocused = $state(false);
+	let hasTypedThisFocus = $state(false);
+	const openSearchResults = $derived(
+		hasTypedThisFocus || (isSearchFocused && value.trim().length > 0) || value.trim().length > 0
+	);
+
 	$effect(() => {
-		searchInput;
+		value;
+		loading = value.trim().length > 0;
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(async () => {
 			// Reset processed input
-			if (!searchInput.trim()) {
+			if (!value.trim()) {
 				processedIngredient = null;
 				return;
 			}
 
 			// Process the ingredient string into a structured format matched to the database
-			processedIngredient = await processIngredientString(searchInput, language);
-		}, 200);
+			processedIngredient = await processIngredientString(value, language);
+			loading = false;
+		}, 150);
 	});
 
 	function onSelectIngredient(chosenIndex: number) {
@@ -42,35 +66,86 @@
 		onSelect?.(processedIngredient, chosenIndex);
 
 		// Reset the search input and matches
-		searchInput = '';
+		value = '';
 		processedIngredient = null;
 	}
+
+	$effect(() => {
+		isSearchFocused;
+		value;
+		if (isSearchFocused && value.trim() !== '') {
+			hasTypedThisFocus = true;
+		}
+	});
 </script>
 
-<div class={cn('grid w-full', className)}>
-	<Input type="text" placeholder="3 tomatoes, chopped" class="w-full" bind:value={searchInput} />
+<div
+	class={cn(
+		'grid w-full gap-4 rounded-sm transition-all',
+		openSearchResults && 'bg-muted ring-8 ring-muted',
+		className
+	)}
+>
+	{#if input}
+		{@render input({
+			oninput: (e: InputEvent) =>
+				(value = (e.currentTarget as HTMLInputElement | null)?.value ?? ''),
+			onfocus: () => (isSearchFocused = true),
+			onblur: () => {
+				isSearchFocused = false;
+				hasTypedThisFocus = false;
+			},
+			onsubmit: () => processedIngredient?.matches && onSelectIngredient(0)
+		})}
+	{:else}
+		<Input
+			type="text"
+			placeholder="3 tomatoes, chopped"
+			class="w-full"
+			bind:value
+			onfocus={() => (isSearchFocused = true)}
+			onblur={() => {
+				isSearchFocused = false;
+				hasTypedThisFocus = false;
+			}}
+			onsubmit={() => processedIngredient?.matches && onSelectIngredient(0)}
+		/>
+	{/if}
 
-	{#if processedIngredient && processedIngredient.matches && processedIngredient.matches.length > 0}
-		<div class="grid" transition:slide>
-			<Label class="mt-4 mb-2">Select the best match:</Label>
-
-			<div class="grid w-full gap-4 grid-cols-4">
-				{#each processedIngredient.matches.slice(0, 4) as ingredient, index (ingredient.id)}
-					<ShoppingListCard
-						{ingredient}
-						amount={processedIngredient.parsed.quantity?.amount}
-						unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
-							? ''
-							: processedIngredient.parsed.quantity?.unitText}
-						onclick={() => onSelectIngredient(index)}
-						size="md"
-					/>
-				{/each}
-			</div>
-		</div>
-	{:else if searchInput}
-		<div class="flex items-center justify-center py-4 text-muted-foreground text-sm">
-			No matches found.
+	{#if openSearchResults}
+		<div
+			class="grid"
+			class:h-28={displayRows === 1}
+			class:h-58={displayRows === 2}
+			class:h-88={displayRows === 3}
+			transition:slide
+		>
+			{#if processedIngredient && processedIngredient.matches && processedIngredient.matches.length > 0}
+				<div
+					class="grid w-full gap-2 self-start content-start auto-rows-min"
+					style="grid-template-columns: repeat({displayColumns}, 1fr);"
+				>
+					{#each processedIngredient.matches.slice(0, displayRows * displayColumns) as ingredient, index (ingredient.id)}
+						<ShoppingListCard
+							{ingredient}
+							amount={processedIngredient.parsed.quantity?.amount}
+							unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
+								? ''
+								: processedIngredient.parsed.quantity?.unitText}
+							onclick={() => onSelectIngredient(index)}
+							size="sm"
+							class="h-28"
+						/>
+					{/each}
+				</div>
+			{:else}
+				<div
+					class="text-muted-foreground text-sm my-auto flex flex-col items-center justify-center gap-4"
+				>
+					<Bird class="size-12 text-muted-foreground" />
+					<span>Oops, no matches found.</span>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

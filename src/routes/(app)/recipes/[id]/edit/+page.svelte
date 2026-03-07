@@ -563,6 +563,7 @@
 									language={$formData.language}
 									onSelect={onAddIngredient}
 									class="mb-3"
+									displayColumns={5}
 								/>
 
 								<Label>Required</Label>
