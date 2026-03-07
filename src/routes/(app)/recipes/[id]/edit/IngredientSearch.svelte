@@ -10,6 +10,7 @@
 	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
 	import type { Snippet } from 'svelte';
 	import { Bird, ScanSearch, Search } from 'lucide-svelte';
+	import { LoaderCircle } from '@lucide/svelte';
 
 	type Props = {
 		language: LanguageKey;
@@ -137,6 +138,13 @@
 							class="h-28"
 						/>
 					{/each}
+				</div>
+			{:else if loading}
+				<div
+					class="text-muted-foreground text-sm my-auto flex flex-col items-center justify-center gap-4"
+				>
+					<LoaderCircle class="size-8 m-2 animate-spin text-muted-foreground" />
+					<span>Searching...</span>
 				</div>
 			{:else}
 				<div
