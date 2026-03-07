@@ -55,6 +55,7 @@
 								amount={si.quantity}
 								unit={si.unit === 'whole' ? '' : si.unit || ''}
 								size="sm"
+								class="h-28"
 							/>
 						{/each}
 					{/each}

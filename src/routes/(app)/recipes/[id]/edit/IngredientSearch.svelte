@@ -1,15 +1,14 @@
 <script lang="ts">
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Label } from '$lib/shared/components/ui/label';
-	import { Button } from '$lib/shared/components/ui/button';
 	import { slide } from 'svelte/transition';
 	import { cn } from '$lib/utils';
 	import {
 		processIngredientString,
 		type IngredientProcessed
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
+	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
 
 	type Props = {
 		language: LanguageKey;
@@ -51,48 +50,22 @@
 <div class={cn('grid w-full', className)}>
 	<Input type="text" placeholder="3 tomatoes, chopped" class="w-full" bind:value={searchInput} />
 
-	<!-- {#if isLoading}
-		<div class="flex items-center justify-center py-4 text-muted-foreground text-sm">
-			Loading matches...
-		</div> -->
 	{#if processedIngredient && processedIngredient.matches && processedIngredient.matches.length > 0}
 		<div class="grid" transition:slide>
 			<Label class="mt-4 mb-2">Select the best match:</Label>
 
-			<div class="grid w-full space-y-2 bg-background rounded-md">
-				<div class="grid gap-4 grid-cols-4">
-					{#each processedIngredient.matches.slice(0, 4) as ingredient, index (ingredient.ingredient_id)}
-						<Button
-							variant="secondary"
-							class="p-0 flex-1 text-center text-xs h-32 aspect-square flex flex-col items-center justify-center"
-							onclick={() => onSelectIngredient(index)}
-						>
-							<div class="w-full flex items-center justify-center">
-								<img
-									src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.ingredient_id}.jpg`}
-									alt={ingredient.name_singular}
-									class="object-fill rounded w-16 h-16"
-								/>
-							</div>
-							<div class="grid font-normal">
-								<span class="block text-balance line-clamp-2 px-1">
-									<span class="font-medium">
-										{processedIngredient?.parsed.quantity?.amount ?? 1}
-										{processedIngredient?.parsed.quantity?.unit ?? ''}
-									</span>
-									{(processedIngredient?.parsed.quantity?.amount || 1) > 1
-										? ingredient.name_plural || ingredient.name_singular
-										: ingredient.name_singular || ingredient.name_plural}
-								</span>
-								{#if processedIngredient?.parsed.description}
-									<span class="text-muted-foreground italic">
-										{processedIngredient?.parsed.description}
-									</span>
-								{/if}
-							</div>
-						</Button>
-					{/each}
-				</div>
+			<div class="grid w-full gap-4 grid-cols-4">
+				{#each processedIngredient.matches.slice(0, 4) as ingredient, index (ingredient.id)}
+					<ShoppingListCard
+						{ingredient}
+						amount={processedIngredient.parsed.quantity?.amount}
+						unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
+							? ''
+							: processedIngredient.parsed.quantity?.unitText}
+						onclick={() => onSelectIngredient(index)}
+						size="md"
+					/>
+				{/each}
 			</div>
 		</div>
 	{:else if searchInput}

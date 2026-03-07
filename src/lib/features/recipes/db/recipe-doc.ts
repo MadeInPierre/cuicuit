@@ -43,7 +43,7 @@ export const recipeCourses = {
 	salad: 'Salad',
 	dessert: 'Dessert',
 	snack: 'Snack',
-	drink: 'Drink',
+	drink: 'Drink'
 } as const;
 export type RecipeCourseKey = keyof typeof recipeCourses;
 
@@ -68,10 +68,3 @@ export const recipeCuisines = {
 	african: 'African'
 } as const;
 export type RecipeCuisineKey = keyof typeof recipeCuisines;
-
-export type RecipeIngredient = {
-	id: string;
-	name: string;
-	amount: number;
-	unit: Unit;
-};

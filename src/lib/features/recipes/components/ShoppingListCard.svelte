@@ -1,7 +1,6 @@
 <script lang="ts">
 	import IngredientImage from './IngredientImage.svelte';
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
-	import NumberFlow from '@number-flow/svelte';
 	import { cn } from '$lib/utils';
 
 	type Props = {
@@ -10,11 +9,23 @@
 		unit?: string;
 		description?: string;
 		size?: 'sm' | 'md' | 'lg';
+		class?: string;
 		[key: string]: any;
 		children?: any;
+		onclick?: () => void;
 	};
 
-	let { ingredient, amount, unit, description, size = 'md', children, ...others }: Props = $props();
+	let {
+		ingredient,
+		amount,
+		unit,
+		description,
+		size = 'md',
+		class: className,
+		children,
+		onclick = () => {},
+		...others
+	}: Props = $props();
 
 	const translation = $derived(
 		ingredient.translations.find((t) => t.language?.lang === 'fr-FR') || ingredient.translations[0]
@@ -29,22 +40,24 @@
 
 <div
 	class={cn(
-		'flex flex-col items-center gap-0 w-full bg-white p-2 text-sm rounded-lg shadow-2xs transition-all dark:bg-muted',
+		'flex flex-col items-center gap-1 w-full bg-white p-2 text-sm rounded-lg shadow-2xs transition-all dark:bg-muted',
 		size === 'sm' && 'p-1 text-xs',
-		size === 'lg' && 'p-3 text-md'
+		size === 'lg' && 'p-3 text-md',
+		className
 	)}
 	{...others}
+	{onclick}
 >
-	<IngredientImage id={ingredient.id} name={name || 'Unknown'} class="w-12 h-12" />
+	<div class="flex-1 min-h-0 w-full">
+		<IngredientImage
+			id={ingredient.id}
+			name={name || 'Unknown'}
+			class="aspect-square h-full w-auto max-h-16 mx-auto"
+		/>
+	</div>
 
-	<div class="grid space-y-0.5 text-center">
-		<span
-			class={cn(
-				'line-clamp-2 h-[40px] text-balance',
-				size === 'sm' && 'h-[30px]',
-				size === 'lg' && 'h-[50px]'
-			)}
-		>
+	<div class="grid space-y-0.5 text-center shrink-0">
+		<span class={cn('line-clamp-2 text-balance')}>
 			<span class="font-medium">
 				{name || 'Unknown'}
 			</span>

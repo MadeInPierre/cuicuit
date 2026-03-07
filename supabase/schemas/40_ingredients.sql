@@ -248,12 +248,13 @@ CREATE OR REPLACE FUNCTION public.match_ingredient (
     query_text text,
     lang_code text,
     n_matches integer DEFAULT 10,
-    is_raw_import boolean DEFAULT false -- New flag to distinguish context
-) RETURNS SETOF public.ingredient_translations LANGUAGE plpgsql AS $function$
+    is_raw_import boolean DEFAULT false
+) RETURNS SETOF public.ingredients LANGUAGE plpgsql AS $function$
 DECLARE
     target_lang_id INTEGER;
     ts_config regconfig;
     clean_query TEXT;
+    alt_query TEXT; -- plural/singular companion form
     prefix_query tsquery;
 BEGIN
     -- 1. Setup Language
@@ -275,6 +276,16 @@ BEGIN
         clean_query := regexp_replace(clean_query, '^[0-9\xbc-\xbe\/\.,\s]+', '');
     END IF;
 
+    -- Build a singular/plural companion query for ranking stability (e.g. oeuf <-> oeufs)
+    alt_query := clean_query;
+    IF right(clean_query, 1) = 's' AND length(clean_query) > 2 THEN
+        alt_query := left(clean_query, length(clean_query) - 1);
+    ELSIF right(clean_query, 2) IN ('al', 'au') THEN
+        alt_query := clean_query || 'x';
+    ELSIF right(clean_query, 1) <> 's' THEN
+        alt_query := clean_query || 's';
+    END IF;
+
     -- 4. Prepare FTS Prefix Query (e.g., 'oeuf:*' or 'creme:* & fraiche:*')
     -- This solves the "jumping around" issue by matching partial words as you type.
     prefix_query := to_tsquery('simple', nullif(regexp_replace(clean_query, '\s+', ':* & ', 'g'), '') || ':*');
@@ -283,40 +294,51 @@ BEGIN
     WITH scored_matches AS (
         SELECT 
             it.ingredient_id,
-            CASE 
-                -- TIER 1: Exact Match (Score 100)
-                WHEN unaccent(lower(name_general)) = clean_query 
-                  OR unaccent(lower(name_singular)) = clean_query THEN 100
-                
-                -- TIER 2: Exact Prefix (Score 80) - Highly stable for UI autocomplete
-                WHEN unaccent(lower(name_general)) LIKE (clean_query || '%') THEN 80
-                
-                -- TIER 3: Word match via FTS Prefix (Score 50 + Rank)
+            CASE
+                -- Exact match on main or companion form
+                WHEN unaccent(lower(name_general)) IN (clean_query, alt_query)
+                  OR unaccent(lower(name_singular)) IN (clean_query, alt_query) THEN 100
+
+                -- Prefix match on main or companion form
+                WHEN unaccent(lower(name_general)) LIKE (clean_query || '%')
+                  OR unaccent(lower(name_general)) LIKE (alt_query || '%')
+                  OR unaccent(lower(name_singular)) LIKE (clean_query || '%')
+                  OR unaccent(lower(name_singular)) LIKE (alt_query || '%') THEN 80
+
                 WHEN fts @@ prefix_query THEN 50 + (ts_rank(fts, prefix_query) * 10)
-                
-                -- TIER 4: Fuzzy Trigram (Score 0-40)
-                ELSE similarity(unaccent(lower(name_general)), clean_query) * 40
+
+                ELSE GREATEST(
+                    similarity(unaccent(lower(name_general)), clean_query),
+                    similarity(unaccent(lower(name_general)), alt_query),
+                    similarity(unaccent(lower(name_singular)), clean_query),
+                    similarity(unaccent(lower(name_singular)), alt_query)
+                ) * 40
             END as relevance_score,
-            
-            -- Stability Anchor: The length of the ingredient name
             length(name_singular) as name_length
         FROM public.ingredient_translations it
         WHERE language_id = target_lang_id
           AND (
             unaccent(lower(name_general)) LIKE (clean_query || '%')
+            OR unaccent(lower(name_general)) LIKE (alt_query || '%')
+            OR unaccent(lower(name_singular)) LIKE (clean_query || '%')
+            OR unaccent(lower(name_singular)) LIKE (alt_query || '%')
             OR fts @@ prefix_query
-            OR similarity(unaccent(lower(name_general)), clean_query) > 0.3
+            OR GREATEST(
+                similarity(unaccent(lower(name_general)), clean_query),
+                similarity(unaccent(lower(name_general)), alt_query),
+                similarity(unaccent(lower(name_singular)), clean_query),
+                similarity(unaccent(lower(name_singular)), alt_query)
+            ) > 0.3
           )
     )
     SELECT 
-        it.*
+        i.*
     FROM scored_matches sm
-    JOIN public.ingredient_translations it ON it.ingredient_id = sm.ingredient_id AND it.language_id = target_lang_id
-    -- WHERE sm.relevance_score > 15 -- Cutoff threshold to drop pure noise
+    JOIN public.ingredients i ON i.id = sm.ingredient_id
     ORDER BY 
-        sm.relevance_score DESC,   -- Highest semantic score first
-        sm.name_length ASC,        -- STABILITY FIX: Always prefer the shorter, simpler word!
-        it.name_general ASC        -- Alphabetical tie-breaker
+        sm.relevance_score DESC,
+        sm.name_length ASC,
+        i.id ASC
     LIMIT n_matches;
 END;
 $function$;
