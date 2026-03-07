@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import CommandMenu from '$lib/features/command/CommandMenu.svelte';
+	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
@@ -51,11 +53,11 @@
 			data-last-y="0"
 			class="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md transition-all duration-200 ease-out"
 		>
-			<div class="flex flex-1 items-center gap-2 px-3">
+			<div class="flex flex-1 items-center gap-2 px-3 mx-2 md:mx-6">
 				<!-- <Sidebar.Trigger /> -->
 				<!-- <Separator orientation="vertical" class="mr-2 h-4" /> -->
 
-				<a href="/recipes" class="ml-2 md:ml-6 flex gap-2 items-center">
+				<a href="/recipes" class="flex gap-2 items-center">
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="size-8" />
 					<h1 class="text-lg font-semibold">Cuicuit</h1>
 				</a>
@@ -77,6 +79,8 @@
 				>
 					<span>Chat with Cuicuit...</span>
 				</Button>
+
+				<UserAvatar profile={userState.profile} class="size-8" />
 			</div>
 		</header>
 

@@ -6,7 +6,10 @@
 		Camera,
 		Mic,
 		Calendar,
-		ShoppingBasket
+		ShoppingBasket,
+
+		MessageCircle
+
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
@@ -24,7 +27,7 @@
 		<div
 			class={cn(
 				'w-full min-w-14 py-1 rounded-full flex items-center justify-center transition-colors',
-				page.url.pathname.startsWith(href) && 'bg-secondary'
+				page.url.pathname.startsWith(href) && 'bg-primary/20 text-primary'
 			)}
 		>
 			<Icon class="size-6" />
@@ -54,7 +57,8 @@
 		{@render navItem('Plan', Calendar, '/plan')}
 		{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
 		{@render navItem('Pantry', Refrigerator, '/pantry')}
-		{@render navItem('Settings', User, '/settings')}
+		<!-- {@render navItem('Settings', User, '/settings')} -->
+		{@render navItem('Chat', MessageCircle, '/chat')}
 	</nav>
 {:else}
 	<nav
