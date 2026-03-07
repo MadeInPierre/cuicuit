@@ -2,6 +2,7 @@
 	import IngredientImage from './IngredientImage.svelte';
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import { cn } from '$lib/utils';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
 
 	type Props = {
 		ingredient: RecipeIngredientWithTranslations;
@@ -33,14 +34,16 @@
 
 	const name = $derived(
 		amount && amount > 1
-			? translation.name_plural || translation.name_singular
+			? translation?.name_plural || translation?.name_singular
 			: translation?.name_singular || translation?.name_plural
 	);
 </script>
 
-<div
+<Button
+	variant="outline"
 	class={cn(
-		'flex flex-col items-center gap-1 w-full bg-white p-2 text-sm rounded-lg shadow-2xs transition-all dark:bg-muted',
+		'border-none hover:bg-white dark:hover:bg-muted',
+		'flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-all',
 		size === 'sm' && 'p-1 text-xs',
 		size === 'lg' && 'p-3 text-md',
 		className
@@ -64,11 +67,16 @@
 			{description || ''}
 		</span>
 
-		<span class={cn('line-clamp-1 text-xs text-muted-foreground', size === 'lg' && 'text-sm')}>
+		<span
+			class={cn(
+				'line-clamp-1 text-xs text-muted-foreground font-normal',
+				size === 'lg' && 'text-sm'
+			)}
+		>
 			{amount}
 			{unit == 'whole' ? '' : unit}
 		</span>
 
 		{@render children?.()}
 	</div>
-</div>
+</Button>

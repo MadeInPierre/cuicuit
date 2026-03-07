@@ -28,7 +28,6 @@ export async function processIngredientStrings(
 	);
 
 	if (matchError) console.warn('Error matching ingredients:', matchError);
-	console.log('Match data received for ingredients:', matchData);
 
 	// Combine results into a final structured ingredient object
 	return eligibleStrings.map(

@@ -60,21 +60,22 @@ BEGIN
         SELECT 
             it.ingredient_id,
             CASE
-                -- Exact match on main or companion form
-                WHEN unaccent(lower(name_general)) IN (clean_query, alt_query)
-                  OR unaccent(lower(name_singular)) IN (clean_query, alt_query) THEN 100
+                -- Exact match: favor singular/plural-facing names over general names
+                WHEN unaccent(lower(name_singular)) IN (clean_query, alt_query) THEN 110
+                WHEN unaccent(lower(name_general)) IN (clean_query, alt_query) THEN 95
 
-                -- Prefix match on main or companion form
+                -- Prefix match: favor singular/plural-facing names over general names
+                WHEN unaccent(lower(name_singular)) LIKE (clean_query || '%')
+                  OR unaccent(lower(name_singular)) LIKE (alt_query || '%') THEN 85
                 WHEN unaccent(lower(name_general)) LIKE (clean_query || '%')
-                  OR unaccent(lower(name_general)) LIKE (alt_query || '%')
-                  OR unaccent(lower(name_singular)) LIKE (clean_query || '%')
-                  OR unaccent(lower(name_singular)) LIKE (alt_query || '%') THEN 80
+                  OR unaccent(lower(name_general)) LIKE (alt_query || '%') THEN 72
 
                 WHEN fts @@ prefix_query THEN 50 + (ts_rank(fts, prefix_query) * 10)
 
                 ELSE GREATEST(
-                    similarity(unaccent(lower(name_general)), clean_query),
-                    similarity(unaccent(lower(name_general)), alt_query),
+                    -- Slight penalty on name_general similarity so singular/plural wins ties
+                    similarity(unaccent(lower(name_general)), clean_query) * 0.90,
+                    similarity(unaccent(lower(name_general)), alt_query) * 0.90,
                     similarity(unaccent(lower(name_singular)), clean_query),
                     similarity(unaccent(lower(name_singular)), alt_query)
                 ) * 40
@@ -89,8 +90,8 @@ BEGIN
             OR unaccent(lower(name_singular)) LIKE (alt_query || '%')
             OR fts @@ prefix_query
             OR GREATEST(
-                similarity(unaccent(lower(name_general)), clean_query),
-                similarity(unaccent(lower(name_general)), alt_query),
+                similarity(unaccent(lower(name_general)), clean_query) * 0.90,
+                similarity(unaccent(lower(name_general)), alt_query) * 0.90,
                 similarity(unaccent(lower(name_singular)), clean_query),
                 similarity(unaccent(lower(name_singular)), alt_query)
             ) > 0.3
