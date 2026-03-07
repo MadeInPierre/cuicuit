@@ -20,11 +20,15 @@
 <Sidebar.Group bind:ref {...restProps}>
 	<Sidebar.GroupContent>
 		<Sidebar.Menu>
-			{#if sidebar.open}
-				<ThemeButton class="mx-auto" keepOpen={true} tooltipSide="top" />
-			{:else}
-				<ThemeButton class="w-min flex-col mx-auto" />
-			{/if}
+			<Sidebar.MenuItem>
+				<Sidebar.MenuButton>
+					<ThemeButton class="p-0" />
+
+					{#snippet tooltipContent()}
+						<span>Toggle theme</span>
+					{/snippet}
+				</Sidebar.MenuButton>
+			</Sidebar.MenuItem>
 
 			{#each items as item (item.title)}
 				<Sidebar.MenuItem>
