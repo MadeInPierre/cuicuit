@@ -7,6 +7,7 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { cmdOrCtrl } from '../hooks/is-mac.svelte';
 	import { IsMobile } from '../hooks/is-mobile.svelte';
+	import ThemeButton from './ThemeButton.svelte';
 	import { Button } from './ui/button';
 	import { Separator } from './ui/separator';
 
@@ -57,7 +58,7 @@
 				<!-- <Sidebar.Trigger /> -->
 				<!-- <Separator orientation="vertical" class="mr-2 h-4" /> -->
 
-				<a href="/recipes" class="flex gap-2 items-center">
+				<a href="/recipes" class="flex gap-2 items-center mr-auto">
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="size-8" />
 					<h1 class="text-lg font-semibold">Cuicuit</h1>
 				</a>
@@ -72,15 +73,16 @@
 				</Breadcrumb.Root> -->
 
 				<!-- <CommandMenu /> -->
+				<ThemeButton class="md:hidden" />
 
 				<Button
 					variant="secondary"
-					class="ml-auto flex mr-8 h-8 text-sm px-4 font-normal text-muted-foreground items-center gap-1 bg-muted"
+					class="hidden md:flex mr-8 h-8 text-sm px-4 font-normal text-muted-foreground items-center gap-1 bg-muted"
 				>
 					<span>Chat with Cuicuit...</span>
 				</Button>
 
-				<UserAvatar profile={userState.profile} class="size-8" />
+				<UserAvatar profile={userState.profile} class="size-8 md:hidden" />
 			</div>
 		</header>
 

@@ -7,9 +7,8 @@
 		Mic,
 		Calendar,
 		ShoppingBasket,
-
-		MessageCircle
-
+		MessageCircle,
+		Search
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
@@ -27,12 +26,15 @@
 		<div
 			class={cn(
 				'w-full min-w-14 py-1 rounded-full flex items-center justify-center transition-colors',
-				page.url.pathname.startsWith(href) && 'bg-primary/20 text-primary'
+				href && page.url.pathname.startsWith(href) && 'bg-primary/20 text-primary'
 			)}
 		>
 			<Icon class="size-6" />
 		</div>
-		<span>{label}</span>
+
+		{#if label}
+			<span>{label}</span>
+		{/if}
 	</a>
 {/snippet}
 
@@ -48,18 +50,36 @@
 	</nav>
 {:else if style === 'float'}
 	<div
-		class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent md:hidden"
+		class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-background to-transparent md:hidden"
 	></div>
-	<nav
-		class="z-50 sticky bottom-4 border border-border/60 flex justify-around items-center mx-4 py-2.5 px-4 rounded-full drop-shadow-md/5 bg-background/80 backdrop-blur-md md:hidden"
-	>
-		{@render navItem('Recipes', ChefHat, '/recipes')}
-		{@render navItem('Plan', Calendar, '/plan')}
-		{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
-		{@render navItem('Pantry', Refrigerator, '/pantry')}
-		<!-- {@render navItem('Settings', User, '/settings')} -->
-		{@render navItem('Chat', MessageCircle, '/chat')}
-	</nav>
+	<!-- <div class="z-50 sticky bottom-28 mx-12 md:hidden">
+		<div
+			class="w-full border border-border/60 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center gap-2 p-3"
+		>
+			<Search class="size-5 text-muted-foreground" />
+			<input
+				type="search"
+				placeholder="Search..."
+				class="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+			/>
+		</div>
+	</div> -->
+	<div class="z-50 sticky bottom-6 mx-12 flex gap-3 md:hidden">
+		<nav
+			class="flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md"
+		>
+			{@render navItem('Recipes', ChefHat, '/recipes')}
+			{@render navItem('Plan', Calendar, '/plan')}
+			{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
+			{@render navItem('Pantry', Refrigerator, '/pantry')}
+			<!-- {@render navItem('Chat', MessageCircle, '/chat')} -->
+		</nav>
+		<nav
+			class="w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md"
+		>
+			{@render navItem('', MessageCircle, '')}
+		</nav>
+	</div>
 {:else}
 	<nav
 		class="sticky bottom-0 z-40 bg-background border-t flex justify-around items-center gap-6 py-3 px-6 md:hidden max-w-screen"
