@@ -60,10 +60,8 @@
 	</div>
 
 	<div class="grid space-y-0.5 text-center shrink-0">
-		<span class={cn('line-clamp-2 text-balance')}>
-			<span class="font-medium">
-				{name || 'Unknown'}
-			</span>
+		<span class="line-clamp-2 text-balance">
+			<span class="font-medium">{name || 'Unknown'}</span>
 			{description || ''}
 		</span>
 
