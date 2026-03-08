@@ -5,6 +5,7 @@
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { BellPlus, Calendar, ShoppingBasket } from 'lucide-svelte';
 	import { deletePlanItem } from '../actions/update-item';
+	import { flip } from 'svelte/animate';
 
 	type Props = {
 		expanded?: boolean;
@@ -43,18 +44,20 @@
 				{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 0}
 					<div class="grid grid-cols-3 gap-2">
 						{#each activeSpace.activePlanItems as item (item.id)}
-							<ShoppingListCard
-								ingredient={item.ingredient!}
-								amount={item.quantity}
-								unit={item.unit === 'whole' ? '' : item.unit || ''}
-								size="sm"
-								class="h-28"
-								onclick={async () => {
-									console.log('Clicked item:', item);
-									// TODO add edit functionality (quantity, unit, name)
-									await deletePlanItem(activeSpace, item.id);
-								}}
-							/>
+							<div animate:flip={{ duration: 300 }}>
+								<ShoppingListCard
+									ingredient={item.ingredient!}
+									amount={item.quantity}
+									unit={item.unit === 'whole' ? '' : item.unit || ''}
+									size="sm"
+									class="h-28"
+									onclick={async () => {
+										console.log('Clicked item:', item);
+										// TODO add edit functionality (quantity, unit, name)
+										await deletePlanItem(activeSpace, item.id);
+									}}
+								/>
+							</div>
 						{/each}
 					</div>
 				{:else}

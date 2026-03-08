@@ -178,10 +178,10 @@
 														None
 													</div>
 
-													<div class="flex items-center gap-1">
+													<!-- <div class="flex items-center gap-1">
 														<Calendar class="size-3 inline-block" />
 														600 ml
-													</div>
+													</div> -->
 
 													{#if item.origins.some((origin) => origin.type === 'meal')}
 														<div class="flex items-center gap-1">

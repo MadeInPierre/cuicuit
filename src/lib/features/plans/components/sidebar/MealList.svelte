@@ -2,14 +2,15 @@
 	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { flip } from 'svelte/animate';
-	import { dragHandleZone } from 'svelte-dnd-action';
+	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
 	import { updateMealPosition } from '../../actions/update-meal';
 	import { toast } from 'svelte-sonner';
 	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
+	import { GripVertical } from 'lucide-svelte';
 
 	type Props = {
-		expanded?: boolean
-	}
+		expanded?: boolean;
+	};
 	let { expanded = $bindable(false) }: Props = $props();
 
 	const activeSpace = getActiveSpaceState();
@@ -48,7 +49,7 @@
 		}
 
 		// Refresh the active plan meals after updating all positions
-		await activeSpace.refreshActivePlan();
+		await activeSpace.refreshActivePlanMeals();
 
 		// Dismiss the loading toast
 		toast.success('Meals reordered!', { id: toastId, duration: 3000 });
@@ -62,10 +63,12 @@
 	class="grid space-y-2 rounded-sm"
 >
 	{#each meals as meal (meal.id)}
-		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5">
-			<!-- <div use:dragHandle class="mt-5">
-				<GripVertical class="size-4 text-muted-foreground cursor-move" />
-			</div> -->
+		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5 relative group">
+			<div use:dragHandle class="mt-5">
+				<GripVertical
+					class="absolute -right-2 translate-x-1/2 size-4 text-muted-foreground cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
+				/>
+			</div>
 			<MealListItem {meal} {expanded} showExpandedButtons />
 		</div>
 	{/each}

@@ -51,16 +51,16 @@
 {#if meal}
 	<div class="grid w-full">
 		<button
-			use:dragHandle
 			class={cn(
 				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group',
 				className
 			)}
-			ondblclick={() => (localExpanded = !localExpanded)}
+			onclick={() => (localExpanded = !localExpanded)}
 		>
 			<!-- <a href={'/recipes/' + recipe.id} class="shrink-0"> -->
 			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
 				<img
+					use:dragHandle
 					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`}
 					alt="Recipe"
 					class="aspect-square size-11 rounded-md object-cover"
