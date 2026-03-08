@@ -72,15 +72,8 @@
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
 
-				<!-- <CommandMenu /> -->
+				<CommandMenu />
 				<ThemeButton class="md:hidden" />
-
-				<Button
-					variant="secondary"
-					class="hidden md:flex mr-8 h-8 text-sm px-4 font-normal text-muted-foreground items-center gap-1 bg-muted"
-				>
-					<span>Chat with Cuicuit...</span>
-				</Button>
 
 				<UserAvatar profile={userState.profile} class="size-8 md:hidden" />
 			</div>

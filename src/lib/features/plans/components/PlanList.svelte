@@ -3,9 +3,18 @@
 	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import { BellPlus, Calendar, ShoppingBasket } from 'lucide-svelte';
+	import {
+		ArrowRight,
+		BellPlus,
+		Calendar,
+		ClipboardCheck,
+		ClipboardList,
+		Scroll,
+		ShoppingBasket
+	} from 'lucide-svelte';
 	import { deletePlanItem } from '../actions/update-item';
 	import { flip } from 'svelte/animate';
+	import { Button } from '$lib/shared/components/ui/button';
 
 	type Props = {
 		expanded?: boolean;
@@ -18,7 +27,7 @@
 <div class="flex w-full max-w-md flex-col gap-6">
 	{#snippet sectionHeader(Icon: any, title: string, description: string)}
 		<div class="flex items-center gap-4">
-			<Icon class="size-4" />
+			<Icon class="size-5" />
 			<div class="grid gap-0.5">
 				<h3 class="text-sm font-semibold">{title}</h3>
 				<p class="text-xs text-muted-foreground">{description}</p>
@@ -38,12 +47,18 @@
 				<MealList {expanded} />
 			</div>
 
-			<div class="grid space-y-4">
-				{@render sectionHeader(ShoppingBasket, 'Anything else?', 'Add items to your grocery list')}
+			<div class="grid">
+				{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
 
 				{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 0}
-					<div class="grid grid-cols-3 gap-2">
-						{#each activeSpace.activePlanItems as item (item.id)}
+					<div class="mt-4 relative grid grid-cols-3 gap-2 max-h-[270px] overflow-hidden">
+						{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 6}
+							<div
+								class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
+							></div>
+						{/if}
+						
+						{#each activeSpace.activePlanItems.slice(0, 9) as item (item.id)}
 							<div animate:flip={{ duration: 300 }}>
 								<ShoppingListCard
 									ingredient={item.ingredient!}
@@ -62,11 +77,18 @@
 					</div>
 				{:else}
 					<div
-						class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+						class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
 					>
 						<ShoppingBasket class="size-8" />
 						<p class="mx-auto w-28 text-center">Search for items to add them here</p>
 					</div>
+				{/if}
+
+				{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 6}
+					<Button variant="link" class="mx-auto text-muted-foreground/60 font-normal group">
+						Show more
+						<ArrowRight class="size-4 group-hover:translate-x-1 transition-transform" />
+					</Button>
 				{/if}
 			</div>
 

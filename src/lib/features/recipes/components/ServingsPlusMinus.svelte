@@ -46,7 +46,7 @@
 				counterSpan: 'text-lg',
 				counterIcon: 'size-3 mt-1',
 				buttonDiv: 'size-6',
-				buttonIcon: 'size-2'
+				buttonIcon: 'size-3'
 			},
 			md: {
 				mainDiv: 'gap-4',
@@ -54,7 +54,7 @@
 				counterSpan: 'text-2xl',
 				counterIcon: 'size-5',
 				buttonDiv: 'size-8',
-				buttonIcon: 'size-6'
+				buttonIcon: 'size-4'
 			},
 			lg: {
 				mainDiv: 'gap-4',
@@ -62,7 +62,7 @@
 				counterSpan: 'text-4xl',
 				counterIcon: 'size-6 mt-1',
 				buttonDiv: 'size-10',
-				buttonIcon: 'size-8'
+				buttonIcon: 'size-5'
 			},
 			xl: {
 				mainDiv: 'gap-4 h-12',
@@ -70,7 +70,7 @@
 				counterSpan: 'text-5xl',
 				counterIcon: 'size-7 mt-1.5',
 				buttonDiv: 'size-12',
-				buttonIcon: 'size-8'
+				buttonIcon: 'size-6'
 			}
 		}
 	};
