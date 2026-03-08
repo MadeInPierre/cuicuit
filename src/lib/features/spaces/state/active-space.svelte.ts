@@ -11,6 +11,7 @@ import {
 	getPlanMeals,
 	type MealWithRecipeAndIngredients
 } from '$lib/features/plans/queries/get-plan-meals';
+import { getShoppingListItems, type ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
 
 const activeSpaceIdState = createPersistentState<string | undefined>('active-space-id', undefined);
 
@@ -43,8 +44,11 @@ class ActiveSpaceState {
 		this.activeSpace?.members?.find((member) => member.user_id === this._userId) || null
 	);
 
-	/** TODO The active space's meal plan. Contains a list of recipes to cook */
-	activePlan: MealWithRecipeAndIngredients[] | undefined = $state(undefined);
+	/** The active space's meal plan. Contains a list of recipes to cook */
+	activePlanMeals: MealWithRecipeAndIngredients[] | undefined = $state(undefined);
+
+	/** The active space's plan's additional items */
+	activePlanItems: ShoppingListItem[] | undefined = $state(undefined);
 
 	constructor(userState: UserState) {
 		this._userState = userState;
@@ -73,8 +77,9 @@ class ActiveSpaceState {
 						this.friendProfiles = profiles.filter((profile) => profile !== null);
 					});
 
-				// Fetch the active plan meals for the active space
-				this.refreshActivePlan();
+				// Fetch the plan for the active space
+				this.refreshActivePlanMeals();
+				this.refreshActivePlanItems();
 			} else {
 				this.userSpaces = null;
 			}
@@ -82,17 +87,35 @@ class ActiveSpaceState {
 	}
 
 	/** Fetches the active plan meals for the current active space */
-	async refreshActivePlan() {
+	async refreshActivePlanMeals() {
 		if (!this.id) return;
 
 		try {
 			// Fetch currently active meals for the active space (deleted meals are excluded)
 			const response = await getPlanMeals(this.id).is('deleted_at', null);
 			if (response.data)
-				this.activePlan = response.data?.sort((a, b) => a.position - b.position) || [];
+				this.activePlanMeals = response.data?.sort((a, b) => a.position - b.position) || [];
 		} catch (error) {
 			console.error('Error refreshing active plan meals:', error);
-			this.activePlan = [];
+			this.activePlanMeals = [];
+		}
+	}
+
+	/** Fetches the active space's plan's additional items */
+	async refreshActivePlanItems() {
+		if (!this.id) return;
+
+		try {
+			const { data, error } = await getShoppingListItems(this.id).is('deleted_at', null);
+			if (error) {
+				console.error('Error refreshing active space items:', error);
+				this.activePlanItems = [];
+			} else {
+				this.activePlanItems = data || [];
+			}
+		} catch (error) {
+			console.error('Error refreshing active space items:', error);
+			this.activePlanItems = [];
 		}
 	}
 }

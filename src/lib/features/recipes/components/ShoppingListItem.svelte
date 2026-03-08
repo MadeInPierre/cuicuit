@@ -70,15 +70,13 @@
 	<Button
 		size="icon"
 		variant="ghost"
-		class={cn(
-			'ml-auto mt-1 size-10 rounded-full'
-		)}
+		class={cn('ml-auto mt-1 size-10 rounded-full')}
 		onclick={() => (checked = !checked)}
 	>
 		{#if checked}
-			<CircleCheckBig class="size-10 text-muted-foreground" />
+			<CircleCheckBig class="size-5 text-muted-foreground" />
 		{:else}
-			<Circle class="size-10 text-muted-foreground/60" />
+			<Circle class="size-5 text-muted-foreground/60" />
 		{/if}
 	</Button>
 </div>

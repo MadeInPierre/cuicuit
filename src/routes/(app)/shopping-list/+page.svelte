@@ -19,7 +19,7 @@
 	type ShoppingListItem = {
 		ingredient: RecipeIngredientWithTranslations;
 		origins: {
-			type: 'meal';
+			type: 'meal' | 'independent';
 			id: string; // Meal ID, TODO could also be raw ingredient ID or household item ID
 			shoppingIngredient: ShoppingIngredient;
 		}[];
@@ -30,9 +30,10 @@
 	};
 
 	const activeSpace = getActiveSpaceState();
-	const meals = $derived(activeSpace.activePlan || []);
+	const meals = $derived(activeSpace.activePlanMeals || []);
+	const items = $derived(activeSpace.activePlanItems || []);
 
-	const shoppingList: ShoppingListItem[] = $derived(generateShoppingList(meals));
+	const shoppingList: ShoppingListItem[] = $derived(generateShoppingList(meals, items));
 
 	let hoveredListIngredientId: string | null = $state(null);
 
@@ -41,9 +42,13 @@
 	 * summing their quantities and keeping track of their origins.
 	 * (e.g., "12 apples coming from 3 for Meal 1, 5 for Meal 2, and 4 by Pierre").
 	 */
-	function generateShoppingList(meals: MealWithRecipeAndIngredients[]): ShoppingListItem[] {
+	function generateShoppingList(
+		meals: MealWithRecipeAndIngredients[],
+		items: ShoppingIngredient[]
+	): ShoppingListItem[] {
 		const ingredientMap: Record<string, ShoppingListItem> = {};
 
+		// Process meals first to populate the ingredient map with recipe ingredients and their origins
 		meals.forEach((meal) => {
 			meal.shopping_ingredients.forEach((shoppingIngredient) => {
 				const key = shoppingIngredient.ingredient_id;
@@ -75,6 +80,35 @@
 				ingredientMap[key].mergedQuantity!.unit =
 					shoppingIngredient.unit || ingredientMap[key].mergedQuantity!.unit;
 			});
+		});
+
+		// Then process independent shopping items, adding them to the map or merging with existing ingredients
+		items.forEach((shoppingItem) => {
+			const key = shoppingItem.ingredient_id;
+			if (!key) return;
+
+			if (!ingredientMap[key]) {
+				ingredientMap[key] = {
+					ingredient: shoppingItem.ingredient!, // TODO handle unknown/manual items without ingredient relation
+					origins: [],
+					mergedQuantity: {
+						amount: 0,
+						unit: shoppingItem.unit || ''
+					}
+				};
+			}
+
+			ingredientMap[key].origins.push({
+				type: 'independent',
+				id: shoppingItem.id,
+				shoppingIngredient: shoppingItem
+			});
+
+			if (ingredientMap[key].mergedQuantity) {
+				ingredientMap[key].mergedQuantity.amount += shoppingItem.quantity;
+				ingredientMap[key].mergedQuantity.unit =
+					shoppingItem.unit || ingredientMap[key].mergedQuantity.unit;
+			}
 		});
 
 		return Object.values(ingredientMap).sort((a, b) =>
@@ -149,17 +183,20 @@
 														600 ml
 													</div>
 
-													{#if item.origins.length > 0}
+													{#if item.origins.some((origin) => origin.type === 'meal')}
 														<div class="flex items-center gap-1">
 															<ChefHat class="size-3 inline-block" />
-															{item.origins.length}
+															{item.origins.filter((origin) => origin.type === 'meal').length}
 														</div>
 													{/if}
 
-													<div class="flex items-center gap-1">
-														<User class="size-3 inline-block" />
-														1
-													</div>
+													{#if item.origins.some((origin) => origin.type === 'independent')}
+														<div class="flex items-center gap-1">
+															<User class="size-3 inline-block" />
+															{item.origins.filter((origin) => origin.type === 'independent')
+																.length}
+														</div>
+													{/if}
 												</span>
 
 												<div class="hidden">
