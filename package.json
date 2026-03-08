@@ -54,7 +54,7 @@
 		"svelte-sonner": "^1.0.5",
 		"sveltekit-superforms": "^2.20.0",
 		"tailwind-merge": "^3.3.1",
-		"tailwind-variants": "^2.1.0",
+		"tailwind-variants": "^3.2.2",
 		"tailwindcss": "^4.1.12",
 		"tw-animate-css": "^1.3.7",
 		"typescript": "^5.0.0",

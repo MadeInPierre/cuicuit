@@ -8,7 +8,7 @@
 		ingredient: RecipeIngredientWithTranslations;
 		amount?: number;
 		unit?: string;
-		description?: string;
+		description?: string | null;
 		size?: 'sm' | 'md' | 'lg';
 		class?: string;
 		[key: string]: any;
