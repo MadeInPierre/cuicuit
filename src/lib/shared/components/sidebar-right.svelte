@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { ArrowRight, LoaderCircle, ScrollText, Settings2 } from 'lucide-svelte';
-	import type { ComponentProps } from 'svelte';
-	import Input from './ui/input/input.svelte';
+	import { ArrowRight, LoaderCircle, ScrollText, SearchIcon, Settings2, X } from 'lucide-svelte';
+	import type { ComponentProps, SvelteComponent } from 'svelte';
 	import { Button } from './ui/button';
 	import PlanList from '$lib/features/plans/components/PlanList.svelte';
+	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
 	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/IngredientSearch.svelte';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
@@ -13,6 +13,7 @@
 	let expandedMealCards = $state(false);
 	let searchInput = $state('');
 	let searchLoading = $state(false);
+	let searchRef: HTMLElement | null = $state(null);
 </script>
 
 <Sidebar.Root
@@ -36,27 +37,50 @@
 		<IngredientSearch
 			language="fr-FR"
 			onSelect={(ingredient, index) => {
-				console.log('Selected ingredient:', ingredient, 'at index:', index);
-				searchInput = '';
+				searchRef?.focus();
 			}}
+			bind:value={searchInput}
 			bind:loading={searchLoading}
 			displayRows={2}
 			class="mt-2"
 		>
 			{#snippet input({ ...props })}
 				<div class="flex gap-2">
-					<Input
-						class="h-8"
-						placeholder="Add an item or recipe..."
-						bind:value={searchInput}
-						{...props}
-					/>
+					<InputGroup.Root class="h-8 bg-white dark:bg-muted border-none shadow-2xs">
+						<InputGroup.Input
+							class=""
+							placeholder="Add an item or recipe..."
+							bind:value={props.getValue, props.setValue}
+							bind:ref={searchRef}
+							{...props}
+						/>
+						<InputGroup.Addon>
+							<SearchIcon />
+						</InputGroup.Addon>
+						{#if searchInput}
+							<InputGroup.Addon align="inline-end">
+								<InputGroup.Button
+									aria-label="Clear search"
+									title="Clear search"
+									size="icon-xs"
+									onclick={() => {
+										searchInput = ''
+										searchRef?.focus();
+									}}
+									tabindex={-1}
+								>
+									<X />
+								</InputGroup.Button>
+							</InputGroup.Addon>
+						{/if}
+					</InputGroup.Root>
 
 					<Button
 						variant="default"
 						size="icon"
 						class="h-8"
 						onclick={() => (expandedMealCards = !expandedMealCards)}
+						tabindex={-1}
 					>
 						{#if searchLoading}
 							<LoaderCircle class="size-4 animate-spin" />

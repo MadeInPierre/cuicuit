@@ -9,14 +9,23 @@
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
 	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
 	import type { Snippet } from 'svelte';
-	import { Bird, ScanSearch, Search } from 'lucide-svelte';
+	import { Bird, Search } from 'lucide-svelte';
 	import { LoaderCircle } from '@lucide/svelte';
 
 	type Props = {
 		language: LanguageKey;
 		onSelect: (processedIngredient: IngredientProcessed | null, chosenMatchIndex: number) => void;
 		input?: Snippet<
-			[{ oninput: (e: any) => void; onfocus: () => void; onblur: () => void; onsubmit: () => void }]
+			[
+				{
+					getValue: () => string;
+					setValue: (newValue: string) => void;
+					oninput: (e: any) => void;
+					onfocus: () => void;
+					onblur: () => void;
+					onkeydown: (e: KeyboardEvent) => void;
+				}
+			]
 		>;
 		value?: string;
 		loading?: boolean;
@@ -89,6 +98,8 @@
 >
 	{#if input}
 		{@render input({
+			getValue: () => value,
+			setValue: (newValue: string) => (value = newValue),
 			oninput: (e: InputEvent) =>
 				(value = (e.currentTarget as HTMLInputElement | null)?.value ?? ''),
 			onfocus: () => (isSearchFocused = true),
@@ -96,7 +107,16 @@
 				isSearchFocused = false;
 				hasTypedThisFocus = false;
 			},
-			onsubmit: () => processedIngredient?.matches && onSelectIngredient(0)
+			onkeydown: (e: KeyboardEvent) => {
+				if (e.key === 'Enter' && processedIngredient?.matches) {
+					onSelectIngredient(0);
+				}
+				if (e.key === 'Escape') {
+					console.log('Escape pressed, closing search results');
+					value = '';
+					processedIngredient = null;
+				}
+			}
 		})}
 	{:else}
 		<Input
@@ -109,7 +129,11 @@
 				isSearchFocused = false;
 				hasTypedThisFocus = false;
 			}}
-			onsubmit={() => processedIngredient?.matches && onSelectIngredient(0)}
+			onkeydown={(e) => {
+				if (e.key === 'Enter' && processedIngredient?.matches) {
+					onSelectIngredient(0);
+				}
+			}}
 		/>
 	{/if}
 
@@ -129,6 +153,7 @@
 					{#each processedIngredient.matches.slice(0, displayRows * displayColumns) as ingredient, index (ingredient.id)}
 						<ShoppingListCard
 							{ingredient}
+							description={processedIngredient.parsed.description}
 							amount={processedIngredient.parsed.quantity?.amount}
 							unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
 								? ''
@@ -146,12 +171,19 @@
 					<LoaderCircle class="size-8 m-2 animate-spin text-muted-foreground" />
 					<span>Searching...</span>
 				</div>
-			{:else}
+			{:else if value.trim().length > 0}
 				<div
 					class="text-muted-foreground text-sm my-auto flex flex-col items-center justify-center gap-4"
 				>
 					<Bird class="size-12 text-muted-foreground" />
 					<span>Oops, no matches found.</span>
+				</div>
+			{:else}
+				<div
+					class="text-muted-foreground text-sm my-auto flex flex-col items-center justify-center gap-4"
+				>
+					<Search class="size-12 text-muted-foreground" />
+					<span>Start typing to search for ingredients...</span>
 				</div>
 			{/if}
 		</div>
