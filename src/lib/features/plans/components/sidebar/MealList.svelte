@@ -14,13 +14,13 @@
 
 	const activeSpace = getActiveSpaceState();
 
-	const meals = $derived(activeSpace.activePlan || []);
+	const meals = $derived(activeSpace.activePlanMeals || []);
 
 	const flipDurationMs = 220;
 
 	function updateLocalMealPositions(items: MealWithRecipeAndIngredients[]) {
-		if (!activeSpace.activePlan) return;
-		activeSpace.activePlan = items.map((meal, index) => ({
+		if (!activeSpace.activePlanMeals) return;
+		activeSpace.activePlanMeals = items.map((meal, index) => ({
 			...meal,
 			position: index
 		}));

@@ -8,7 +8,7 @@ export async function updateMealServings(
 	options?: { skipRefresh?: boolean }
 ) {
 	if (!supabase) throw new Error('Supabase client not available');
-	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlan)
+	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 	if (servings < 1) throw new Error('Servings must be at least 1');
@@ -19,7 +19,7 @@ export async function updateMealServings(
 
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;
-	await activeSpace.refreshActivePlan();
+	await activeSpace.refreshActivePlanMeals();
 }
 
 export async function updateMealPosition(
@@ -29,7 +29,7 @@ export async function updateMealPosition(
 	options?: { skipRefresh?: boolean }
 ) {
 	if (!supabase) throw new Error('Supabase client not available');
-	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlan)
+	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 	if (position < 0) throw new Error('Position must be a non-negative integer');
@@ -40,7 +40,7 @@ export async function updateMealPosition(
 
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;
-	await activeSpace.refreshActivePlan();
+	await activeSpace.refreshActivePlanMeals();
 }
 
 export async function deleteMeal(
@@ -49,7 +49,7 @@ export async function deleteMeal(
 	options?: { skipRefresh?: boolean }
 ) {
 	if (!supabase) throw new Error('Supabase client not available');
-	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlan)
+	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 
@@ -78,5 +78,5 @@ export async function deleteMeal(
 	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
 
 	if (options?.skipRefresh) return;
-	await activeSpace.refreshActivePlan();
+	await activeSpace.refreshActivePlanMeals();
 }
