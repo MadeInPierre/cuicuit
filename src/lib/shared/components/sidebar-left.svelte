@@ -3,19 +3,10 @@
 	import NavFavorites from '$lib/shared/components/nav-favorites.svelte';
 	import NavMain from '$lib/shared/components/nav-main.svelte';
 	import NavSecondary from '$lib/shared/components/nav-secondary.svelte';
-	import NavWorkspaces from '$lib/shared/components/nav-workspaces.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import type { ComponentProps } from 'svelte';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
-	import {
-		BotMessageSquare,
-		ChefHat,
-		Megaphone,
-		Notebook,
-		Refrigerator,
-		Send,
-		ShoppingCart
-	} from 'lucide-svelte';
+	import { ChefHat, Megaphone, Notebook, Refrigerator, Send, ShoppingBasket } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import NavUser from './nav-user.svelte';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
@@ -38,7 +29,7 @@
 			{
 				title: 'Shopping list',
 				url: '/shopping-list',
-				icon: ShoppingCart,
+				icon: ShoppingBasket,
 				isActive: page.url.pathname.startsWith('/shopping-list')
 			},
 			{

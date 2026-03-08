@@ -55,8 +55,8 @@
 	);
 
 	$effect(() => {
-		value;
 		loading = value.trim().length > 0;
+		
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(async () => {
 			// Reset processed input
@@ -64,9 +64,10 @@
 				processedIngredient = null;
 				return;
 			}
-
+			
 			// Process the ingredient string into a structured format matched to the database
 			processedIngredient = await processIngredientString(value, language);
+			hasTypedThisFocus = true; // Fixes escape key details
 			loading = false;
 		}, 150);
 	});
@@ -112,9 +113,13 @@
 					onSelectIngredient(0);
 				}
 				if (e.key === 'Escape') {
-					console.log('Escape pressed, closing search results');
-					value = '';
-					processedIngredient = null;
+					if (!value.trim()) {
+						isSearchFocused = false;
+						hasTypedThisFocus = false;
+					} else {
+						value = '';
+						processedIngredient = null;
+					}
 				}
 			}
 		})}
@@ -132,6 +137,11 @@
 			onkeydown={(e) => {
 				if (e.key === 'Enter' && processedIngredient?.matches) {
 					onSelectIngredient(0);
+				}
+				if (e.key === 'Escape') {
+					console.log('Escape pressed, closing search results');
+					value = '';
+					processedIngredient = null;
 				}
 			}}
 		/>
