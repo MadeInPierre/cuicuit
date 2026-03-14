@@ -421,6 +421,7 @@ export type Database = {
       }
       space_plan_shopping_lists: {
         Row: {
+          checked: boolean
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -435,6 +436,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          checked?: boolean
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -449,6 +451,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          checked?: boolean
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -579,19 +582,27 @@ export type Database = {
     }
     Functions: {
       match_ingredient: {
-        Args: { lang_code: string; n_matches?: number; query_text: string }
+        Args: {
+          is_raw_import?: boolean
+          lang_code: string
+          n_matches?: number
+          query_text: string
+        }
         Returns: {
-          commonly_used: Database["public"]["Enums"]["commonly_used_level"]
-          fts: unknown
-          ingredient_id: string
-          language_id: number
-          name_general: string
-          name_plural: string | null
-          name_singular: string | null
+          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null
+          base_unit: Database["public"]["Enums"]["ingredient_base_unit"]
+          embedding: string | null
+          g_per_ml: number | null
+          g_per_unit: Json | null
+          hierarchy: string[]
+          id: string
+          slug: string
+          slug_general: string
+          unit_frequencies: Json | null
         }[]
         SetofOptions: {
           from: "*"
-          to: "ingredient_translations"
+          to: "ingredients"
           isOneToOne: false
           isSetofReturn: true
         }

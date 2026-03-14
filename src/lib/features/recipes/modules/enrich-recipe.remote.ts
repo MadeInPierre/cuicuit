@@ -21,7 +21,9 @@ Your task is to enrich the recipe by inferring missing details (null/incomplete 
 	- Note: "prep" course is for small recipes meant to be combined with other dishes (sauces, quick sides). Standalone dishes should not use "prep".
 - ALL filters must have at least one value and be correct.
 
-Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description). Do not add ingredients or details not in the original recipe.
+Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description).
+If an ingredient string is actually multiple ingredients combined, split it into multiple ingredients with correct details.
+Do not add ingredients or details not in the original recipe.
 
 Requirements:
 - Return enriched/corrected recipe in JSON format, strictly following the schema.

@@ -36,8 +36,3 @@ npm run db:types:local
 ```bash
 supabase db push
 ```
-
-## Issues and troubleshooting
-
-TODO
-

@@ -78,8 +78,8 @@ class ActiveSpaceState {
 					});
 
 				// Fetch the plan for the active space
-				this.refreshActivePlanMeals();
 				this.refreshActivePlanItems();
+				this.refreshActivePlanMeals();
 			} else {
 				this.userSpaces = null;
 			}
@@ -101,7 +101,7 @@ class ActiveSpaceState {
 		}
 	}
 
-	/** Fetches the active space's plan's additional items */
+	/** Fetches the active space's plan's items */
 	async refreshActivePlanItems() {
 		if (!this.id) return;
 

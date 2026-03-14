@@ -556,6 +556,7 @@ export const publicSpacePlanMealsRelationshipsSchema = z.tuple([
 ]);
 
 export const publicSpacePlanShoppingListsRowSchema = z.object({
+  checked: z.boolean(),
   created_at: z.string().nullable(),
   deleted_at: z.string().nullable(),
   id: z.string(),
@@ -571,6 +572,7 @@ export const publicSpacePlanShoppingListsRowSchema = z.object({
 });
 
 export const publicSpacePlanShoppingListsInsertSchema = z.object({
+  checked: z.boolean().optional(),
   created_at: z.string().optional().nullable(),
   deleted_at: z.string().optional().nullable(),
   id: z.string().optional(),
@@ -586,6 +588,7 @@ export const publicSpacePlanShoppingListsInsertSchema = z.object({
 });
 
 export const publicSpacePlanShoppingListsUpdateSchema = z.object({
+  checked: z.boolean().optional(),
   created_at: z.string().optional().nullable(),
   deleted_at: z.string().optional().nullable(),
   id: z.string().optional(),
@@ -712,6 +715,7 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
 });
 
 export const publicMatchIngredientArgsSchema = z.object({
+  is_raw_import: z.boolean().optional(),
   lang_code: z.string(),
   n_matches: z.number().optional(),
   query_text: z.string(),
@@ -719,13 +723,16 @@ export const publicMatchIngredientArgsSchema = z.object({
 
 export const publicMatchIngredientReturnsSchema = z.array(
   z.object({
-    commonly_used: publicCommonlyUsedLevelSchema,
-    fts: z.unknown(),
-    ingredient_id: z.string(),
-    language_id: z.number(),
-    name_general: z.string(),
-    name_plural: z.string().nullable(),
-    name_singular: z.string().nullable(),
+    aisle: publicSupermarketAisleSchema.nullable(),
+    base_unit: publicIngredientBaseUnitSchema,
+    embedding: z.string().nullable(),
+    g_per_ml: z.number().nullable(),
+    g_per_unit: jsonSchema.nullable(),
+    hierarchy: z.array(z.string()),
+    id: z.string(),
+    slug: z.string(),
+    slug_general: z.string(),
+    unit_frequencies: jsonSchema.nullable(),
   }),
 );
 

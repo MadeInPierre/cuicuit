@@ -3,6 +3,7 @@
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import { cn } from '$lib/utils';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import { CircleCheckBig, Circle } from 'lucide-svelte';
 
 	type Props = {
 		ingredient: RecipeIngredientWithTranslations;
@@ -13,6 +14,10 @@
 		class?: string;
 		[key: string]: any;
 		children?: any;
+		topRight?: any;
+		checkable?: boolean;
+		checked?: boolean;
+		onCheckedChange?: (checked: boolean) => void;
 		onclick?: () => void;
 	};
 
@@ -24,6 +29,10 @@
 		size = 'md',
 		class: className,
 		children,
+		topRight,
+		checkable = false,
+		checked = $bindable(false),
+		onCheckedChange = () => {},
 		onclick = () => {},
 		...others
 	}: Props = $props();
@@ -42,15 +51,49 @@
 <Button
 	variant="outline"
 	class={cn(
-		'border-none hover:bg-white dark:hover:bg-muted',
-		'flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-all',
-		size === 'sm' && 'p-1 text-xs',
-		size === 'lg' && 'p-3 text-md',
+		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-all',
+		checked &&
+			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
+		size === 'sm' && 'h-26 p-1 text-xs',
+		size === 'lg' && 'h-32 p-3 text-md',
 		className
 	)}
 	{...others}
 	{onclick}
 >
+	{#if checkable}
+		<div
+			class={cn(
+				'absolute top-0 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity',
+				checked && 'opacity-100'
+			)}
+		>
+			<Button
+				size="icon"
+				variant="link"
+				class="ml-auto mt-1 size-10 rounded-full"
+				onclick={() => {
+					checked = !checked;
+					onCheckedChange(checked);
+				}}
+			>
+				{#if checked}
+					<CircleCheckBig class="size-5 text-muted-foreground" />
+				{:else}
+					<Circle class="size-5 text-muted-foreground/60" />
+				{/if}
+			</Button>
+		</div>
+	{/if}
+
+	{#if topRight}
+		<div
+			class="absolute top-2 right-2 flex flex-col items-end space-y-1 text-xs font-normal text-muted-foreground/60"
+		>
+			{@render topRight?.()}
+		</div>
+	{/if}
+
 	<div class="flex-1 min-h-0 w-full">
 		<IngredientImage
 			id={ingredient.id}
@@ -60,7 +103,7 @@
 	</div>
 
 	<div class="grid space-y-0.5 text-center shrink-0">
-		<span class="line-clamp-2 text-balance">
+		<span class={cn('line-clamp-2 text-balance', checked && 'line-through text-muted-foreground')}>
 			<span class="font-medium">{name || 'Unknown'}</span>
 			{description || ''}
 		</span>

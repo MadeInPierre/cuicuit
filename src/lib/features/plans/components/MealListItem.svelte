@@ -25,12 +25,12 @@
 	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
+	import { openMealCardId } from '../state/open-meal-card.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
 	interface Props {
 		meal?: MealWithRecipeAndIngredients | null; // null for loading state
-		expanded?: boolean; // Show expanded view with ingredients and controls
 		showServings?: boolean; // Whether to show servings count in collapsed view
 		showExpandedButtons?: boolean;
 		class?: string;
@@ -38,14 +38,12 @@
 
 	let {
 		meal = null,
-		expanded: parentExpanded = false,
 		class: className = '',
 		showServings = true,
 		showExpandedButtons = false
 	}: Props = $props();
 
-	let localExpanded = $state(false);
-	let finalExpanded = $derived(parentExpanded || localExpanded);
+	let expanded = $derived(openMealCardId.value === meal?.id);
 </script>
 
 {#if meal}
@@ -55,7 +53,8 @@
 				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group',
 				className
 			)}
-			onclick={() => (localExpanded = !localExpanded)}
+			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
+			aria-expanded={expanded}
 		>
 			<!-- <a href={'/recipes/' + recipe.id} class="shrink-0"> -->
 			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
@@ -89,7 +88,7 @@
 				<CookableStatus />
 			</div>
 
-			{#if showServings && (!finalExpanded || !showExpandedButtons)}
+			{#if showServings && (!expanded || !showExpandedButtons)}
 				<div class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0 relative">
 					<div class="flex items-center gap-1">
 						<span>{meal.servings}</span>
@@ -99,7 +98,7 @@
 			{/if}
 		</button>
 
-		{#if finalExpanded}
+		{#if expanded}
 			<div
 				transition:slide={{ duration: 300 }}
 				class={cn(
@@ -229,7 +228,7 @@
 						in:fade={{ duration: 100, delay: 300 }}
 						out:fade={{ duration: 100 }}
 					>
-						<div class="rounded-full p-1 bg-background border">
+						<div class="rounded-full p-1 bg-white border">
 							<ServingsPlusMinus
 								value={meal.servings}
 								size="xs"
@@ -240,7 +239,7 @@
 							/>
 						</div>
 
-						<div class="rounded-full p-1 bg-background border flex">
+						<div class="rounded-full p-1 bg-white border flex">
 							<Button
 								variant="link"
 								size="icon"

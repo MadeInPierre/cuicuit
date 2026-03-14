@@ -3,18 +3,9 @@
 	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import {
-		ArrowRight,
-		BellPlus,
-		Calendar,
-		ClipboardCheck,
-		ClipboardList,
-		Scroll,
-		ShoppingBasket
-	} from 'lucide-svelte';
+	import { Calendar, ClipboardList, ShoppingBasket } from 'lucide-svelte';
 	import { deletePlanItem } from '../actions/update-item';
 	import { flip } from 'svelte/animate';
-	import { Button } from '$lib/shared/components/ui/button';
 
 	type Props = {
 		expanded?: boolean;
@@ -22,6 +13,12 @@
 	const { expanded = false }: Props = $props();
 
 	const activeSpace = getActiveSpaceState();
+
+	// Display recently added independent items
+	const independentItems = $derived(
+		activeSpace.activePlanItems &&
+			activeSpace.activePlanItems.filter((item) => item.type === 'independent' && !item.checked).slice(0, 12)
+	);
 </script>
 
 <div class="flex w-full max-w-md flex-col gap-6">
@@ -50,22 +47,21 @@
 			<div class="grid">
 				{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
 
-				{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 0}
-					<div class="mt-4 relative grid grid-cols-3 gap-2 max-h-[270px] overflow-hidden">
-						{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 6}
+				{#if independentItems && independentItems.length > 0}
+					<div class="mt-4 relative grid grid-cols-3 gap-2 max-h-[360px] overflow-hidden">
+						{#if independentItems && independentItems.length > 6}
 							<div
 								class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
 							></div>
 						{/if}
-						
-						{#each activeSpace.activePlanItems.slice(0, 9) as item (item.id)}
+
+						{#each independentItems as item (item.id)}
 							<div animate:flip={{ duration: 300 }}>
 								<ShoppingListCard
 									ingredient={item.ingredient!}
 									amount={item.quantity}
 									unit={item.unit === 'whole' ? '' : item.unit || ''}
 									size="sm"
-									class="h-28"
 									onclick={async () => {
 										console.log('Clicked item:', item);
 										// TODO add edit functionality (quantity, unit, name)
@@ -84,15 +80,15 @@
 					</div>
 				{/if}
 
-				{#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 6}
+				<!-- {#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 6}
 					<Button variant="link" class="mx-auto text-muted-foreground/60 font-normal group">
 						Show more
 						<ArrowRight class="size-4 group-hover:translate-x-1 transition-transform" />
 					</Button>
-				{/if}
+				{/if} -->
 			</div>
 
-			<div class="grid space-y-4">
+			<!-- <div class="grid space-y-4">
 				{@render sectionHeader(BellPlus, 'Refill suggestions', 'Ingredients that are running low')}
 				<div
 					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
@@ -103,7 +99,7 @@
 						<a class="underline decoration-dotted" href="?#">see rules</a>
 					</p>
 				</div>
-			</div>
+			</div> -->
 		</Tabs.Content>
 		<Tabs.Content value="shopping">Here you can manage your grocery list.</Tabs.Content>
 	</Tabs.Root>

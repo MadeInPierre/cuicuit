@@ -192,7 +192,7 @@ export async function importRecipeFromUrl(
 					{
 						recipe_id: recipeId,
 						raw_input: processed.sourceText,
-						ingredient_id: bestMatch.ingredient_id,
+						ingredient_id: bestMatch.id,
 						quantity: processed.parsed.quantity?.amount || 1,
 						unit: processed.parsed.quantity?.unitKey || 'whole',
 						details: processed.parsed.description || '',
