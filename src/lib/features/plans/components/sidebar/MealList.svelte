@@ -8,11 +8,6 @@
 	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
 	import { GripVertical } from 'lucide-svelte';
 
-	type Props = {
-		expanded?: boolean;
-	};
-	let { expanded = $bindable(false) }: Props = $props();
-
 	const activeSpace = getActiveSpaceState();
 
 	const meals = $derived(activeSpace.activePlanMeals || []);
@@ -69,7 +64,7 @@
 					class="absolute -right-2 translate-x-1/2 size-4 text-muted-foreground cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
 				/>
 			</div>
-			<MealListItem {meal} {expanded} showExpandedButtons />
+			<MealListItem {meal} showExpandedButtons />
 		</div>
 	{/each}
 </section>

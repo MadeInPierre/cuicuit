@@ -58,14 +58,21 @@
 		size === 'lg' && 'h-32 p-3 text-md',
 		className
 	)}
+	onclick={(e) => {
+		if (checkable && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+			e.preventDefault();
+			checked = !checked;
+			onCheckedChange(checked);
+		}
+		onclick?.();
+	}}
 	{...others}
-	{onclick}
 >
 	{#if checkable}
 		<div
 			class={cn(
 				'absolute top-0 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity',
-				checked && 'opacity-100'
+				checked && 'md:opacity-100'
 			)}
 		>
 			<Button

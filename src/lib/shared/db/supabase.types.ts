@@ -421,7 +421,7 @@ export type Database = {
       }
       space_plan_shopping_lists: {
         Row: {
-          checked: boolean
+          checked_at: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -436,7 +436,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          checked?: boolean
+          checked_at?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -451,7 +451,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          checked?: boolean
+          checked_at?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string

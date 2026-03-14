@@ -15,7 +15,9 @@ export async function updatePlanItemChecked(
 	// Update the plan item in Supabase
 	const { error } = await supabase
 		.from('space_plan_shopping_lists')
-		.update({ checked })
+		.update({ 
+			checked_at: checked ? new Date().toISOString() : null
+		 })
 		.eq('id', itemId);
 	if (error) throw new Error('Error updating plan item: ' + error.message);
 

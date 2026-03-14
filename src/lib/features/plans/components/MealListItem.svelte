@@ -1,18 +1,5 @@
 <script lang="ts">
-	import {
-		Check,
-		Circle,
-		CircleSlash,
-		Ellipsis,
-		EqualApproximately,
-		Pencil,
-		Plus,
-		ShoppingCart,
-		Trash2,
-		Users,
-		Weight,
-		X
-	} from 'lucide-svelte';
+	import { Check, Plus, Trash2, Users, Weight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';

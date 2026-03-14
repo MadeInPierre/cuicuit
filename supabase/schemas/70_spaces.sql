@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
     "quantity" numeric DEFAULT 1 NOT NULL,
     "unit" "text",
     "name" "text",
-    "checked" boolean DEFAULT false NOT NULL,
+    "checked_at" timestamp with time zone DEFAULT NULL,
     CONSTRAINT "space_plan_shopping_lists_check" CHECK (
         (
             (

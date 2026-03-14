@@ -13,7 +13,6 @@
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 
-	let expandedMealCards = $state(false);
 	let searchInput = $state('');
 	let searchLoading = $state(false);
 	let searchRef: HTMLElement | null = $state(null);
@@ -32,7 +31,7 @@
 			name: ingredient.sourceText
 		});
 
-		// Update UI 
+		// Update UI
 		await spaceState.refreshActivePlanItems();
 	}
 </script>
@@ -102,8 +101,8 @@
 						variant="default"
 						size="icon"
 						class="h-8"
-						onclick={() => (expandedMealCards = !expandedMealCards)}
 						tabindex={-1}
+						title="Toggle meal details"
 					>
 						{#if searchLoading}
 							<LoaderCircle class="size-4 animate-spin" />
@@ -117,7 +116,7 @@
 	</Sidebar.Header>
 
 	<Sidebar.Content class="p-4 no-scrollbar">
-		<PlanList expanded={expandedMealCards} />
+		<PlanList />
 	</Sidebar.Content>
 
 	<Sidebar.Footer>
