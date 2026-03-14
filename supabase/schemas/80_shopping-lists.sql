@@ -30,3 +30,43 @@ GRANT ALL ON FUNCTION "public"."soft_delete_shopping_list_for_meal" () TO "anon"
 GRANT ALL ON FUNCTION "public"."soft_delete_shopping_list_for_meal" () TO "authenticated";
 
 GRANT ALL ON FUNCTION "public"."soft_delete_shopping_list_for_meal" () TO "service_role";
+
+--
+-- ==================================================
+-- Functions
+-- ==================================================
+--
+----------------
+-- Get shopping recommendations based on most frequently checked off ingredients in the space
+----------------
+-- 1. Definition
+CREATE OR REPLACE FUNCTION public.get_shopping_recommendations (space_id uuid)
+RETURNS TABLE (
+
+BEGIN
+    RETURN QUERY
+    SELECT DISTINCT i.*
+    FROM (
+        SELECT sl.ingredient_id
+        FROM space_plan_shopping_lists sl
+        WHERE 
+            sl.space_id = get_shopping_recommendations.space_id -- Filter to the current space
+            AND sl.checked_at IS NOT NULL -- Get the ingredients most frequently checked off
+        GROUP BY sl.ingredient_id
+        ORDER BY COUNT(sl.ingredient_id) DESC -- Order by frequency
+    ) AS subquery
+    JOIN ingredients i ON subquery.ingredient_id = i.id;
+END;
+$function$;
+
+-- 2. Ownership
+ALTER FUNCTION "public"."get_shopping_recommendations" (space_id uuid) OWNER TO "postgres";
+
+-- 3. Constraints
+-- 4. Triggers
+-- 5. Grants
+GRANT ALL ON FUNCTION "public"."get_shopping_recommendations" (space_id uuid) TO "anon";
+
+GRANT ALL ON FUNCTION "public"."get_shopping_recommendations" (space_id uuid) TO "authenticated";
+
+GRANT ALL ON FUNCTION "public"."get_shopping_recommendations" (space_id uuid) TO "service_role";

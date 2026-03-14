@@ -33,6 +33,11 @@
 	import { flip } from 'svelte/animate';
 	import ShoppingItemBadge from '$lib/features/recipes/components/ShoppingItemBadge.svelte';
 	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
+	import { onMount } from 'svelte';
+	import {
+		getShoppingRecommendations,
+		type ShoppingRecommendation
+	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 
 	type CombinedShoppingListItem = {
 		name: string;
@@ -163,6 +168,21 @@
 			originIdsToUpdate.map((id) => updatePlanItemChecked(activeSpace, id, newChecked))
 		);
 	}
+
+	let rawShoppingRecommendations: ShoppingRecommendation[] = $state([]);
+	onMount(async () => {
+		if (!activeSpace.id) return;
+		const recommendations = await getShoppingRecommendations(activeSpace.id);
+		console.log('Shopping recommendations for this week:', recommendations);
+		rawShoppingRecommendations = recommendations;
+	});
+
+	// Keep recommendations that are not already in the shopping list
+	let shoppingRecommendations = $derived(
+		rawShoppingRecommendations.filter(
+			(rec) => !shoppingList.some((item) => item.ingredient?.id === rec.id)
+		)
+	);
 </script>
 
 <div class="space-y-6 pb-16 min-h-full">
@@ -234,30 +254,26 @@
 							(item) => (item.ingredient?.aisle || 'default') === aisleKey
 						)}
 
+						{@const aisleRecommendations = shoppingRecommendations
+							.filter((rec) => rec.aisle === aisleKey)
+							.slice(0, 3)}
+
 						{#if aisleItems.length > 0}
 							<section class="mb-16">
 								<div class="mb-4 flex items-center justify-between">
 									<SectionHeader header={aisleHeader} size="sm" class="" />
 
-									<div class="hidden lg:flex items-center gap-2">
-										<span class="text-sm font-medium text-muted-foreground italic">
-											<Plus class="size-4" />
-										</span>
+									{#if aisleRecommendations.length > 0}
+										<div class="hidden lg:flex items-center gap-2">
+											<span class="text-sm font-medium text-muted-foreground italic">
+												<Plus class="size-4" />
+											</span>
 
-										{#each aisleItems
-											.filter((ai) => ai.ingredient)
-											.slice(0, 3) as item (item.ingredient?.id || item.name)}
-											<div class="">
-												<ShoppingItemBadge
-													ingredient={item.ingredient}
-													amount={item.mergedQuantity?.amount}
-													unit={item.mergedQuantity?.unit}
-													class=""
-													size="md"
-												></ShoppingItemBadge>
-											</div>
-										{/each}
-									</div>
+											{#each aisleRecommendations as ing (ing.id)}
+												<ShoppingItemBadge ingredient={ing} size="md"></ShoppingItemBadge>
+											{/each}
+										</div>
+									{/if}
 								</div>
 
 								<div class="grid space-y-4 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
