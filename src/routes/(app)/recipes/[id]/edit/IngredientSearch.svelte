@@ -7,7 +7,7 @@
 		processIngredientString,
 		type IngredientProcessed
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
-	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import type { Snippet } from 'svelte';
 	import { Bird, Search } from 'lucide-svelte';
 	import { LoaderCircle } from '@lucide/svelte';
@@ -56,7 +56,7 @@
 
 	$effect(() => {
 		loading = value.trim().length > 0;
-		
+
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(async () => {
 			// Reset processed input
@@ -64,7 +64,7 @@
 				processedIngredient = null;
 				return;
 			}
-			
+
 			// Process the ingredient string into a structured format matched to the database
 			processedIngredient = await processIngredientString(value, language);
 			hasTypedThisFocus = true; // Fixes escape key details
@@ -150,9 +150,9 @@
 	{#if openSearchResults}
 		<div
 			class="grid"
-			class:h-28={displayRows === 1}
-			class:h-58={displayRows === 2}
-			class:h-88={displayRows === 3}
+			class:h-26={displayRows === 1}
+			class:h-54={displayRows === 2}
+			class:h-80={displayRows === 3}
 			transition:slide
 		>
 			{#if processedIngredient && processedIngredient.matches && processedIngredient.matches.length > 0}
@@ -161,7 +161,7 @@
 					style="grid-template-columns: repeat({displayColumns}, 1fr);"
 				>
 					{#each processedIngredient.matches.slice(0, displayRows * displayColumns) as ingredient, index (ingredient.id)}
-						<ShoppingListCard
+						<ShoppingItemCardGrid
 							{ingredient}
 							description={processedIngredient.parsed.description}
 							amount={processedIngredient.parsed.quantity?.amount}
@@ -170,7 +170,6 @@
 								: processedIngredient.parsed.quantity?.unitText}
 							onclick={() => onSelectIngredient(index)}
 							size="sm"
-							class="h-28"
 						/>
 					{/each}
 				</div>

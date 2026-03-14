@@ -556,7 +556,7 @@ export const publicSpacePlanMealsRelationshipsSchema = z.tuple([
 ]);
 
 export const publicSpacePlanShoppingListsRowSchema = z.object({
-  checked: z.boolean(),
+  checked_at: z.string().nullable(),
   created_at: z.string().nullable(),
   deleted_at: z.string().nullable(),
   id: z.string(),
@@ -572,7 +572,7 @@ export const publicSpacePlanShoppingListsRowSchema = z.object({
 });
 
 export const publicSpacePlanShoppingListsInsertSchema = z.object({
-  checked: z.boolean().optional(),
+  checked_at: z.string().optional().nullable(),
   created_at: z.string().optional().nullable(),
   deleted_at: z.string().optional().nullable(),
   id: z.string().optional(),
@@ -588,7 +588,7 @@ export const publicSpacePlanShoppingListsInsertSchema = z.object({
 });
 
 export const publicSpacePlanShoppingListsUpdateSchema = z.object({
-  checked: z.boolean().optional(),
+  checked_at: z.string().optional().nullable(),
   created_at: z.string().optional().nullable(),
   deleted_at: z.string().optional().nullable(),
   id: z.string().optional(),

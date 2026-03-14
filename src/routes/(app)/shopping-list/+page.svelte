@@ -3,7 +3,7 @@
 		type MealWithRecipeAndIngredients,
 		type ShoppingIngredient
 	} from '$lib/features/plans/queries/get-plan-meals';
-	import ShoppingListListItem from '$lib/features/recipes/components/ShoppingListListItem.svelte';
+	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
 	import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
@@ -11,15 +11,17 @@
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import { ChefHat, Grid3x3, List, User } from 'lucide-svelte';
+	import { Check, ChefHat, Ellipsis, Grid3x3, Lightbulb, List, Plus, User } from 'lucide-svelte';
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import RecipeCarousel from '../recipes/RecipeCarousel.svelte';
-	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
-	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
+	import { deletePlanItem, updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
 	import type { ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
+	import { flip } from 'svelte/animate';
+	import ShoppingItemBadge from '$lib/features/recipes/components/ShoppingItemBadge.svelte';
 
 	type CombinedShoppingListItem = {
 		ingredient: RecipeIngredientWithTranslations;
@@ -36,6 +38,7 @@
 	const items = $derived(activeSpace.activePlanItems || []);
 
 	const shoppingList: CombinedShoppingListItem[] = $derived(generateShoppingList(meals, items));
+	const hasCheckedItems = $derived(items.some((item) => item.checked_at));
 
 	let hoveredListIngredientId: string | null = $state(null);
 
@@ -111,9 +114,23 @@
 			});
 		});
 
-		return Object.values(ingredientMap).sort((a, b) =>
-			a.ingredient.slug.localeCompare(b.ingredient.slug)
-		);
+		return Object.values(ingredientMap).sort((a, b) => {
+			const aChecked = a.items.some((si) => si.checked_at);
+			const bChecked = b.items.some((si) => si.checked_at);
+
+			// Keep unchecked items first
+			if (aChecked !== bChecked) {
+				return Number(aChecked) - Number(bChecked);
+			}
+
+			// Only reverse order within checked items
+			if (aChecked && bChecked) {
+				return b.ingredient.slug.localeCompare(a.ingredient.slug);
+			}
+
+			// Keep normal order within unchecked items
+			return a.ingredient.slug.localeCompare(b.ingredient.slug);
+		});
 	}
 
 	async function onItemCheckedChange(item: CombinedShoppingListItem, newChecked: boolean) {
@@ -140,23 +157,15 @@
 	<Separator class="my-6" />
 
 	<Tabs.Root value="aisle">
-		<div class="flex justify-between items-center">
+		<div class="flex gap-2 items-center">
 			<Tabs.List>
 				<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
 				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
 			</Tabs.List>
 
-			<!-- <Button
-				variant="outline"
-				size="sm"
-				onclick={() => {
-					itemsLayout = itemsLayout === 'grid' ? 'list' : 'grid';
-				}}>Switch</Button
-			> -->
 			<Button
 				variant="ghost"
 				size="icon"
-				class="ml-auto h-7 w-7"
 				onclick={() => {
 					itemsLayout.set(itemsLayout.value === 'grid' ? 'list' : 'grid');
 				}}
@@ -169,14 +178,31 @@
 					<span class="sr-only">Switch to grid view</span>
 				{/if}
 			</Button>
+
+			{#if hasCheckedItems}
+				<Button
+					variant="default"
+					class="ml-auto"
+					onclick={() => {
+						// TODO confirm with user if they want to clear the whole list, or just the checked items?
+						items.forEach((item) => {
+							if (!item.checked_at) return;
+							deletePlanItem(activeSpace, item.id);
+						});
+					}}
+				>
+					<Check class="size-4 mr-2" />
+					End shopping
+				</Button>
+			{/if}
 		</div>
 
 		<Tabs.Content value="aisle" class="mt-8">
-			<h3 class="text-xl font-semibold mb-6">Planned meals</h3>
+			<!-- <h3 class="text-xl font-semibold mb-6">Planned meals</h3> -->
 
-			<RecipeCarousel recipes={meals.map((meal) => meal.recipe)} />
+			<!-- <RecipeCarousel recipes={meals.map((meal) => meal.recipe)} /> -->
 
-			<h3 class="mt-6 text-xl font-semibold mb-6">Shopping list</h3>
+			<!-- <h3 class="mt-6 text-xl font-semibold mb-6">Shopping list</h3> -->
 
 			<div class="grid grid-cols-1">
 				<div class={cn('grid space-y-4', itemsLayout.value === 'list' && 'space-y-12')}>
@@ -184,125 +210,180 @@
 						{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === aisleKey)}
 
 						{#if aisleItems.length > 0}
-							<section>
-								<SectionHeader header={aisleHeader} size="sm" class="mb-4" />
+							<section class="mb-16">
+								<div class="mb-4 flex items-center justify-between">
+									<SectionHeader header={aisleHeader} size="sm" class="" />
 
-								{#if itemsLayout.value === 'grid'}
-									<div
-										class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 ml-5 pl-6 md:pl-12 border-l-2 gap-2 mb-8"
-									>
-										{#each aisleItems as item (item.ingredient.id)}
-											<!-- svelte-ignore a11y_no_static_element_interactions -->
-											<div
-												class="flex group"
-												onmouseenter={() => {
-													hoveredMealIngredientId.value = item.ingredient.id;
-													hoveredListIngredientId = item.ingredient.id;
-												}}
-												onmouseleave={() => {
-													hoveredMealIngredientId.value = null;
-													hoveredListIngredientId = null;
-												}}
-											>
-												<!--  TODO if merging checked and unchecked items, consider it checked if some are checked, or add a third "partially checked" state? -->
-												<ShoppingListCard
+									<div class="hidden lg:flex items-center gap-2">
+										<span class="text-sm font-medium text-muted-foreground italic">
+											<Plus class="size-4" />
+										</span>
+
+										{#each aisleItems.slice(0, 3) as item (item.ingredient.id)}
+											<div class="">
+												<ShoppingItemBadge
 													ingredient={item.ingredient}
 													amount={item.mergedQuantity!.amount}
 													unit={item.mergedQuantity!.unit}
 													class=""
 													size="md"
-													checkable
-													checked={item.items.some((si) => si.checked)}
-													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-												>
-													{#snippet topRight()}
-														{#if item.meals.length > 0}
-															<div class="flex items-start gap-0.5">
-																{#if item.meals.length > 1}
-																	<span>{item.meals.length}</span>
-																{/if}
-																<ChefHat class="size-3 mt-[1.25px]" />
-															</div>
-														{/if}
-
-														{#if item.items.filter((i) => i.type === 'independent').length > 0}
-															<div class="flex items-start gap-0.5">
-																{#if item.items.filter((i) => i.type === 'independent').length > 1}
-																	<span
-																		>{item.items.filter((i) => i.type === 'independent')
-																			.length}</span
-																	>
-																{/if}
-																<User class="size-3 mt-[1.5px]" />
-															</div>
-														{/if}
-													{/snippet}
-												</ShoppingListCard>
+												></ShoppingItemBadge>
 											</div>
 										{/each}
 									</div>
-								{:else}
-									<div
-										class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 ml-5 pl-6 md:pl-12 border-l-2 gap-4"
-									>
-										{#each aisleItems as item (item.ingredient.id)}
-											<!-- svelte-ignore a11y_no_static_element_interactions -->
-											<div
-												class="flex group"
-												onmouseenter={() => {
-													hoveredMealIngredientId.value = item.ingredient.id;
-													hoveredListIngredientId = item.ingredient.id;
-												}}
-												onmouseleave={() => {
-													hoveredMealIngredientId.value = null;
-													hoveredListIngredientId = null;
-												}}
-											>
-												<ShoppingListListItem
-													ingredient={item.ingredient}
-													amount={item.mergedQuantity!.amount}
-													unit={item.mergedQuantity!.unit}
-													checkable
-													checked={item.items.some((si) => si.checked)}
-													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
+								</div>
+
+								<div class="grid space-y-4 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
+									<div class="relative lg:hidden overflow-hidden">
+										<div
+											class="flex items-center gap-2 pr-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+										>
+											<span class="text-sm font-medium text-muted-foreground italic shrink-0">
+												<Lightbulb class="size-4" />
+											</span>
+
+											{#each aisleItems.slice(0, 10) as item (item.ingredient.id)}
+												<div class="shrink-0 py-0.5">
+													<ShoppingItemBadge
+														ingredient={item.ingredient}
+														amount={item.mergedQuantity!.amount}
+														unit={item.mergedQuantity!.unit}
+														class=""
+														size="md"
+													></ShoppingItemBadge>
+												</div>
+											{/each}
+
+											{#if aisleItems.length > 10}
+												<Button variant="link">
+													<Ellipsis class="size-4" />
+													More
+												</Button>
+											{/if}
+										</div>
+
+										<div
+											class="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent"
+										></div>
+									</div>
+
+									{#if itemsLayout.value === 'grid'}
+										<div
+											class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
+										>
+											{#each aisleItems as item (item.ingredient.id)}
+												<!-- svelte-ignore a11y_no_static_element_interactions -->
+												<div
+													class="flex group"
+													animate:flip={{ duration: 300 }}
+													onmouseenter={() => {
+														hoveredMealIngredientId.value = item.ingredient.id;
+														hoveredListIngredientId = item.ingredient.id;
+													}}
+													onmouseleave={() => {
+														hoveredMealIngredientId.value = null;
+														hoveredListIngredientId = null;
+													}}
 												>
-													<span class="text-xs text-muted-foreground/80 flex gap-3">
-														<!-- <div class="flex items-center gap-1">
+													<!--  TODO if merging checked and unchecked items, consider it checked if some are checked, or add a third "partially checked" state? -->
+													<ShoppingItemCardGrid
+														ingredient={item.ingredient}
+														amount={item.mergedQuantity!.amount}
+														unit={item.mergedQuantity!.unit}
+														class=""
+														size="md"
+														checkable
+														checked={item.items.some((si) => si.checked_at)}
+														onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
+													>
+														{#snippet topRight()}
+															{#if item.meals.length > 0}
+																<div class="flex gap-0.5">
+																	{#if item.meals.length > 1}
+																		<span>{item.meals.length}</span>
+																	{/if}
+																	<ChefHat class="size-3 mt-[1.2px]" />
+																</div>
+															{/if}
+
+															{#if item.items.filter((i) => i.type === 'independent').length > 0}
+																<div class="flex gap-0.5">
+																	{#if item.items.filter((i) => i.type === 'independent').length > 1}
+																		<span
+																			>{item.items.filter((i) => i.type === 'independent')
+																				.length}</span
+																		>
+																	{/if}
+																	<User class="size-3 mt-[1.5px]" />
+																</div>
+															{/if}
+														{/snippet}
+													</ShoppingItemCardGrid>
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
+											{#each aisleItems as item (item.ingredient.id)}
+												<!-- svelte-ignore a11y_no_static_element_interactions -->
+												<div
+													class="flex group"
+													animate:flip={{ duration: 300 }}
+													onmouseenter={() => {
+														hoveredMealIngredientId.value = item.ingredient.id;
+														hoveredListIngredientId = item.ingredient.id;
+													}}
+													onmouseleave={() => {
+														hoveredMealIngredientId.value = null;
+														hoveredListIngredientId = null;
+													}}
+												>
+													<ShoppingItemCardList
+														ingredient={item.ingredient}
+														amount={item.mergedQuantity!.amount}
+														unit={item.mergedQuantity!.unit}
+														checkable
+														checked={item.items.some((si) => si.checked_at)}
+														onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
+													>
+														<span class="text-xs text-muted-foreground/80 flex gap-3">
+															<!-- <div class="flex items-center gap-1">
 														<House class="size-3 inline-block" />
 														None
 													</div> -->
 
-														<!-- <div class="flex items-center gap-1">
+															<!-- <div class="flex items-center gap-1">
 														<Calendar class="size-3 inline-block" />
 														600 ml
 													</div> -->
 
-														{#if item.meals.length > 0}
-															<div class="flex items-center gap-1">
-																<ChefHat class="size-3 inline-block" />
-																{item.meals.length}
-															</div>
-														{/if}
+															{#if item.meals.length > 0}
+																<div class="flex items-center gap-1">
+																	<ChefHat class="size-3 inline-block" />
+																	{item.meals.length}
+																</div>
+															{/if}
 
-														{#if item.items.filter((i) => i.type === 'independent').length > 0}
-															<div class="flex items-center gap-1">
-																<User class="size-3 inline-block" />
-																{item.items.filter((i) => i.type === 'independent').length}
-															</div>
-														{/if}
-													</span>
+															{#if item.items.filter((i) => i.type === 'independent').length > 0}
+																<div class="flex items-center gap-1">
+																	<User class="size-3 inline-block" />
+																	{item.items.filter((i) => i.type === 'independent').length}
+																</div>
+															{/if}
+														</span>
 
-													<!-- <div class="grid grid-cols-1 gap-3 mt-2">
+														<!-- <div class="grid grid-cols-1 gap-3 mt-2">
 														{#each item.origins as origin (origin.id)}
 															{@const meal = meals.find((m) => m.id === origin.id)}
 															<MealCard {meal} showServings={false} class="border-none p-0 " />
 														{/each}
 													</div> -->
-												</ShoppingListListItem>
-											</div>
-										{/each}
-									</div>
-								{/if}
+													</ShoppingItemCardList>
+												</div>
+											{/each}
+										</div>
+									{/if}
+								</div>
 							</section>
 						{/if}
 					{/each}
@@ -312,7 +393,7 @@
 							<h3 class="text-lg font-semibold mb-2">Other</h3>
 							<div class="grid gap-2">
 								{#each shoppingList.filter((item) => !item.ingredient.aisle) as item (item.ingredient.id)}
-									<ShoppingListListItem
+									<ShoppingItemCardList
 										ingredient={item.ingredient}
 										amount={item.mergedQuantity!.amount}
 										unit={item.mergedQuantity!.unit}
@@ -341,7 +422,7 @@
 			<div class="grid grid-cols-1 md:grid-cols-4 gap-4 overflow-auto">
 				{#each meals as meal (meal.id)}
 					<div class="w-full">
-						<MealCard {meal} expanded showExpandedButtons class="border" />
+						<MealCard {meal} showExpandedButtons class="" />
 					</div>
 				{/each}
 			</div>

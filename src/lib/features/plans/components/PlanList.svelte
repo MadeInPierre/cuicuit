@@ -1,23 +1,20 @@
 <script lang="ts">
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
-	import ShoppingListCard from '$lib/features/recipes/components/ShoppingListCard.svelte';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { Calendar, ClipboardList, ShoppingBasket } from 'lucide-svelte';
 	import { deletePlanItem } from '../actions/update-item';
 	import { flip } from 'svelte/animate';
 
-	type Props = {
-		expanded?: boolean;
-	};
-	const { expanded = false }: Props = $props();
-
 	const activeSpace = getActiveSpaceState();
 
 	// Display recently added independent items
 	const independentItems = $derived(
 		activeSpace.activePlanItems &&
-			activeSpace.activePlanItems.filter((item) => item.type === 'independent' && !item.checked).slice(0, 12)
+			activeSpace.activePlanItems
+				.filter((item) => item.type === 'independent' && !item.checked_at)
+				.slice(0, 12)
 	);
 </script>
 
@@ -41,7 +38,7 @@
 		<Tabs.Content value="plan" class="grid space-y-8">
 			<div class="grid w-full space-y-4">
 				{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
-				<MealList {expanded} />
+				<MealList />
 			</div>
 
 			<div class="grid">
@@ -49,7 +46,7 @@
 
 				{#if independentItems && independentItems.length > 0}
 					<div class="mt-4 relative grid grid-cols-3 gap-2 max-h-[360px] overflow-hidden">
-						{#if independentItems && independentItems.length > 6}
+						{#if independentItems && independentItems.length > 9}
 							<div
 								class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
 							></div>
@@ -57,7 +54,7 @@
 
 						{#each independentItems as item (item.id)}
 							<div animate:flip={{ duration: 300 }}>
-								<ShoppingListCard
+								<ShoppingItemCardGrid
 									ingredient={item.ingredient!}
 									amount={item.quantity}
 									unit={item.unit === 'whole' ? '' : item.unit || ''}
