@@ -251,7 +251,7 @@ export const supermarketAisleSectionHeaders = {
 		classes: 'bg-red-100 text-red-800'
 	},
 	default: {
-		title: 'Other',
+		title: 'Anything else?',
 		icon: ShoppingBag,
 		subtitle: 'Various supermarket items',
 		classes: 'bg-slate-100'

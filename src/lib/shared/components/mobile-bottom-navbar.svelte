@@ -66,7 +66,7 @@
 	</div> -->
 	<div class="z-50 sticky bottom-6 mx-12 flex gap-3 md:hidden">
 		<nav
-			class="flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md"
+			class="flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md"
 		>
 			{@render navItem('Recipes', ChefHat, '/recipes')}
 			{@render navItem('Plan', Calendar, '/plan')}
@@ -75,7 +75,7 @@
 			<!-- {@render navItem('Chat', MessageCircle, '/chat')} -->
 		</nav>
 		<nav
-			class="w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md"
+			class="w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md"
 		>
 			{@render navItem('', MessageCircle, '')}
 		</nav>

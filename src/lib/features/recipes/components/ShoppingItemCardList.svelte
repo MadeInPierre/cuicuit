@@ -7,7 +7,7 @@
 	import { cn } from '$lib/utils';
 
 	type Props = {
-		ingredient: RecipeIngredientWithTranslations;
+		ingredient: RecipeIngredientWithTranslations | null;
 		amount?: number;
 		unit?: string;
 		[key: string]: any;
@@ -29,12 +29,13 @@
 	}: Props = $props();
 
 	const translation = $derived(
-		ingredient.translations.find((t) => t.language?.lang === 'fr-FR') || ingredient.translations[0]
+		ingredient?.translations.find((t) => t.language?.lang === 'fr-FR') ||
+			ingredient?.translations[0]
 	);
 
 	const name = $derived(
 		amount && amount > 1
-			? translation.name_plural || translation.name_singular
+			? translation?.name_plural || translation?.name_singular
 			: translation?.name_singular || translation?.name_plural
 	);
 </script>
@@ -48,7 +49,7 @@
 	)}
 	{...others}
 >
-	<IngredientImage id={ingredient.id} name={name || 'Unknown'} class="w-12 h-12" />
+	<IngredientImage id={ingredient?.id || null} name={name || 'Unknown'} class="w-12 h-12" />
 
 	<div class="grid space-y-0.5 ml-4">
 		<span class={cn('text-md line-clamp-1', checked && 'line-through text-muted-foreground')}>

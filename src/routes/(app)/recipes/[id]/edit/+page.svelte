@@ -8,7 +8,6 @@
 	import { Label } from '$lib/shared/components/ui/label/index.js';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
-	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
@@ -47,7 +46,7 @@
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import { slide } from 'svelte/transition';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
-	import IngredientSearch from './IngredientSearch.svelte';
+	import IngredientSearch from './SearchShoppingItem.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
@@ -158,10 +157,15 @@
 
 	function onAddIngredient(
 		ingredientProcessed: IngredientProcessed | null,
-		chosenMatchIndex: number
+		chosenMatchIndex: number | null
 	) {
 		if (!ingredientProcessed) {
 			toast.error('Some error occurred while processing your input.');
+			return;
+		}
+
+		if (chosenMatchIndex === null) {
+			toast.error('No match selected.');
 			return;
 		}
 

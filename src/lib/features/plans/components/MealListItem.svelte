@@ -112,8 +112,10 @@
 
 					{#each [...meal.shopping_ingredients].sort((a, b) => {
 						// Sort by adjusted quantity first (considering meal servings), then by name
-						const aQty = (a.quantity * meal.servings) / meal.recipe.servings;
-						const bQty = (b.quantity * meal.servings) / meal.recipe.servings;
+						const aQuantity = a.quantity ?? 0;
+						const bQuantity = b.quantity ?? 0;
+						const aQty = (aQuantity * meal.servings) / meal.recipe.servings;
+						const bQty = (bQuantity * meal.servings) / meal.recipe.servings;
 
 						if (aQty === bQty) {
 							return (a.name || a.ingredient?.translations[0]?.name_singular || '').localeCompare(b.name || b.ingredient?.translations[0]?.name_singular || '');
@@ -150,7 +152,7 @@
 											'line-through text-muted-foreground/60'
 									)}
 								>
-									{shopping_ingredient.quantity > 1
+									{shopping_ingredient.quantity && shopping_ingredient.quantity > 1
 										? t?.name_plural || t?.name_singular
 										: t?.name_singular || t?.name_plural || shopping_ingredient.name}
 								</span>
@@ -174,10 +176,11 @@
 								>
 									{#if showExpandedButtons}
 										<NumberFlow
-											value={(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
+											value={((shopping_ingredient.quantity ?? 0) * meal.servings) /
+												meal.recipe.servings}
 										/>
 									{:else}
-										{(shopping_ingredient.quantity * meal.servings) / meal.recipe.servings}
+										{((shopping_ingredient.quantity ?? 0) * meal.servings) / meal.recipe.servings}
 									{/if}
 
 									{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
