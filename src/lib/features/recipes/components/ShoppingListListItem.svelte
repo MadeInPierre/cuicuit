@@ -12,7 +12,9 @@
 		unit?: string;
 		[key: string]: any;
 		children?: any;
+		checkable?: boolean;
 		checked?: boolean;
+		onCheckedChange?: (checked: boolean) => void;
 	};
 
 	let {
@@ -20,7 +22,9 @@
 		amount,
 		unit,
 		children,
+		checkable = false,
 		checked = $bindable(false),
+		onCheckedChange = () => {},
 		...others
 	}: Props = $props();
 
@@ -71,7 +75,10 @@
 		size="icon"
 		variant="ghost"
 		class={cn('ml-auto mt-1 size-10 rounded-full')}
-		onclick={() => (checked = !checked)}
+		onclick={() => {
+			checked = !checked;
+			onCheckedChange(checked);
+		}}
 	>
 		{#if checked}
 			<CircleCheckBig class="size-5 text-muted-foreground" />

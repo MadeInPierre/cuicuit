@@ -15,7 +15,6 @@ export function getShoppingListItems(spaceId: string, lang: string = 'fr-FR') {
 				)`
 			)
 			.eq('space_id', spaceId)
-			.eq('type', 'independent') // TODO generalize or not?
 			// Only get translations in the user language
 			.eq('ingredient.translations.language.lang', lang)
 			.order('updated_at', { ascending: false })
