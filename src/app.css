@@ -329,6 +329,6 @@
 }
 
 // Prevent pull-to-refresh on mobile
-body {
-	overscroll-behavior: contain;
+html {
+	overscroll-behavior-y: contain;
 }
