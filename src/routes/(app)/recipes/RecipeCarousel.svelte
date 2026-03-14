@@ -88,7 +88,7 @@
 	setApi={(emblaApi) => (api = emblaApi)}
 	class="w-full overflow-x-hidden"
 >
-	<Carousel.Content class="w-full">
+	<Carousel.Content>
 		{#each pages as page, i (i)}
 			<Carousel.Item class="">
 				<div
