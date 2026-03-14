@@ -6,10 +6,11 @@
 	import { Button } from './ui/button';
 	import PlanList from '$lib/features/plans/components/PlanList.svelte';
 	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
-	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/IngredientSearch.svelte';
+	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/SearchShoppingItem.svelte';
 	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 	import { supabase } from '../db/supabase-client';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { capitalize } from '$lib/utils';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 
@@ -19,16 +20,19 @@
 
 	const spaceState = getActiveSpaceState();
 
-	async function onAddItem(ingredient: IngredientProcessed | null, chosenMatchIndex: number) {
-		if (!ingredient || !spaceState.id || chosenMatchIndex === undefined) return;
+	async function onAddItem(
+		ingredient: IngredientProcessed | null,
+		chosenMatchIndex: number | null
+	) {
+		if (!ingredient || !spaceState.id) return;
 
 		await supabase.from('space_plan_shopping_lists').insert({
 			space_id: spaceState.id,
 			type: 'independent',
-			ingredient_id: ingredient.matches[chosenMatchIndex].id,
+			ingredient_id: chosenMatchIndex !== null ? ingredient.matches[chosenMatchIndex].id : null,
 			quantity: ingredient.parsed.quantity?.amount,
 			unit: ingredient.parsed.quantity?.unitKey,
-			name: ingredient.sourceText
+			name: capitalize(ingredient.parsed.ingredientText)
 		});
 
 		// Update UI
@@ -64,6 +68,7 @@
 			bind:value={searchInput}
 			bind:loading={searchLoading}
 			displayRows={2}
+			allowCustom
 			class="mt-2"
 		>
 			{#snippet input({ ...props })}

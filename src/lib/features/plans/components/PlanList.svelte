@@ -56,6 +56,7 @@
 							<div animate:flip={{ duration: 300 }}>
 								<ShoppingItemCardGrid
 									ingredient={item.ingredient!}
+									description={item.name}
 									amount={item.quantity}
 									unit={item.unit === 'whole' ? '' : item.unit || ''}
 									size="sm"

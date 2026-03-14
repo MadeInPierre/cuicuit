@@ -11,7 +11,17 @@
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import { Check, ChefHat, Ellipsis, Grid3x3, Lightbulb, List, Plus, User } from 'lucide-svelte';
+	import {
+		Check,
+		ChefHat,
+		Ellipsis,
+		Grid3x3,
+		Lightbulb,
+		List,
+		Plus,
+		User,
+		Users
+	} from 'lucide-svelte';
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import RecipeCarousel from '../recipes/RecipeCarousel.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
@@ -24,13 +34,14 @@
 	import ShoppingItemBadge from '$lib/features/recipes/components/ShoppingItemBadge.svelte';
 
 	type CombinedShoppingListItem = {
-		ingredient: RecipeIngredientWithTranslations;
+		name: string;
+		ingredient: RecipeIngredientWithTranslations | null; // null for manual items
 		items: ShoppingListItem[];
 		meals: MealWithRecipeAndIngredients[];
 		mergedQuantity: {
 			amount: number;
 			unit: string;
-		}; // TODO maybe null if could not be merged (e.g. weight/volume mismatch)?
+		};
 	};
 
 	const activeSpace = getActiveSpaceState();
@@ -48,7 +59,7 @@
 	);
 
 	/**
-	 * Combines ingredients from meals into a single list with unique ingredients,
+	 * Combines ingredients from meals and user-added items into a single list with unique ingredients,
 	 * summing their quantities and keeping track of their origins.
 	 * (e.g., "12 apples coming from 3 for Meal 1, 5 for Meal 2, and 4 by Pierre").
 	 */
@@ -60,13 +71,15 @@
 
 		// Merge all shopping items by ingredient id
 		items.forEach((shoppingItem) => {
-			const key = shoppingItem.ingredient_id;
-			if (!key) return; // TODO handle manual items without ingredient relation
+			// Use ingredient_id for items linked to an ingredient, otherwise fallback to item id for manual/unknown items
+			const key = shoppingItem.ingredient_id || shoppingItem.name?.toLowerCase() || shoppingItem.id;
+			if (!key) return;
 
 			// If this ingredient is not in the map yet, create an entry for it
 			if (!ingredientMap[key]) {
 				ingredientMap[key] = {
-					ingredient: shoppingItem.ingredient!, // TODO handle unknown/manual items without ingredient relation
+					name: shoppingItem.name || 'Unknown',
+					ingredient: shoppingItem.ingredient || null,
 					items: [],
 					meals: [],
 					mergedQuantity: {
@@ -90,7 +103,10 @@
 		// Process meals first to populate the ingredient map with recipe ingredients and their origins
 		meals.forEach((meal) => {
 			meal.shopping_ingredients.forEach((shoppingIngredient) => {
-				const key = shoppingIngredient.ingredient_id;
+				const key =
+					shoppingIngredient.ingredient_id ||
+					shoppingIngredient.name?.toLowerCase() ||
+					shoppingIngredient.id;
 				if (!key) return;
 
 				// Ignore deleted items
@@ -98,7 +114,8 @@
 
 				if (!ingredientMap[key]) {
 					ingredientMap[key] = {
-						ingredient: shoppingIngredient.ingredient!, // TODO handle unknown/manual items without ingredient relation
+						name: shoppingIngredient.name || 'Unknown',
+						ingredient: shoppingIngredient.ingredient || null,
 						items: [],
 						meals: [],
 						mergedQuantity: {
@@ -112,13 +129,6 @@
 				if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
 					ingredientMap[key].meals.push(meal);
 				}
-				// ingredientMap[key].items.push(shoppingIngredient);
-
-				// TODO Merge quantities (simple sum, assumes same unit for now, but should handle unit conversions and weight/volume mismatches)
-				// ingredientMap[key].mergedQuantity!.amount +=
-				// 	(shoppingIngredient.quantity * meal.servings) / meal.recipe.servings;
-				// ingredientMap[key].mergedQuantity!.unit =
-				// 	shoppingIngredient.unit || ingredientMap[key].mergedQuantity!.unit;
 			});
 		});
 
@@ -131,13 +141,16 @@
 				return Number(aChecked) - Number(bChecked);
 			}
 
+			const aSlug = a.ingredient?.slug || a.name;
+			const bSlug = b.ingredient?.slug || b.name;
+
 			// Only reverse order within checked items
 			if (aChecked && bChecked) {
-				return b.ingredient.slug.localeCompare(a.ingredient.slug);
+				return bSlug.localeCompare(aSlug);
 			}
 
 			// Keep normal order within unchecked items
-			return a.ingredient.slug.localeCompare(b.ingredient.slug);
+			return aSlug.localeCompare(bSlug);
 		});
 	}
 
@@ -216,7 +229,9 @@
 			<div class="grid grid-cols-1">
 				<div class={cn('grid space-y-4', itemsLayout.value === 'list' && 'space-y-12')}>
 					{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
-						{@const aisleItems = shoppingList.filter((item) => item.ingredient.aisle === aisleKey)}
+						{@const aisleItems = shoppingList.filter(
+							(item) => (item.ingredient?.aisle || 'default') === aisleKey
+						)}
 
 						{#if aisleItems.length > 0}
 							<section class="mb-16">
@@ -228,7 +243,9 @@
 											<Plus class="size-4" />
 										</span>
 
-										{#each aisleItems.slice(0, 3) as item (item.ingredient.id)}
+										{#each aisleItems
+											.filter((ai) => ai.ingredient)
+											.slice(0, 3) as item (item.ingredient?.id || item.name)}
 											<div class="">
 												<ShoppingItemBadge
 													ingredient={item.ingredient}
@@ -251,7 +268,9 @@
 												<Lightbulb class="size-4" />
 											</span>
 
-											{#each aisleItems.slice(0, 10) as item (item.ingredient.id)}
+											{#each aisleItems
+												.filter((ai) => ai.ingredient)
+												.slice(0, 10) as item (item.ingredient?.id || item.name)}
 												<div class="shrink-0 py-0.5">
 													<ShoppingItemBadge
 														ingredient={item.ingredient}
@@ -280,12 +299,13 @@
 										<div
 											class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
 										>
-											{#each aisleItems as item (item.ingredient.id)}
+											{#each aisleItems as item (item.ingredient?.id || item.name)}
 												<!-- svelte-ignore a11y_no_static_element_interactions -->
 												<div
 													class="flex group"
 													animate:flip={{ duration: 300 }}
 													onmouseenter={() => {
+														if (!item.ingredient) return; // No hover state for manual items
 														hoveredMealIngredientId.value = item.ingredient.id;
 														hoveredListIngredientId = item.ingredient.id;
 													}}
@@ -294,9 +314,9 @@
 														hoveredListIngredientId = null;
 													}}
 												>
-													<!--  TODO if merging checked and unchecked items, consider it checked if some are checked, or add a third "partially checked" state? -->
 													<ShoppingItemCardGrid
 														ingredient={item.ingredient}
+														description={item.name}
 														amount={item.mergedQuantity?.amount}
 														unit={item.mergedQuantity?.unit}
 														class=""
@@ -318,12 +338,13 @@
 															{#if item.items.filter((i) => i.type === 'independent').length > 0}
 																<div class="flex gap-0.5">
 																	{#if item.items.filter((i) => i.type === 'independent').length > 1}
-																		<span
-																			>{item.items.filter((i) => i.type === 'independent')
-																				.length}</span
-																		>
+																		<span>
+																			{item.items.filter((i) => i.type === 'independent').length}
+																		</span>
+																		<Users class="size-3 mt-[1.5px]" />
+																	{:else}
+																		<User class="size-3 mt-[1.5px]" />
 																	{/if}
-																	<User class="size-3 mt-[1.5px]" />
 																</div>
 															{/if}
 														{/snippet}
@@ -333,12 +354,13 @@
 										</div>
 									{:else}
 										<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
-											{#each aisleItems as item (item.ingredient.id)}
+											{#each aisleItems as item (item.ingredient?.id || item.name)}
 												<!-- svelte-ignore a11y_no_static_element_interactions -->
 												<div
 													class="flex group"
 													animate:flip={{ duration: 300 }}
 													onmouseenter={() => {
+														if (!item.ingredient) return; // No hover state for manual items
 														hoveredMealIngredientId.value = item.ingredient.id;
 														hoveredListIngredientId = item.ingredient.id;
 													}}
@@ -349,6 +371,7 @@
 												>
 													<ShoppingItemCardList
 														ingredient={item.ingredient}
+														description={item.name}
 														amount={item.mergedQuantity!.amount}
 														unit={item.mergedQuantity!.unit}
 														checkable
@@ -397,7 +420,7 @@
 						{/if}
 					{/each}
 
-					{#if shoppingList.some((item) => !item.ingredient.aisle)}
+					<!-- {#if shoppingList.some((item) => !item.ingredient.aisle)}
 						<section class="mb-8">
 							<h3 class="text-lg font-semibold mb-2">Other</h3>
 							<div class="grid gap-2">
@@ -410,7 +433,7 @@
 								{/each}
 							</div>
 						</section>
-					{/if}
+					{/if} -->
 				</div>
 
 				<!-- <Separator orientation="vertical" class="mx-4 hidden md:block" />

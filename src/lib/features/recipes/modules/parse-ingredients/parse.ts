@@ -11,7 +11,13 @@
  * - "1/2 tsp of salt"
  * - "sugar" (no quantity)
  */
-import { unitSchema, volumeAliases, weightAliases, wholeAliases, type Unit } from '$lib/shared/utils/quantity';
+import {
+	unitSchema,
+	volumeAliases,
+	weightAliases,
+	wholeAliases,
+	type Unit
+} from '$lib/shared/utils/quantity';
 import { z } from 'zod';
 
 /**
@@ -69,32 +75,6 @@ const optionalAliases = ['optional', 'option', 'facultatif', 'opcional'];
  * This is used for efficient unit identification.
  */
 const allUnitAliases = { ...volumeAliases, ...weightAliases };
-
-/**
- * A regular expression to extract the quantity, unit, ingredient, and description from the input string.
- *
- * Breakdown of the regex:
- * - `^([\d\.\/\s-]+)`: Captures the quantity, which can include numbers, dots, slashes, spaces, and hyphens.
- * - `\s*`: Matches any whitespace.
- * - `([a-zA-Z]+)?`: Optionally captures the unit as a sequence of letters.
- * - `\s*`: Matches any whitespace.
- * - `(?:of\s+)?`: Optionally matches the link word "of" followed by whitespace.
- * - `([^,]+)`: Captures the ingredient text, which is any sequence of characters except a comma.
- * - `(?:,\s*(.*))?`: Optionally captures the description, which is anything after a comma.
- * - `/**
- * This file contains the logic for parsing a raw ingredient search input string into a structured object.
- * It identifies the quantity, unit, ingredient name, and any additional description.
- *
- * The main export is the `parseIngredientSearchInput` function, which takes a raw string
- * and returns a `ParsedSearchInput` object.
- *
- * The parser is designed to handle various formats, including:
- * - "1 cup of flour, sifted"
- * - "2-3 large eggs"
- * - "1/2 tsp of salt"
- * - "sugar" (no quantity)
- */
-const regex = /^([\d\.\/\s-]+)\s*([a-zA-Z]+)?\s*(?:of\s+)?([^,]+)(?:,\s*(.*))?$/i;
 
 /**
  * Converts a fractional string to its decimal equivalent.

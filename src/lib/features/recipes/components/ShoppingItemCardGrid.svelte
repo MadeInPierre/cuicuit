@@ -7,7 +7,7 @@
 
 	type Props = {
 		// Ingredient
-		ingredient: RecipeIngredientWithTranslations;
+		ingredient?: RecipeIngredientWithTranslations | null;
 		description?: string | null;
 		// Quantity
 		amount?: number | null;
@@ -27,7 +27,7 @@
 	};
 
 	let {
-		ingredient,
+		ingredient = null,
 		amount,
 		unit,
 		description,
@@ -43,7 +43,8 @@
 	}: Props = $props();
 
 	const translation = $derived(
-		ingredient.translations.find((t) => t.language?.lang === 'fr-FR') || ingredient.translations[0]
+		ingredient?.translations.find((t) => t.language?.lang === 'fr-FR') ||
+			ingredient?.translations[0]
 	);
 
 	const name = $derived(
@@ -108,8 +109,8 @@
 
 	<div class="flex-1 min-h-0 w-full">
 		<IngredientImage
-			id={ingredient.id}
-			name={name || 'Unknown'}
+			id={ingredient?.id || null}
+			name={name || description || '?'}
 			class="aspect-square h-full w-auto max-h-16 mx-auto"
 		/>
 	</div>
@@ -130,12 +131,11 @@
 		<span
 			class={cn(
 				'line-clamp-2 text-balance pb-0.5',
-				checked && 'line-through text-muted-foreground',
+				checked && 'line-through text-muted-foreground'
 				// !amount && name && name.length < 20 && 'pb-1.5'
 			)}
 		>
-			<span class="font-medium">{name || 'Unknown'}</span>
-			{description || ''}
+			<span class="font-medium">{name || description || ''}</span>
 		</span>
 
 		{@render children?.()}

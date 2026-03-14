@@ -2,7 +2,7 @@
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { slide } from 'svelte/transition';
-	import { cn } from '$lib/utils';
+	import { capitalize, cn } from '$lib/utils';
 	import {
 		processIngredientString,
 		type IngredientProcessed
@@ -14,7 +14,10 @@
 
 	type Props = {
 		language: LanguageKey;
-		onSelect: (processedIngredient: IngredientProcessed | null, chosenMatchIndex: number) => void;
+		onSelect: (
+			processedIngredient: IngredientProcessed | null,
+			chosenMatchIndex: number | null
+		) => void;
 		input?: Snippet<
 			[
 				{
@@ -32,6 +35,7 @@
 		class?: string;
 		displayRows?: 1 | 2 | 3;
 		displayColumns?: number;
+		allowCustom?: boolean;
 	};
 
 	let {
@@ -42,7 +46,8 @@
 		loading = $bindable(false),
 		class: className,
 		displayRows = 1,
-		displayColumns = 3
+		displayColumns = 3,
+		allowCustom = false
 	}: Props = $props();
 
 	let processedIngredient: IngredientProcessed | null = $state(null);
@@ -72,7 +77,7 @@
 		}, 150);
 	});
 
-	function onSelectIngredient(chosenIndex: number) {
+	function onSelectIngredient(chosenIndex: number | null) {
 		// Call the provided onSelect callback with the selected ingredient
 		onSelect?.(processedIngredient, chosenIndex);
 
@@ -155,12 +160,12 @@
 			class:h-80={displayRows === 3}
 			transition:slide
 		>
-			{#if processedIngredient && processedIngredient.matches && processedIngredient.matches.length > 0}
+			{#if processedIngredient}
 				<div
 					class="grid w-full gap-2 self-start content-start auto-rows-min"
 					style="grid-template-columns: repeat({displayColumns}, 1fr);"
 				>
-					{#each processedIngredient.matches.slice(0, displayRows * displayColumns) as ingredient, index (ingredient.id)}
+					{#each processedIngredient.matches.slice(0, displayRows * displayColumns - (allowCustom ? 1 : 0)) as ingredient, index (ingredient.id)}
 						<ShoppingItemCardGrid
 							{ingredient}
 							description={processedIngredient.parsed.description}
@@ -172,6 +177,19 @@
 							size="sm"
 						/>
 					{/each}
+
+					{#if allowCustom}
+						<ShoppingItemCardGrid
+							ingredient={undefined}
+							description={capitalize(processedIngredient.parsed.ingredientText)}
+							amount={processedIngredient.parsed.quantity?.amount}
+							unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
+								? ''
+								: processedIngredient.parsed.quantity?.unitText}
+							onclick={() => onSelectIngredient(null)}
+							size="sm"
+						/>
+					{/if}
 				</div>
 			{:else if loading}
 				<div
