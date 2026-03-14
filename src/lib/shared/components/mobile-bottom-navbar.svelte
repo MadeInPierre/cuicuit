@@ -74,8 +74,14 @@
 			{@render navItem('Pantry', Refrigerator, '/pantry')}
 			<!-- {@render navItem('Chat', MessageCircle, '/chat')} -->
 		</nav>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<nav
 			class="w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md"
+			onclick={() => {
+				// TODO Handle chat button click
+				location.reload();
+			}}
 		>
 			{@render navItem('', MessageCircle, '')}
 		</nav>
