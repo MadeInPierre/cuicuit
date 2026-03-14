@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import PlanList from '../../../lib/features/plans/components/PlanList.svelte';
 </script>
@@ -10,6 +11,8 @@
 			<p class="text-muted-foreground">Here's your plan. Add meals to get started.</p>
 		</div>
 	</div>
+
+	<SearchShoppingItemBar class="md:hidden" />
 
 	<Separator class="my-6" />
 

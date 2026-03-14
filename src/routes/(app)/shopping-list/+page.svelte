@@ -32,6 +32,7 @@
 	import type { ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
 	import { flip } from 'svelte/animate';
 	import ShoppingItemBadge from '$lib/features/recipes/components/ShoppingItemBadge.svelte';
+	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
 
 	type CombinedShoppingListItem = {
 		name: string;
@@ -168,11 +169,11 @@
 	<div class="flex items-center">
 		<div class="space-y-0.5">
 			<h2 class="text-2xl font-bold tracking-tight">Shopping list</h2>
-			<p class="text-muted-foreground">
-				Add items or recipes to your plan, and we'll organize them here for you.
-			</p>
+			<p class="text-muted-foreground">Here is your plan neatly organized by market aisle.</p>
 		</div>
 	</div>
+
+	<SearchShoppingItemBar class="md:hidden" />
 
 	<Separator class="my-6" />
 

@@ -24,7 +24,7 @@
 	);
 </script>
 
-<button class="flex items-center gap-2 bg-white pl-2 pr-4 py-0 rounded-full shadow-2xs">
+<button class="flex items-center gap-2 bg-white dark:bg-muted pl-2 pr-4 py-0 rounded-full shadow-2xs">
 	<IngredientImage
 		id={ingredient?.id || null}
 		name={name || 'Unknown'}
