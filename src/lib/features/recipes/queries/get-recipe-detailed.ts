@@ -8,6 +8,15 @@ import { supabase } from '$lib/shared/db/supabase-client';
  */
 export function getRecipesDetailed(lang: string = 'fr-FR') {
 	return (
+		// substitutes:ingredient_substitutions!ingredient_substitutions_original_ingredient_id_fkey(
+		// 	*,
+		// 	original_ingredient:ingredients!ingredient_substitutions_original_ingredient_id_fkey(*,
+		// 		translations:ingredient_translations(*, language:languages!inner(*))
+		// 	),
+		// 	substitute_ingredient:ingredients!ingredient_substitutions_substitute_ingredient_id_fkey(*,
+		// 		translations:ingredient_translations(*, language:languages!inner(*))
+		// 	)
+		// )
 		supabase
 			.from('recipes')
 			.select(
@@ -17,26 +26,17 @@ export function getRecipesDetailed(lang: string = 'fr-FR') {
 					*,
 					ingredient:ingredients(
 						*,
-						translations:ingredient_translations(*, language:languages!inner(*)),
-						substitutes:ingredient_substitutions!ingredient_substitutions_original_ingredient_id_fkey(
-							*,
-							original_ingredient:ingredients!ingredient_substitutions_original_ingredient_id_fkey(*,
-								translations:ingredient_translations(*, language:languages!inner(*))
-							),
-							substitute_ingredient:ingredients!ingredient_substitutions_substitute_ingredient_id_fkey(*,
-								translations:ingredient_translations(*, language:languages!inner(*))
-							)
-						)
+						translations:ingredient_translations(*, language:languages!inner(*))
 					)
 				)`
 			)
 			// Only get translations in the user language
 			.eq('ingredients.ingredient.translations.language.lang', lang)
-			.eq('ingredients.ingredient.substitutes.original_ingredient.translations.language.lang', lang)
-			.eq(
-				'ingredients.ingredient.substitutes.substitute_ingredient.translations.language.lang',
-				lang
-			)
+			// .eq('ingredients.ingredient.substitutes.original_ingredient.translations.language.lang', lang)
+			// .eq(
+			// 	'ingredients.ingredient.substitutes.substitute_ingredient.translations.language.lang',
+			// 	lang
+			// )
 	);
 }
 
