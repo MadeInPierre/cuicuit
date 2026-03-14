@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
     "meal_id" "uuid",
     "meal_origin" "text",
     "ingredient_id" "uuid",
-    "quantity" numeric DEFAULT 1 NOT NULL,
+    "quantity" numeric,
     "unit" "text",
     "name" "text",
     "checked_at" timestamp with time zone DEFAULT NULL,

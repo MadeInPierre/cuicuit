@@ -121,11 +121,11 @@
 
 	<Sidebar.Footer>
 		<Sidebar.Menu>
-			<Sidebar.MenuItem class="group">
+			<Sidebar.MenuItem class="text-muted-foreground">
 				<Sidebar.MenuButton onclick={() => goto('/shopping-list')}>
 					<ScrollText />
 					<span>Shopping List</span>
-					<ArrowRight class="ml-auto opacity-40 group-hover:opacity-100 transition-opacity" />
+					<ArrowRight class="ml-auto" />
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>
 		</Sidebar.Menu>

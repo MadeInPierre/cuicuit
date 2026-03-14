@@ -429,7 +429,7 @@ export type Database = {
           meal_id: string | null
           meal_origin: string | null
           name: string | null
-          quantity: number
+          quantity: number | null
           space_id: string
           type: string
           unit: string | null
@@ -444,7 +444,7 @@ export type Database = {
           meal_id?: string | null
           meal_origin?: string | null
           name?: string | null
-          quantity?: number
+          quantity?: number | null
           space_id: string
           type: string
           unit?: string | null
@@ -459,7 +459,7 @@ export type Database = {
           meal_id?: string | null
           meal_origin?: string | null
           name?: string | null
-          quantity?: number
+          quantity?: number | null
           space_id?: string
           type?: string
           unit?: string | null

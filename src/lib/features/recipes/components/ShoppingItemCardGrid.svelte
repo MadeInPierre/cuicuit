@@ -6,19 +6,24 @@
 	import { CircleCheckBig, Circle } from 'lucide-svelte';
 
 	type Props = {
+		// Ingredient
 		ingredient: RecipeIngredientWithTranslations;
-		amount?: number;
-		unit?: string;
 		description?: string | null;
+		// Quantity
+		amount?: number | null;
+		unit?: string | null;
+		// Appearance
 		size?: 'sm' | 'md' | 'lg';
 		class?: string;
-		[key: string]: any;
 		children?: any;
 		topRight?: any;
+		// Interactions
 		checkable?: boolean;
 		checked?: boolean;
 		onCheckedChange?: (checked: boolean) => void;
 		onclick?: () => void;
+		// Others
+		[key: string]: any;
 	};
 
 	let {
@@ -110,19 +115,27 @@
 	</div>
 
 	<div class="grid space-y-0.5 text-center shrink-0">
-		<span class={cn('line-clamp-2 text-balance', checked && 'line-through text-muted-foreground')}>
-			<span class="font-medium">{name || 'Unknown'}</span>
-			{description || ''}
-		</span>
+		{#if amount}
+			<span
+				class={cn(
+					'line-clamp-1 text-xs text-muted-foreground font-normal',
+					size === 'lg' && 'text-sm'
+				)}
+			>
+				{amount}
+				{unit === 'whole' ? '' : unit}
+			</span>
+		{/if}
 
 		<span
 			class={cn(
-				'line-clamp-1 text-xs text-muted-foreground font-normal',
-				size === 'lg' && 'text-sm'
+				'line-clamp-2 text-balance pb-0.5',
+				checked && 'line-through text-muted-foreground',
+				// !amount && name && name.length < 20 && 'pb-1.5'
 			)}
 		>
-			{amount}
-			{unit == 'whole' ? '' : unit}
+			<span class="font-medium">{name || 'Unknown'}</span>
+			{description || ''}
 		</span>
 
 		{@render children?.()}
