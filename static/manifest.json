@@ -5,7 +5,7 @@
     "start_url": "/recipes",
     "scope": "/",
     "display": "standalone",
-    "orientation": "any",
+    "orientation": "portrait",
     "theme_color": "#faf9f5",
     "background_color": "#ffffff",
     "dir": "ltr",
