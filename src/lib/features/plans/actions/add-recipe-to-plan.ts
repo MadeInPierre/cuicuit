@@ -6,7 +6,7 @@ export async function addRecipeToActivePlan(
 	recipeId: string,
 	servings: number
 ) {
-	if (!activeSpace?.activeSpace || !activeSpace.activePlan) {
+	if (!activeSpace?.activeSpace || !activeSpace.activePlanMeals) {
 		console.error('No active space or active plan found');
 		return;
 	}
@@ -24,7 +24,7 @@ export async function addRecipeToActivePlan(
 			space_id: activeSpaceId,
 			recipe_id: recipeId,
 			servings: servings,
-			position: activeSpace.activePlan.length // Append to the end of the plan
+			position: activeSpace.activePlanMeals.length // Append to the end of the plan
 		})
 		.select('id')
 		.single();
@@ -68,5 +68,5 @@ export async function addRecipeToActivePlan(
 	}
 
 	// Refresh the active plan meals after adding
-	await activeSpace.refreshActivePlan();
+	await activeSpace.refreshActivePlanMeals();
 }

@@ -192,7 +192,7 @@
 					class="text-muted-foreground text-sm my-auto flex flex-col items-center justify-center gap-4 w-40 mx-auto text-balance text-center"
 				>
 					<Search class="size-8 m-2 text-muted-foreground" />
-					<span>Start typing to search for ingredients</span>
+					<span>Search for any recipe or item</span>
 				</div>
 			{/if}
 		</div>

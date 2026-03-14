@@ -80,9 +80,11 @@
 			ingredientMap[key].items.push(shoppingItem);
 
 			// TODO Merge quantities
-			ingredientMap[key].mergedQuantity.amount += shoppingItem.quantity;
-			ingredientMap[key].mergedQuantity.unit =
-				shoppingItem.unit || ingredientMap[key].mergedQuantity.unit;
+			if (shoppingItem.quantity) {
+				ingredientMap[key].mergedQuantity.amount += shoppingItem.quantity;
+				ingredientMap[key].mergedQuantity.unit =
+					shoppingItem.unit || ingredientMap[key].mergedQuantity.unit;
+			}
 		});
 
 		// Process meals first to populate the ingredient map with recipe ingredients and their origins
@@ -90,6 +92,9 @@
 			meal.shopping_ingredients.forEach((shoppingIngredient) => {
 				const key = shoppingIngredient.ingredient_id;
 				if (!key) return;
+
+				// Ignore deleted items
+				if (shoppingIngredient.deleted_at) return;
 
 				if (!ingredientMap[key]) {
 					ingredientMap[key] = {
@@ -103,14 +108,17 @@
 					};
 				}
 
-				// Push this meal as an origin
-				ingredientMap[key].meals.push(meal);
+				// Push this meal as an origin and the shopping item
+				if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
+					ingredientMap[key].meals.push(meal);
+				}
+				// ingredientMap[key].items.push(shoppingIngredient);
 
 				// TODO Merge quantities (simple sum, assumes same unit for now, but should handle unit conversions and weight/volume mismatches)
-				ingredientMap[key].mergedQuantity!.amount +=
-					(shoppingIngredient.quantity * meal.servings) / meal.recipe.servings;
-				ingredientMap[key].mergedQuantity!.unit =
-					shoppingIngredient.unit || ingredientMap[key].mergedQuantity!.unit;
+				// ingredientMap[key].mergedQuantity!.amount +=
+				// 	(shoppingIngredient.quantity * meal.servings) / meal.recipe.servings;
+				// ingredientMap[key].mergedQuantity!.unit =
+				// 	shoppingIngredient.unit || ingredientMap[key].mergedQuantity!.unit;
 			});
 		});
 
@@ -133,11 +141,10 @@
 		});
 	}
 
-	async function onItemCheckedChange(item: CombinedShoppingListItem, newChecked: boolean) {
-		console.log('Checked state changed for', item.ingredient.slug, 'to', newChecked);
-
-		// Update items from all origins for better UX (instead of just the first origin)
-		const originIdsToUpdate = item.items.map((si) => si.id);
+	/** Update an item from all its origins at once */
+	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
+		console.log('Changing checked state of', shoppingItem, 'to', newChecked);
+		const originIdsToUpdate = shoppingItem.items.map((si) => si.id);
 		await Promise.all(
 			originIdsToUpdate.map((id) => updatePlanItemChecked(activeSpace, id, newChecked))
 		);
@@ -149,7 +156,7 @@
 		<div class="space-y-0.5">
 			<h2 class="text-2xl font-bold tracking-tight">Shopping list</h2>
 			<p class="text-muted-foreground">
-				Here's your shopping list. Add items or recipes to get started.
+				Add items or recipes to your plan, and we'll organize them here for you.
 			</p>
 		</div>
 	</div>
@@ -186,9 +193,11 @@
 					onclick={() => {
 						// TODO confirm with user if they want to clear the whole list, or just the checked items?
 						items.forEach((item) => {
-							if (!item.checked_at) return;
-							deletePlanItem(activeSpace, item.id);
+							if (item.checked_at) deletePlanItem(activeSpace, item.id);
 						});
+
+						activeSpace.refreshActivePlanItems();
+						activeSpace.refreshActivePlanMeals();
 					}}
 				>
 					<Check class="size-4 mr-2" />
@@ -223,8 +232,8 @@
 											<div class="">
 												<ShoppingItemBadge
 													ingredient={item.ingredient}
-													amount={item.mergedQuantity!.amount}
-													unit={item.mergedQuantity!.unit}
+													amount={item.mergedQuantity?.amount}
+													unit={item.mergedQuantity?.unit}
 													class=""
 													size="md"
 												></ShoppingItemBadge>
@@ -246,8 +255,8 @@
 												<div class="shrink-0 py-0.5">
 													<ShoppingItemBadge
 														ingredient={item.ingredient}
-														amount={item.mergedQuantity!.amount}
-														unit={item.mergedQuantity!.unit}
+														amount={item.mergedQuantity?.amount}
+														unit={item.mergedQuantity?.unit}
 														class=""
 														size="md"
 													></ShoppingItemBadge>
@@ -288,8 +297,8 @@
 													<!--  TODO if merging checked and unchecked items, consider it checked if some are checked, or add a third "partially checked" state? -->
 													<ShoppingItemCardGrid
 														ingredient={item.ingredient}
-														amount={item.mergedQuantity!.amount}
-														unit={item.mergedQuantity!.unit}
+														amount={item.mergedQuantity?.amount}
+														unit={item.mergedQuantity?.unit}
 														class=""
 														size="md"
 														checkable

@@ -52,7 +52,7 @@
 </script>
 
 <section
-	use:dragHandleZone={{ items: meals, flipDurationMs }}
+	use:dragHandleZone={{ items: meals, flipDurationMs, delayTouchStart: 300 }}
 	onconsider={handleDndConsider}
 	onfinalize={handleDndFinalize}
 	class="grid space-y-2 rounded-sm"
@@ -61,7 +61,7 @@
 		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5 relative group">
 			<div use:dragHandle class="mt-5">
 				<GripVertical
-					class="absolute -right-2 translate-x-1/2 size-4 text-muted-foreground cursor-move opacity-0 group-hover:opacity-100 transition-opacity"
+					class="absolute -left-2 -translate-x-1.5 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
 				/>
 			</div>
 			<MealListItem {meal} showExpandedButtons />
