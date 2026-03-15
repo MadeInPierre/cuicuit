@@ -10,9 +10,10 @@
 	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
 	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
-	import { fade, slide } from 'svelte/transition';
+	import { fade, fly, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
+	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -30,6 +31,11 @@
 		showExpandedButtons = false
 	}: Props = $props();
 
+	let hovered = $derived(
+		hoveredMealIngredientId.value !== null &&
+			meal?.shopping_ingredients.some((ing) => ing.ingredient_id === hoveredMealIngredientId.value)
+	);
+
 	let expanded = $derived(openMealCardId.value === meal?.id);
 </script>
 
@@ -37,13 +43,13 @@
 	<div class="grid w-full">
 		<button
 			class={cn(
-				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group',
+				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group transition-all',
+				hovered && 'ring-2 ring-primary/80 dark:ring-primary/80',
 				className
 			)}
 			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
 			aria-expanded={expanded}
 		>
-			<!-- <a href={'/recipes/' + recipe.id} class="shrink-0"> -->
 			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
 				<img
 					use:dragHandle
@@ -60,7 +66,6 @@
 			{:else}
 				<div class="aspect-square size-10 bg-gray-200 rounded-md"></div>
 			{/if}
-			<!-- </a> -->
 
 			<div class="grid">
 				<h3
@@ -75,8 +80,31 @@
 				<CookableStatus />
 			</div>
 
-			{#if showServings && (!expanded || !showExpandedButtons)}
-				<div class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0 relative">
+			{#if hovered}
+				<div
+					class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto"
+					in:fly={{ duration: 200 }}
+				>
+					<IngredientImage id={hoveredMealIngredientId.value} class="size-7 rounded-full" />
+
+					<span>
+						{meal.shopping_ingredients.find(
+							(ing) => ing.ingredient_id === hoveredMealIngredientId.value
+						)?.quantity || ''}
+						{meal.shopping_ingredients.find(
+							(ing) => ing.ingredient_id === hoveredMealIngredientId.value
+						)?.unit === 'whole'
+							? ''
+							: meal.shopping_ingredients.find(
+									(ing) => ing.ingredient_id === hoveredMealIngredientId.value
+								)?.unit || ''}
+					</span>
+				</div>
+			{:else if showServings && (!expanded || !showExpandedButtons)}
+				<div
+					class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0"
+					in:fly={{ duration: 200 }}
+				>
 					<div class="flex items-center gap-1">
 						<span>{meal.servings}</span>
 						<Users class="size-3 inline-block" />
@@ -93,18 +121,6 @@
 					showExpandedButtons ? 'pb-3 mb-4' : 'pb-2'
 				)}
 			>
-				<!-- <div class="flex gap-1 items-center">
-					<h4 class="text-sm font-semibold tracking-tight">Planned for</h4>
-					<ServingsPlusMinus
-						value={meal.servings}
-						size="xs"
-						allowDelete
-						onIncrement={() => updateMealServings(activeSpace, meal.id, meal.servings + 1)}
-						onDecrement={() => updateMealServings(activeSpace, meal.id, meal.servings - 1)}
-						onDelete={() => deleteMeal(activeSpace, meal.id)}
-					/>
-				</div> -->
-
 				<div class="grid">
 					{#if meal.shopping_ingredients.length === 0}
 						<p class="text-xs text-muted-foreground">No ingredients found.</p>
@@ -129,9 +145,9 @@
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class={cn(
-								'grid text-xs text-muted-foreground rounded-sm transition-colors duration-75 relative group',
+								'grid text-xs text-muted-foreground rounded-sm duration-75 relative group transition-all',
 								hoveredMealIngredientId.value === shopping_ingredient.ingredient_id &&
-									'bg-muted-foreground/10'
+									'bg-primary/10 text-primary/80 dark:bg-primary/20 dark:text-primary/80 font-medium'
 							)}
 							onmouseenter={() => {
 								hoveredMealIngredientId.value = shopping_ingredient.ingredient_id;

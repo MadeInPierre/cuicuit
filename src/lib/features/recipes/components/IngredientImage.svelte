@@ -4,11 +4,11 @@
 
 	type Props = {
 		id: string | null;
-		name: string;
+		name?: string | null;
 		class?: string;
 	};
 
-	const { id, name, class: className }: Props = $props();
+	const { id, name = null, class: className }: Props = $props();
 </script>
 
 {#if id}
@@ -28,9 +28,7 @@
 		}}
 	/>
 {:else}
-	<div
-		class={cn('w-full flex items-center justify-center text-muted text-6xl', className)}
-	>
+	<div class={cn('w-full flex items-center justify-center text-muted text-6xl', className)}>
 		{name ? name.charAt(0).toUpperCase() : '?'}
 	</div>
 {/if}
