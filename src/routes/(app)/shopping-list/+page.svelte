@@ -19,14 +19,11 @@
 		Lightbulb,
 		List,
 		Plus,
-		RefreshCcw,
-		RotateCcw,
 		Shuffle,
 		User,
 		Users
 	} from 'lucide-svelte';
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
-	import RecipeCarousel from '../recipes/RecipeCarousel.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
@@ -191,6 +188,12 @@
 		)
 	);
 
+	function onShuffle(currentRecommendations: ShoppingRecommendation[]) {
+		// Don't show the same recommendations again on shuffle
+		recentRecommendations = [...currentRecommendations, ...recentRecommendations].slice(0, 100);
+		// refreshRecommendations();
+	}
+
 	onMount(refreshRecommendations);
 </script>
 
@@ -279,15 +282,7 @@
 												variant="ghost"
 												size="icon"
 												class="text-muted-foreground group-hover:mr-2"
-												onclick={() => {
-													// Don't show the same recommendations again on shuffle
-													recentRecommendations = [
-														...aisleRecommendations,
-														...recentRecommendations
-													].slice(0, 100);
-
-													refreshRecommendations();
-												}}
+												onclick={() => onShuffle(aisleRecommendations)}
 											>
 												{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
 													<Shuffle class="size-4" />

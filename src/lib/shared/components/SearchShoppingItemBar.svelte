@@ -1,12 +1,8 @@
 <script lang="ts">
-	import { LoaderCircle, SearchIcon, Settings2, X } from 'lucide-svelte';
-	import { Button } from './ui/button';
+	import { Mic, SearchIcon, X } from 'lucide-svelte';
 	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
 	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/SearchShoppingItem.svelte';
-	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
-	import { supabase } from '../db/supabase-client';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { capitalize } from '$lib/utils';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 
 	type Props = {
@@ -45,7 +41,7 @@
 			<InputGroup.Root class="h-8 bg-white dark:bg-muted border-none shadow-2xs">
 				<InputGroup.Input
 					class=""
-					placeholder="Add an item or recipe..."
+					placeholder="Add item or recipe..."
 					bind:value={props.getValue, props.setValue}
 					bind:ref={searchRef}
 					{...props}
@@ -68,16 +64,31 @@
 							<X />
 						</InputGroup.Button>
 					</InputGroup.Addon>
+				{:else}
+					<InputGroup.Addon align="inline-end">
+						<InputGroup.Button
+							aria-label="Clear search"
+							title="Clear search"
+							size="icon-xs"
+							onclick={() => {
+								searchInput = '';
+								searchRef?.focus();
+							}}
+							tabindex={-1}
+						>
+							<Mic />
+						</InputGroup.Button>
+					</InputGroup.Addon>
 				{/if}
 			</InputGroup.Root>
 
-			<Button variant="default" size="icon" class="h-8" tabindex={-1} title="Toggle meal details">
+			<!-- <Button variant="default" size="icon" class="h-8" tabindex={-1} title="Toggle meal details">
 				{#if searchLoading}
 					<LoaderCircle class="size-4 animate-spin" />
 				{:else}
-					<Settings2 class="size-4" />
+					<Camera class="size-4" />
 				{/if}
-			</Button>
+			</Button> -->
 		</div>
 	{/snippet}
 </IngredientSearch>
