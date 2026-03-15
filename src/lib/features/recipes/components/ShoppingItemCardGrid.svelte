@@ -47,11 +47,11 @@
 			ingredient?.translations[0]
 	);
 
-	const name = $derived(
-		amount && amount > 1
-			? translation?.name_plural || translation?.name_singular
-			: translation?.name_singular || translation?.name_plural
-	);
+	const name = $derived.by(() => {
+		if (amount === null || amount === undefined || amount === 0 || (amount && amount > 1))
+			return translation?.name_plural || translation?.name_singular;
+		else return translation?.name_singular || translation?.name_plural;
+	});
 </script>
 
 <Button
