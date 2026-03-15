@@ -4,6 +4,7 @@
 	import { cn } from '$lib/utils';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { CircleCheckBig, Circle } from 'lucide-svelte';
+	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 
 	type Props = {
 		// Ingredient
@@ -60,6 +61,8 @@
 		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-all',
 		checked &&
 			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
+		hoveredMealIngredientId.value === ingredient?.id &&
+			'ring-2 ring-primary/80 dark:ring-primary/80',
 		size === 'sm' && 'h-26 p-1 text-xs',
 		size === 'lg' && 'h-32 p-3 text-md',
 		className
@@ -91,9 +94,9 @@
 				}}
 			>
 				{#if checked}
-					<CircleCheckBig class="size-5 text-muted-foreground" />
+					<CircleCheckBig class="size-5 text-muted-foreground group-hover:text-primary/80" />
 				{:else}
-					<Circle class="size-5 text-muted-foreground/60" />
+					<Circle class="size-5 text-primary/80" />
 				{/if}
 			</Button>
 		</div>

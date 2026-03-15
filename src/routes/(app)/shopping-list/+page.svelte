@@ -414,11 +414,15 @@
 												class="flex group"
 												animate:flip={{ duration: 300 }}
 												onmouseenter={() => {
+													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+														return;
 													if (!item.ingredient) return; // No hover state for manual items
 													hoveredMealIngredientId.value = item.ingredient.id;
 													hoveredListIngredientId = item.ingredient.id;
 												}}
 												onmouseleave={() => {
+													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+														return;
 													hoveredMealIngredientId.value = null;
 													hoveredListIngredientId = null;
 												}}

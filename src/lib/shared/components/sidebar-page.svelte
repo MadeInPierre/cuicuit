@@ -52,7 +52,7 @@
 		<header
 			data-scroll-header
 			data-last-y="0"
-			class="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md transition-all duration-200 ease-out"
+			class="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md transition-all duration-200 ease-out"
 		>
 			<div class="flex flex-1 items-center gap-2 px-3 mx-2 md:mx-6">
 				<!-- <Sidebar.Trigger /> -->
