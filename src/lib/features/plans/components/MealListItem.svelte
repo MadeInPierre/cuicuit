@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { Check, EqualApproximately, Plus, ShoppingBasket, Trash2, Users, Weight } from 'lucide-svelte';
+	import {
+		Check,
+		EqualApproximately,
+		Plus,
+		ShoppingBasket,
+		Trash2,
+		Users,
+		Weight
+	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -9,7 +17,10 @@
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
-	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
+	import {
+		hoveredMealIngredientId,
+		selectedMealIngredientId
+	} from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
@@ -31,14 +42,23 @@
 		showExpandedButtons = false
 	}: Props = $props();
 
+	let activeId = $derived(selectedMealIngredientId.value || hoveredMealIngredientId.value);
+
 	let hovered = $derived(
-		hoveredMealIngredientId.value !== null &&
+		activeId !== null &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === hoveredMealIngredientId.value && ing.deleted_at === null
+				(ing) => ing.ingredient_id === activeId && ing.deleted_at === null
 			)
 	);
 
-	let expanded = $derived(openMealCardId.value === meal?.id);
+	let selected = $derived(
+		selectedMealIngredientId.value !== null &&
+			meal?.shopping_ingredients.some(
+				(ing) => ing.ingredient_id === selectedMealIngredientId.value && ing.deleted_at === null
+			)
+	);
+
+	let expanded = $derived(openMealCardId.value === meal?.id || selected);
 </script>
 
 {#if meal}
@@ -46,7 +66,7 @@
 		<button
 			class={cn(
 				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group transition-all',
-				hovered && 'ring-2 ring-primary/80 dark:ring-primary/80',
+				(hovered || selected) && 'ring-2 ring-primary/80 dark:ring-primary/80',
 				className
 			)}
 			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
@@ -82,24 +102,20 @@
 				<CookableStatus />
 			</div>
 
-			{#if hovered}
+			{#if hovered || selected}
 				<div
 					class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto"
 					in:fade={{ duration: 200 }}
 				>
-					<IngredientImage id={hoveredMealIngredientId.value} class="size-7 rounded-full" />
+					<IngredientImage id={activeId} class="size-7 rounded-full" />
 
 					<span>
-						{meal.shopping_ingredients.find(
-							(ing) => ing.ingredient_id === hoveredMealIngredientId.value
-						)?.quantity || ''}
-						{meal.shopping_ingredients.find(
-							(ing) => ing.ingredient_id === hoveredMealIngredientId.value
-						)?.unit === 'whole'
+						{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ||
+							''}
+						{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ===
+						'whole'
 							? ''
-							: meal.shopping_ingredients.find(
-									(ing) => ing.ingredient_id === hoveredMealIngredientId.value
-								)?.unit || ''}
+							: meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit || ''}
 					</span>
 				</div>
 			{:else if showServings && (!expanded || !showExpandedButtons)}
@@ -129,7 +145,10 @@
 					{/if}
 
 					{#each [...meal.shopping_ingredients].sort((a, b) => {
-						// Sort by adjusted quantity first (considering meal servings), then by name
+						// Sort by checked state first, then by quantity (considering meal servings), then by name
+						if (!a.checked_at && b.checked_at) return 1;
+						if (a.checked_at && !b.checked_at) return -1;
+
 						const aQuantity = a.quantity ?? 0;
 						const bQuantity = b.quantity ?? 0;
 						const aQty = (aQuantity * meal.servings) / meal.recipe.servings;
@@ -148,8 +167,8 @@
 						<div
 							class={cn(
 								'grid text-xs text-muted-foreground rounded-sm duration-75 relative group transition-all',
-								hoveredMealIngredientId.value === shopping_ingredient.ingredient_id &&
-									'bg-primary/10 text-primary/80 dark:bg-primary/20 dark:text-primary/80 font-medium'
+								activeId === shopping_ingredient.ingredient_id &&
+									'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary font-medium'
 							)}
 							onmouseenter={() => {
 								hoveredMealIngredientId.value = shopping_ingredient.ingredient_id;
@@ -169,7 +188,8 @@
 									class={cn(
 										'line-clamp-1',
 										shopping_ingredient.meal_origin === 'ignored' &&
-											'line-through text-muted-foreground/60'
+											'line-through text-muted-foreground/60',
+										shopping_ingredient.checked_at && 'line-through text-primary'
 									)}
 								>
 									{shopping_ingredient.quantity && shopping_ingredient.quantity > 1
@@ -191,7 +211,8 @@
 									class={cn(
 										'ml-auto font-medium whitespace-nowrap select-none min-w-8 text-right text-green-600',
 										shopping_ingredient.meal_origin === 'ignored' &&
-											'line-through text-muted-foreground/60'
+											'line-through text-muted-foreground/60',
+										shopping_ingredient.checked_at && 'text-primary line-through'
 									)}
 								>
 									{#if showExpandedButtons}
@@ -206,9 +227,11 @@
 									{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
 								</span>
 
-								<Check class="ml-1 max-w-3 max-h-3 text-green-600" />
-								<EqualApproximately class="ml-1 max-w-3 max-h-3 text-teal-600" />
-								<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-primary" />
+								{#if shopping_ingredient.checked_at}
+									<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-primary" />
+								{:else}
+									<Check class="ml-1 max-w-3 max-h-3 text-green-600" />
+								{/if}
 							</div>
 
 							<!-- {#if i === 0}

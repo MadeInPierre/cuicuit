@@ -4,7 +4,10 @@
 	import { cn } from '$lib/utils';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { CircleCheckBig, Circle } from 'lucide-svelte';
-	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import {
+		hoveredMealIngredientId,
+		selectedMealIngredientId
+	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 
 	type Props = {
 		// Ingredient
@@ -61,7 +64,7 @@
 		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-colors duration-0',
 		checked &&
 			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
-		hoveredMealIngredientId.value === ingredient?.id &&
+		selectedMealIngredientId.value === ingredient?.id &&
 			'ring-2 ring-primary/80 dark:ring-primary/80',
 		size === 'sm' && 'h-26 p-1 text-xs duration-75',
 		size === 'lg' && 'h-32 p-3 text-md duration-75',
@@ -88,16 +91,19 @@
 			<Button
 				size="icon"
 				variant="ghost"
-				class="ml-auto mt-1 size-10 rounded-full hover:bg-primary/15"
+				class={cn(
+					'ml-auto mt-1 size-10 rounded-full text-muted-foreground',
+					selectedMealIngredientId.value === ingredient?.id && 'text-primary/80 hover:bg-primary/15'
+				)}
 				onclick={() => {
 					checked = !checked;
 					onCheckedChange(checked);
 				}}
 			>
 				{#if checked}
-					<CircleCheckBig class="size-5 text-muted-foreground group-hover:text-primary/80" />
+					<CircleCheckBig class="size-5" />
 				{:else}
-					<Circle class="size-5 text-primary/80" />
+					<Circle class="size-5" />
 				{/if}
 			</Button>
 		</div>
