@@ -33,7 +33,9 @@
 
 	let hovered = $derived(
 		hoveredMealIngredientId.value !== null &&
-			meal?.shopping_ingredients.some((ing) => ing.ingredient_id === hoveredMealIngredientId.value)
+			meal?.shopping_ingredients.some(
+				(ing) => ing.ingredient_id === hoveredMealIngredientId.value && ing.deleted_at === null
+			)
 	);
 
 	let expanded = $derived(openMealCardId.value === meal?.id);
