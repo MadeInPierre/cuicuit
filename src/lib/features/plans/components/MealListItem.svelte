@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, Plus, Trash2, Users, Weight } from 'lucide-svelte';
+	import { Check, EqualApproximately, Plus, ShoppingBasket, Trash2, Users, Weight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -10,7 +10,7 @@
 	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
 	import { hoveredMealIngredientId } from '../state/hovered-meal-ingredient.svelte';
-	import { fade, fly, slide } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
@@ -85,7 +85,7 @@
 			{#if hovered}
 				<div
 					class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto"
-					in:fly={{ duration: 200 }}
+					in:fade={{ duration: 200 }}
 				>
 					<IngredientImage id={hoveredMealIngredientId.value} class="size-7 rounded-full" />
 
@@ -105,7 +105,7 @@
 			{:else if showServings && (!expanded || !showExpandedButtons)}
 				<div
 					class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0"
-					in:fly={{ duration: 200 }}
+					in:fade={{ duration: 200 }}
 				>
 					<div class="flex items-center gap-1">
 						<span>{meal.servings}</span>
@@ -141,7 +141,7 @@
 						return bQty - aQty;
 					}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
 						{@const t = shopping_ingredient.ingredient?.translations.find(
-							(t) => t.language.lang === 'fr-FR'
+							(t) => t.language?.lang === 'fr-FR'
 						)}
 
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -207,7 +207,8 @@
 								</span>
 
 								<Check class="ml-1 max-w-3 max-h-3 text-green-600" />
-								<!-- <EqualApproximately class="ml-1 max-w-3 max-h-3 text-teal-600" /> -->
+								<EqualApproximately class="ml-1 max-w-3 max-h-3 text-teal-600" />
+								<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-primary" />
 							</div>
 
 							<!-- {#if i === 0}

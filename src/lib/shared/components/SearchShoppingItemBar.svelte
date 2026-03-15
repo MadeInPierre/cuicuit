@@ -24,7 +24,7 @@
 		const quantity = ingredient.parsed.quantity?.amount ?? null;
 		const unit = ingredient.parsed.quantity?.unitKey ?? null;
 		const name = ingredient.parsed.ingredientText ?? '';
-		const ingredientId = index ? (ingredient.matches[index]?.id ?? null) : null;
+		const ingredientId = index !== null ? (ingredient.matches[index]?.id ?? null) : null;
 
 		addShoppingItem(spaceState, ingredientId, name, quantity, unit);
 		searchRef?.focus();

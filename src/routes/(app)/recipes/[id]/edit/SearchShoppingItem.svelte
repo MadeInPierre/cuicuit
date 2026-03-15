@@ -74,7 +74,7 @@
 			processedIngredient = await processIngredientString(value, language);
 			hasTypedThisFocus = true; // Fixes escape key details
 			loading = false;
-		}, 150);
+		}, 200);
 	});
 
 	function onSelectIngredient(chosenIndex: number | null) {

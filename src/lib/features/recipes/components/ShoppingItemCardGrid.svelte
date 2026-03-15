@@ -58,16 +58,17 @@
 <Button
 	variant="outline"
 	class={cn(
-		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-all',
+		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-colors duration-0',
 		checked &&
 			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
 		hoveredMealIngredientId.value === ingredient?.id &&
 			'ring-2 ring-primary/80 dark:ring-primary/80',
-		size === 'sm' && 'h-26 p-1 text-xs',
-		size === 'lg' && 'h-32 p-3 text-md',
+		size === 'sm' && 'h-26 p-1 text-xs duration-75',
+		size === 'lg' && 'h-32 p-3 text-md duration-75',
 		className
 	)}
 	onclick={(e) => {
+		// On touch devices, toggle checked state on click instead of hover
 		if (checkable && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
 			e.preventDefault();
 			checked = !checked;
@@ -80,14 +81,14 @@
 	{#if checkable}
 		<div
 			class={cn(
-				'absolute top-0 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity',
+				'absolute top-0 left-1 opacity-0 group-hover:opacity-100',
 				checked && 'md:opacity-100'
 			)}
 		>
 			<Button
 				size="icon"
-				variant="link"
-				class="ml-auto mt-1 size-10 rounded-full"
+				variant="ghost"
+				class="ml-auto mt-1 size-10 rounded-full hover:bg-primary/15"
 				onclick={() => {
 					checked = !checked;
 					onCheckedChange(checked);
@@ -114,7 +115,10 @@
 		<IngredientImage
 			id={ingredient?.id || null}
 			name={name || description || '?'}
-			class="aspect-square h-full w-auto max-h-16 mx-auto"
+			class={cn(
+				'aspect-square h-full w-auto max-h-16 mx-auto transition-opacity',
+				checked && 'opacity-40 group-hover:opacity-100'
+			)}
 		/>
 	</div>
 

@@ -45,7 +45,7 @@
 				{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
 
 				{#if independentItems && independentItems.length > 0}
-					<div class="pt-4 relative grid grid-cols-3 gap-2 max-h-[360px] pb-2 overflow-x-visible overflow-y-clip">
+					<div class="pt-4 relative grid grid-cols-3 gap-2 max-h-[380px] pb-2 overflow-x-visible overflow-y-clip">
 						{#if independentItems && independentItems.length > 9}
 							<div
 								class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"

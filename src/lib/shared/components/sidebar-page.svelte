@@ -1,23 +1,29 @@
 <script lang="ts">
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import CommandMenu from '$lib/features/command/CommandMenu.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { cmdOrCtrl } from '../hooks/is-mac.svelte';
+	import { Check } from 'lucide-svelte';
 	import { IsMobile } from '../hooks/is-mobile.svelte';
 	import ThemeButton from './ThemeButton.svelte';
 	import { Button } from './ui/button';
-	import { Separator } from './ui/separator';
+	import { page } from '$app/state';
+	import { deletePlanItem } from '$lib/features/plans/actions/update-item';
 
 	interface Props {
 		children?: import('svelte').Snippet;
 	}
+	let { children }: Props = $props();
 
 	const isMobile = new IsMobile();
 
-	let { children }: Props = $props();
+	const activeSpace = getActiveSpaceState();
+	const hasCheckedItems = $derived(
+		activeSpace.activePlanItems?.some((item) => item.checked_at) || false
+	);
 </script>
 
 <svelte:window
@@ -54,7 +60,7 @@
 			data-last-y="0"
 			class="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md transition-all duration-200 ease-out"
 		>
-			<div class="flex flex-1 items-center gap-2 px-3 mx-2 md:mx-6">
+			<div class="flex flex-1 items-center gap-4 px-3 mx-2 md:mx-6">
 				<!-- <Sidebar.Trigger /> -->
 				<!-- <Separator orientation="vertical" class="mr-2 h-4" /> -->
 
@@ -71,6 +77,27 @@
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
+
+				{#if hasCheckedItems && page.url.pathname === '/shopping-list'}
+					<Button
+						variant="default"
+						class="ml-auto"
+						onclick={async () => {
+							if (!activeSpace.activePlanItems) return;
+							
+							activeSpace.activePlanItems.forEach((item) => {
+								if (item.checked_at) deletePlanItem(activeSpace, item.id);
+							});
+
+							await activeSpace.refreshActivePlanItems();
+							await activeSpace.refreshActivePlanMeals();
+							// await refreshRecommendations();
+						}}
+					>
+						<Check class="size-4 mr-2" />
+						Done shopping
+					</Button>
+				{/if}
 
 				<CommandMenu />
 				<ThemeButton class="md:hidden" />
