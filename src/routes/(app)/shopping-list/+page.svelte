@@ -134,9 +134,9 @@
 				}
 
 				// Push this meal as an origin and the shopping item
-				if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
+				// if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
 					ingredientMap[key].meals.push(meal);
-				}
+				// }
 			});
 		});
 
