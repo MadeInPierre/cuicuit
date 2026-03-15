@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
 	import IngredientImage from './IngredientImage.svelte';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		ingredientId: string | null;
