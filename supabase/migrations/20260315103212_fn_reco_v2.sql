@@ -1,86 +1,39 @@
---
--- ==================================================
--- Triggers
--- ==================================================
---
--------------------
--- Soft delete shopping list items when a meal is deleted
--------------------
--- 1. Definition
-CREATE OR REPLACE FUNCTION "public"."soft_delete_shopping_list_for_meal" () RETURNS "trigger" LANGUAGE "plpgsql" AS $$
-begin
-    update space_plan_shopping_lists
-    set deleted_at = now()
-    where meal_id = old.id and type = 'meal' and deleted_at is null;
-    return old;
-end;
-$$;
+drop function if exists "public"."get_shopping_recommendations" (space_id uuid);
 
--- 2. Ownership
-ALTER FUNCTION "public"."soft_delete_shopping_list_for_meal" () OWNER TO "postgres";
+set
+    check_function_bodies = off;
 
--- 3. Triggers
-CREATE OR REPLACE TRIGGER "soft_delete_shopping_list_items"
-AFTER DELETE ON "public"."space_plan_meals" FOR EACH ROW
-EXECUTE FUNCTION "public"."soft_delete_shopping_list_for_meal" ();
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (uuid);
 
--- 4. Grants
-GRANT ALL ON FUNCTION "public"."soft_delete_shopping_list_for_meal" () TO "anon";
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (uuid, integer);
 
-GRANT ALL ON FUNCTION "public"."soft_delete_shopping_list_for_meal" () TO "authenticated";
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (uuid, integer, text);
 
-GRANT ALL ON FUNCTION "public"."soft_delete_shopping_list_for_meal" () TO "service_role";
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (uuid, integer, text, integer);
 
---
--- ==================================================
--- Functions
--- ==================================================
---
-----------------
--- Get shopping recommendations based on most frequently checked off ingredients in the space
-----------------
--- 1. Definition
-/*
-Function: public.get_shopping_recommendations
-Returns weighted, deterministic shopping ingredient recommendations for a space,
-optionally filtered by aisle, with both global and per-aisle caps.
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (uuid, supermarket_aisle, text, text, text, bigint);
 
-How it works:
-1) scored CTE
-- Counts checked occurrences per ingredient in space_plan_shopping_lists.
-- Applies optional aisle filtering.
-- Joins ingredient metadata and language translation.
-- Uses translation fallback: name_plural -> name_singular -> name_general.
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (uuid, text, integer, integer, supermarket_aisle);
 
-2) sampled CTE
-- Computes weighted random ranks using Efraimidis-Spirakis style key:
--ln(U) / weight
-where:
-U is deterministic pseudo-random value from md5(seed, ingredient_id, scope),
-weight is ingredient score (frequency).
-- Produces:
-a) aisle_sample_rank (partitioned by aisle)
-b) global_sample_rank (across all rows)
+DROP FUNCTION IF EXISTS public.get_shopping_recommendations (
+    uuid,
+    text,
+    integer,
+    integer,
+    supermarket_aisle,
+    double precision
+);
 
-3) Final selection
-- If aisle_filter is NULL: enforce per_aisle_limit via aisle_sample_rank.
-- Always enforce global "limit" via global_sample_rank.
-- Order by global_sample_rank ascending.
-
-Notes:
-- Deterministic output for same inputs (including seed).
-- Higher-frequency ingredients are more likely to rank earlier.
-*/
 CREATE OR REPLACE FUNCTION public.get_shopping_recommendations (
     space_id uuid,
     lang text,
     "limit" integer DEFAULT 200,
     per_aisle_limit integer DEFAULT 20,
-    aisle_filter public.supermarket_aisle DEFAULT NULL,
+    aisle_filter supermarket_aisle DEFAULT NULL,
     seed double precision DEFAULT 0.5
 ) RETURNS TABLE (
     ingredient_id uuid,
-    aisle public.supermarket_aisle,
+    aisle supermarket_aisle,
     slug text,
     slug_general text,
     name text,

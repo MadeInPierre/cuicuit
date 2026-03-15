@@ -4,7 +4,12 @@ export async function getShoppingRecommendations(spaceId: string) {
 	if (!spaceId) return [];
 
 	const { data, error } = await supabase.rpc('get_shopping_recommendations', {
-		space_id: spaceId
+		space_id: spaceId,
+		limit: 200,
+		per_aisle_limit: 30,
+		lang: 'fr-FR',
+		seed: Math.random()
+		// aisle: null // No aisle filter for now, but we can add it later if needed
 	});
 	if (error) throw error;
 

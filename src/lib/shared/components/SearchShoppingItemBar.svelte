@@ -7,6 +7,7 @@
 	import { supabase } from '../db/supabase-client';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { capitalize } from '$lib/utils';
+	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 
 	type Props = {
 		class?: string;
@@ -18,31 +19,18 @@
 	let searchRef: HTMLElement | null = $state(null);
 
 	const spaceState = getActiveSpaceState();
-
-	async function onAddItem(
-		ingredient: IngredientProcessed | null,
-		chosenMatchIndex: number | null
-	) {
-		if (!ingredient || !spaceState.id) return;
-
-		await supabase.from('space_plan_shopping_lists').insert({
-			space_id: spaceState.id,
-			type: 'independent',
-			ingredient_id: chosenMatchIndex !== null ? ingredient.matches[chosenMatchIndex].id : null,
-			quantity: ingredient.parsed.quantity?.amount,
-			unit: ingredient.parsed.quantity?.unitKey,
-			name: capitalize(ingredient.parsed.ingredientText)
-		});
-
-		// Update UI
-		await spaceState.refreshActivePlanItems();
-	}
 </script>
 
 <IngredientSearch
 	language="fr-FR"
 	onSelect={(ingredient, index) => {
-		onAddItem(ingredient, index);
+		if (!ingredient) return;
+		const quantity = ingredient.parsed.quantity?.amount ?? null;
+		const unit = ingredient.parsed.quantity?.unitKey ?? null;
+		const name = ingredient.parsed.ingredientText ?? '';
+		const ingredientId = index ? (ingredient.matches[index]?.id ?? null) : null;
+
+		addShoppingItem(spaceState, ingredientId, name, quantity, unit);
 		searchRef?.focus();
 		searchInput = '';
 	}}
