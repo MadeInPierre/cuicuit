@@ -10,12 +10,17 @@
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
-	import { hoveredMealIngredientId } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import {
+		hoveredMealIngredientId,
+		selectedMealIngredientId
+	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import {
+		Calendar,
 		Check,
 		ChefHat,
 		Ellipsis,
 		Grid3x3,
+		House,
 		Lightbulb,
 		List,
 		Plus,
@@ -59,8 +64,6 @@
 
 	const shoppingList: CombinedShoppingListItem[] = $derived(generateShoppingList(meals, items));
 	const hasCheckedItems = $derived(items.some((item) => item.checked_at));
-
-	let hoveredListIngredientId: string | null = $state(null);
 
 	let itemsLayout = createPersistentState<'grid' | 'list'>(
 		'view-shopping-list-items-layout',
@@ -348,7 +351,13 @@
 													<Button
 														variant="ghost"
 														size="icon"
-														class={cn('size-7 text-muted-foreground group-hover:mr-2')}
+														class={cn(
+															'size-7 text-muted-foreground group-hover:mr-2',
+															typeof navigator !== 'undefined' &&
+																navigator.maxTouchPoints > 0 &&
+																aisleRecommendations.length > 4 &&
+																'mr-2'
+														)}
 														onclick={() => onShuffle(aisleKey, aisleRecommendations.slice(0, 4))}
 													>
 														{#if aisleRecommendations.length > 4}
@@ -358,8 +367,10 @@
 																<Plus class="size-4 group-hover:hidden" />
 																<Shuffle class="size-4 hidden group-hover:block" />
 															{/if}
-														{:else}
+														{:else if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
 															<Plus class="size-4 group-hover:rotate-45 transition-transform" />
+														{:else}
+															<Plus class="size-4 rotate-45" />
 														{/if}
 													</Button>
 												</Tooltip.Trigger>
@@ -422,6 +433,7 @@
 									>
 										{#each aisleItems as item (item.ingredient?.id || item.name)}
 											<!-- svelte-ignore a11y_no_static_element_interactions -->
+											<!-- svelte-ignore a11y_click_events_have_key_events -->
 											<div
 												class="flex group"
 												animate:flip={{ duration: 300 }}
@@ -430,13 +442,20 @@
 														return;
 													if (!item.ingredient) return; // No hover state for manual items
 													hoveredMealIngredientId.value = item.ingredient.id;
-													hoveredListIngredientId = item.ingredient.id;
 												}}
 												onmouseleave={() => {
 													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
 														return;
 													hoveredMealIngredientId.value = null;
-													hoveredListIngredientId = null;
+												}}
+												onclick={async () => {
+													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+														return;
+													if (!item.ingredient) return; // No hover state for manual items
+													selectedMealIngredientId.value =
+														selectedMealIngredientId.value === item.ingredient.id
+															? null
+															: item.ingredient.id;
 												}}
 											>
 												<ShoppingItemCardGrid
@@ -480,20 +499,7 @@
 								{:else}
 									<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
 										{#each aisleItems as item (item.ingredient?.id || item.name)}
-											<!-- svelte-ignore a11y_no_static_element_interactions -->
-											<div
-												class="flex group"
-												animate:flip={{ duration: 300 }}
-												onmouseenter={() => {
-													if (!item.ingredient) return; // No hover state for manual items
-													hoveredMealIngredientId.value = item.ingredient.id;
-													hoveredListIngredientId = item.ingredient.id;
-												}}
-												onmouseleave={() => {
-													hoveredMealIngredientId.value = null;
-													hoveredListIngredientId = null;
-												}}
-											>
+											<div class="flex group" animate:flip={{ duration: 300 }}>
 												<ShoppingItemCardList
 													ingredient={item.ingredient}
 													description={item.name}
@@ -504,15 +510,15 @@
 													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
 												>
 													<span class="text-xs text-muted-foreground/80 flex gap-3">
-														<!-- <div class="flex items-center gap-1">
-														<House class="size-3 inline-block" />
-														None
-													</div> -->
+														<div class="flex items-center gap-1">
+															<House class="size-3 inline-block" />
+															None
+														</div>
 
-														<!-- <div class="flex items-center gap-1">
-														<Calendar class="size-3 inline-block" />
-														600 ml
-													</div> -->
+														<div class="flex items-center gap-1">
+															<Calendar class="size-3 inline-block" />
+															600 ml
+														</div>
 
 														{#if item.meals.length > 0}
 															<div class="flex items-center gap-1">
@@ -528,13 +534,6 @@
 															</div>
 														{/if}
 													</span>
-
-													<!-- <div class="grid grid-cols-1 gap-3 mt-2">
-														{#each item.origins as origin (origin.id)}
-															{@const meal = meals.find((m) => m.id === origin.id)}
-															<MealCard {meal} showServings={false} class="border-none p-0 " />
-														{/each}
-													</div> -->
 												</ShoppingItemCardList>
 											</div>
 										{/each}
@@ -543,32 +542,7 @@
 							</div>
 						</section>
 					{/each}
-
-					<!-- {#if shoppingList.some((item) => !item.ingredient.aisle)}
-						<section class="mb-8">
-							<h3 class="text-lg font-semibold mb-2">Other</h3>
-							<div class="grid gap-2">
-								{#each shoppingList.filter((item) => !item.ingredient.aisle) as item (item.ingredient.id)}
-									<ShoppingItemCardList
-										ingredient={item.ingredient}
-										amount={item.mergedQuantity!.amount}
-										unit={item.mergedQuantity!.unit}
-									/>
-								{/each}
-							</div>
-						</section>
-					{/if} -->
 				</div>
-
-				<!-- <Separator orientation="vertical" class="mx-4 hidden md:block" />
-				<div class="hidden md:block">
-					<div class="grid space-y-4">
-						{#each shoppingList.find((item) => item.ingredient.id === hoveredListIngredientId)?.origins || [] as origin (origin.type + origin.id)}
-							{@const meal = meals.find((m) => m.id === origin.id)}
-							<MealCard {meal} expanded />
-						{/each}
-					</div>
-				</div> -->
 			</div>
 		</Tabs.Content>
 

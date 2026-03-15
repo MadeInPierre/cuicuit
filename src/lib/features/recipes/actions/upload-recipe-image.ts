@@ -1,6 +1,19 @@
 import { toast } from 'svelte-sonner';
 import { supabase } from '$lib/shared/db/supabase-client';
 
+function generateUuid() {
+	const c = globalThis.crypto;
+	if (c && typeof c.randomUUID === 'function') {
+		return c.randomUUID();
+	}
+
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+		const r = Math.random() * 16 | 0;
+		const v = char === 'x' ? r : (r & 0x3) | 0x8;
+		return v.toString(16);
+	});
+}
+
 /**
  * Upload a new recipe image to the storage and add the image url to the recipeDoc urls list
  */
@@ -13,7 +26,7 @@ export async function uploadRecipeImage(
 
 	// Get the file extension
 	const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-	const uuid = crypto.randomUUID();
+	const uuid = generateUuid();
 	const imageId = `${uuid}.${ext}`;
 
 	// Upload the image to Supabase storage

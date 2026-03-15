@@ -28,7 +28,12 @@
 		}}
 	/>
 {:else}
-	<div class={cn('w-full flex items-center justify-center transition-colors text-muted text-6xl delay-100', className)}>
+	<div
+		class={cn(
+			'w-full flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-6xl',
+			className
+		)}
+	>
 		{name ? name.charAt(0).toUpperCase() : '?'}
 	</div>
 {/if}
