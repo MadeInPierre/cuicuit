@@ -1,42 +1,29 @@
 <script lang="ts">
+	import { cn } from '$lib/utils';
 	import IngredientImage from './IngredientImage.svelte';
-	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
-	import { capitalize } from '$lib/utils';
 
 	type Props = {
-		ingredient: RecipeIngredientWithTranslations | null;
-		amount?: number;
-		unit?: string;
-		[key: string]: any;
-		children?: any;
+		ingredientId: string | null;
+		name?: string;
+		score?: string;
+		onclick?: () => void;
+		class?: string;
 	};
 
-	let { ingredient, amount, unit, children, ...others }: Props = $props();
-
-	const translation = $derived(
-		// ingredient?.translations?.find((t) => t.language?.lang === 'fr-FR') ||
-		// 	ingredient?.translations?.[0] ||
-		capitalize(ingredient?.slug.replaceAll('-', ' ') || 'Unknown')
-	);
-
-	const name = $derived(
-		translation
-		// amount && amount > 1
-		// 	? translation?.name_plural || translation?.name_singular
-		// 	: translation?.name_singular || translation?.name_plural
-	);
+	let { ingredientId, name, score, onclick, class: className }: Props = $props();
 </script>
 
 <button
-	class="flex items-center gap-2 bg-white dark:bg-muted pl-2 pr-4 py-0 rounded-full shadow-2xs"
+	class={cn("flex items-center gap-2 bg-white dark:bg-muted pl-2 pr-4 py-0 rounded-full shadow-2xs", className)}
+	{onclick}
 >
 	<IngredientImage
-		id={ingredient?.id || null}
+		id={ingredientId || null}
 		name={name || 'Unknown'}
 		class="w-7 h-7 rounded-full"
 	/>
 
-	<div class="text-sm">
+	<span class="text-sm" title={score || ''}>
 		{name || 'Unknown'}
-	</div>
+	</span>
 </button>

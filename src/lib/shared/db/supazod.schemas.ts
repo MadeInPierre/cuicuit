@@ -715,21 +715,22 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
 });
 
 export const publicGetShoppingRecommendationsArgsSchema = z.object({
+  aisle_filter: publicSupermarketAisleSchema.optional(),
+  lang: z.string(),
+  limit: z.number().optional(),
+  per_aisle_limit: z.number().optional(),
+  seed: z.number().optional(),
   space_id: z.string(),
 });
 
 export const publicGetShoppingRecommendationsReturnsSchema = z.array(
   z.object({
-    aisle: publicSupermarketAisleSchema.nullable(),
-    base_unit: publicIngredientBaseUnitSchema,
-    embedding: z.string().nullable(),
-    g_per_ml: z.number().nullable(),
-    g_per_unit: jsonSchema.nullable(),
-    hierarchy: z.array(z.string()),
-    id: z.string(),
+    aisle: publicSupermarketAisleSchema,
+    ingredient_id: z.string(),
+    name: z.string(),
+    score: z.number(),
     slug: z.string(),
     slug_general: z.string(),
-    unit_frequencies: jsonSchema.nullable(),
   }),
 );
 

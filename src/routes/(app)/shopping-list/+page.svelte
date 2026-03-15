@@ -19,6 +19,9 @@
 		Lightbulb,
 		List,
 		Plus,
+		RefreshCcw,
+		RotateCcw,
+		Shuffle,
 		User,
 		Users
 	} from 'lucide-svelte';
@@ -38,6 +41,7 @@
 		getShoppingRecommendations,
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
+	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 
 	type CombinedShoppingListItem = {
 		name: string;
@@ -170,19 +174,24 @@
 	}
 
 	let rawShoppingRecommendations: ShoppingRecommendation[] = $state([]);
-	onMount(async () => {
+	let recentRecommendations: ShoppingRecommendation[] = $state([]);
+
+	async function refreshRecommendations() {
 		if (!activeSpace.id) return;
 		const recommendations = await getShoppingRecommendations(activeSpace.id);
-		console.log('Shopping recommendations for this week:', recommendations);
 		rawShoppingRecommendations = recommendations;
-	});
+	}
 
-	// Keep recommendations that are not already in the shopping list
+	// Keep recommendations that are not already in the shopping list or recently recommended
 	let shoppingRecommendations = $derived(
 		rawShoppingRecommendations.filter(
-			(rec) => !shoppingList.some((item) => item.ingredient?.id === rec.id)
+			(rec) =>
+				!shoppingList.some((item) => item.ingredient?.id === rec.ingredient_id) &&
+				!recentRecommendations.some((recent) => recent.ingredient_id === rec.ingredient_id)
 		)
 	);
+
+	onMount(refreshRecommendations);
 </script>
 
 <div class="space-y-6 pb-16 min-h-full">
@@ -224,14 +233,15 @@
 				<Button
 					variant="default"
 					class="ml-auto"
-					onclick={() => {
+					onclick={async () => {
 						// TODO confirm with user if they want to clear the whole list, or just the checked items?
 						items.forEach((item) => {
 							if (item.checked_at) deletePlanItem(activeSpace, item.id);
 						});
 
-						activeSpace.refreshActivePlanItems();
-						activeSpace.refreshActivePlanMeals();
+						await activeSpace.refreshActivePlanItems();
+						await activeSpace.refreshActivePlanMeals();
+						await refreshRecommendations();
 					}}
 				>
 					<Check class="size-4 mr-2" />
@@ -256,7 +266,7 @@
 
 						{@const aisleRecommendations = shoppingRecommendations
 							.filter((rec) => rec.aisle === aisleKey)
-							.slice(0, 3)}
+							.slice(0, 4)}
 
 						{#if aisleItems.length > 0}
 							<section class="mb-16">
@@ -264,13 +274,41 @@
 									<SectionHeader header={aisleHeader} size="sm" class="" />
 
 									{#if aisleRecommendations.length > 0}
-										<div class="hidden lg:flex items-center gap-2">
-											<span class="text-sm font-medium text-muted-foreground italic">
-												<Plus class="size-4" />
-											</span>
+										<div class="hidden lg:flex items-center group">
+											<Button
+												variant="ghost"
+												size="icon"
+												class="text-muted-foreground group-hover:mr-2"
+												onclick={() => {
+													// Don't show the same recommendations again on shuffle
+													recentRecommendations = [
+														...aisleRecommendations,
+														...recentRecommendations
+													].slice(0, 100);
 
-											{#each aisleRecommendations as ing (ing.id)}
-												<ShoppingItemBadge ingredient={ing} size="md"></ShoppingItemBadge>
+													refreshRecommendations();
+												}}
+											>
+												{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
+													<Shuffle class="size-4" />
+												{:else}
+													<Plus class="size-4 group-hover:hidden" />
+													<Shuffle class="size-4 hidden group-hover:block" />
+												{/if}
+											</Button>
+
+											{#each aisleRecommendations as rec, index (rec.ingredient_id)}
+												<div animate:flip={{ duration: 300 }}>
+													<ShoppingItemBadge
+														ingredientId={rec.ingredient_id}
+														name={rec.name}
+														score={`Bought ${rec.score} time${rec.score > 1 ? 's' : ''}`}
+														class={index > 0 ? 'ml-2' : ''}
+														onclick={async () => {
+															await addShoppingItem(activeSpace, rec.ingredient_id, rec.name);
+														}}
+													></ShoppingItemBadge>
+												</div>
 											{/each}
 										</div>
 									{/if}
@@ -285,16 +323,15 @@
 												<Lightbulb class="size-4" />
 											</span>
 
-											{#each aisleItems
-												.filter((ai) => ai.ingredient)
-												.slice(0, 10) as item (item.ingredient?.id || item.name)}
+											{#each aisleRecommendations.slice(0, 10) as rec (rec.ingredient_id)}
 												<div class="shrink-0 py-0.5">
 													<ShoppingItemBadge
-														ingredient={item.ingredient}
-														amount={item.mergedQuantity?.amount}
-														unit={item.mergedQuantity?.unit}
-														class=""
-														size="md"
+														ingredientId={rec.ingredient_id}
+														name={rec.name}
+														score={`Bought ${rec.score} time${rec.score > 1 ? 's' : ''}`}
+														onclick={async () => {
+															await addShoppingItem(activeSpace, rec.ingredient_id, rec.name);
+														}}
 													></ShoppingItemBadge>
 												</div>
 											{/each}

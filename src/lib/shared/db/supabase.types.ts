@@ -582,25 +582,22 @@ export type Database = {
     }
     Functions: {
       get_shopping_recommendations: {
-        Args: { space_id: string }
+        Args: {
+          aisle_filter?: Database["public"]["Enums"]["supermarket_aisle"]
+          lang: string
+          limit?: number
+          per_aisle_limit?: number
+          seed?: number
+          space_id: string
+        }
         Returns: {
-          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null
-          base_unit: Database["public"]["Enums"]["ingredient_base_unit"]
-          embedding: string | null
-          g_per_ml: number | null
-          g_per_unit: Json | null
-          hierarchy: string[]
-          id: string
+          aisle: Database["public"]["Enums"]["supermarket_aisle"]
+          ingredient_id: string
+          name: string
+          score: number
           slug: string
           slug_general: string
-          unit_frequencies: Json | null
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "ingredients"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       match_ingredient: {
         Args: {
