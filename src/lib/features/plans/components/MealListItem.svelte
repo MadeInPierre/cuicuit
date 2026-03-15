@@ -122,7 +122,9 @@
 						}
 						return bQty - aQty;
 					}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
-						{@const t = shopping_ingredient.ingredient?.translations[0]}
+						{@const t = shopping_ingredient.ingredient?.translations.find(
+							(t) => t.language.lang === 'fr-FR'
+						)}
 
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div

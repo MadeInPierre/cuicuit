@@ -39,6 +39,7 @@
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
+	import { fade, slide } from 'svelte/transition';
 
 	type CombinedShoppingListItem = {
 		name: string;
@@ -170,8 +171,8 @@
 		);
 	}
 
-	let rawShoppingRecommendations: ShoppingRecommendation[] = $state([]);
-	let recentRecommendations: ShoppingRecommendation[] = $state([]);
+	let rawShoppingRecommendations = $state<ShoppingRecommendation[] | undefined>(undefined);
+	let recentRecommendations = $state<ShoppingRecommendation[]>([]);
 
 	async function refreshRecommendations() {
 		if (!activeSpace.id) return;
@@ -181,21 +182,56 @@
 
 	// Keep recommendations that are not already in the shopping list or recently recommended
 	let shoppingRecommendations = $derived(
-		rawShoppingRecommendations.filter(
+		rawShoppingRecommendations?.filter(
 			(rec) =>
 				!shoppingList.some((item) => item.ingredient?.id === rec.ingredient_id) &&
 				!recentRecommendations.some((recent) => recent.ingredient_id === rec.ingredient_id)
-		)
+		) || []
 	);
 
 	function onShuffle(currentRecommendations: ShoppingRecommendation[]) {
 		// Don't show the same recommendations again on shuffle
 		recentRecommendations = [...currentRecommendations, ...recentRecommendations].slice(0, 100);
-		// refreshRecommendations();
 	}
 
 	onMount(refreshRecommendations);
 </script>
+
+{#snippet recommendations({
+	recs,
+	aisleKey,
+	limit = 4,
+	className = ''
+}: {
+	recs: ShoppingRecommendation[];
+	aisleKey: string;
+	limit?: number;
+	className?: string;
+})}
+	<div class="flex items-center gap-2 min-w-max">
+		{#each recs.slice(0, limit) as rec (rec.ingredient_id)}
+			<div animate:flip={{ duration: 300 }}>
+				<ShoppingItemBadge
+					ingredientId={rec.ingredient_id}
+					name={rec.name}
+					score={`Bought ${rec.score} time${rec.score > 1 ? 's' : ''}`}
+					class={cn('w-full', className)}
+					onclick={async () => {
+						await addShoppingItem(activeSpace, rec.ingredient_id, rec.name);
+					}}
+				></ShoppingItemBadge>
+			</div>
+		{:else}
+			{#if rawShoppingRecommendations === undefined}
+				{#each Array.from( { length: Math.max(1, Math.floor(Math.random() * limit) + 1) } ) as _, index (`empty-${aisleKey}-${index}`)}
+					<div animate:flip={{ duration: 300 }}>
+						<ShoppingItemBadge class={cn('w-full', className)} />
+					</div>
+				{/each}
+			{/if}
+		{/each}
+	</div>
+{/snippet}
 
 <div class="space-y-6 pb-16 min-h-full">
 	<div class="flex items-center">
@@ -261,79 +297,102 @@
 			<!-- <h3 class="mt-6 text-xl font-semibold mb-6">Shopping list</h3> -->
 
 			<div class="grid grid-cols-1">
-				<div class={cn('grid space-y-4', itemsLayout.value === 'list' && 'space-y-12')}>
-					{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
+				<div class={cn('grid space-y-12', itemsLayout.value === 'list' && 'space-y-12')}>
+					{#each Object.entries(supermarketAisleSectionHeaders)
+
+						// Show aisles that have items or recommendations
+						.filter(([aisleKey]) => {
+							// Show all aisles while recommendations are loading
+							if (!rawShoppingRecommendations) return true;
+
+							// Show aisle if it has any items in the shopping list
+							if (shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey)) return true;
+
+							// Show aisle if it has any recommendations
+							return shoppingRecommendations.some((rec) => rec.aisle === aisleKey);
+						})
+
+						// Place aisles with items first, then aisles with recommendations
+						.sort((a, b) => {
+							// Aisles with items come first
+							const aHasItems = shoppingList.some((item) => (item.ingredient?.aisle || 'default') === a[0]);
+							const bHasItems = shoppingList.some((item) => (item.ingredient?.aisle || 'default') === b[0]);
+							if (aHasItems && !bHasItems) return -1;
+							if (!aHasItems && bHasItems) return 1;
+
+							// Keep original order from the section headers
+							return 0;
+						}) as [aisleKey, aisleHeader] (aisleKey)}
 						{@const aisleItems = shoppingList.filter(
 							(item) => (item.ingredient?.aisle || 'default') === aisleKey
 						)}
 
-						{@const aisleRecommendations = shoppingRecommendations
-							.filter((rec) => rec.aisle === aisleKey)
-							.slice(0, 4)}
+						{@const aisleRecommendations = shoppingRecommendations.filter(
+							(rec) => rec.aisle === aisleKey
+						)}
 
-						{#if aisleItems.length > 0}
-							<section class="mb-16">
-								<div class="mb-4 flex items-center justify-between">
-									<SectionHeader header={aisleHeader} size="sm" class="" />
+						<section>
+							<div class="mb-4 flex items-center justify-between">
+								<SectionHeader header={aisleHeader} size="sm" class="" />
 
-									{#if aisleRecommendations.length > 0}
-										<div class="hidden lg:flex items-center group">
+								{#if aisleRecommendations.length > 0 || rawShoppingRecommendations === undefined}
+									<div
+										class="hidden xl:flex items-center group"
+										transition:fade={{ duration: 200 }}
+									>
+										{#if rawShoppingRecommendations}
 											<Button
 												variant="ghost"
 												size="icon"
-												class="text-muted-foreground group-hover:mr-2"
-												onclick={() => onShuffle(aisleRecommendations)}
+												class="size-7 text-muted-foreground group-hover:mr-2"
+												disabled={aisleRecommendations.length <= 4}
+												onclick={() => onShuffle(aisleRecommendations.slice(0, 4))}
 											>
-												{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
-													<Shuffle class="size-4" />
+												{#if aisleRecommendations.length > 4}
+													{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
+														<Shuffle class="size-4" />
+													{:else}
+														<Plus class="size-4 group-hover:hidden" />
+														<Shuffle class="size-4 hidden group-hover:block" />
+													{/if}
 												{:else}
-													<Plus class="size-4 group-hover:hidden" />
-													<Shuffle class="size-4 hidden group-hover:block" />
+													<Plus class="size-4" />
 												{/if}
 											</Button>
+										{/if}
 
-											{#each aisleRecommendations as rec, index (rec.ingredient_id)}
-												<div animate:flip={{ duration: 300 }}>
-													<ShoppingItemBadge
-														ingredientId={rec.ingredient_id}
-														name={rec.name}
-														score={`Bought ${rec.score} time${rec.score > 1 ? 's' : ''}`}
-														class={index > 0 ? 'ml-2' : ''}
-														onclick={async () => {
-															await addShoppingItem(activeSpace, rec.ingredient_id, rec.name);
-														}}
-													></ShoppingItemBadge>
-												</div>
-											{/each}
-										</div>
-									{/if}
-								</div>
+										{@render recommendations({ recs: aisleRecommendations, aisleKey })}
+									</div>
+								{/if}
+							</div>
 
-								<div class="grid space-y-4 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
-									<div class="relative lg:hidden overflow-hidden">
+							<div class="grid space-y-4 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
+								{#if aisleRecommendations.length > 0 || rawShoppingRecommendations === undefined}
+									<div
+										class="relative xl:hidden overflow-hidden"
+										transition:slide={{ axis: 'y', duration: 200 }}
+									>
 										<div
-											class="flex items-center gap-2 pr-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+											class="h-8 w-full flex items-center gap-2 mr-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 										>
 											<span class="text-sm font-medium text-muted-foreground italic shrink-0">
 												<Lightbulb class="size-4" />
 											</span>
 
-											{#each aisleRecommendations.slice(0, 10) as rec (rec.ingredient_id)}
-												<div class="shrink-0 py-0.5">
-													<ShoppingItemBadge
-														ingredientId={rec.ingredient_id}
-														name={rec.name}
-														score={`Bought ${rec.score} time${rec.score > 1 ? 's' : ''}`}
-														onclick={async () => {
-															await addShoppingItem(activeSpace, rec.ingredient_id, rec.name);
-														}}
-													></ShoppingItemBadge>
-												</div>
-											{/each}
+											{@render recommendations({
+												recs: aisleRecommendations,
+												aisleKey,
+												limit: 10,
+												className: 'w-auto'
+											})}
 
-											{#if aisleItems.length > 10}
-												<Button variant="link">
-													<Ellipsis class="size-4" />
+											{#if aisleRecommendations.length > 10}
+												<Button
+													variant="link"
+													class="shrink-0"
+													onclick={() => onShuffle(aisleRecommendations.slice(0, 10))}
+												>
+													<Shuffle class="size-4" />
 													More
 												</Button>
 											{/if}
@@ -343,130 +402,130 @@
 											class="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent"
 										></div>
 									</div>
+								{/if}
 
-									{#if itemsLayout.value === 'grid'}
-										<div
-											class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
-										>
-											{#each aisleItems as item (item.ingredient?.id || item.name)}
-												<!-- svelte-ignore a11y_no_static_element_interactions -->
-												<div
-													class="flex group"
-													animate:flip={{ duration: 300 }}
-													onmouseenter={() => {
-														if (!item.ingredient) return; // No hover state for manual items
-														hoveredMealIngredientId.value = item.ingredient.id;
-														hoveredListIngredientId = item.ingredient.id;
-													}}
-													onmouseleave={() => {
-														hoveredMealIngredientId.value = null;
-														hoveredListIngredientId = null;
-													}}
+								{#if itemsLayout.value === 'grid'}
+									<div
+										class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
+									>
+										{#each aisleItems as item (item.ingredient?.id || item.name)}
+											<!-- svelte-ignore a11y_no_static_element_interactions -->
+											<div
+												class="flex group"
+												animate:flip={{ duration: 300 }}
+												onmouseenter={() => {
+													if (!item.ingredient) return; // No hover state for manual items
+													hoveredMealIngredientId.value = item.ingredient.id;
+													hoveredListIngredientId = item.ingredient.id;
+												}}
+												onmouseleave={() => {
+													hoveredMealIngredientId.value = null;
+													hoveredListIngredientId = null;
+												}}
+											>
+												<ShoppingItemCardGrid
+													ingredient={item.ingredient}
+													description={item.name}
+													amount={item.mergedQuantity?.amount}
+													unit={item.mergedQuantity?.unit}
+													class=""
+													size="md"
+													checkable
+													checked={item.items.some((si) => si.checked_at)}
+													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
 												>
-													<ShoppingItemCardGrid
-														ingredient={item.ingredient}
-														description={item.name}
-														amount={item.mergedQuantity?.amount}
-														unit={item.mergedQuantity?.unit}
-														class=""
-														size="md"
-														checkable
-														checked={item.items.some((si) => si.checked_at)}
-														onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-													>
-														{#snippet topRight()}
-															{#if item.meals.length > 0}
-																<div class="flex gap-0.5">
-																	{#if item.meals.length > 1}
-																		<span>{item.meals.length}</span>
-																	{/if}
-																	<ChefHat class="size-3 mt-[1.2px]" />
-																</div>
-															{/if}
+													{#snippet topRight()}
+														{#if item.meals.length > 0}
+															<div class="flex gap-0.5">
+																{#if item.meals.length > 1}
+																	<span>{item.meals.length}</span>
+																{/if}
+																<ChefHat class="size-3 mt-[1.2px]" />
+															</div>
+														{/if}
 
-															{#if item.items.filter((i) => i.type === 'independent').length > 0}
-																<div class="flex gap-0.5">
-																	{#if item.items.filter((i) => i.type === 'independent').length > 1}
-																		<span>
-																			{item.items.filter((i) => i.type === 'independent').length}
-																		</span>
-																		<Users class="size-3 mt-[1.5px]" />
-																	{:else}
-																		<User class="size-3 mt-[1.5px]" />
-																	{/if}
-																</div>
-															{/if}
-														{/snippet}
-													</ShoppingItemCardGrid>
-												</div>
-											{/each}
-										</div>
-									{:else}
-										<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
-											{#each aisleItems as item (item.ingredient?.id || item.name)}
-												<!-- svelte-ignore a11y_no_static_element_interactions -->
-												<div
-													class="flex group"
-													animate:flip={{ duration: 300 }}
-													onmouseenter={() => {
-														if (!item.ingredient) return; // No hover state for manual items
-														hoveredMealIngredientId.value = item.ingredient.id;
-														hoveredListIngredientId = item.ingredient.id;
-													}}
-													onmouseleave={() => {
-														hoveredMealIngredientId.value = null;
-														hoveredListIngredientId = null;
-													}}
+														{#if item.items.filter((i) => i.type === 'independent').length > 0}
+															<div class="flex gap-0.5">
+																{#if item.items.filter((i) => i.type === 'independent').length > 1}
+																	<span>
+																		{item.items.filter((i) => i.type === 'independent').length}
+																	</span>
+																	<Users class="size-3 mt-[1.5px]" />
+																{:else}
+																	<User class="size-3 mt-[1.5px]" />
+																{/if}
+															</div>
+														{/if}
+													{/snippet}
+												</ShoppingItemCardGrid>
+											</div>
+										{/each}
+									</div>
+								{:else}
+									<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
+										{#each aisleItems as item (item.ingredient?.id || item.name)}
+											<!-- svelte-ignore a11y_no_static_element_interactions -->
+											<div
+												class="flex group"
+												animate:flip={{ duration: 300 }}
+												onmouseenter={() => {
+													if (!item.ingredient) return; // No hover state for manual items
+													hoveredMealIngredientId.value = item.ingredient.id;
+													hoveredListIngredientId = item.ingredient.id;
+												}}
+												onmouseleave={() => {
+													hoveredMealIngredientId.value = null;
+													hoveredListIngredientId = null;
+												}}
+											>
+												<ShoppingItemCardList
+													ingredient={item.ingredient}
+													description={item.name}
+													amount={item.mergedQuantity!.amount}
+													unit={item.mergedQuantity!.unit}
+													checkable
+													checked={item.items.some((si) => si.checked_at)}
+													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
 												>
-													<ShoppingItemCardList
-														ingredient={item.ingredient}
-														description={item.name}
-														amount={item.mergedQuantity!.amount}
-														unit={item.mergedQuantity!.unit}
-														checkable
-														checked={item.items.some((si) => si.checked_at)}
-														onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-													>
-														<span class="text-xs text-muted-foreground/80 flex gap-3">
-															<!-- <div class="flex items-center gap-1">
+													<span class="text-xs text-muted-foreground/80 flex gap-3">
+														<!-- <div class="flex items-center gap-1">
 														<House class="size-3 inline-block" />
 														None
 													</div> -->
 
-															<!-- <div class="flex items-center gap-1">
+														<!-- <div class="flex items-center gap-1">
 														<Calendar class="size-3 inline-block" />
 														600 ml
 													</div> -->
 
-															{#if item.meals.length > 0}
-																<div class="flex items-center gap-1">
-																	<ChefHat class="size-3 inline-block" />
-																	{item.meals.length}
-																</div>
-															{/if}
+														{#if item.meals.length > 0}
+															<div class="flex items-center gap-1">
+																<ChefHat class="size-3 inline-block" />
+																{item.meals.length}
+															</div>
+														{/if}
 
-															{#if item.items.filter((i) => i.type === 'independent').length > 0}
-																<div class="flex items-center gap-1">
-																	<User class="size-3 inline-block" />
-																	{item.items.filter((i) => i.type === 'independent').length}
-																</div>
-															{/if}
-														</span>
+														{#if item.items.filter((i) => i.type === 'independent').length > 0}
+															<div class="flex items-center gap-1">
+																<User class="size-3 inline-block" />
+																{item.items.filter((i) => i.type === 'independent').length}
+															</div>
+														{/if}
+													</span>
 
-														<!-- <div class="grid grid-cols-1 gap-3 mt-2">
+													<!-- <div class="grid grid-cols-1 gap-3 mt-2">
 														{#each item.origins as origin (origin.id)}
 															{@const meal = meals.find((m) => m.id === origin.id)}
 															<MealCard {meal} showServings={false} class="border-none p-0 " />
 														{/each}
 													</div> -->
-													</ShoppingItemCardList>
-												</div>
-											{/each}
-										</div>
-									{/if}
-								</div>
-							</section>
-						{/if}
+												</ShoppingItemCardList>
+											</div>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						</section>
 					{/each}
 
 					<!-- {#if shoppingList.some((item) => !item.ingredient.aisle)}
