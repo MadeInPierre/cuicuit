@@ -39,6 +39,7 @@
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
+	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
 	import { fade, slide } from 'svelte/transition';
 
 	type CombinedShoppingListItem = {
@@ -135,7 +136,7 @@
 
 				// Push this meal as an origin and the shopping item
 				// if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
-					ingredientMap[key].meals.push(meal);
+				ingredientMap[key].meals.push(meal);
 				// }
 			});
 		});
@@ -164,7 +165,6 @@
 
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
-		console.log('Changing checked state of', shoppingItem, 'to', newChecked);
 		const originIdsToUpdate = shoppingItem.items.map((si) => si.id);
 		await Promise.all(
 			originIdsToUpdate.map((id) => updatePlanItemChecked(activeSpace, id, newChecked))
@@ -172,7 +172,7 @@
 	}
 
 	let rawShoppingRecommendations = $state<ShoppingRecommendation[] | undefined>(undefined);
-	let recentRecommendations = $state<ShoppingRecommendation[]>([]);
+	let recentRecommendations = $state<Record<string, ShoppingRecommendation[]>>({});
 
 	async function refreshRecommendations() {
 		if (!activeSpace.id) return;
@@ -180,19 +180,22 @@
 		rawShoppingRecommendations = recommendations;
 	}
 
+	function onShuffle(aisleKey: string, currentRecommendations: ShoppingRecommendation[]) {
+		// Don't show the same recommendations again on shuffle
+		recentRecommendations[aisleKey] = [
+			...currentRecommendations,
+			...(recentRecommendations[aisleKey] || [])
+		].slice(0, 100);
+	}
+
 	// Keep recommendations that are not already in the shopping list or recently recommended
 	let shoppingRecommendations = $derived(
 		rawShoppingRecommendations?.filter(
 			(rec) =>
 				!shoppingList.some((item) => item.ingredient?.id === rec.ingredient_id) &&
-				!recentRecommendations.some((recent) => recent.ingredient_id === rec.ingredient_id)
+				!recentRecommendations[rec.aisle]?.some((r) => r.ingredient_id === rec.ingredient_id)
 		) || []
 	);
-
-	function onShuffle(currentRecommendations: ShoppingRecommendation[]) {
-		// Don't show the same recommendations again on shuffle
-		recentRecommendations = [...currentRecommendations, ...recentRecommendations].slice(0, 100);
-	}
 
 	onMount(refreshRecommendations);
 </script>
@@ -268,12 +271,11 @@
 				{/if}
 			</Button>
 
-			{#if hasCheckedItems}
+			<!-- {#if hasCheckedItems}
 				<Button
 					variant="default"
 					class="ml-auto"
 					onclick={async () => {
-						// TODO confirm with user if they want to clear the whole list, or just the checked items?
 						items.forEach((item) => {
 							if (item.checked_at) deletePlanItem(activeSpace, item.id);
 						});
@@ -284,9 +286,9 @@
 					}}
 				>
 					<Check class="size-4 mr-2" />
-					End shopping
+					Done shopping
 				</Button>
-			{/if}
+			{/if} -->
 		</div>
 
 		<Tabs.Content value="aisle" class="mt-8">
@@ -341,27 +343,37 @@
 										transition:fade={{ duration: 200 }}
 									>
 										{#if rawShoppingRecommendations}
-											<Button
-												variant="ghost"
-												size="icon"
-												class="size-7 text-muted-foreground group-hover:mr-2"
-												disabled={aisleRecommendations.length <= 4}
-												onclick={() => onShuffle(aisleRecommendations.slice(0, 4))}
-											>
-												{#if aisleRecommendations.length > 4}
-													{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
-														<Shuffle class="size-4" />
-													{:else}
-														<Plus class="size-4 group-hover:hidden" />
-														<Shuffle class="size-4 hidden group-hover:block" />
-													{/if}
-												{:else}
-													<Plus class="size-4" />
-												{/if}
-											</Button>
+											<Tooltip.Root delayDuration={600}>
+												<Tooltip.Trigger>
+													<Button
+														variant="ghost"
+														size="icon"
+														class={cn('size-7 text-muted-foreground group-hover:mr-2')}
+														onclick={() => onShuffle(aisleKey, aisleRecommendations.slice(0, 4))}
+													>
+														{#if aisleRecommendations.length > 4}
+															{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
+																<Shuffle class="size-4" />
+															{:else}
+																<Plus class="size-4 group-hover:hidden" />
+																<Shuffle class="size-4 hidden group-hover:block" />
+															{/if}
+														{:else}
+															<Plus class="size-4 group-hover:rotate-45 transition-transform" />
+														{/if}
+													</Button>
+												</Tooltip.Trigger>
+												<Tooltip.Content>
+													{aisleRecommendations.length > 4 ? 'Shuffle' : 'Dismiss'}
+												</Tooltip.Content>
+											</Tooltip.Root>
 										{/if}
 
-										{@render recommendations({ recs: aisleRecommendations, aisleKey })}
+										{#key recentRecommendations[aisleKey]}
+											<div in:fade={{ duration: 200 }}>
+												{@render recommendations({ recs: aisleRecommendations, aisleKey })}
+											</div>
+										{/key}
 									</div>
 								{/if}
 							</div>
@@ -390,9 +402,9 @@
 												<Button
 													variant="link"
 													class="shrink-0"
-													onclick={() => onShuffle(aisleRecommendations.slice(0, 10))}
+													onclick={() => onShuffle(aisleKey, aisleRecommendations.slice(0, 10))}
 												>
-													<Shuffle class="size-4" />
+													<Ellipsis class="size-4" />
 													More
 												</Button>
 											{/if}
