@@ -35,6 +35,8 @@
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
+	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
 	const activeSpace = getActiveSpaceState();
@@ -379,70 +381,25 @@
 	view: 'grid' | 'list',
 	optional: boolean
 )}
-	<div class="w-full grid gap-x-2 gap-y-4" class:grid-cols-3={view === 'grid'}>
+	<div class="w-full grid gap-2" class:grid-cols-3={view === 'grid'}>
 		{#each ingredients
 			.filter((i) => i.is_optional === optional)
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0)) || [] as ing (ing.ingredient_id)}
 			{#if view === 'grid'}
-				{@render ingredientsGrid(ing)}
+				<ShoppingItemCardGrid
+					ingredient={ing.ingredient}
+					description={ing.raw_input}
+					amount={ing.quantity}
+					unit={ing.unit === 'whole' ? '' : ing.unit || ''}
+				/>
 			{:else}
-				{@render ingredientsList(ing)}
+				<ShoppingItemCardList
+					ingredient={ing.ingredient}
+					description={ing.raw_input}
+					amount={ing.quantity}
+					unit={ing.unit === 'whole' ? '' : ing.unit || ''}
+				/>
 			{/if}
 		{/each}
-	</div>
-{/snippet}
-
-{#snippet ingredientsGrid(ing: RecipeIngredientDetailed)}
-	<div class="flex-1 text-center">
-		<IngredientImage
-			id={ing.ingredient_id}
-			name={ing.ingredient.translations[0]?.name_singular || 'Ingredient'}
-			class="mb-2 p-2"
-		/>
-		<span class="text-sm font-medium">
-			{ing.quantity + ' ' + (ing.unit == 'whole' ? '' : ing.unit)}
-		</span>
-		<span class="text-sm text-balance line-clamp-2 px-1">
-			{ing.quantity && ing.quantity > 1
-				? ing.ingredient.translations[0]?.name_plural ||
-					ing.ingredient.translations[0]?.name_singular
-				: ing.ingredient.translations[0]?.name_singular ||
-					ing.ingredient.translations[0]?.name_plural}
-		</span>
-	</div>
-{/snippet}
-
-{#snippet ingredientsList(ing: RecipeIngredientDetailed)}
-	<div class="grid">
-		<div class="flex items-center gap-2">
-			<IngredientImage id={ing.ingredient_id} name={ing.raw_input} class="w-12 h-12" />
-			<div class="flex-1 ml-4">
-				<span class="text-sm font-medium">{ing.raw_input}</span>
-				<span class="text-xs text-balance line-clamp-2">
-					{ing.quantity + ' ' + (ing.unit == 'whole' ? '' : ing.unit)}
-				</span>
-			</div>
-		</div>
-		<!-- {#each ing.ingredient.substitutes || [] as sub (sub.id)}
-			<div class="flex items-center gap-2 mt-2 ml-8 text-muted-foreground">
-				<IngredientImage
-					id={sub.substitute_ingredient.id}
-					name={sub.substitute_ingredient.translations[0]?.name_singular || 'Ingredient'}
-					class="w-10 h-10"
-				/>
-				<div class="flex-1 ml-4">
-					<span class="text-sm font-medium"
-						>{sub.substitute_ingredient.translations[0]?.name_singular || 'Ingredient'}</span
-					>
-					<span class="text-xs text-balance line-clamp-2">
-						{sub.original_to_substitute_ratio * (ing.quantity || 1)}
-
-						{ing.unit == 'whole' ? '' : ing.unit}
-
-						({sub.strength})
-					</span>
-				</div>
-			</div>
-		{/each} -->
 	</div>
 {/snippet}

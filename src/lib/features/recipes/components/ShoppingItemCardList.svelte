@@ -8,8 +8,8 @@
 
 	type Props = {
 		ingredient: RecipeIngredientWithTranslations | null;
-		amount?: number;
-		unit?: string;
+		amount?: number | null;
+		unit?: string | null;
 		[key: string]: any;
 		children?: any;
 		checkable?: boolean;
@@ -33,11 +33,11 @@
 			ingredient?.translations[0]
 	);
 
-	const name = $derived(
-		amount && amount > 1
-			? translation?.name_plural || translation?.name_singular
-			: translation?.name_singular || translation?.name_plural
-	);
+	const name = $derived.by(() => {
+		if (amount === null || amount === undefined || amount === 0 || (amount && amount > 1))
+			return translation?.name_plural || translation?.name_singular;
+		else return translation?.name_singular || translation?.name_plural;
+	});
 </script>
 
 <div
@@ -53,16 +53,18 @@
 
 	<div class="grid space-y-0.5 ml-4">
 		<span class={cn('text-md line-clamp-1', checked && 'line-through text-muted-foreground')}>
-			<span class="font-medium mr-1">
-				{#if checked}
-					<!-- Needed due to strikethrough issues with NumberFlow -->
-					{amount}
-				{:else}
-					<NumberFlow value={amount} />
-				{/if}
+			{#if amount}
+				<span class="font-medium mr-1">
+					{#if checked}
+						<!-- Needed due to strikethrough issues with NumberFlow -->
+						{amount}
+					{:else}
+						<NumberFlow value={amount} />
+					{/if}
 
-				{unit == 'whole' ? '' : unit}
-			</span>
+					{unit == 'whole' ? '' : unit}
+				</span>
+			{/if}
 
 			<span class="">
 				{name || 'Unknown'}

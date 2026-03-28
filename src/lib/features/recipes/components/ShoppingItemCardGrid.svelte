@@ -107,14 +107,15 @@
 >
 	{#if selectable}
 		<div
-			class={cn('absolute top-1 left-1 opacity-0 transition-opacity group-hover:opacity-100', selected && 'md:opacity-100')}
+			class={cn(
+				'absolute top-1 left-1 opacity-0 transition-opacity group-hover:opacity-100',
+				selected && 'md:opacity-100'
+			)}
 		>
 			<Button
 				size="icon"
 				variant="ghost"
-				class={cn(
-					'size-10 rounded-full text-muted hover:bg-primary/10 hover:text-primary'
-				)}
+				class={cn('size-10 rounded-full text-muted hover:bg-primary/10 hover:text-primary')}
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
