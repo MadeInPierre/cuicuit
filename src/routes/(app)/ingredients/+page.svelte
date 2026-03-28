@@ -9,7 +9,6 @@
 			const { data, error } = await supabase
 				.from('ingredients')
 				.select('*, translations:ingredient_translations(*, language:languages!inner(*))')
-				.eq('translations.language.lang', 'fr-FR')
 				.range(start, end);
 
 			if (error) {
@@ -81,8 +80,10 @@
 									);
 								}}
 							/>
-							<div style="margin-top: 0.5rem; text-align: center;">
-								{ingredient.translations[0].name_singular}
+							<div class="grid gap-1 mt-1 text-center text-sm">
+								{#each ingredient.translations as translation}
+									<span>{translation.name_singular}</span>
+								{/each}
 							</div>
 						</div>
 					{/each}

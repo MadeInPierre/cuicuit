@@ -8,6 +8,7 @@
 		hoveredMealIngredient,
 		selectedMealIngredient
 	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	type Props = {
 		// Ingredient
@@ -49,10 +50,7 @@
 		...others
 	}: Props = $props();
 
-	const translation = $derived(
-		ingredient?.translations.find((t) => t.language?.lang === 'fr-FR') ||
-			ingredient?.translations[0]
-	);
+	const translation = $derived(ingredient?.translations?.[0]);
 
 	const name = $derived.by(() => {
 		if (amount === null || amount === undefined || amount === 0 || (amount && amount > 1))
@@ -60,8 +58,12 @@
 		else return translation?.name_singular || translation?.name_plural;
 	});
 
-	const hovered = $derived(hoveredMealIngredient.value && hoveredMealIngredient.value.id === ingredient?.id);
-	const selected = $derived(selectedMealIngredient.value && selectedMealIngredient.value.id === ingredient?.id);
+	const hovered = $derived(
+		hoveredMealIngredient.value && hoveredMealIngredient.value.id === ingredient?.id
+	);
+	const selected = $derived(
+		selectedMealIngredient.value && selectedMealIngredient.value.id === ingredient?.id
+	);
 </script>
 
 <Button

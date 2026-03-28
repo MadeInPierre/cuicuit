@@ -496,7 +496,7 @@ export type Database = {
           icon: string
           id: string
           initial_theme: string
-          locale: string
+          language_id: number
           name: string
           updated_at: string
         }
@@ -506,7 +506,7 @@ export type Database = {
           icon: string
           id?: string
           initial_theme: string
-          locale: string
+          language_id?: number
           name: string
           updated_at?: string
         }
@@ -516,11 +516,19 @@ export type Database = {
           icon?: string
           id?: string
           initial_theme?: string
-          locale?: string
+          language_id?: number
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "spaces_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {

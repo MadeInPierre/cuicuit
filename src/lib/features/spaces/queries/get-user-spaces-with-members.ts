@@ -7,7 +7,8 @@ export async function getUserSpacesWithMembers(userId: string) {
 			`
             ...space_id(
                 *, 
-                members:space_members(*)
+                members:space_members(*),
+				language:languages(*)
             )`
 		)
 		.eq('user_id', userId);
