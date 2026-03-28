@@ -30,7 +30,7 @@
 {:else}
 	<div
 		class={cn(
-			'w-full flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-6xl',
+			'w-full bg-white rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-6xl',
 			className
 		)}
 	>
