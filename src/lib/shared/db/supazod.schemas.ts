@@ -633,7 +633,7 @@ export const publicSpacesRowSchema = z.object({
   icon: z.string(),
   id: z.string(),
   initial_theme: z.string(),
-  locale: z.string(),
+  language_id: z.number(),
   name: z.string(),
   updated_at: z.string(),
 });
@@ -644,7 +644,7 @@ export const publicSpacesInsertSchema = z.object({
   icon: z.string(),
   id: z.string().optional(),
   initial_theme: z.string(),
-  locale: z.string(),
+  language_id: z.number().optional(),
   name: z.string(),
   updated_at: z.string().optional(),
 });
@@ -655,10 +655,20 @@ export const publicSpacesUpdateSchema = z.object({
   icon: z.string().optional(),
   id: z.string().optional(),
   initial_theme: z.string().optional(),
-  locale: z.string().optional(),
+  language_id: z.number().optional(),
   name: z.string().optional(),
   updated_at: z.string().optional(),
 });
+
+export const publicSpacesRelationshipsSchema = z.tuple([
+  z.object({
+    foreignKeyName: z.literal("spaces_language_id_fkey"),
+    columns: z.tuple([z.literal("language_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("languages"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+]);
 
 export const publicUserPreferencesRowSchema = z.object({
   created_at: z.string(),
@@ -898,6 +908,9 @@ export type PublicSpacePlanShoppingListsRelationships = z.infer<
 export type PublicSpacesRow = z.infer<typeof publicSpacesRowSchema>;
 export type PublicSpacesInsert = z.infer<typeof publicSpacesInsertSchema>;
 export type PublicSpacesUpdate = z.infer<typeof publicSpacesUpdateSchema>;
+export type PublicSpacesRelationships = z.infer<
+  typeof publicSpacesRelationshipsSchema
+>;
 export type PublicUserPreferencesRow = z.infer<
   typeof publicUserPreferencesRowSchema
 >;

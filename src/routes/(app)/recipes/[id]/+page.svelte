@@ -39,7 +39,7 @@
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
-	const activeSpace = getActiveSpaceState();
+	const space = getActiveSpaceState();
 
 	let ingredientsView = createPersistentState<'grid' | 'list'>(
 		'view-recipe-ingredients-layout',
@@ -47,11 +47,18 @@
 	);
 
 	async function getRecipe(id: string) {
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id);
+		if (!space.language) {
+			console.error('No active space found');
+			return null;
+		}
+
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id, space.language.id);
+
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);
 			return null;
 		}
+
 		console.log('Fetched recipe from db:', recipeData);
 		return recipeData;
 	}
@@ -283,7 +290,7 @@
 									type="submit"
 									class="flex gap-2 ml-auto"
 									onclick={() =>
-										recipe && addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings || 1)}
+										recipe && addRecipeToActivePlan(space, recipe.id, recipe.servings || 1)}
 								>
 									<CalendarPlus class="size-4" />
 									Add meal

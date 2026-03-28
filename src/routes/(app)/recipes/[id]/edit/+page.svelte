@@ -90,10 +90,10 @@
 
 	onMount(async () => {
 		// If it's a new recipe, we don't need to fetch the recipe data
-		if (isNewRecipe) return;
+		if (isNewRecipe || !activeSpace.language) return;
 
 		// Fetch the recipe from Supabase
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId);
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId, activeSpace.language.id);
 
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);

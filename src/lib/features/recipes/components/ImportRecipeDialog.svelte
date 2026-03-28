@@ -9,6 +9,7 @@
 	import { createDraftRecipe } from '../actions/create-draft-recipe';
 	import { toast } from 'svelte-sonner';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
@@ -23,6 +24,8 @@
 	}: Props = $props();
 
 	let activeTab: 'url' | 'image' | 'text' = $state('url');
+
+	const space = getActiveSpaceState();
 </script>
 
 {#snippet tabList()}
@@ -59,7 +62,8 @@
 		<DropdownMenu.Content class="w-[200px]" align={dropdownAlign}>
 			<DropdownMenu.Item
 				onclick={async () => {
-					const recipeId = await createDraftRecipe('user-manual', 'fr-FR');
+					if (!space.language) return;
+					const recipeId = await createDraftRecipe('user-manual', space.language.id);
 					if (!recipeId) {
 						toast.error('Failed to create a new recipe draft.');
 						return;

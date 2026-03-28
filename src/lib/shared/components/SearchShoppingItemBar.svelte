@@ -5,6 +5,7 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import { type LanguageKey } from '$lib/features/user-settings/consts';
 
 	type Props = {
 		class?: string;
@@ -15,11 +16,11 @@
 	let searchLoading = $state(false);
 	let searchRef: HTMLElement | null = $state(null);
 
-	const spaceState = getActiveSpaceState();
+	const space = getActiveSpaceState();
 </script>
 
 <IngredientSearch
-	language="fr-FR"
+	language={(space.language?.lang as LanguageKey) || 'fr-FR'}
 	onSelect={(ingredient, index) => {
 		if (!ingredient) return;
 		const quantity = ingredient.parsed.quantity?.amount ?? null;
@@ -28,7 +29,7 @@
 		const ingredientId = index !== null ? (ingredient.matches[index]?.id ?? null) : null;
 
 		// Add the item to the shopping list
-		addShoppingItem(spaceState, ingredientId, name, quantity, unit);
+		addShoppingItem(space, ingredientId, name, quantity, unit);
 
 		// Reset the sidebar view to show all meals and items
 		selectedMealIngredient.value = index !== null ? ingredient.matches[index] : null;

@@ -1,6 +1,6 @@
 import { supabase } from '$lib/shared/db/supabase-client';
 
-export function getPlanMeals(spaceId: string, lang: string = 'fr-FR') {
+export function getPlanMeals(spaceId: string, languageId: number) {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!spaceId) throw new Error('Space ID not provided');
 
@@ -19,14 +19,14 @@ export function getPlanMeals(spaceId: string, lang: string = 'fr-FR') {
 					*,
 					translations:ingredient_translations(
 						*,
-						language:languages(*)
+						language:languages(lang)
 					)
 				)
 			)`
 			)
 			.eq('space_id', spaceId)
 			// Only get translations in the user language
-			.eq('shopping_ingredients.ingredient.translations.language.lang', lang)
+			.eq('shopping_ingredients.ingredient.translations.language_id', languageId)
 	);
 }
 

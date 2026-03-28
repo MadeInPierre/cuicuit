@@ -80,8 +80,11 @@
 	let recentRecommendations = $state<Record<string, ShoppingRecommendation[]>>({});
 
 	async function refreshRecommendations() {
-		if (!activeSpace.id) return;
-		const recommendations = await getShoppingRecommendations(activeSpace.id);
+		if (!activeSpace.id || !activeSpace.language) return;
+		const recommendations = await getShoppingRecommendations(
+			activeSpace.id,
+			activeSpace.language.lang
+		);
 		rawShoppingRecommendations = recommendations;
 	}
 
@@ -231,7 +234,7 @@
 							(rec) => rec.aisle === aisleKey
 						)}
 
-						<section transition:slide={{ duration: 300 }} >
+						<section transition:slide={{ duration: 300 }}>
 							<div class="mb-4 flex items-center justify-between">
 								<SectionHeader header={aisleHeader} size="sm" class="" />
 

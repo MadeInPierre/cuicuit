@@ -13,10 +13,13 @@ CREATE TABLE IF NOT EXISTS "public"."spaces" (
     "updated_at" timestamp with time zone DEFAULT "now" () NOT NULL,
     "name" "text" NOT NULL,
     "icon" "text" NOT NULL,
-    "locale" "text" NOT NULL,
+    "language_id" integer NOT NULL DEFAULT 1,
     "initial_theme" "text" NOT NULL,
     "author_id" "uuid" NOT NULL
 );
+
+ALTER TABLE ONLY "public"."spaces"
+ADD CONSTRAINT "spaces_language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "public"."languages" ("id");
 
 -- 2. Ownership
 ALTER TABLE "public"."spaces" OWNER TO "postgres";

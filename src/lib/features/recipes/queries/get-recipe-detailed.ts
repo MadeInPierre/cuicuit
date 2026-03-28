@@ -6,7 +6,7 @@ import { supabase } from '$lib/shared/db/supabase-client';
  *
  * @returns A promise that resolves to the recipe data with detailed information.
  */
-export function getRecipesDetailed(lang: string = 'fr-FR') {
+export function getRecipesDetailed(languageId: number) {
 	return (
 		// substitutes:ingredient_substitutions!ingredient_substitutions_original_ingredient_id_fkey(
 		// 	*,
@@ -26,16 +26,16 @@ export function getRecipesDetailed(lang: string = 'fr-FR') {
 					*,
 					ingredient:ingredients(
 						*,
-						translations:ingredient_translations(*, language:languages!inner(*))
+						translations:ingredient_translations(*, language:languages!inner(lang))
 					)
 				)`
 			)
 			// Only get translations in the user language
-			.eq('ingredients.ingredient.translations.language.lang', lang)
-			// .eq('ingredients.ingredient.substitutes.original_ingredient.translations.language.lang', lang)
+			.eq('ingredients.ingredient.translations.language_id', languageId)
+			// .eq('ingredients.ingredient.substitutes.original_ingredient.translations.language_id', languageId)
 			// .eq(
-			// 	'ingredients.ingredient.substitutes.substitute_ingredient.translations.language.lang',
-			// 	lang
+			// 	'ingredients.ingredient.substitutes.substitute_ingredient.translations.language_id',
+			// 	languageId
 			// )
 	);
 }
@@ -49,12 +49,12 @@ export function getRecipesDetailed(lang: string = 'fr-FR') {
  * @returns A promise that resolves to the detailed recipe data.
  * @throws Will throw an error if the recipe ID is not provided or if the query fails.
  */
-export async function getRecipeDetailed(recipeId: string, lang: string = 'fr-FR') {
+export async function getRecipeDetailed(recipeId: string, languageId: number) {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!recipeId) throw new Error('Recipe ID not provided');
 
 	// Get the recipe
-	const { data, error } = await getRecipesDetailed(lang).eq('id', recipeId).single();
+	const { data, error } = await getRecipesDetailed(languageId).eq('id', recipeId).single();
 	if (error || !data) {
 		console.error('Error fetching recipes:', error);
 		return { data: null, error };

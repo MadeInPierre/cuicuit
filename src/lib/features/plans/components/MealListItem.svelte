@@ -26,7 +26,7 @@
 	import { openMealCardId } from '../state/open-meal-card.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 
-	const activeSpace = getActiveSpaceState();
+	const space = getActiveSpaceState();
 
 	interface Props {
 		meal?: MealWithRecipeAndIngredients | null; // null for loading state
@@ -173,9 +173,7 @@
 							}
 							return bQty - aQty;
 						}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
-						{@const t = shopping_ingredient.ingredient?.translations.find(
-							(t) => t.language?.lang === 'fr-FR'
-						)}
+						{@const t = shopping_ingredient.ingredient?.translations?.[0]}
 
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
@@ -281,9 +279,9 @@
 								value={meal.servings}
 								size="xs"
 								variant="link"
-								onIncrement={() => updateMealServings(activeSpace, meal.id, meal.servings + 1)}
-								onDecrement={() => updateMealServings(activeSpace, meal.id, meal.servings - 1)}
-								onDelete={() => deleteMeal(activeSpace, meal.id)}
+								onIncrement={() => updateMealServings(space, meal.id, meal.servings + 1)}
+								onDecrement={() => updateMealServings(space, meal.id, meal.servings - 1)}
+								onDelete={() => deleteMeal(space, meal.id)}
 							/>
 						</div>
 
@@ -292,7 +290,7 @@
 								variant="link"
 								size="icon"
 								class="size-5"
-								onclick={() => deleteMeal(activeSpace, meal.id)}
+								onclick={() => deleteMeal(space, meal.id)}
 							>
 								<!-- <Ellipsis class="max-w-3.5 max-h-3.5" /> -->
 								<!-- <Pencil class="max-w-3.5 max-h-3.5" /> -->

@@ -5,6 +5,7 @@
 	import { Circle, CircleCheckBig } from 'lucide-svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	type Props = {
 		ingredient: RecipeIngredientWithTranslations | null;
@@ -28,10 +29,9 @@
 		...others
 	}: Props = $props();
 
-	const translation = $derived(
-		ingredient?.translations.find((t) => t.language?.lang === 'fr-FR') ||
-			ingredient?.translations[0]
-	);
+	const space = getActiveSpaceState();
+
+	const translation = $derived(ingredient?.translations[0]);
 
 	const name = $derived.by(() => {
 		if (amount === null || amount === undefined || amount === 0 || (amount && amount > 1))

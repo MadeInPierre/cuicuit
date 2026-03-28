@@ -6,14 +6,14 @@ const PER_AISLE_LIMIT = Math.floor(
 	MAX_RECOMMENDATIONS / Object.keys(supermarketAisleSectionHeaders).length
 );
 
-export async function getShoppingRecommendations(spaceId: string) {
+export async function getShoppingRecommendations(spaceId: string, lang: string) {
 	if (!spaceId) return [];
 
 	const { data, error } = await supabase.rpc('get_shopping_recommendations', {
 		space_id: spaceId,
 		per_aisle_limit: PER_AISLE_LIMIT,
 		limit: MAX_RECOMMENDATIONS,
-		lang: 'fr-FR',
+		lang: lang,
 		seed: Math.random()
 		// aisle: null // No aisle filter for now, but we can add it later if needed
 	});
