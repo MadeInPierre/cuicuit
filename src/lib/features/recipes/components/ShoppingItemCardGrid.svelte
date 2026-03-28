@@ -3,7 +3,7 @@
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import { cn } from '$lib/utils';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
-	import { CircleCheckBig, Circle } from 'lucide-svelte';
+	import { CircleCheckBig, Circle, PanelLeft, PanelLeftClose } from 'lucide-svelte';
 	import {
 		hoveredMealIngredient,
 		selectedMealIngredient
@@ -72,7 +72,7 @@
 		checked &&
 			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
 
-		!checked && hovered && !selected && selectable && 'ring-2 ring-primary/20 dark:ring-primary/30',
+		// !checked && hovered && !selected && selectable && 'ring-2 ring-primary/20 dark:ring-primary/30',
 		!checked &&
 			hovered &&
 			!selected &&
@@ -86,12 +86,13 @@
 		className
 	)}
 	onclick={(e) => {
-		// On touch devices, toggle checked state on click instead of hover
-		if (checkable && window.matchMedia('(hover: none)').matches) {
+		// Toggle checked state
+		if (checkable) {
 			e.preventDefault();
 			checked = !checked;
 			onCheckedChange(checked);
 		}
+
 		onclick?.();
 	}}
 	oncontextmenu={(e) => {
@@ -104,33 +105,28 @@
 	}}
 	{...others}
 >
-	{#if checkable}
+	{#if selectable}
 		<div
-			class={cn(
-				'absolute top-0 left-1 opacity-0 group-hover:opacity-100',
-				checked && 'md:opacity-100'
-			)}
+			class={cn('absolute top-1 left-1 opacity-0 transition-opacity group-hover:opacity-100', selected && 'md:opacity-100')}
 		>
 			<Button
 				size="icon"
 				variant="ghost"
 				class={cn(
-					'ml-auto mt-1 size-10 rounded-full text-muted-foreground',
-					selectedMealIngredient.value?.id === ingredient?.id &&
-						'text-primary/80 hover:bg-primary/15'
+					'size-10 rounded-full text-muted hover:bg-primary/10 hover:text-primary'
 				)}
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 
-					checked = !checked;
-					onCheckedChange(checked);
+					selectedMealIngredient.value =
+						selectedMealIngredient.value?.id === ingredient?.id ? null : ingredient;
 				}}
 			>
-				{#if checked}
-					<CircleCheckBig class="size-5" />
+				{#if selected}
+					<PanelLeftClose class="size-5 text-primary" />
 				{:else}
-					<Circle class="size-5" />
+					<PanelLeft class="size-5" />
 				{/if}
 			</Button>
 		</div>
