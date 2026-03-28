@@ -459,15 +459,6 @@
 													selectable
 													checked={item.items.some((si) => si.checked_at)}
 													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-													onclick={async () => {
-														if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
-															return;
-														if (!item.ingredient) return; // No hover state for manual items
-														selectedMealIngredient.value =
-															selectedMealIngredient.value?.id === item.ingredient.id
-																? null
-																: item.ingredient;
-													}}
 												>
 													{#snippet topRight()}
 														{#if item.meals.length > 0}
