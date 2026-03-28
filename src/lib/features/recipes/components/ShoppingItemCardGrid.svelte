@@ -60,8 +60,8 @@
 		else return translation?.name_singular || translation?.name_plural;
 	});
 
-	const hovered = $derived(hoveredMealIngredient.value?.id === ingredient?.id);
-	const selected = $derived(selectedMealIngredient.value?.id === ingredient?.id);
+	const hovered = $derived(hoveredMealIngredient.value && hoveredMealIngredient.value.id === ingredient?.id);
+	const selected = $derived(selectedMealIngredient.value && selectedMealIngredient.value.id === ingredient?.id);
 </script>
 
 <Button
@@ -105,7 +105,7 @@
 	}}
 	{...others}
 >
-	{#if selectable}
+	{#if selectable && ingredient}
 		<div
 			class={cn(
 				'absolute top-1 left-1 opacity-0 transition-opacity group-hover:opacity-100',
