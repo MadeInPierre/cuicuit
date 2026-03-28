@@ -18,8 +18,8 @@
 	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
 	import {
-		hoveredMealIngredientId,
-		selectedMealIngredientId
+		hoveredMealIngredient,
+		selectedMealIngredient
 	} from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
@@ -42,19 +42,21 @@
 		showExpandedButtons = false
 	}: Props = $props();
 
-	let activeId = $derived(selectedMealIngredientId.value || hoveredMealIngredientId.value);
+	let activeId = $derived(
+		selectedMealIngredient.value?.id || hoveredMealIngredient.value?.id || null
+	);
 
 	let hovered = $derived(
-		activeId !== null &&
+		hoveredMealIngredient.value &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === activeId && ing.deleted_at === null
+				(ing) => ing.ingredient_id === hoveredMealIngredient.value?.id && ing.deleted_at === null
 			)
 	);
 
 	let selected = $derived(
-		selectedMealIngredientId.value !== null &&
+		selectedMealIngredient.value?.id !== null &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === selectedMealIngredientId.value && ing.deleted_at === null
+				(ing) => ing.ingredient_id === selectedMealIngredient.value?.id && ing.deleted_at === null
 			)
 	);
 
@@ -66,7 +68,9 @@
 		<button
 			class={cn(
 				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group transition-all',
-				(hovered || selected) && 'ring-2 ring-primary/80 dark:ring-primary/80',
+
+				hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60',
+
 				className
 			)}
 			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
@@ -144,21 +148,31 @@
 						<p class="text-xs text-muted-foreground">No ingredients found.</p>
 					{/if}
 
-					{#each [...meal.shopping_ingredients].sort((a, b) => {
-						// Sort by checked state first, then by quantity (considering meal servings), then by name
-						if (!a.checked_at && b.checked_at) return 1;
-						if (a.checked_at && !b.checked_at) return -1;
+					{#each [...meal.shopping_ingredients]
+						.filter((ing) => {
+							// If hovering over a meal ingredient, only show that ingredient
+							// if (selectedMealIngredientId.value) {
+							// 	return ing.ingredient_id === selectedMealIngredientId.value && ing.deleted_at === null;
+							// }
 
-						const aQuantity = a.quantity ?? 0;
-						const bQuantity = b.quantity ?? 0;
-						const aQty = (aQuantity * meal.servings) / meal.recipe.servings;
-						const bQty = (bQuantity * meal.servings) / meal.recipe.servings;
+							// Otherwise, show all ingredients
+							return true;
+						})
+						.sort((a, b) => {
+							// Sort by checked state first, then by quantity (considering meal servings), then by name
+							if (!a.checked_at && b.checked_at) return 1;
+							if (a.checked_at && !b.checked_at) return -1;
 
-						if (aQty === bQty) {
-							return (a.name || a.ingredient?.translations[0]?.name_singular || '').localeCompare(b.name || b.ingredient?.translations[0]?.name_singular || '');
-						}
-						return bQty - aQty;
-					}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
+							const aQuantity = a.quantity ?? 0;
+							const bQuantity = b.quantity ?? 0;
+							const aQty = (aQuantity * meal.servings) / meal.recipe.servings;
+							const bQty = (bQuantity * meal.servings) / meal.recipe.servings;
+
+							if (aQty === bQty) {
+								return (a.name || a.ingredient?.translations[0]?.name_singular || '').localeCompare(b.name || b.ingredient?.translations[0]?.name_singular || '');
+							}
+							return bQty - aQty;
+						}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
 						{@const t = shopping_ingredient.ingredient?.translations.find(
 							(t) => t.language?.lang === 'fr-FR'
 						)}
@@ -171,10 +185,10 @@
 									'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary font-medium'
 							)}
 							onmouseenter={() => {
-								hoveredMealIngredientId.value = shopping_ingredient.ingredient_id;
+								hoveredMealIngredient.value = shopping_ingredient.ingredient;
 							}}
 							onmouseleave={() => {
-								hoveredMealIngredientId.value = null;
+								hoveredMealIngredient.value = null;
 							}}
 						>
 							<!-- <div

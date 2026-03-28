@@ -31,6 +31,15 @@
 	});
 
 	const { children } = $props();
+
+	// Disable right click context menu globally to prevent issues with the app's interactions
+	// Used to prevent mobile & tablet users from triggering the context menu when long pressing,
+	// which is used instead for drag and drop, long press to show item details in sidebar, etc.
+	window.oncontextmenu = function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+		return false;
+	};
 </script>
 
 <ModeWatcher />

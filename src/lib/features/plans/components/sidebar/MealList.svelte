@@ -10,7 +10,11 @@
 
 	const activeSpace = getActiveSpaceState();
 
-	const meals = $derived(activeSpace.activePlanMeals || []);
+	type Props = {
+		meals: MealWithRecipeAndIngredients[];
+	};
+
+	let { meals }: Props = $props()
 
 	const flipDurationMs = 220;
 

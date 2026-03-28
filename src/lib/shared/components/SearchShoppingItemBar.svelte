@@ -4,6 +4,7 @@
 	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/SearchShoppingItem.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
+	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 
 	type Props = {
 		class?: string;
@@ -26,7 +27,13 @@
 		const name = ingredient.parsed.ingredientText ?? '';
 		const ingredientId = index !== null ? (ingredient.matches[index]?.id ?? null) : null;
 
+		// Add the item to the shopping list
 		addShoppingItem(spaceState, ingredientId, name, quantity, unit);
+
+		// Reset the sidebar view to show all meals and items
+		selectedMealIngredient.value = index !== null ? ingredient.matches[index] : null;
+
+		// Clear the search input and refocus
 		searchRef?.focus();
 		searchInput = '';
 	}}

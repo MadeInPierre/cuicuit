@@ -11,8 +11,8 @@
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import {
-		hoveredMealIngredientId,
-		selectedMealIngredientId
+		hoveredMealIngredient,
+		selectedMealIngredient
 	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import {
 		Calendar,
@@ -33,7 +33,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
-	import { deletePlanItem, updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
+	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
 	import type { ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
 	import { flip } from 'svelte/animate';
 	import ShoppingItemBadge from '$lib/features/recipes/components/ShoppingItemBadge.svelte';
@@ -441,21 +441,12 @@
 													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
 														return;
 													if (!item.ingredient) return; // No hover state for manual items
-													hoveredMealIngredientId.value = item.ingredient.id;
+													hoveredMealIngredient.value = item.ingredient;
 												}}
 												onmouseleave={() => {
 													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
 														return;
-													hoveredMealIngredientId.value = null;
-												}}
-												onclick={async () => {
-													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
-														return;
-													if (!item.ingredient) return; // No hover state for manual items
-													selectedMealIngredientId.value =
-														selectedMealIngredientId.value === item.ingredient.id
-															? null
-															: item.ingredient.id;
+													hoveredMealIngredient.value = null;
 												}}
 											>
 												<ShoppingItemCardGrid
@@ -463,11 +454,20 @@
 													description={item.name}
 													amount={item.mergedQuantity?.amount}
 													unit={item.mergedQuantity?.unit}
-													class=""
 													size="md"
 													checkable
+													selectable
 													checked={item.items.some((si) => si.checked_at)}
 													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
+													onclick={async () => {
+														if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+															return;
+														if (!item.ingredient) return; // No hover state for manual items
+														selectedMealIngredient.value =
+															selectedMealIngredient.value?.id === item.ingredient.id
+																? null
+																: item.ingredient;
+													}}
 												>
 													{#snippet topRight()}
 														{#if item.meals.length > 0}
