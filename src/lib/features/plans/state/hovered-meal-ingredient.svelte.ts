@@ -1,29 +1,31 @@
+import type { RecipeIngredientWithTranslations } from "$lib/features/recipes/queries/get-recipe-detailed";
+
 function createMealIngredientHoverState() {
-	let hoveredMealIngredientId = $state<string | null>(null);
+	let hoveredMealIngredient = $state<RecipeIngredientWithTranslations | null>(null);
 
 	return {
 		get value() {
-			return hoveredMealIngredientId;
+			return hoveredMealIngredient;
 		},
-		set value(id: string | null) {
-			hoveredMealIngredientId = id;
+		set value(ingredient: RecipeIngredientWithTranslations | null) {
+			hoveredMealIngredient = ingredient;
 		}
 	};
 }
 
-export const hoveredMealIngredientId = createMealIngredientHoverState();
+export const hoveredMealIngredient = createMealIngredientHoverState();
 
 function createMealIngredientSelectState() {
-	let selectedMealIngredientId = $state<string | null>(null);
+	let selectedMealIngredient = $state<RecipeIngredientWithTranslations | null>(null);
 
 	return {
 		get value() {
-			return selectedMealIngredientId;
+			return selectedMealIngredient;
 		},
-		set value(id: string | null) {
-			selectedMealIngredientId = id;
+		set value(ing: RecipeIngredientWithTranslations | null) {
+			selectedMealIngredient = ing;
 		}
 	};
 }
 
-export const selectedMealIngredientId = createMealIngredientSelectState();
+export const selectedMealIngredient = createMealIngredientSelectState();

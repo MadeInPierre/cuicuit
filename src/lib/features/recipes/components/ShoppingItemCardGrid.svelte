@@ -5,8 +5,8 @@
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { CircleCheckBig, Circle } from 'lucide-svelte';
 	import {
-		hoveredMealIngredientId,
-		selectedMealIngredientId
+		hoveredMealIngredient,
+		selectedMealIngredient
 	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 
 	type Props = {
@@ -23,6 +23,8 @@
 		topRight?: any;
 		// Interactions
 		checkable?: boolean;
+		selectable?: boolean;
+		// State
 		checked?: boolean;
 		onCheckedChange?: (checked: boolean) => void;
 		onclick?: () => void;
@@ -40,6 +42,7 @@
 		children,
 		topRight,
 		checkable = false,
+		selectable = false,
 		checked = $bindable(false),
 		onCheckedChange = () => {},
 		onclick = () => {},
@@ -56,28 +59,48 @@
 			return translation?.name_plural || translation?.name_singular;
 		else return translation?.name_singular || translation?.name_plural;
 	});
+
+	const hovered = $derived(hoveredMealIngredient.value?.id === ingredient?.id);
+	const selected = $derived(selectedMealIngredient.value?.id === ingredient?.id);
 </script>
 
 <Button
 	variant="outline"
 	class={cn(
 		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-colors duration-0',
+
 		checked &&
 			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
-		selectedMealIngredientId.value === ingredient?.id &&
-			'ring-2 ring-primary/80 dark:ring-primary/80',
+
+		!checked && hovered && !selected && selectable && 'ring-2 ring-primary/20 dark:ring-primary/30',
+		!checked &&
+			hovered &&
+			!selected &&
+			!selectable &&
+			'ring-2 ring-primary/60 dark:ring-primary/60',
+
+		selectable && selected && 'ring-2 ring-primary/80 dark:ring-primary/80',
+
 		size === 'sm' && 'h-26 p-1 text-xs duration-75',
 		size === 'lg' && 'h-32 p-3 text-md duration-75',
 		className
 	)}
 	onclick={(e) => {
 		// On touch devices, toggle checked state on click instead of hover
-		if (checkable && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+		if (checkable && window.matchMedia('(hover: none)').matches) {
 			e.preventDefault();
 			checked = !checked;
 			onCheckedChange(checked);
 		}
 		onclick?.();
+	}}
+	oncontextmenu={(e) => {
+		// Right click or long press to select the ingredient for detailed view in sidebar
+		if (selectable) {
+			e.preventDefault();
+			selectedMealIngredient.value =
+				selectedMealIngredient.value?.id === ingredient?.id ? null : ingredient;
+		}
 	}}
 	{...others}
 >
@@ -93,9 +116,13 @@
 				variant="ghost"
 				class={cn(
 					'ml-auto mt-1 size-10 rounded-full text-muted-foreground',
-					selectedMealIngredientId.value === ingredient?.id && 'text-primary/80 hover:bg-primary/15'
+					selectedMealIngredient.value?.id === ingredient?.id &&
+						'text-primary/80 hover:bg-primary/15'
 				)}
-				onclick={() => {
+				onclick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
 					checked = !checked;
 					onCheckedChange(checked);
 				}}
@@ -144,7 +171,7 @@
 		<span
 			class={cn(
 				'line-clamp-2 text-balance pb-0.5',
-				checked && 'line-through text-muted-foreground'
+				checked && !hovered && 'line-through text-muted-foreground'
 				// !amount && name && name.length < 20 && 'pb-1.5'
 			)}
 		>
