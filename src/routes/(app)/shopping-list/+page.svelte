@@ -10,20 +10,19 @@
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
+	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import {
-		hoveredMealIngredient,
-		selectedMealIngredient
-	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import {
+		BetweenHorizonalEnd,
 		Calendar,
-		Check,
 		ChefHat,
 		Ellipsis,
 		Grid3x3,
 		House,
 		Lightbulb,
 		List,
+		PanelBottom,
 		Plus,
+		ShoppingBasket,
 		Shuffle,
 		User,
 		Users
@@ -46,125 +45,28 @@
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
 	import { fade, slide } from 'svelte/transition';
-
-	type CombinedShoppingListItem = {
-		name: string;
-		ingredient: RecipeIngredientWithTranslations | null; // null for manual items
-		items: ShoppingListItem[];
-		meals: MealWithRecipeAndIngredients[];
-		mergedQuantity: {
-			amount: number;
-			unit: string;
-		};
-	};
+	import DoneShoppingButton from './DoneShoppingButton.svelte';
+	import { type CombinedShoppingListItem, generateShoppingList } from './generate-shopping-list';
+	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
+	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
+	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
+	import SeparatorZigZag from './SeparatorZigZag.svelte';
 
 	const activeSpace = getActiveSpaceState();
 	const meals = $derived(activeSpace.activePlanMeals || []);
 	const items = $derived(activeSpace.activePlanItems || []);
 
 	const shoppingList: CombinedShoppingListItem[] = $derived(generateShoppingList(meals, items));
-	const hasCheckedItems = $derived(items.some((item) => item.checked_at));
+
+	let checkedItemsLayout = createPersistentState<'aisle' | 'bottom'>(
+		'view-shopping-list-checked-items-layout',
+		'aisle'
+	);
 
 	let itemsLayout = createPersistentState<'grid' | 'list'>(
 		'view-shopping-list-items-layout',
 		'list'
 	);
-
-	/**
-	 * Combines ingredients from meals and user-added items into a single list with unique ingredients,
-	 * summing their quantities and keeping track of their origins.
-	 * (e.g., "12 apples coming from 3 for Meal 1, 5 for Meal 2, and 4 by Pierre").
-	 */
-	function generateShoppingList(
-		meals: MealWithRecipeAndIngredients[],
-		items: ShoppingIngredient[]
-	): CombinedShoppingListItem[] {
-		const ingredientMap: Record<string, CombinedShoppingListItem> = {};
-
-		// Merge all shopping items by ingredient id
-		items.forEach((shoppingItem) => {
-			// Use ingredient_id for items linked to an ingredient, otherwise fallback to item id for manual/unknown items
-			const key = shoppingItem.ingredient_id || shoppingItem.name?.toLowerCase() || shoppingItem.id;
-			if (!key) return;
-
-			// If this ingredient is not in the map yet, create an entry for it
-			if (!ingredientMap[key]) {
-				ingredientMap[key] = {
-					name: shoppingItem.name || 'Unknown',
-					ingredient: shoppingItem.ingredient || null,
-					items: [],
-					meals: [],
-					mergedQuantity: {
-						amount: 0,
-						unit: shoppingItem.unit || ''
-					}
-				};
-			}
-
-			// Push this item
-			ingredientMap[key].items.push(shoppingItem);
-
-			// TODO Merge quantities
-			if (shoppingItem.quantity) {
-				ingredientMap[key].mergedQuantity.amount += shoppingItem.quantity;
-				ingredientMap[key].mergedQuantity.unit =
-					shoppingItem.unit || ingredientMap[key].mergedQuantity.unit;
-			}
-		});
-
-		// Process meals first to populate the ingredient map with recipe ingredients and their origins
-		meals.forEach((meal) => {
-			meal.shopping_ingredients.forEach((shoppingIngredient) => {
-				const key =
-					shoppingIngredient.ingredient_id ||
-					shoppingIngredient.name?.toLowerCase() ||
-					shoppingIngredient.id;
-				if (!key) return;
-
-				// Ignore deleted items
-				if (shoppingIngredient.deleted_at) return;
-
-				if (!ingredientMap[key]) {
-					ingredientMap[key] = {
-						name: shoppingIngredient.name || 'Unknown',
-						ingredient: shoppingIngredient.ingredient || null,
-						items: [],
-						meals: [],
-						mergedQuantity: {
-							amount: 0,
-							unit: shoppingIngredient.unit || ''
-						}
-					};
-				}
-
-				// Push this meal as an origin and the shopping item
-				// if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
-				ingredientMap[key].meals.push(meal);
-				// }
-			});
-		});
-
-		return Object.values(ingredientMap).sort((a, b) => {
-			const aChecked = a.items.some((si) => si.checked_at);
-			const bChecked = b.items.some((si) => si.checked_at);
-
-			// Keep unchecked items first
-			if (aChecked !== bChecked) {
-				return Number(aChecked) - Number(bChecked);
-			}
-
-			const aSlug = a.ingredient?.slug || a.name;
-			const bSlug = b.ingredient?.slug || b.name;
-
-			// Only reverse order within checked items
-			if (aChecked && bChecked) {
-				return bSlug.localeCompare(aSlug);
-			}
-
-			// Keep normal order within unchecked items
-			return aSlug.localeCompare(bSlug);
-		});
-	}
 
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
@@ -274,31 +176,26 @@
 				{/if}
 			</Button>
 
-			<!-- {#if hasCheckedItems}
-				<Button
-					variant="default"
-					class="ml-auto"
-					onclick={async () => {
-						items.forEach((item) => {
-							if (item.checked_at) deletePlanItem(activeSpace, item.id);
-						});
-
-						await activeSpace.refreshActivePlanItems();
-						await activeSpace.refreshActivePlanMeals();
-						await refreshRecommendations();
-					}}
-				>
-					<Check class="size-4 mr-2" />
-					Done shopping
-				</Button>
-			{/if} -->
+			<Button
+				variant="ghost"
+				size="icon"
+				onclick={() => {
+					checkedItemsLayout.set(checkedItemsLayout.value === 'aisle' ? 'bottom' : 'aisle');
+				}}
+			>
+				{#if checkedItemsLayout.value === 'aisle'}
+					<PanelBottom class="min-w-4 h-4" />
+					<span class="sr-only">Switch to bottom view</span>
+				{:else}
+					<BetweenHorizonalEnd class="min-w-4 h-4" />
+					<span class="sr-only">Switch to aisle view</span>
+				{/if}
+			</Button>
 		</div>
 
 		<Tabs.Content value="aisle" class="mt-8">
 			<!-- <h3 class="text-xl font-semibold mb-6">Planned meals</h3> -->
-
 			<!-- <RecipeCarousel recipes={meals.map((meal) => meal.recipe)} /> -->
-
 			<!-- <h3 class="mt-6 text-xl font-semibold mb-6">Shopping list</h3> -->
 
 			<div class="grid grid-cols-1">
@@ -310,229 +207,99 @@
 							// Show all aisles while recommendations are loading
 							if (!rawShoppingRecommendations) return true;
 
-							// Show aisle if it has any items in the shopping list
-							if (shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey)) return true;
+							if (checkedItemsLayout.value === 'bottom') {
+								// Show aisle if it has any unchecked items
+								return shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey && item.items.some((si) => !si.checked_at));
+							} else if (checkedItemsLayout.value === 'aisle') {
+								// Show aisle if it has any items
+								if (shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey)) return true;
 
-							// Show aisle if it has any recommendations
-							return shoppingRecommendations.some((rec) => rec.aisle === aisleKey);
-						})
-
-						// Place aisles with items first, then aisles with recommendations
-						.sort((a, b) => {
-							// Aisles with items come first
-							const aHasItems = shoppingList.some((item) => (item.ingredient?.aisle || 'default') === a[0]);
-							const bHasItems = shoppingList.some((item) => (item.ingredient?.aisle || 'default') === b[0]);
-							if (aHasItems && !bHasItems) return -1;
-							if (!aHasItems && bHasItems) return 1;
-
-							// Keep original order from the section headers
-							return 0;
+								// Show aisle if it has recommendations
+								return shoppingRecommendations.some((rec) => rec.aisle === aisleKey);
+							}
+							throw new Error('Invalid checked items layout');
 						}) as [aisleKey, aisleHeader] (aisleKey)}
-						{@const aisleItems = shoppingList.filter(
-							(item) => (item.ingredient?.aisle || 'default') === aisleKey
-						)}
+						{@const aisleItems = shoppingList.filter((item) => {
+							if ((item.ingredient?.aisle || 'default') !== aisleKey) return false;
+
+							if (checkedItemsLayout.value === 'bottom')
+								return item.items.some((si) => !si.checked_at);
+							return true;
+						})}
 
 						{@const aisleRecommendations = shoppingRecommendations.filter(
 							(rec) => rec.aisle === aisleKey
 						)}
 
-						<section>
+						<section transition:slide={{ duration: 300 }} >
 							<div class="mb-4 flex items-center justify-between">
 								<SectionHeader header={aisleHeader} size="sm" class="" />
 
-								{#if aisleRecommendations.length > 0 || rawShoppingRecommendations === undefined}
-									<div
-										class="hidden xl:flex items-center group"
-										transition:fade={{ duration: 200 }}
-									>
-										{#if rawShoppingRecommendations}
-											<Tooltip.Root delayDuration={600}>
-												<Tooltip.Trigger>
-													<Button
-														variant="ghost"
-														size="icon"
-														class={cn(
-															'size-7 text-muted-foreground group-hover:mr-2',
-															typeof navigator !== 'undefined' &&
-																navigator.maxTouchPoints > 0 &&
-																aisleRecommendations.length > 4 &&
-																'mr-2'
-														)}
-														onclick={() => onShuffle(aisleKey, aisleRecommendations.slice(0, 4))}
-													>
-														{#if aisleRecommendations.length > 4}
-															{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
-																<Shuffle class="size-4" />
-															{:else}
-																<Plus class="size-4 group-hover:hidden" />
-																<Shuffle class="size-4 hidden group-hover:block" />
-															{/if}
-														{:else if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
-															<Plus class="size-4 group-hover:rotate-45 transition-transform" />
-														{:else}
-															<Plus class="size-4 rotate-45" />
-														{/if}
-													</Button>
-												</Tooltip.Trigger>
-												<Tooltip.Content>
-													{aisleRecommendations.length > 4 ? 'Shuffle' : 'Dismiss'}
-												</Tooltip.Content>
-											</Tooltip.Root>
-										{/if}
-
-										{#key recentRecommendations[aisleKey]}
-											<div in:fade={{ duration: 200 }}>
-												{@render recommendations({ recs: aisleRecommendations, aisleKey })}
-											</div>
-										{/key}
-									</div>
+								{#if checkedItemsLayout.value === 'aisle'}
+									<ShoppingRecommendations
+										recommendations={aisleRecommendations.slice(0, 4)}
+										total={aisleRecommendations.length}
+										onShuffle={(current) => onShuffle(aisleKey, current)}
+										loading={rawShoppingRecommendations === undefined}
+									/>
 								{/if}
 							</div>
 
 							<div class="grid space-y-4 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
-								{#if aisleRecommendations.length > 0 || rawShoppingRecommendations === undefined}
-									<div
-										class="relative xl:hidden overflow-hidden"
-										transition:slide={{ axis: 'y', duration: 200 }}
-									>
-										<div
-											class="h-8 w-full flex items-center gap-2 mr-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-										>
-											<span class="text-sm font-medium text-muted-foreground italic shrink-0">
-												<Lightbulb class="size-4" />
-											</span>
-
-											{@render recommendations({
-												recs: aisleRecommendations,
-												aisleKey,
-												limit: 10,
-												className: 'w-auto'
-											})}
-
-											{#if aisleRecommendations.length > 10}
-												<Button
-													variant="link"
-													class="shrink-0"
-													onclick={() => onShuffle(aisleKey, aisleRecommendations.slice(0, 10))}
-												>
-													<Ellipsis class="size-4" />
-													More
-												</Button>
-											{/if}
-										</div>
-
-										<div
-											class="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent"
-										></div>
-									</div>
+								{#if checkedItemsLayout.value === 'aisle'}
+									<ShoppingRecommendationsMobile
+										recommendations={aisleRecommendations.slice(0, 10)}
+										total={aisleRecommendations.length}
+										onShuffle={(current) => onShuffle(aisleKey, current)}
+										loading={rawShoppingRecommendations === undefined}
+									/>
 								{/if}
 
-								{#if itemsLayout.value === 'grid'}
-									<div
-										class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
-									>
-										{#each aisleItems as item (item.ingredient?.id || item.name)}
-											<!-- svelte-ignore a11y_no_static_element_interactions -->
-											<!-- svelte-ignore a11y_click_events_have_key_events -->
-											<div
-												class="flex group"
-												animate:flip={{ duration: 300 }}
-												onmouseenter={() => {
-													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
-														return;
-													if (!item.ingredient) return; // No hover state for manual items
-													hoveredMealIngredient.value = item.ingredient;
-												}}
-												onmouseleave={() => {
-													if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
-														return;
-													hoveredMealIngredient.value = null;
-												}}
-											>
-												<ShoppingItemCardGrid
-													ingredient={item.ingredient}
-													description={item.name}
-													amount={item.mergedQuantity?.amount}
-													unit={item.mergedQuantity?.unit}
-													size="md"
-													checkable
-													selectable
-													checked={item.items.some((si) => si.checked_at)}
-													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-												>
-													{#snippet topRight()}
-														{#if item.meals.length > 0}
-															<div class="flex gap-0.5">
-																{#if item.meals.length > 1}
-																	<span>{item.meals.length}</span>
-																{/if}
-																<ChefHat class="size-3 mt-[1.2px]" />
-															</div>
-														{/if}
-
-														{#if item.items.filter((i) => i.type === 'independent').length > 0}
-															<div class="flex gap-0.5">
-																{#if item.items.filter((i) => i.type === 'independent').length > 1}
-																	<span>
-																		{item.items.filter((i) => i.type === 'independent').length}
-																	</span>
-																	<Users class="size-3 mt-[1.5px]" />
-																{:else}
-																	<User class="size-3 mt-[1.5px]" />
-																{/if}
-															</div>
-														{/if}
-													{/snippet}
-												</ShoppingItemCardGrid>
-											</div>
-										{/each}
-									</div>
-								{:else}
-									<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
-										{#each aisleItems as item (item.ingredient?.id || item.name)}
-											<div class="flex group" animate:flip={{ duration: 300 }}>
-												<ShoppingItemCardList
-													ingredient={item.ingredient}
-													description={item.name}
-													amount={item.mergedQuantity!.amount}
-													unit={item.mergedQuantity!.unit}
-													checkable
-													checked={item.items.some((si) => si.checked_at)}
-													onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-												>
-													<span class="text-xs text-muted-foreground/80 flex gap-3">
-														<div class="flex items-center gap-1">
-															<House class="size-3 inline-block" />
-															None
-														</div>
-
-														<div class="flex items-center gap-1">
-															<Calendar class="size-3 inline-block" />
-															600 ml
-														</div>
-
-														{#if item.meals.length > 0}
-															<div class="flex items-center gap-1">
-																<ChefHat class="size-3 inline-block" />
-																{item.meals.length}
-															</div>
-														{/if}
-
-														{#if item.items.filter((i) => i.type === 'independent').length > 0}
-															<div class="flex items-center gap-1">
-																<User class="size-3 inline-block" />
-																{item.items.filter((i) => i.type === 'independent').length}
-															</div>
-														{/if}
-													</span>
-												</ShoppingItemCardList>
-											</div>
-										{/each}
-									</div>
-								{/if}
+								{@render itemsGrid(aisleItems)}
 							</div>
 						</section>
 					{/each}
+
+					{#if checkedItemsLayout.value === 'bottom'}
+						<div class="grid space-y-3">
+							<SeparatorZigZag />
+
+							{#if shoppingList.some((item) => item.items.some((si) => si.checked_at))}
+								<div class="grid pt-8">
+									<div class="mb-4 flex items-center justify-between">
+										<SectionHeader
+											header={{
+												title: 'Your cart',
+												subtitle:
+													'These items are checked but not yet removed from the list. You can uncheck them to move them back to the top.',
+												icon: ShoppingBasket
+											}}
+											size="sm"
+										/>
+
+										<DoneShoppingButton onclick={refreshRecommendations} />
+									</div>
+
+									<div class="grid space-y-2 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
+										{@render itemsGrid(
+											shoppingList.filter((item) => item.items.some((si) => si.checked_at))
+										)}
+									</div>
+								</div>
+							{/if}
+
+							<div class="grid space-y-2 xl:space-y-4">
+								<h3 class="pt-8 text-md font-medium">You might also need:</h3>
+								<div class="overflow-hidden max-h-44 xl:max-h-26">
+									<ShoppingRecommendationsList
+										recommendations={shoppingRecommendations.slice(0, 30)}
+										loading={rawShoppingRecommendations === undefined}
+										class="flex-wrap min-w-auto m-0.5"
+									/>
+								</div>
+							</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</Tabs.Content>
@@ -554,3 +321,107 @@
 		</Tabs.Content>
 	</Tabs.Root>
 </div>
+
+{#snippet itemsGrid(items: CombinedShoppingListItem[])}
+	{#if itemsLayout.value === 'grid'}
+		<div
+			class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
+		>
+			{#each items as item (item.ingredient?.id || item.name)}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<div
+					class="flex group"
+					animate:flip={{ duration: 300 }}
+					onmouseenter={() => {
+						if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
+						if (!item.ingredient) return; // No hover state for manual items
+						hoveredMealIngredient.value = item.ingredient;
+					}}
+					onmouseleave={() => {
+						if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
+						hoveredMealIngredient.value = null;
+					}}
+				>
+					<ShoppingItemCardGrid
+						ingredient={item.ingredient}
+						description={item.name}
+						amount={item.mergedQuantity?.amount}
+						unit={item.mergedQuantity?.unit}
+						size="md"
+						checkable
+						selectable
+						checked={item.items.some((si) => si.checked_at)}
+						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
+					>
+						{#snippet topRight()}
+							{#if item.meals.length > 0}
+								<div class="flex gap-0.5">
+									{#if item.meals.length > 1}
+										<span>{item.meals.length}</span>
+									{/if}
+									<ChefHat class="size-3 mt-[1.2px]" />
+								</div>
+							{/if}
+
+							{#if item.items.filter((i) => i.type === 'independent').length > 0}
+								<div class="flex gap-0.5">
+									{#if item.items.filter((i) => i.type === 'independent').length > 1}
+										<span>
+											{item.items.filter((i) => i.type === 'independent').length}
+										</span>
+										<Users class="size-3 mt-[1.5px]" />
+									{:else}
+										<User class="size-3 mt-[1.5px]" />
+									{/if}
+								</div>
+							{/if}
+						{/snippet}
+					</ShoppingItemCardGrid>
+				</div>
+			{/each}
+		</div>
+	{:else}
+		<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
+			{#each items as item (item.ingredient?.id || item.name)}
+				<div class="flex group" animate:flip={{ duration: 300 }}>
+					<ShoppingItemCardList
+						ingredient={item.ingredient}
+						description={item.name}
+						amount={item.mergedQuantity!.amount}
+						unit={item.mergedQuantity!.unit}
+						checkable
+						checked={item.items.some((si) => si.checked_at)}
+						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
+					>
+						<span class="text-xs text-muted-foreground/80 flex gap-3">
+							<div class="flex items-center gap-1">
+								<House class="size-3 inline-block" />
+								None
+							</div>
+
+							<div class="flex items-center gap-1">
+								<Calendar class="size-3 inline-block" />
+								600 ml
+							</div>
+
+							{#if item.meals.length > 0}
+								<div class="flex items-center gap-1">
+									<ChefHat class="size-3 inline-block" />
+									{item.meals.length}
+								</div>
+							{/if}
+
+							{#if item.items.filter((i) => i.type === 'independent').length > 0}
+								<div class="flex items-center gap-1">
+									<User class="size-3 inline-block" />
+									{item.items.filter((i) => i.type === 'independent').length}
+								</div>
+							{/if}
+						</span>
+					</ShoppingItemCardList>
+				</div>
+			{/each}
+		</div>
+	{/if}
+{/snippet}

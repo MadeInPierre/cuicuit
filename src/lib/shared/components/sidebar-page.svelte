@@ -1,17 +1,12 @@
 <script lang="ts">
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import CommandMenu from '$lib/features/command/CommandMenu.svelte';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { Check } from 'lucide-svelte';
 	import { IsMobile } from '../hooks/is-mobile.svelte';
 	import ThemeButton from './ThemeButton.svelte';
-	import { Button } from './ui/button';
-	import { page } from '$app/state';
-	import { deletePlanItem } from '$lib/features/plans/actions/update-item';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -19,11 +14,6 @@
 	let { children }: Props = $props();
 
 	const isMobile = new IsMobile();
-
-	const activeSpace = getActiveSpaceState();
-	const hasCheckedItems = $derived(
-		activeSpace.activePlanItems?.some((item) => item.checked_at) || false
-	);
 </script>
 
 <svelte:window
@@ -78,26 +68,9 @@
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
 
-				{#if hasCheckedItems && page.url.pathname === '/shopping-list'}
-					<Button
-						variant="default"
-						class="ml-auto"
-						onclick={async () => {
-							if (!activeSpace.activePlanItems) return;
-							
-							activeSpace.activePlanItems.forEach((item) => {
-								if (item.checked_at) deletePlanItem(activeSpace, item.id);
-							});
-
-							await activeSpace.refreshActivePlanItems();
-							await activeSpace.refreshActivePlanMeals();
-							// await refreshRecommendations();
-						}}
-					>
-						<Check class="size-4 mr-2" />
-						Done shopping
-					</Button>
-				{/if}
+				<!-- {#if hasCheckedItems && page.url.pathname === '/shopping-list'}
+					<DoneShoppingButton />
+				{/if} -->
 
 				<CommandMenu />
 				<ThemeButton class="md:hidden" />

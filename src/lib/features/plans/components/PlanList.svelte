@@ -16,7 +16,7 @@
 			return (
 				activeSpace.activePlanMeals?.filter((meal) =>
 					meal.shopping_ingredients.some(
-						(si) => si.ingredient_id === selectedMealIngredient.value!.id && !si.checked_at
+						(si) => si.ingredient_id === selectedMealIngredient.value!.id && !si.deleted_at
 					)
 				) || []
 			);
@@ -36,7 +36,7 @@
 						(item) =>
 							item.type === 'independent' &&
 							item.ingredient_id === selectedMealIngredient.value?.id &&
-							!item.checked_at
+							!item.deleted_at
 					)
 					?.slice(0, 12) || []
 			);
@@ -46,7 +46,7 @@
 		return (
 			activeSpace.activePlanItems &&
 			activeSpace.activePlanItems
-				.filter((item) => item.type === 'independent' && !item.checked_at)
+				.filter((item) => item.type === 'independent' && !item.deleted_at)
 				.slice(0, 12)
 		);
 	});
