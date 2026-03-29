@@ -6,14 +6,14 @@ export function getPlanMeals(spaceId: string, languageId: number) {
 
 	return (
 		supabase
-			.from('space_plan_meals')
+			.from('space_meals')
 			.select(
 				`*, 
 			recipe:recipes(
 				*,
 				language:languages(*)
 			),
-			shopping_ingredients:space_plan_shopping_lists(
+			shopping_ingredients:space_items(
 				*,
 				ingredient:ingredients(
 					*,

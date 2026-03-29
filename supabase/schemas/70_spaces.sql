@@ -84,9 +84,10 @@ GRANT ALL ON TABLE "public"."space_members" TO "service_role";
 -- Space plan meals
 --------------------
 -- 1. Definition
-CREATE TABLE IF NOT EXISTS "public"."space_plan_meals" (
+CREATE TABLE IF NOT EXISTS "public"."space_meals" (
     "id" "uuid" DEFAULT "gen_random_uuid" () NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now" (),
+    "created_by" "uuid" NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now" (),
     "space_id" "uuid" NOT NULL,
     "recipe_id" "uuid" NOT NULL,
@@ -96,37 +97,41 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_meals" (
 );
 
 -- 2. Ownership
-ALTER TABLE "public"."space_plan_meals" OWNER TO "postgres";
+ALTER TABLE "public"."space_meals" OWNER TO "postgres";
 
 -- 3. Constraints
-ALTER TABLE ONLY "public"."space_plan_meals"
-ADD CONSTRAINT "space_plan_meals_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."space_meals"
+ADD CONSTRAINT "space_meals_pkey" PRIMARY KEY ("id");
 
-ALTER TABLE ONLY "public"."space_plan_meals"
-ADD CONSTRAINT "space_plan_meals_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes" ("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."space_meals"
+ADD CONSTRAINT "space_meals_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users" ("id");
 
-ALTER TABLE ONLY "public"."space_plan_meals"
-ADD CONSTRAINT "space_plan_meals_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "public"."spaces" ("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."space_meals"
+ADD CONSTRAINT "space_meals_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes" ("id") ON DELETE CASCADE;
+
+ALTER TABLE ONLY "public"."space_meals"
+ADD CONSTRAINT "space_meals_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "public"."spaces" ("id") ON DELETE CASCADE;
 
 -- 4. Triggers
-CREATE OR REPLACE TRIGGER "update_space_plan_meals_updated_at" BEFORE
-UPDATE ON "public"."space_plan_meals" FOR EACH ROW
+CREATE OR REPLACE TRIGGER "update_space_meals_updated_at" BEFORE
+UPDATE ON "public"."space_meals" FOR EACH ROW
 EXECUTE FUNCTION "public"."update_updated_at_column" ();
 
 -- 5. Grants
-GRANT ALL ON TABLE "public"."space_plan_meals" TO "anon";
+GRANT ALL ON TABLE "public"."space_meals" TO "anon";
 
-GRANT ALL ON TABLE "public"."space_plan_meals" TO "authenticated";
+GRANT ALL ON TABLE "public"."space_meals" TO "authenticated";
 
-GRANT ALL ON TABLE "public"."space_plan_meals" TO "service_role";
+GRANT ALL ON TABLE "public"."space_meals" TO "service_role";
 
 --------------------
 -- Space plan shopping lists
 --------------------
 -- 1. Definition
-CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
+CREATE TABLE IF NOT EXISTS "public"."space_items" (
     "id" "uuid" DEFAULT "gen_random_uuid" () NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now" (),
+    "created_by" "uuid" NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now" (),
     "deleted_at" timestamp with time zone,
     "space_id" "uuid" NOT NULL,
@@ -138,7 +143,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
     "unit" "text",
     "name" "text",
     "checked_at" timestamp with time zone DEFAULT NULL,
-    CONSTRAINT "space_plan_shopping_lists_check" CHECK (
+    CONSTRAINT "space_items_check" CHECK (
         (
             (
                 ("type" = 'meal'::"text")
@@ -156,7 +161,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
             )
         )
     ),
-    CONSTRAINT "space_plan_shopping_lists_meal_origin_check" CHECK (
+    CONSTRAINT "space_items_meal_origin_check" CHECK (
         (
             "meal_origin" = ANY (
                 ARRAY[
@@ -167,7 +172,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
             )
         )
     ),
-    CONSTRAINT "space_plan_shopping_lists_type_check" CHECK (
+    CONSTRAINT "space_items_type_check" CHECK (
         (
             "type" = ANY (ARRAY['meal'::"text", 'independent'::"text"])
         )
@@ -175,29 +180,32 @@ CREATE TABLE IF NOT EXISTS "public"."space_plan_shopping_lists" (
 );
 
 -- 2. Ownership
-ALTER TABLE "public"."space_plan_shopping_lists" OWNER TO "postgres";
+ALTER TABLE "public"."space_items" OWNER TO "postgres";
 
 -- 3. Constraints
-ALTER TABLE ONLY "public"."space_plan_shopping_lists"
-ADD CONSTRAINT "space_plan_shopping_lists_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."space_items"
+ADD CONSTRAINT "space_items_pkey" PRIMARY KEY ("id");
 
-ALTER TABLE ONLY "public"."space_plan_shopping_lists"
-ADD CONSTRAINT "space_plan_shopping_lists_ingredient_id_fkey" FOREIGN KEY ("ingredient_id") REFERENCES "public"."ingredients" ("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."space_items"
+ADD CONSTRAINT "space_items_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users" ("id");
 
-ALTER TABLE ONLY "public"."space_plan_shopping_lists"
-ADD CONSTRAINT "space_plan_shopping_lists_meal_id_fkey" FOREIGN KEY ("meal_id") REFERENCES "public"."space_plan_meals" ("id");
+ALTER TABLE ONLY "public"."space_items"
+ADD CONSTRAINT "space_items_ingredient_id_fkey" FOREIGN KEY ("ingredient_id") REFERENCES "public"."ingredients" ("id") ON DELETE CASCADE;
 
-ALTER TABLE ONLY "public"."space_plan_shopping_lists"
-ADD CONSTRAINT "space_plan_shopping_lists_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "public"."spaces" ("id") ON DELETE CASCADE;
+ALTER TABLE ONLY "public"."space_items"
+ADD CONSTRAINT "space_items_meal_id_fkey" FOREIGN KEY ("meal_id") REFERENCES "public"."space_meals" ("id");
+
+ALTER TABLE ONLY "public"."space_items"
+ADD CONSTRAINT "space_items_space_id_fkey" FOREIGN KEY ("space_id") REFERENCES "public"."spaces" ("id") ON DELETE CASCADE;
 
 -- 4. Triggers
-CREATE OR REPLACE TRIGGER "update_space_plan_shopping_lists_updated_at" BEFORE
-UPDATE ON "public"."space_plan_shopping_lists" FOR EACH ROW
+CREATE OR REPLACE TRIGGER "update_space_items_updated_at" BEFORE
+UPDATE ON "public"."space_items" FOR EACH ROW
 EXECUTE FUNCTION "public"."update_updated_at_column" ();
 
 -- 5. Grants
-GRANT ALL ON TABLE "public"."space_plan_shopping_lists" TO "anon";
+GRANT ALL ON TABLE "public"."space_items" TO "anon";
 
-GRANT ALL ON TABLE "public"."space_plan_shopping_lists" TO "authenticated";
+GRANT ALL ON TABLE "public"."space_items" TO "authenticated";
 
-GRANT ALL ON TABLE "public"."space_plan_shopping_lists" TO "service_role";
+GRANT ALL ON TABLE "public"."space_items" TO "service_role";

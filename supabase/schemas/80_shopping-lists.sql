@@ -9,7 +9,7 @@
 -- 1. Definition
 CREATE OR REPLACE FUNCTION "public"."soft_delete_shopping_list_for_meal" () RETURNS "trigger" LANGUAGE "plpgsql" AS $$
 begin
-    update space_plan_shopping_lists
+    update space_items
     set deleted_at = now()
     where meal_id = old.id and type = 'meal' and deleted_at is null;
     return old;
@@ -21,7 +21,7 @@ ALTER FUNCTION "public"."soft_delete_shopping_list_for_meal" () OWNER TO "postgr
 
 -- 3. Triggers
 CREATE OR REPLACE TRIGGER "soft_delete_shopping_list_items"
-AFTER DELETE ON "public"."space_plan_meals" FOR EACH ROW
+AFTER DELETE ON "public"."space_meals" FOR EACH ROW
 EXECUTE FUNCTION "public"."soft_delete_shopping_list_for_meal" ();
 
 -- 4. Grants
@@ -47,7 +47,7 @@ optionally filtered by aisle, with both global and per-aisle caps.
 
 How it works:
 1) scored CTE
-- Counts checked occurrences per ingredient in space_plan_shopping_lists.
+- Counts checked occurrences per ingredient in space_items.
 - Applies optional aisle filtering.
 - Joins ingredient metadata and language translation.
 - Uses translation fallback: name_plural -> name_singular -> name_general.
@@ -98,7 +98,7 @@ BEGIN
             subquery.freq::bigint AS score
         FROM (
             SELECT sl.ingredient_id, COUNT(*) AS freq
-            FROM space_plan_shopping_lists sl
+            FROM space_items sl
             JOIN ingredients i2
               ON i2.id = sl.ingredient_id
             WHERE
