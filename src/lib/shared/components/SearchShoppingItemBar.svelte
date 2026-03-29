@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { Mic, SearchIcon, X } from 'lucide-svelte';
 	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
-	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/SearchShoppingItem.svelte';
+	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/QuickSearch.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import { type LanguageKey } from '$lib/features/user-settings/consts';
 
 	type Props = {
 		class?: string;
@@ -20,7 +19,6 @@
 </script>
 
 <IngredientSearch
-	language={(space.language?.lang as LanguageKey) || 'fr-FR'}
 	onSelect={(ingredient, index) => {
 		if (!ingredient) return;
 		const quantity = ingredient.parsed.quantity?.amount ?? null;
@@ -32,7 +30,7 @@
 		addShoppingItem(space, ingredientId, name, quantity, unit);
 
 		// Reset the sidebar view to show all meals and items
-		selectedMealIngredient.value = index !== null ? ingredient.matches[index] : null;
+		selectedMealIngredient.value = null;
 
 		// Clear the search input and refocus
 		searchRef?.focus();

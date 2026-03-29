@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
-	import { ArrowRight, BellRing, ChefHat, FunnelPlus, Plus, Star } from 'lucide-svelte';
-	import RecipeCard from '../../../lib/features/recipes/components/RecipeCard.svelte';
+	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import {
 		getRecipesDetailed,
@@ -106,17 +104,7 @@
 	) {
 		if (!space.language) return [];
 
-		let query = getRecipesDetailed(space.language.id).limit(100);
-
-		if (searchText) {
-			// Remove accents from searchText
-			const normalizedSearchText = searchText
-				.trim()
-				.toLowerCase()
-				.normalize('NFD')
-				.replace(/[\u0300-\u036f]/g, '');
-			query = query.ilike('search_term', `%${normalizedSearchText}%`);
-		}
+		let query = getRecipesDetailed(space.language.id, searchText).limit(100);
 
 		if (filters?.timeOfDay && filters?.timeOfDay.length > 0) {
 			query = query.overlaps('times_of_day', filters.timeOfDay);

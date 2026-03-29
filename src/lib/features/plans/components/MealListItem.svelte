@@ -1,30 +1,20 @@
 <script lang="ts">
-	import {
-		Check,
-		EqualApproximately,
-		Plus,
-		ShoppingBasket,
-		Trash2,
-		Users,
-		Weight
-	} from 'lucide-svelte';
+	import { Check, Plus, ShoppingBasket, Trash2, Weight } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
-	import { dragHandle } from 'svelte-dnd-action';
 	import NumberFlow from '@number-flow/svelte';
 	import {
 		hoveredMealIngredient,
 		selectedMealIngredient
 	} from '../state/hovered-meal-ingredient.svelte';
 	import { fade, slide } from 'svelte/transition';
-	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
+	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
 
 	const space = getActiveSpaceState();
 
@@ -65,7 +55,36 @@
 
 {#if meal}
 	<div class="grid w-full">
-		<button
+		<RecipeListItem
+			recipe={meal.recipe}
+			showServings={(!expanded || !showExpandedButtons) && !(hovered || selected) && showServings}
+			class={cn(hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60', className)}
+			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
+			aria-expanded={expanded}
+		>
+			{#snippet endSnippet()}
+				{#if hovered || selected}
+					<div
+						class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto"
+						in:fade={{ duration: 200 }}
+					>
+						<IngredientImage id={activeId} class="size-7 rounded-full" />
+
+						<span>
+							{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ||
+								''}
+							{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ===
+							'whole'
+								? ''
+								: meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ||
+									''}
+						</span>
+					</div>
+				{/if}
+			{/snippet}
+		</RecipeListItem>
+
+		<!-- <button
 			class={cn(
 				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group transition-all',
 
@@ -73,8 +92,7 @@
 
 				className
 			)}
-			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
-			aria-expanded={expanded}
+			
 		>
 			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
 				<img
@@ -133,7 +151,7 @@
 					</div>
 				</div>
 			{/if}
-		</button>
+		</button> -->
 
 		{#if expanded}
 			<div

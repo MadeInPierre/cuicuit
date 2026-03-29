@@ -46,7 +46,7 @@
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import { slide } from 'svelte/transition';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
-	import IngredientSearch from './SearchShoppingItem.svelte';
+	import QuickSearch from './QuickSearch.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
@@ -93,7 +93,10 @@
 		if (isNewRecipe || !activeSpace.language) return;
 
 		// Fetch the recipe from Supabase
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(pageRecipeId, activeSpace.language.id);
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(
+			pageRecipeId,
+			activeSpace.language.id
+		);
 
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);
@@ -563,12 +566,7 @@
 							<Card.Content class="grid gap-3">
 								<Label>Type to add:</Label>
 
-								<IngredientSearch
-									language={$formData.language}
-									onSelect={onAddIngredient}
-									class="mb-3"
-									displayColumns={5}
-								/>
+								<QuickSearch onSelect={onAddIngredient} class="mb-3" displayColumns={5} />
 
 								<Label>Required</Label>
 								{@render ingredientList(false)}
