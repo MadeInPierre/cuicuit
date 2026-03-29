@@ -3,15 +3,16 @@ import { supabase } from '$lib/shared/db/supabase-client';
 import { capitalize } from '$lib/utils';
 
 export async function addShoppingItem(
-	activeSpace: ActiveSpaceState,
+	space: ActiveSpaceState,
 	ingredientId: string | null,
 	name: string,
 	quantity: number | null = null,
 	unit: string | null = null
 ) {
-	if (!activeSpace.id) return;
-	await supabase.from('space_plan_shopping_lists').insert({
-		space_id: activeSpace.id,
+	if (!space.id || !space.activeMember?.user_id) return;
+	await supabase.from('space_items').insert({
+		space_id: space.id,
+		created_by: space.activeMember.user_id,
 		type: 'independent',
 		ingredient_id: ingredientId,
 		quantity: quantity,
@@ -20,5 +21,5 @@ export async function addShoppingItem(
 	});
 
 	// Update UI
-	await activeSpace.refreshActivePlanItems();
+	await space.refreshActivePlanItems();
 }

@@ -2,11 +2,11 @@ import { type ActiveSpaceState } from '$lib/features/spaces/state/active-space.s
 import { supabase } from '$lib/shared/db/supabase-client';
 
 export async function addRecipeToActivePlan(
-	activeSpace: ActiveSpaceState,
+	space: ActiveSpaceState,
 	recipeId: string,
 	servings: number
 ) {
-	if (!activeSpace?.activeSpace || !activeSpace.activePlanMeals) {
+	if (!space?.activeSpace || !space.activePlanMeals || !space.activeMember?.user_id) {
 		console.error('No active space or active plan found');
 		return;
 	}
@@ -15,16 +15,17 @@ export async function addRecipeToActivePlan(
 		return;
 	}
 
-	const activeSpaceId = activeSpace.activeSpace.id;
+	const activeSpaceId = space.activeSpace.id;
 
 	// Add the recipe to the active plan in Supabase and get the generated meal id
 	const { data, error } = await supabase
-		.from('space_plan_meals')
+		.from('space_meals')
 		.insert({
 			space_id: activeSpaceId,
+			created_by: space.activeMember.user_id,
 			recipe_id: recipeId,
 			servings: servings,
-			position: activeSpace.activePlanMeals.length // Append to the end of the plan
+			position: space.activePlanMeals.length // Append to the end of the plan
 		})
 		.select('id')
 		.single();
@@ -49,6 +50,7 @@ export async function addRecipeToActivePlan(
 
 	const shoppingListItems = recipeIngredients.map((ingredient) => ({
 		space_id: activeSpaceId,
+		created_by: space.activeMember!.user_id,
 		type: 'meal',
 		meal_id: mealId,
 		meal_origin: 'recipe',
@@ -58,9 +60,7 @@ export async function addRecipeToActivePlan(
 		unit: ingredient.unit
 	}));
 
-	const { error: shoppingListError } = await supabase
-		.from('space_plan_shopping_lists')
-		.insert(shoppingListItems);
+	const { error: shoppingListError } = await supabase.from('space_items').insert(shoppingListItems);
 
 	if (shoppingListError) {
 		console.error('Error adding ingredients to shopping list:', shoppingListError);
@@ -68,5 +68,5 @@ export async function addRecipeToActivePlan(
 	}
 
 	// Refresh the active plan meals after adding
-	await activeSpace.refreshActivePlanMeals();
+	await space.refreshActivePlanMeals();
 }

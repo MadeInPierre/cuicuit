@@ -3,7 +3,7 @@ import { supabase } from '$lib/shared/db/supabase-client';
 export function getShoppingListItems(spaceId: string, languageId: number) {
 	return (
 		supabase
-			.from('space_plan_shopping_lists')
+			.from('space_items')
 			.select(
 				`*, 
 				ingredient:ingredients!ingredient_id(

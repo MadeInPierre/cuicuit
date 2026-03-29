@@ -471,6 +471,134 @@ export const publicRecipesRelationshipsSchema = z.tuple([
   }),
 ]);
 
+export const publicSpaceItemsRowSchema = z.object({
+  checked_at: z.string().nullable(),
+  created_at: z.string().nullable(),
+  created_by: z.string(),
+  deleted_at: z.string().nullable(),
+  id: z.string(),
+  ingredient_id: z.string().nullable(),
+  meal_id: z.string().nullable(),
+  meal_origin: z.string().nullable(),
+  name: z.string().nullable(),
+  quantity: z.number().nullable(),
+  space_id: z.string(),
+  type: z.string(),
+  unit: z.string().nullable(),
+  updated_at: z.string().nullable(),
+});
+
+export const publicSpaceItemsInsertSchema = z.object({
+  checked_at: z.string().optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  created_by: z.string(),
+  deleted_at: z.string().optional().nullable(),
+  id: z.string().optional(),
+  ingredient_id: z.string().optional().nullable(),
+  meal_id: z.string().optional().nullable(),
+  meal_origin: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  quantity: z.number().optional().nullable(),
+  space_id: z.string(),
+  type: z.string(),
+  unit: z.string().optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const publicSpaceItemsUpdateSchema = z.object({
+  checked_at: z.string().optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  created_by: z.string().optional(),
+  deleted_at: z.string().optional().nullable(),
+  id: z.string().optional(),
+  ingredient_id: z.string().optional().nullable(),
+  meal_id: z.string().optional().nullable(),
+  meal_origin: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  quantity: z.number().optional().nullable(),
+  space_id: z.string().optional(),
+  type: z.string().optional(),
+  unit: z.string().optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const publicSpaceItemsRelationshipsSchema = z.tuple([
+  z.object({
+    foreignKeyName: z.literal("space_items_ingredient_id_fkey"),
+    columns: z.tuple([z.literal("ingredient_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("ingredients"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+  z.object({
+    foreignKeyName: z.literal("space_items_meal_id_fkey"),
+    columns: z.tuple([z.literal("meal_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("space_meals"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+  z.object({
+    foreignKeyName: z.literal("space_items_space_id_fkey"),
+    columns: z.tuple([z.literal("space_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("spaces"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+]);
+
+export const publicSpaceMealsRowSchema = z.object({
+  created_at: z.string().nullable(),
+  created_by: z.string(),
+  deleted_at: z.string().nullable(),
+  id: z.string(),
+  position: z.number(),
+  recipe_id: z.string(),
+  servings: z.number(),
+  space_id: z.string(),
+  updated_at: z.string().nullable(),
+});
+
+export const publicSpaceMealsInsertSchema = z.object({
+  created_at: z.string().optional().nullable(),
+  created_by: z.string(),
+  deleted_at: z.string().optional().nullable(),
+  id: z.string().optional(),
+  position: z.number().optional(),
+  recipe_id: z.string(),
+  servings: z.number().optional(),
+  space_id: z.string(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const publicSpaceMealsUpdateSchema = z.object({
+  created_at: z.string().optional().nullable(),
+  created_by: z.string().optional(),
+  deleted_at: z.string().optional().nullable(),
+  id: z.string().optional(),
+  position: z.number().optional(),
+  recipe_id: z.string().optional(),
+  servings: z.number().optional(),
+  space_id: z.string().optional(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const publicSpaceMealsRelationshipsSchema = z.tuple([
+  z.object({
+    foreignKeyName: z.literal("space_meals_recipe_id_fkey"),
+    columns: z.tuple([z.literal("recipe_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("recipes"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+  z.object({
+    foreignKeyName: z.literal("space_meals_space_id_fkey"),
+    columns: z.tuple([z.literal("space_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("spaces"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+]);
+
 export const publicSpaceMembersRowSchema = z.object({
   created_at: z.string(),
   space_id: z.string(),
@@ -498,128 +626,6 @@ export const publicSpaceMembersUpdateSchema = z.object({
 export const publicSpaceMembersRelationshipsSchema = z.tuple([
   z.object({
     foreignKeyName: z.literal("space_members_space_id_fkey"),
-    columns: z.tuple([z.literal("space_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("spaces"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
-
-export const publicSpacePlanMealsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  deleted_at: z.string().nullable(),
-  id: z.string(),
-  position: z.number(),
-  recipe_id: z.string(),
-  servings: z.number(),
-  space_id: z.string(),
-  updated_at: z.string().nullable(),
-});
-
-export const publicSpacePlanMealsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  deleted_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  position: z.number().optional(),
-  recipe_id: z.string(),
-  servings: z.number().optional(),
-  space_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
-
-export const publicSpacePlanMealsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  deleted_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  position: z.number().optional(),
-  recipe_id: z.string().optional(),
-  servings: z.number().optional(),
-  space_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
-
-export const publicSpacePlanMealsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("space_plan_meals_recipe_id_fkey"),
-    columns: z.tuple([z.literal("recipe_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("recipes"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("space_plan_meals_space_id_fkey"),
-    columns: z.tuple([z.literal("space_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("spaces"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
-
-export const publicSpacePlanShoppingListsRowSchema = z.object({
-  checked_at: z.string().nullable(),
-  created_at: z.string().nullable(),
-  deleted_at: z.string().nullable(),
-  id: z.string(),
-  ingredient_id: z.string().nullable(),
-  meal_id: z.string().nullable(),
-  meal_origin: z.string().nullable(),
-  name: z.string().nullable(),
-  quantity: z.number().nullable(),
-  space_id: z.string(),
-  type: z.string(),
-  unit: z.string().nullable(),
-  updated_at: z.string().nullable(),
-});
-
-export const publicSpacePlanShoppingListsInsertSchema = z.object({
-  checked_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  deleted_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  ingredient_id: z.string().optional().nullable(),
-  meal_id: z.string().optional().nullable(),
-  meal_origin: z.string().optional().nullable(),
-  name: z.string().optional().nullable(),
-  quantity: z.number().optional().nullable(),
-  space_id: z.string(),
-  type: z.string(),
-  unit: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-});
-
-export const publicSpacePlanShoppingListsUpdateSchema = z.object({
-  checked_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  deleted_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  ingredient_id: z.string().optional().nullable(),
-  meal_id: z.string().optional().nullable(),
-  meal_origin: z.string().optional().nullable(),
-  name: z.string().optional().nullable(),
-  quantity: z.number().optional().nullable(),
-  space_id: z.string().optional(),
-  type: z.string().optional(),
-  unit: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-});
-
-export const publicSpacePlanShoppingListsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("space_plan_shopping_lists_ingredient_id_fkey"),
-    columns: z.tuple([z.literal("ingredient_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("ingredients"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("space_plan_shopping_lists_meal_id_fkey"),
-    columns: z.tuple([z.literal("meal_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("space_plan_meals"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("space_plan_shopping_lists_space_id_fkey"),
     columns: z.tuple([z.literal("space_id")]),
     isOneToOne: z.literal(false),
     referencedRelation: z.literal("spaces"),
@@ -871,6 +877,26 @@ export type PublicRecipesUpdate = z.infer<typeof publicRecipesUpdateSchema>;
 export type PublicRecipesRelationships = z.infer<
   typeof publicRecipesRelationshipsSchema
 >;
+export type PublicSpaceItemsRow = z.infer<typeof publicSpaceItemsRowSchema>;
+export type PublicSpaceItemsInsert = z.infer<
+  typeof publicSpaceItemsInsertSchema
+>;
+export type PublicSpaceItemsUpdate = z.infer<
+  typeof publicSpaceItemsUpdateSchema
+>;
+export type PublicSpaceItemsRelationships = z.infer<
+  typeof publicSpaceItemsRelationshipsSchema
+>;
+export type PublicSpaceMealsRow = z.infer<typeof publicSpaceMealsRowSchema>;
+export type PublicSpaceMealsInsert = z.infer<
+  typeof publicSpaceMealsInsertSchema
+>;
+export type PublicSpaceMealsUpdate = z.infer<
+  typeof publicSpaceMealsUpdateSchema
+>;
+export type PublicSpaceMealsRelationships = z.infer<
+  typeof publicSpaceMealsRelationshipsSchema
+>;
 export type PublicSpaceMembersRow = z.infer<typeof publicSpaceMembersRowSchema>;
 export type PublicSpaceMembersInsert = z.infer<
   typeof publicSpaceMembersInsertSchema
@@ -880,30 +906,6 @@ export type PublicSpaceMembersUpdate = z.infer<
 >;
 export type PublicSpaceMembersRelationships = z.infer<
   typeof publicSpaceMembersRelationshipsSchema
->;
-export type PublicSpacePlanMealsRow = z.infer<
-  typeof publicSpacePlanMealsRowSchema
->;
-export type PublicSpacePlanMealsInsert = z.infer<
-  typeof publicSpacePlanMealsInsertSchema
->;
-export type PublicSpacePlanMealsUpdate = z.infer<
-  typeof publicSpacePlanMealsUpdateSchema
->;
-export type PublicSpacePlanMealsRelationships = z.infer<
-  typeof publicSpacePlanMealsRelationshipsSchema
->;
-export type PublicSpacePlanShoppingListsRow = z.infer<
-  typeof publicSpacePlanShoppingListsRowSchema
->;
-export type PublicSpacePlanShoppingListsInsert = z.infer<
-  typeof publicSpacePlanShoppingListsInsertSchema
->;
-export type PublicSpacePlanShoppingListsUpdate = z.infer<
-  typeof publicSpacePlanShoppingListsUpdateSchema
->;
-export type PublicSpacePlanShoppingListsRelationships = z.infer<
-  typeof publicSpacePlanShoppingListsRelationshipsSchema
 >;
 export type PublicSpacesRow = z.infer<typeof publicSpacesRowSchema>;
 export type PublicSpacesInsert = z.infer<typeof publicSpacesInsertSchema>;

@@ -14,7 +14,7 @@ export async function updatePlanItemChecked(
 
 	// Update the plan item in Supabase
 	const { error } = await supabase
-		.from('space_plan_shopping_lists')
+		.from('space_items')
 		.update({
 			checked_at: checked ? new Date().toISOString() : null
 		})
@@ -40,7 +40,7 @@ export async function deletePlanItem(
 
 	// Soft delete the plan item
 	const { error } = await supabase
-		.from('space_plan_shopping_lists')
+		.from('space_items')
 		.update({ deleted_at: now })
 		.eq('id', itemId);
 

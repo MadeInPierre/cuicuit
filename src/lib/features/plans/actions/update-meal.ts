@@ -14,7 +14,7 @@ export async function updateMealServings(
 	if (servings < 1) throw new Error('Servings must be at least 1');
 
 	// Update the meal servings in Supabase
-	const { error } = await supabase.from('space_plan_meals').update({ servings }).eq('id', mealId);
+	const { error } = await supabase.from('space_meals').update({ servings }).eq('id', mealId);
 	if (error) throw new Error('Error updating meal servings: ' + error.message);
 
 	// Refresh the active plan meals after updating
@@ -36,7 +36,7 @@ export async function updateMealPosition(
 	if (position < 0) throw new Error('Position must be a non-negative integer');
 
 	// Update the meal position in Supabase
-	const { error } = await supabase.from('space_plan_meals').update({ position }).eq('id', mealId);
+	const { error } = await supabase.from('space_meals').update({ position }).eq('id', mealId);
 	if (error) throw new Error('Error updating meal position: ' + error.message);
 
 	// Refresh the active plan meals after updating
@@ -58,7 +58,7 @@ export async function deleteMeal(
 
 	// Soft delete related shopping list items first
 	const { error: shoppingListError } = await supabase
-		.from('space_plan_shopping_lists')
+		.from('space_items')
 		.update({ deleted_at: now })
 		.eq('meal_id', mealId)
 		.eq('type', 'meal')
@@ -72,7 +72,7 @@ export async function deleteMeal(
 
 	// Now set the deleted_at timestamp for the meal
 	const { error } = await supabase
-		.from('space_plan_meals')
+		.from('space_meals')
 		.update({ deleted_at: now })
 		.eq('id', mealId)
 		.is('deleted_at', null);

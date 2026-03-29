@@ -339,6 +339,130 @@ export type Database = {
           },
         ]
       }
+      space_items: {
+        Row: {
+          checked_at: string | null
+          created_at: string | null
+          created_by: string
+          deleted_at: string | null
+          id: string
+          ingredient_id: string | null
+          meal_id: string | null
+          meal_origin: string | null
+          name: string | null
+          quantity: number | null
+          space_id: string
+          type: string
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          checked_at?: string | null
+          created_at?: string | null
+          created_by: string
+          deleted_at?: string | null
+          id?: string
+          ingredient_id?: string | null
+          meal_id?: string | null
+          meal_origin?: string | null
+          name?: string | null
+          quantity?: number | null
+          space_id: string
+          type: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          checked_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          deleted_at?: string | null
+          id?: string
+          ingredient_id?: string | null
+          meal_id?: string | null
+          meal_origin?: string | null
+          name?: string | null
+          quantity?: number | null
+          space_id?: string
+          type?: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_items_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_items_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "space_meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_items_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      space_meals: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          deleted_at: string | null
+          id: string
+          position: number
+          recipe_id: string
+          servings: number
+          space_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          deleted_at?: string | null
+          id?: string
+          position?: number
+          recipe_id: string
+          servings?: number
+          space_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          deleted_at?: string | null
+          id?: string
+          position?: number
+          recipe_id?: string
+          servings?: number
+          space_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_meals_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_meals_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       space_members: {
         Row: {
           created_at: string
@@ -364,124 +488,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "space_members_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      space_plan_meals: {
-        Row: {
-          created_at: string | null
-          deleted_at: string | null
-          id: string
-          position: number
-          recipe_id: string
-          servings: number
-          space_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          deleted_at?: string | null
-          id?: string
-          position?: number
-          recipe_id: string
-          servings?: number
-          space_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          deleted_at?: string | null
-          id?: string
-          position?: number
-          recipe_id?: string
-          servings?: number
-          space_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "space_plan_meals_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "space_plan_meals_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      space_plan_shopping_lists: {
-        Row: {
-          checked_at: string | null
-          created_at: string | null
-          deleted_at: string | null
-          id: string
-          ingredient_id: string | null
-          meal_id: string | null
-          meal_origin: string | null
-          name: string | null
-          quantity: number | null
-          space_id: string
-          type: string
-          unit: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          checked_at?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          id?: string
-          ingredient_id?: string | null
-          meal_id?: string | null
-          meal_origin?: string | null
-          name?: string | null
-          quantity?: number | null
-          space_id: string
-          type: string
-          unit?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          checked_at?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          id?: string
-          ingredient_id?: string | null
-          meal_id?: string | null
-          meal_origin?: string | null
-          name?: string | null
-          quantity?: number | null
-          space_id?: string
-          type?: string
-          unit?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "space_plan_shopping_lists_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "space_plan_shopping_lists_meal_id_fkey"
-            columns: ["meal_id"]
-            isOneToOne: false
-            referencedRelation: "space_plan_meals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "space_plan_shopping_lists_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
