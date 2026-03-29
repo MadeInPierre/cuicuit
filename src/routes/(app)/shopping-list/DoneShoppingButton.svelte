@@ -6,13 +6,15 @@
 
 	type Props = {
 		onclick?: () => void;
+		class?: string;
 	};
-	let { onclick = () => {} }: Props = $props();
+	let { onclick = () => {}, class: className = '' }: Props = $props();
 
 	const activeSpace = getActiveSpaceState();
 </script>
 
 <Button
+	class={className}
 	variant="default"
 	onclick={async () => {
 		activeSpace.activePlanItems?.forEach((item) => {

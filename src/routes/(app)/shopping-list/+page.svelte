@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		type MealWithRecipeAndIngredients,
-		type ShoppingIngredient
-	} from '$lib/features/plans/queries/get-plan-meals';
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
-	import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
@@ -15,15 +10,11 @@
 		BetweenHorizonalEnd,
 		Calendar,
 		ChefHat,
-		Ellipsis,
 		Grid3x3,
 		House,
-		Lightbulb,
 		List,
 		PanelBottom,
-		Plus,
 		ShoppingBasket,
-		Shuffle,
 		User,
 		Users
 	} from 'lucide-svelte';
@@ -33,18 +24,13 @@
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
 	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
-	import type { ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
 	import { flip } from 'svelte/animate';
-	import ShoppingItemBadge from '$lib/features/recipes/components/ShoppingItemBadge.svelte';
 	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
-	import { onMount } from 'svelte';
 	import {
 		getShoppingRecommendations,
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
-	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
-	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
-	import { fade, slide } from 'svelte/transition';
+	import { slide } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import { type CombinedShoppingListItem, generateShoppingList } from './generate-shopping-list';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
@@ -52,9 +38,9 @@
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
 
-	const activeSpace = getActiveSpaceState();
-	const meals = $derived(activeSpace.activePlanMeals || []);
-	const items = $derived(activeSpace.activePlanItems || []);
+	const space = getActiveSpaceState();
+	const meals = $derived(space.activePlanMeals || []);
+	const items = $derived(space.activePlanItems || []);
 
 	const shoppingList: CombinedShoppingListItem[] = $derived(generateShoppingList(meals, items));
 
@@ -71,20 +57,15 @@
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
 		const originIdsToUpdate = shoppingItem.items.map((si) => si.id);
-		await Promise.all(
-			originIdsToUpdate.map((id) => updatePlanItemChecked(activeSpace, id, newChecked))
-		);
+		await Promise.all(originIdsToUpdate.map((id) => updatePlanItemChecked(space, id, newChecked)));
 	}
 
 	let rawShoppingRecommendations = $state<ShoppingRecommendation[] | undefined>(undefined);
 	let recentRecommendations = $state<Record<string, ShoppingRecommendation[]>>({});
 
 	async function refreshRecommendations() {
-		if (!activeSpace.id || !activeSpace.language) return;
-		const recommendations = await getShoppingRecommendations(
-			activeSpace.id,
-			activeSpace.language.lang
-		);
+		if (!space.id || !space.language) return;
+		const recommendations = await getShoppingRecommendations(space.id, space.language.lang);
 		rawShoppingRecommendations = recommendations;
 	}
 
@@ -105,44 +86,15 @@
 		) || []
 	);
 
-	onMount(refreshRecommendations);
-</script>
+	// Load recommendations on mount and when space changes
+	$effect(() => {
+		// Triggers
+		space.id;
+		space.language;
 
-{#snippet recommendations({
-	recs,
-	aisleKey,
-	limit = 4,
-	className = ''
-}: {
-	recs: ShoppingRecommendation[];
-	aisleKey: string;
-	limit?: number;
-	className?: string;
-})}
-	<div class="flex items-center gap-2 min-w-max">
-		{#each recs.slice(0, limit) as rec (rec.ingredient_id)}
-			<div animate:flip={{ duration: 300 }}>
-				<ShoppingItemBadge
-					ingredientId={rec.ingredient_id}
-					name={rec.name}
-					score={`Bought ${rec.score} time${rec.score > 1 ? 's' : ''}`}
-					class={cn('w-full', className)}
-					onclick={async () => {
-						await addShoppingItem(activeSpace, rec.ingredient_id, rec.name);
-					}}
-				></ShoppingItemBadge>
-			</div>
-		{:else}
-			{#if rawShoppingRecommendations === undefined}
-				{#each Array.from( { length: Math.max(1, Math.floor(Math.random() * limit) + 1) } ) as _, index (`empty-${aisleKey}-${index}`)}
-					<div animate:flip={{ duration: 300 }}>
-						<ShoppingItemBadge class={cn('w-full', className)} />
-					</div>
-				{/each}
-			{/if}
-		{/each}
-	</div>
-{/snippet}
+		refreshRecommendations();
+	});
+</script>
 
 <div class="space-y-6 pb-16 min-h-full">
 	<div class="flex items-center">
@@ -194,6 +146,8 @@
 					<span class="sr-only">Switch to aisle view</span>
 				{/if}
 			</Button>
+
+			<DoneShoppingButton onclick={refreshRecommendations} class="ml-auto" />
 		</div>
 
 		<Tabs.Content value="aisle" class="mt-8">
