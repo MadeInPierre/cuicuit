@@ -32,6 +32,7 @@
 	import SearchBar from './SearchBar.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];
@@ -46,6 +47,8 @@
 		discover: DiscoverKey;
 		filters: RecipeSearchFilters;
 	};
+
+	const space = getActiveSpaceState();
 
 	// Use a compact encoding: join arrays with ',' and separate keys with '|'
 	function encodeFilters(filters: RecipeSearchFilters): string {
@@ -101,7 +104,9 @@
 		filters: RecipeSearchFilters | null = null,
 		discover: DiscoverKey | null = null
 	) {
-		let query = getRecipesDetailed().limit(100);
+		if (!space.language) return [];
+
+		let query = getRecipesDetailed(space.language.id).limit(100);
 
 		if (searchText) {
 			// Remove accents from searchText
@@ -230,9 +235,13 @@
 	let _firstRun = $state(true);
 	$effect(() => {
 		// Trigger this effect when searchInput or filters change
+		space.language; // Rerun when the user's language changes
 		searchInput;
 		parameters.filters;
 		parameters.discover;
+
+		// Can't load if the active space hasn't loaded yet
+		if (!space.language) return;
 
 		// Show loading indicator on the search bar
 		if (searchInput) searchLoading = true;

@@ -388,7 +388,7 @@
 	view: 'grid' | 'list',
 	optional: boolean
 )}
-	<div class="w-full grid gap-2" class:grid-cols-3={view === 'grid'}>
+	<div class="w-full grid gap-2" class:grid-cols-2={view === 'grid'}>
 		{#each ingredients
 			.filter((i) => i.is_optional === optional)
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0)) || [] as ing (ing.ingredient_id)}
