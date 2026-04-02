@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/shared/components/ui/button';
-	import { Input } from '$lib/shared/components/ui/input';
+	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
 	import { cn } from '$lib/utils';
-	import { LoaderCircle, Search, X } from 'lucide-svelte';
+	import { Mic, SearchIcon, X } from 'lucide-svelte';
 
 	let { value = $bindable(''), loading = false, class: className = '', ...others } = $props();
 
@@ -13,36 +12,41 @@
 	}
 </script>
 
-<div class={cn('relative', className)}>
-	{#if loading}
-		<LoaderCircle
-			class="size-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10 animate-spin"
-			onclick={focusInput}
-		/>
-	{:else}
-		<Search
-			class="size-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10"
-			onclick={focusInput}
-		/>
-	{/if}
-
-	<Input
-		{...others}
-		type="text"
-		placeholder="Search recipes..."
-		class="pl-10 pr-3 py-2 border-inherit"
-		bind:value
-		bind:this={inputRef}
-	/>
-
+<InputGroup.Root
+	class={cn('h-9 bg-white dark:bg-muted border-none shadow-2xs', className)}
+	{...others}
+>
+	<InputGroup.Input class="" placeholder="Add item or recipe..." bind:value bind:this={inputRef} />
+	<InputGroup.Addon>
+		<SearchIcon />
+	</InputGroup.Addon>
 	{#if value}
-		<Button
-			size="icon"
-			variant="ghost"
-			class="size-6 absolute right-3 top-1/2 transform -translate-y-1/2 z-10"
-			onclick={() => (value = '')}
-		>
-			<X class="size-4" />
-		</Button>
+		<InputGroup.Addon align="inline-end">
+			<InputGroup.Button
+				aria-label="Clear search"
+				title="Clear search"
+				size="icon-xs"
+				onclick={() => {
+					value = '';
+					inputRef?.focus();
+				}}
+				tabindex={-1}
+			>
+				<X />
+			</InputGroup.Button>
+		</InputGroup.Addon>
+	{:else}
+		<InputGroup.Addon align="inline-end">
+			<InputGroup.Button
+				size="icon-xs"
+				onclick={() => {
+					value = '';
+					inputRef?.focus();
+				}}
+				tabindex={-1}
+			>
+				<Mic />
+			</InputGroup.Button>
+		</InputGroup.Addon>
 	{/if}
-</div>
+</InputGroup.Root>
