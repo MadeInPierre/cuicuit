@@ -1,9 +1,19 @@
+import { supabase } from '$lib/shared/db/supabase-client';
+import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
-import { toast } from 'svelte-sonner';
-import { onAuthSuccess } from './on-auth-success';
-import { supabase } from '$lib/shared/db/supabase-client';
-import { redirect } from '@sveltejs/kit';
+import {
+	AUTH_CONTEXT,
+	failHandled,
+	getAuthMethodLabel,
+	getLogMethodLabel,
+	handleUnknownAuthError,
+	isHandledAuthError
+} from './auth-error-utils';
+import { handleEmailPasswordAuth } from './handlers/email-password-handler';
+import { handleGoogleOAuth } from './handlers/google-oauth-handler';
+
+export { AuthMethod, LogMethod };
 
 /**
  * Sign up or log in the user with the given email and password.
@@ -20,118 +30,54 @@ export async function signupOrLogin(
 	password: string
 ): Promise<{ emailSent: boolean }> {
 	if (!supabase.auth) {
-		console.error('Error: Auth not found.');
+		console.error(`${AUTH_CONTEXT} Supabase auth client is not available.`);
 		throw new Error('Auth not found.');
 	}
+
+	const logMethodLabel = getLogMethodLabel(logMethod);
+	const authMethodLabel = getAuthMethodLabel(authMethod);
+	console.info(`${AUTH_CONTEXT} Starting ${logMethodLabel} with ${authMethodLabel}.`);
 
 	let emailSent = false;
 
 	try {
 		switch (authMethod) {
 			case AuthMethod.EMAIL_PASSWORD:
-				if (!email || !password) {
-					toast.error('Please enter and email and password to continue.');
-					throw new Error('Missing email or password.');
-				}
-
-				if (logMethod == LogMethod.SIGNUP) {
-					const { data, error } = await supabase.auth.signUp({ email, password });
-
-					if (error) {
-						if (error.code === 'user_already_exists') {
-							toast.error('User already exists. Please log in instead.');
-							throw new Error('User already exists.');
-						}
-						console.error('Error signing up:', error, error.code);
-						toast.error('Could not sign up. Please try again later.');
-						throw error;
-					}
-
-					emailSent = true;
-
-					if (data.user) {
-						// Create the user's preferences and public profile, redirect to the welcome page
-						onAuthSuccess(logMethod, authMethod, data.user);
-
-						// If supabase requires email verification, show a reminder
-						if (!data.session) {
-							toast.success('Verification email sent!', {
-								description: 'Please click on the link inside the email before logging in.'
-							});
-						}
-					}
-				} else if (logMethod == LogMethod.LOGIN) {
-					const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-					if (error) {
-						console.error('Error logging in:', error);
-						toast.error('Could not log in. Please check your credentials and try again.');
-						throw error;
-					}
-
-					if (data.user) {
-						onAuthSuccess(logMethod, authMethod, data.user);
-					} else {
-						toast.error('Could not retrieve user after login.');
-						throw new Error('User not found after login.');
-					}
-				}
-				break;
-			case AuthMethod.EMAIL_LINK:
-				// const actionCodeSettings = {
-				// 	url: 'https://cuicuit.vercel.app/finishSignUp',
-				// 	handleCodeInApp: true
-				// };
-
-				// await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-
-				// window.localStorage.setItem('emailForSignIn', email);
-
-				// toast.success('Email sent!', {
-				// 	description: 'Check your inbox and click on the link to sign in.'
-				// });
-
-				// emailSent = true;
+				emailSent = (
+					await handleEmailPasswordAuth({
+						logMethod,
+						authMethod,
+						email,
+						password,
+						logMethodLabel
+					})
+				).emailSent;
 				break;
 			case AuthMethod.GOOGLE:
-				// const googleCred = await signInWithPopup(auth, new GoogleAuthProvider());
-				const { data, error } = await supabase.auth.signInWithOAuth({
-					provider: 'google',
-					options: {
-						redirectTo: `${window.location.origin}/recipes`
-					}
+				await handleGoogleOAuth({
+					redirectTo: `${window.location.origin}/recipes`
 				});
-
-				if (error) {
-					console.error('Error signing in with Google:', error);
-					toast.error('Could not sign in with Google. Please try again later.');
-					throw error;
-				}
-
-				// Get the user
-				const {
-					data: { user }
-				} = await supabase.auth.getUser();
-
-				if (user) {
-					onAuthSuccess(logMethod, authMethod, user);
-				} else {
-					toast.error('Could not retrieve user after Google sign-in.');
-					throw new Error('User not found after Google sign-in.');
-				}
 				break;
+			case AuthMethod.EMAIL_LINK:
 			case AuthMethod.GITHUB:
-				// const githubCred = await signInWithPopup(auth, new GithubAuthProvider());
-				// onAuthSuccess(logMethod, authMethod, githubCred);
-				break;
 			case AuthMethod.ANONYMOUS:
-				// const anonCred = await signInAnonymously(auth);
-				// onAuthSuccess(logMethod, authMethod, anonCred);
+				failHandled(
+					`Auth method not implemented: ${authMethodLabel}.`,
+					'This sign-in method is not available yet.'
+				);
 				break;
+			default:
+				failHandled(
+					`Unknown auth method: ${String(authMethod)}.`,
+					'Unsupported authentication method.'
+				);
 		}
 	} catch (error) {
-		console.error("Couldn't sign up or log in:", error);
-		throw error;
+		if (isHandledAuthError(error)) {
+			throw error;
+		}
+
+		handleUnknownAuthError(error, logMethodLabel, authMethodLabel);
 	}
 
 	return {

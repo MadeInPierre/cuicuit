@@ -1,0 +1,99 @@
+import { toast } from 'svelte-sonner';
+import { onAuthSuccess } from '../on-auth-success';
+import { supabase } from '$lib/shared/db/supabase-client';
+import { AuthMethod } from '../../models/auth-method';
+import { LogMethod } from '../../models/log-method';
+import {
+	AUTH_CONTEXT,
+	assertEmailPasswordInputs,
+	failHandled,
+	getAuthErrorMessage,
+	isSupabaseErrorCode
+} from '../auth-error-utils';
+
+interface EmailPasswordArgs {
+	logMethod: LogMethod;
+	authMethod: AuthMethod;
+	email: string;
+	password: string;
+	logMethodLabel: string;
+}
+
+async function loginWithEmailPassword(
+	logMethod: LogMethod,
+	authMethod: AuthMethod,
+	email: string,
+	password: string
+): Promise<void> {
+	const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+	if (error) {
+		console.error(`${AUTH_CONTEXT} Login failed.`, error);
+		failHandled(
+			'Could not log in with email/password.',
+			getAuthErrorMessage(error, 'Could not log in. Please check your credentials and try again.')
+		);
+	}
+
+	if (!data.user) {
+		failHandled('Login succeeded but no user returned.', 'Could not retrieve user after login.');
+	}
+
+	await onAuthSuccess(logMethod, authMethod, data.user);
+}
+
+export async function handleEmailPasswordAuth({
+	logMethod,
+	authMethod,
+	email,
+	password,
+	logMethodLabel
+}: EmailPasswordArgs): Promise<{ emailSent: boolean }> {
+	assertEmailPasswordInputs(email, password);
+
+	if (logMethod === LogMethod.LOGIN) {
+		await loginWithEmailPassword(logMethod, authMethod, email, password);
+		return { emailSent: false };
+	}
+
+	if (logMethod !== LogMethod.SIGNUP) {
+		failHandled(
+			`Unsupported log method for EMAIL_PASSWORD flow: ${logMethodLabel}.`,
+			'This authentication mode is not available yet.'
+		);
+	}
+
+	const { data, error } = await supabase.auth.signUp({ email, password });
+
+	if (error) {
+		if (isSupabaseErrorCode(error, 'user_already_exists')) {
+			await loginWithEmailPassword(LogMethod.LOGIN, authMethod, email, password);
+			return { emailSent: false };
+		}
+
+		console.error(`${AUTH_CONTEXT} Sign-up failed.`, error);
+		failHandled(
+			'Could not sign up with email/password.',
+			getAuthErrorMessage(error, 'Could not sign up. Please try again later.')
+		);
+	}
+
+	if (!data.user) {
+		failHandled(
+			'Sign-up succeeded but no user returned.',
+			'Could not retrieve your account. Please try again.'
+		);
+	}
+
+	const emailSent = !data.session;
+
+	if (data.session) {
+		await onAuthSuccess(logMethod, authMethod, data.user);
+	} else {
+		toast.success('Verification email sent!', {
+			description: 'Please click on the link inside the email before logging in.'
+		});
+	}
+
+	return { emailSent };
+}

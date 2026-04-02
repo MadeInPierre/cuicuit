@@ -98,9 +98,9 @@
 					description: 'Please try again.'
 				});
 			} else {
-				toast.error('Something went wrong...', {
-					description: 'Please try again later.'
-				});
+				// toast.error('Something went wrong...', {
+				// 	description: 'Please try again later.'
+				// });
 			}
 		}
 	}

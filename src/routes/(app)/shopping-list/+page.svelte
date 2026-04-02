@@ -162,7 +162,7 @@
 						// Show aisles that have items or recommendations
 						.filter(([aisleKey]) => {
 							// Show all aisles while recommendations are loading
-							if (!rawShoppingRecommendations) return true;
+							// if (!rawShoppingRecommendations) return true;
 
 							if (checkedItemsLayout.value === 'bottom') {
 								// Show aisle if it has any unchecked items

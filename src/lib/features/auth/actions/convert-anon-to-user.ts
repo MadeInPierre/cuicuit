@@ -1,7 +1,8 @@
-import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import type { LogMethod } from '../models/log-method';
 import { onAuthSuccess } from './on-auth-success';
+import { supabase } from '$lib/shared/db/supabase-client';
+import { AUTH_CONTEXT, failHandled, getAuthErrorMessage } from './auth-error-utils';
 
 export async function convertAnonToUser(
 	logMethod: LogMethod,
@@ -9,42 +10,69 @@ export async function convertAnonToUser(
 	email: string,
 	password: string
 ) {
-	if (!auth) throw new Error('Auth not found.');
-	if (!auth.currentUser) throw new Error('Anonymous user must be logged in before convert.');
+	if (!supabase.auth) throw new Error('Auth not found.');
+
+	const {
+		data: { user: currentUser },
+		error: currentUserError
+	} = await supabase.auth.getUser();
+
+	if (currentUserError || !currentUser) {
+		failHandled(
+			'Anonymous conversion attempted without an authenticated user.',
+			'Please log in first.'
+		);
+	}
+
+	if (!currentUser.is_anonymous) {
+		failHandled(
+			'Anonymous conversion attempted for non-anonymous user.',
+			'Your account is already permanent.'
+		);
+	}
 
 	try {
 		switch (authMethod) {
 			case AuthMethod.EMAIL_PASSWORD:
-				if (!email || !password) {
-					toast.error('Please enter and email and password to continue.');
-					return;
+				if (!email.trim() || !password) {
+					failHandled(
+						'Missing email or password for anonymous conversion.',
+						'Please enter an email and password to continue.'
+					);
 				}
 
-				const credential = EmailAuthProvider.credential(email, password);
+				const { data, error } = await supabase.auth.updateUser({ email, password });
 
-				if (!credential) {
-					console.error("Couldn't create credential.");
-					return;
+				if (error) {
+					console.error(`${AUTH_CONTEXT} Anonymous conversion to email/password failed.`, error);
+					failHandled(
+						'Could not convert anonymous account to email/password.',
+						getAuthErrorMessage(error, 'Could not convert your account. Please try again later.')
+					);
 				}
 
-				const emailCred = await linkWithCredential(auth.currentUser, credential);
-				onAuthSuccess(logMethod, authMethod, emailCred);
+				if (!data.user) {
+					failHandled(
+						'Anonymous conversion succeeded but no user returned.',
+						'Could not retrieve your updated account. Please try again.'
+					);
+				}
+
+				await onAuthSuccess(logMethod, authMethod, data.user);
 				break;
 			case AuthMethod.GOOGLE:
-				const googleCred = await linkWithPopup(auth.currentUser, new GoogleAuthProvider());
-				onAuthSuccess(logMethod, authMethod, googleCred);
-				break;
 			case AuthMethod.GITHUB:
-				const githubCred = await linkWithPopup(auth.currentUser, new GithubAuthProvider());
-				onAuthSuccess(logMethod, authMethod, githubCred);
-				break;
+				failHandled(
+					`Anonymous conversion with provider ${AuthMethod[authMethod]} is not implemented.`,
+					'This conversion method is not available yet.'
+				);
 			case AuthMethod.EMAIL_LINK:
 			case AuthMethod.ANONYMOUS:
-				toast.error('Unsupported operation.');
+				failHandled('Unsupported anonymous conversion auth method.', 'Unsupported operation.');
 				break;
 		}
 	} catch (e) {
-		console.error('Error converting anonymous user to email/password:', e);
+		console.error(`${AUTH_CONTEXT} Error converting anonymous user to permanent account:`, e);
 		throw e;
 	}
 }
