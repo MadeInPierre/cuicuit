@@ -8,7 +8,7 @@
 	// import UserFullSignedOut from '$lib/stores/user-full-signed-out.svelte';
 </script>
 
-<div class="container flex max-w-(--breakpoint-2xl) items-center">
+<div class="container flex max-w-(--breakpoint-2xl) items-center px-6">
 	<!-- Left side (logo and links) -->
 	<NavDesktop />
 	<NavMobile />

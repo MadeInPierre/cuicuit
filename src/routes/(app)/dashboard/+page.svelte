@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	// TODO import { syncMode } from '$lib/shared/state/persistent-sync-mode.svelte';
 	import { jsonStringify } from '$lib/utils';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import { signOut } from '$lib/features/auth/actions/sign-out';
+	import { onMount } from 'svelte';
+	import { supabase } from '$lib/shared/db/supabase-client';
 
-	interface Props {
-		children?: import('svelte').Snippet;
-	}
-
-	let { children }: Props = $props();
+	onMount(async () => {
+		const { data, error } = await supabase.auth.getClaims();
+		if(data) console.log('Claims:', data);
+		if(error) console.error('Error fetching claims:', error);
+	});
 
 	const activeSpaceState = getActiveSpaceState();
 </script>

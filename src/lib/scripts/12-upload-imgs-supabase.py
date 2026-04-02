@@ -10,7 +10,7 @@ load_dotenv()
 
 # --- Supabase Configuration ---
 SUPABASE_URL = os.getenv("PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("PUBLIC_SUPABASE_ANON_KEY")
+SUPABASE_KEY = os.getenv("PUBLIC_SUPABASE_PUBLISHABLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise ValueError("Supabase URL and Key must be set in the .env file")
