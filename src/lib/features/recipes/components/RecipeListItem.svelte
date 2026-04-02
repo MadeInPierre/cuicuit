@@ -1,15 +1,16 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
-	import type { Recipe } from '../queries/get-recipe-detailed';
+	import { cn } from '$lib/utils';
 	import { Users } from 'lucide-svelte';
-	import RecipeImage from './RecipeImage.svelte';
 	import type { Snippet } from 'svelte';
+	import type { Recipe } from '../queries/get-recipe-detailed';
+	import RecipeImage from './RecipeImage.svelte';
 
 	interface Props {
 		recipe?: Recipe | null; // null for loading state
 		showServings?: boolean; // Whether to show servings count in collapsed view
 		endSnippet?: Snippet | null; // Optional snippet to render at the end of the item (e.g. for actions)
+		size?: 'md' | 'lg';
 		class?: string;
 		[key: string]: any; // Allow additional props (e.g. on:click)
 	}
@@ -18,6 +19,7 @@
 		recipe = null,
 		showServings = true,
 		endSnippet = null,
+		size = 'md',
 		class: className = '',
 		...others
 	}: Props = $props();
@@ -26,15 +28,21 @@
 {#if recipe}
 	<button
 		class={cn(
-			'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group transition-all',
+			'relative z-10 flex w-full items-center rounded-md bg-white p-2 shadow-2xs transition-all group dark:bg-muted gap-2',
+			size == 'lg' && 'rounded-lg gap-3 p-1.5 pr-4',
 			className
 		)}
 		{...others}
 	>
-		<RecipeImage {recipe} />
+		<RecipeImage {recipe} class={size == 'lg' ? 'size-16' : 'size-11'} />
 
 		<div class="grid">
-			<h3 class={cn('text-xs text-start font-semibold leading-tight mb-0.5 line-clamp-1')}>
+			<h3
+				class={cn(
+					'mb-0.5 line-clamp-1 text-start text-xs font-semibold leading-tight',
+					size == 'lg' && 'mb-1 text-sm'
+				)}
+			>
 				{recipe.title}
 			</h3>
 
@@ -42,10 +50,15 @@
 		</div>
 
 		{#if showServings}
-			<div class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0">
+			<div
+				class={cn(
+					'ml-auto flex shrink-0 items-center gap-1 text-xs font-semibold',
+					size == 'lg' && 'gap-1.5 text-sm'
+				)}
+			>
 				<div class="flex items-center gap-1">
 					<span>{recipe.servings}</span>
-					<Users class="size-3 inline-block" />
+					<Users class={cn('inline-block size-3', size == 'lg' && 'size-4')} />
 				</div>
 			</div>
 		{:else if endSnippet}
@@ -55,14 +68,20 @@
 {:else}
 	<div
 		class={cn(
-			'flex items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs animate-pulse',
+			'flex items-center rounded-md bg-white p-2 shadow-2xs animate-pulse dark:bg-muted space-x-2',
+			size == 'lg' && 'rounded-lg p-3 space-x-3',
 			className
 		)}
 	>
-		<div class="aspect-square size-11 rounded-md bg-gray-200"></div>
-		<div class="grid flex-1 w-full">
-			<div class="h-3 bg-gray-200 rounded w-3/4 mb-1"></div>
-			<div class="h-3 bg-gray-200 rounded w-1/2"></div>
+		<div
+			class={cn(
+				'aspect-square size-11 rounded-md bg-gray-200',
+				size == 'lg' && 'size-12 rounded-lg'
+			)}
+		></div>
+		<div class="grid w-full flex-1">
+			<div class={cn('mb-1 h-3 w-3/4 rounded bg-gray-200', size == 'lg' && 'h-4')}></div>
+			<div class={cn('h-3 w-1/2 rounded bg-gray-200', size == 'lg' && 'h-4')}></div>
 		</div>
 	</div>
 {/if}

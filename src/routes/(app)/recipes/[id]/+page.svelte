@@ -208,7 +208,7 @@
 							</div>
 						</div>
 
-						<div class="grid grid-cols-3 gap-6 justify-items-center">
+						<div class="grid grid-cols-2 mx-auto lg:grid-cols-3 lg:mx-0 gap-6 justify-items-center">
 							{#snippet recipeFilter(Icon: any, title: string, values: string[])}
 								<div class="flex gap-4 w-40">
 									<div class="min-w-10 h-10 bg-muted rounded-full flex items-center justify-center">
@@ -379,7 +379,7 @@
 	view: 'grid' | 'list',
 	optional: boolean
 )}
-	<div class="w-full grid gap-2" class:grid-cols-2={view === 'grid'}>
+	<div class="w-full grid gap-2" class:grid-cols-3={view === 'grid'}>
 		{#each ingredients
 			.filter((i) => i.is_optional === optional)
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0)) || [] as ing (ing.ingredient_id)}

@@ -63,7 +63,7 @@
 	</Sidebar.Header>
 
 	<Sidebar.Content class="p-4 no-scrollbar">
-		<PlanList />
+		<PlanList displayMode="sidebar" />
 	</Sidebar.Content>
 
 	<Sidebar.Footer>

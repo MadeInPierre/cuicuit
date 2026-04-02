@@ -1,15 +1,16 @@
 <script lang="ts">
-	import { Loader2 } from 'lucide-svelte';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { toast } from 'svelte-sonner';
-	import * as Dialog from '$lib/shared/components/ui/dialog';
-	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
-	import * as Form from '$lib/shared/components/ui/form';
-	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
-	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url';
 	import { goto } from '$app/navigation';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import * as Dialog from '$lib/shared/components/ui/dialog';
+	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
+	import { Loader2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
 
 	type Props = {
 		openDialog?: boolean;
@@ -30,19 +31,20 @@
 
 	let loading = $state(false);
 
+	const space = getActiveSpaceState();
+
 	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
 		loading = true;
 		try {
 			// Get the user
-			const userId = userState.user?.id;
-			if (!userId) {
+			if (!userState.user?.id) {
 				toast.error('You must be logged in to import a recipe.');
 				loading = false;
 				return;
 			}
 
 			// Import the recipe from the URL
-			const result = await importRecipeFromUrl(data.url, userId);
+			const result = await importRecipeFromUrl(space, data.url, userState.user.id);
 
 			// Navigate based on completeness
 			if (result.isComplete) {

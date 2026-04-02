@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { capitalize, cn } from '$lib/utils';
 	import {
 		Bookmark,
 		CalendarPlus,
@@ -7,16 +11,13 @@
 		Signal,
 		SignalHigh,
 		SignalLow,
-		SignalMedium
+		SignalMedium,
+		Users
 	} from 'lucide-svelte';
-	import { cn } from '$lib/utils';
-	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
 	import { toast } from 'svelte-sonner';
+	import type { Recipe } from '../queries/get-recipe-detailed';
 	import CookableStatus from './CookableStatus.svelte';
 	import RecipeImage from './RecipeImage.svelte';
-	import type { Recipe } from '../queries/get-recipe-detailed';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -157,7 +158,7 @@
 				<!-- <div class="text-xs text-muted-foreground flex items-center">
 					<span class="mr-4">{recipe.time_total_minutes}min</span>
 
-					<span class="mr-4">{capitalize(recipe.effort_level)} effort</span>
+					<span class="mr-4">{capitalize(recipe.effort_level)}</span>
 
 					<span>{recipe.servings}</span>
 					<Users class="size-3 inline-block ml-0.5 mr-4" />
