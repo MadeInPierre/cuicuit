@@ -25,7 +25,7 @@
 	>
 		<div
 			class={cn(
-				'w-full min-w-14 py-1 rounded-full flex items-center justify-center transition-colors',
+				'w-full min-w-14 py-1 rounded-full flex items-center justify-center transition-colors bg-transparent',
 				href && page.url.pathname.startsWith(href) && 'bg-primary/20 text-primary'
 			)}
 		>
@@ -50,7 +50,7 @@
 	</nav>
 {:else if style === 'float'}
 	<div
-		class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-background to-transparent md:hidden"
+		class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent md:hidden"
 	></div>
 	<!-- <div class="z-50 sticky bottom-28 mx-12 md:hidden">
 		<div
