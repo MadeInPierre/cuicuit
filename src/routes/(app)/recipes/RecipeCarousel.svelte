@@ -1,11 +1,9 @@
 <script lang="ts">
-	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
-	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
+	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
-	import { BellRing, Star, FunnelPlus } from 'lucide-svelte';
 
 	const { recipes }: { recipes: Recipe[] } = $props();
 
@@ -15,7 +13,7 @@
 	// Page size based on screen size
 	const media = useMedia();
 	const itemsPerPage = $derived.by(() => {
-		if (media['2xl']) return 5;
+		if (media['2xl']) return 6;
 		if (media.xl) return 5;
 		if (media.lg) return 4;
 		if (media.md) return 3;

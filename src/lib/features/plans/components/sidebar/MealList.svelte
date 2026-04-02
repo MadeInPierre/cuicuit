@@ -12,9 +12,10 @@
 
 	type Props = {
 		meals: MealWithRecipeAndIngredients[];
+		cardSize?: 'md' | 'lg';
 	};
 
-	let { meals }: Props = $props();
+	let { meals, cardSize = 'md' }: Props = $props();
 
 	const flipDurationMs = 200;
 
@@ -68,7 +69,7 @@
 					class="absolute -left-2 -translate-x-1.5 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
 				/>
 			</div>
-			<MealListItem {meal} showExpandedButtons />
+			<MealListItem {meal} showExpandedButtons size={cardSize} />
 		</div>
 	{/each}
 </section>

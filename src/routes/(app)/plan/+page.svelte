@@ -18,5 +18,5 @@
 
 	<!-- <Dial subtitle="Pears" min={0} max={12} step={0.25} initial={1} value={1} /> -->
 
-	<PlanList />
+	<PlanList displayMode="plan" />
 </div>

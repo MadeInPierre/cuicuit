@@ -20,11 +20,17 @@
 				icon: ChefHat,
 				isActive: page.url.pathname.startsWith('/recipes')
 			},
+			// {
+			// 	title: 'Meal plan',
+			// 	url: '/plan',
+			// 	icon: Calendar,
+			// 	isActive: page.url.pathname.startsWith('/plan')
+			// },
 			{
-				title: 'Meal plan',
-				url: '/plan',
-				icon: Calendar,
-				isActive: page.url.pathname.startsWith('/plan')
+				title: 'Cookbooks',
+				url: '/cookbooks',
+				icon: Notebook,
+				isActive: page.url.pathname.startsWith('/cookbooks')
 			},
 			{
 				title: 'Shopping list',
@@ -38,12 +44,6 @@
 				icon: Refrigerator,
 				isActive: page.url.pathname.startsWith('/pantry')
 			},
-			{
-				title: 'Cookbooks',
-				url: '/cookbooks',
-				icon: Notebook,
-				isActive: page.url.pathname.startsWith('/cookbooks')
-			}
 			// {
 			// 	title: 'Chat',
 			// 	url: '/chat',

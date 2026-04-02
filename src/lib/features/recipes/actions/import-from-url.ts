@@ -1,14 +1,15 @@
+import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import { capitalize } from '$lib/utils';
+import type { Database } from 'lucide-svelte';
 import type { ScraperResponse } from '../../../../routes/api/recipes/import-from-url/+server';
 import { enrichRecipe } from '../modules/enrich-recipe.remote';
 import { matchIngredients } from '../modules/parse-ingredients/match';
 import {
-    processIngredientStrings,
-    type IngredientProcessed
+	processIngredientStrings,
+	type IngredientProcessed
 } from '../modules/parse-ingredients/process';
-import { getLanguageId } from '../queries/get-language-id';
 import { createDraftRecipe } from './create-draft-recipe';
 import { uploadRecipeImage } from './upload-recipe-image';
 
@@ -24,9 +25,13 @@ import { uploadRecipeImage } from './upload-recipe-image';
  * and a boolean indicating if the data is complete.
  */
 export async function importRecipeFromUrl(
+	space: ActiveSpaceState,
 	url: string,
 	userId: string
 ): Promise<{ id: string; isComplete: boolean }> {
+	if (!space.language?.id) {
+		throw new Error('Active space does not have a language set.');
+	}
 	console.log('Importing URL:', url);
 
 	const response = await fetch('/api/recipes/import-from-url', {
@@ -43,14 +48,8 @@ export async function importRecipeFromUrl(
 		throw new Error('Failed to extract recipe data from the provided URL.');
 	}
 
-	const { data: languageIdData, error: languageIdError } = await getLanguageId(data.language);
-	if (languageIdError || !languageIdData?.id) {
-		throw new Error('Unsupported language for imported recipe.');
-	}
-	console.log('Detected language ID:', languageIdData.id);
-
 	// New Supabase-based implementation
-	const recipeId = await createDraftRecipe('website', languageIdData.lang);
+	const recipeId = await createDraftRecipe('website', space.language.id);
 
 	if (!recipeId) {
 		throw new Error('Failed to create draft recipe.');
@@ -77,7 +76,7 @@ export async function importRecipeFromUrl(
 		time_cook_minutes: parseInt(data.time.cook) || null,
 		time_rest_minutes: parseInt(data.time.rest) || null,
 		servings: parseInt(data.servings) || 4,
-		language_id: languageIdData?.id || 0,
+		language_id: space.language.id,
 		updated_at: new Date().toISOString(),
 		steps: data.instructions
 		// Ingredients will be handled separately
@@ -112,7 +111,7 @@ export async function importRecipeFromUrl(
 			enrichedRecipe.ingredients
 				.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
 				.map((p) => p.ingredientText || 'Unknown'),
-			languageIdData.lang
+			space.language.lang
 		);
 
 		// Abort if matching failed
@@ -167,7 +166,7 @@ export async function importRecipeFromUrl(
 		// Fallback to locally processing the ingredients
 		processedIngredients = await processIngredientStrings(
 			data.ingredients.flatMap((group) => group.ingredients), // TODO support groups
-			languageIdData.lang
+			space.language.lang
 		);
 	}
 

@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { Check, Plus, ShoppingBasket, Trash2, Weight } from 'lucide-svelte';
-	import { cn } from '$lib/utils';
-	import { Button } from '$lib/shared/components/ui/button';
-	import { deleteMeal, updateMealServings } from '../actions/update-meal';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
+	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
+	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
+	import { Check, Plus, ShoppingBasket, Trash2, Weight } from 'lucide-svelte';
+	import { fade, slide } from 'svelte/transition';
+	import { deleteMeal, updateMealServings } from '../actions/update-meal';
+	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 	import {
 		hoveredMealIngredient,
 		selectedMealIngredient
 	} from '../state/hovered-meal-ingredient.svelte';
-	import { fade, slide } from 'svelte/transition';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
-	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
 
 	const space = getActiveSpaceState();
 
@@ -22,14 +22,16 @@
 		meal?: MealWithRecipeAndIngredients | null; // null for loading state
 		showServings?: boolean; // Whether to show servings count in collapsed view
 		showExpandedButtons?: boolean;
+		size?: 'md' | 'lg';
 		class?: string;
 	}
 
 	let {
 		meal = null,
-		class: className = '',
 		showServings = true,
-		showExpandedButtons = false
+		showExpandedButtons = false,
+		size = 'md',
+		class: className = ''
 	}: Props = $props();
 
 	let activeId = $derived(
@@ -58,6 +60,7 @@
 		<RecipeListItem
 			recipe={meal.recipe}
 			showServings={(!expanded || !showExpandedButtons) && !(hovered || selected) && showServings}
+			{size}
 			class={cn(hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60', className)}
 			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
 			aria-expanded={expanded}
@@ -83,64 +86,6 @@
 				{/if}
 			{/snippet}
 		</RecipeListItem>
-
-		<!-- <button
-			class={cn(
-				'flex z-10 w-full items-center p-2 space-x-2 bg-white dark:bg-muted rounded-md shadow-2xs relative group transition-all',
-
-				hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60',
-
-				className
-			)}
-			
-		>
-			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
-				<RecipeImage recipe={meal.recipe} class="aspect-square size-10 rounded-md object-cover" />
-			{:else}
-				<div class="aspect-square size-10 bg-gray-200 rounded-md"></div>
-			{/if}
-
-			<div class="grid">
-				<h3
-					class={cn(
-						'text-xs text-start font-semibold leading-tight mb-0.5 line-clamp-1',
-						meal.deleted_at && 'line-through text-muted-foreground'
-					)}
-				>
-					{meal.recipe.title}
-				</h3>
-
-				<CookableStatus />
-			</div>
-
-			{#if hovered || selected}
-				<div
-					class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto"
-					in:fade={{ duration: 200 }}
-				>
-					<IngredientImage id={activeId} class="size-7 rounded-full" />
-
-					<span>
-						{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ||
-							''}
-						{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ===
-						'whole'
-							? ''
-							: meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit || ''}
-					</span>
-				</div>
-			{:else if showServings && (!expanded || !showExpandedButtons)}
-				<div
-					class="flex gap-1 items-center text-xs font-semibold ml-auto shrink-0"
-					in:fade={{ duration: 200 }}
-				>
-					<div class="flex items-center gap-1">
-						<span>{meal.servings}</span>
-						<Users class="size-3 inline-block" />
-					</div>
-				</div>
-			{/if}
-		</button> -->
 
 		{#if expanded}
 			<div

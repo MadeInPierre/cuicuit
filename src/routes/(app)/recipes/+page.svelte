@@ -1,36 +1,36 @@
 <script lang="ts">
-	import { Separator } from '$lib/shared/components/ui/separator';
-	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
-	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
-	import {
-		getRecipesDetailed,
-		type RecipeDetailed
-	} from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { Button } from '$lib/shared/components/ui/button';
-	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
-	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
-	import FilterButton from './FilterButton.svelte';
-	import DiscoverDial from './DiscoverDial.svelte';
-	import { slide } from 'svelte/transition';
-	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import FilterDropdown from './FilterSelect.svelte';
+	import { page } from '$app/state';
+	import {
+		recipeCoursesSectionHeaders,
+		recipeCuisineSectionHeaders,
+		recipeTimesOfDaySectionHeaders
+	} from '$lib/features/recipes/components/consts';
+	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
+	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import {
 		recipeCourses,
 		recipeCuisines,
 		recipeTimesOfDay
 	} from '$lib/features/recipes/db/recipe-doc';
 	import {
-		recipeCoursesSectionHeaders,
-		recipeCuisineSectionHeaders,
-		recipeTimesOfDaySectionHeaders
-	} from '$lib/features/recipes/components/consts';
-	import { RotateCcw } from '@lucide/svelte';
-	import SearchBar from './SearchBar.svelte';
-	import FilterButtonMulti from './FilterButtonMulti.svelte';
-	import RecipeCarousel from './RecipeCarousel.svelte';
+		getRecipesDetailed,
+		type RecipeDetailed
+	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { Separator } from '$lib/shared/components/ui/separator';
+	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { RotateCcw } from '@lucide/svelte';
+	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
+	import { slide } from 'svelte/transition';
+	import DiscoverDial from './DiscoverDial.svelte';
+	import FilterButton from './FilterButton.svelte';
+	import FilterButtonMulti from './FilterButtonMulti.svelte';
+	import FilterDropdown from './FilterSelect.svelte';
+	import RecipeCarousel from './RecipeCarousel.svelte';
+	import SearchBar from './SearchBar.svelte';
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];
@@ -250,7 +250,7 @@
 </script>
 
 <div class="space-y-8 pb-16 min-h-full">
-	<div class="space-y-6">
+	<div class="space-y-6 mb-12">
 		<div class="flex items-center">
 			<div class="grid space-y-0.5">
 				<div class="flex gap-6 items-center">
@@ -355,7 +355,7 @@
 			</div>
 		</div>
 
-		<Separator class="my-6" />
+		<Separator />
 	</div>
 
 	{#if loading}

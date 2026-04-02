@@ -119,4 +119,4 @@ export const importRecipeUrlSchema = z.object({
 	url: z.string().url({ message: 'Oops, please enter a valid URL.' })
 });
 
-export type importRecipeUrlSchema = typeof importRecipeUrlSchema;
+export type ImportRecipeUrlSchema = typeof importRecipeUrlSchema;
