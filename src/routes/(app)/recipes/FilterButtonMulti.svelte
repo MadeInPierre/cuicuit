@@ -77,7 +77,7 @@
 						{...props}
 						variant="secondary"
 						class={cn(
-							'h-7 rounded-r-sm rounded-l-none px-1 font-normal bg-accent dark:text-accent-foreground dark:hover:bg-accent/60',
+							'h-7 rounded-r-sm rounded-l-none px-1 font-normal bg-accent dark:text-accent-foreground dark:hover:bg-accent/60 shadow-none',
 							values.length > 0 &&
 								'bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 text-white'
 						)}

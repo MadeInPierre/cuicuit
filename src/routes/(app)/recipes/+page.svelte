@@ -25,7 +25,6 @@
 	import { RotateCcw } from '@lucide/svelte';
 	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
-	import DiscoverDial from './DiscoverDial.svelte';
 	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
 	import FilterDropdown from './FilterSelect.svelte';
@@ -282,12 +281,12 @@
 						<Funnel />
 					</Button> -->
 
-					<DiscoverDial
+					<!-- <DiscoverDial
 						value={parameters.discover}
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
-					/>
+					/> -->
 
-					<SearchBar class="h-10 w-40 2xl:w-80" bind:value={searchInput} loading={searchLoading} />
+					<SearchBar class="w-40 2xl:w-80" bind:value={searchInput} loading={searchLoading} />
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
@@ -349,7 +348,7 @@
 					<FilterButton text="Cookable" />
 					<FilterButton text="My Recipes" />
 					<FilterButton text="Expire soon" class="hidden lg:flex" />
-					<FilterButton text="Quick & Easy" class="hidden 2xl:flex" />
+					<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
 					<FilterButton icon={FunnelPlus} primary />
 				</div>
 			</div>

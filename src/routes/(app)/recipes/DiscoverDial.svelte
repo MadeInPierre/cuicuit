@@ -11,10 +11,10 @@
 	let { value = $bindable('familiar'), onChange = () => {}, class: className = '' }: Props = $props();
 </script>
 
-<div class={cn("h-10 px-[3px] flex items-center gap-0.5 border rounded-md", className)}>
+<div class={cn("h-9 px-[3px] flex items-center gap-0.5 border rounded-md", className)}>
 	{#snippet button(key: 'familiar' | 'mixed' | 'discover', className: string = '')}
 		<Button
-			class={cn('h-8 rounded-sm font-normal', value === key && '', className)}
+			class={cn('h-7 rounded-sm font-normal', value === key && '', className)}
 			variant={value === key ? 'secondary' : 'ghost'}
 			onclick={() => {
 				value = key;
