@@ -8,6 +8,9 @@
 	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import MobileBottomNavbar from '$lib/shared/components/mobile-bottom-navbar.svelte';
+	import { onMount } from 'svelte';
+	import { supabase } from '$lib/shared/db/supabase-client';
+	import { redirect } from '@sveltejs/kit';
 
 	// Initialize the active space state, this will create a persistent state
 	// that will be used to store the active space and its related data

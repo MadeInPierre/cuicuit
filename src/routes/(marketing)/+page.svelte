@@ -23,7 +23,7 @@
 	}
 </script>
 
-<div class="container">
+<div class="container mx-auto">
 	<PageHeader.Root class="relative pb-8">
 		<div
 			class={cn(
@@ -64,7 +64,7 @@
 	</PageHeader.Root>
 </div>
 
-<div class="container mb-40 text-center md:max-w-lg">
+<div class="container mx-auto mb-40 text-center md:max-w-lg">
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<img

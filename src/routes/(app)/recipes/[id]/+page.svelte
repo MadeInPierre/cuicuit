@@ -21,12 +21,9 @@
 		recipeTimesOfDay
 	} from '$lib/features/recipes/db/recipe-doc';
 	import { page } from '$app/state';
-	import * as Card from '$lib/shared/components/ui/card/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
-	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import {
 		getRecipeDetailed,
 		type RecipeDetailedWithAuthor,
@@ -37,6 +34,7 @@
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
+	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
 	const space = getActiveSpaceState();
@@ -126,17 +124,10 @@
 							<Carousel.Content>
 								{#each recipe.image_ids || [] as imgId, i (imgId)}
 									<Carousel.Item>
-										<Card.Root>
-											<img
-												src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${pageRecipeId}/${imgId}`}
-												alt="Recipe"
-												class="w-full aspect-[1.618] object-cover rounded-md"
-												onerror={(e) => {
-													(e.currentTarget as HTMLImageElement).src =
-														`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${pageRecipeId}/${imgId}`;
-												}}
-											/>
-										</Card.Root>
+										<RecipeImage
+											{recipe}
+											class="w-full aspect-[1.618] object-cover rounded-md size-auto"
+										/>
 									</Carousel.Item>
 								{/each}
 							</Carousel.Content>

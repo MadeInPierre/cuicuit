@@ -95,18 +95,7 @@
 			
 		>
 			{#if meal.recipe.image_ids && meal.recipe.image_ids.length > 0}
-				<img
-					use:dragHandle
-					src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`}
-					alt="Recipe"
-					class="aspect-square size-11 rounded-md object-cover"
-					onerror={(e) => {
-						if (meal.recipe.image_ids && meal.recipe.image_ids[0]) {
-							(e.currentTarget as HTMLImageElement).src =
-								`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${meal.recipe.id}/${meal.recipe.image_ids[0]}`;
-						}
-					}}
-				/>
+				<RecipeImage recipe={meal.recipe} class="aspect-square size-10 rounded-md object-cover" />
 			{:else}
 				<div class="aspect-square size-10 bg-gray-200 rounded-md"></div>
 			{/if}

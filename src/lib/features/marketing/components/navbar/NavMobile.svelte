@@ -14,7 +14,7 @@
 	<Sheet.Trigger>
 		<Button
 			variant="ghost"
-			class="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+			class="mr-2 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
 		>
 			<Icons.Hamburger class="h-5 w-5" />
 			<span class="sr-only">Toggle Menu</span>

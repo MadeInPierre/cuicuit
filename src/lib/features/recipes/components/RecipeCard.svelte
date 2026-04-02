@@ -7,24 +7,21 @@
 		Signal,
 		SignalHigh,
 		SignalLow,
-		SignalMedium,
-		Star,
-		Users
+		SignalMedium
 	} from 'lucide-svelte';
-	import { capitalize, cn } from '$lib/utils';
-	import type { Tables } from '$lib/shared/db/supabase.types';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { cn } from '$lib/utils';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import CookableStatus from './CookableStatus.svelte';
-	import CardBookmark from '$lib/shared/icons/card-bookmark.svelte';
+	import RecipeImage from './RecipeImage.svelte';
+	import type { Recipe } from '../queries/get-recipe-detailed';
 
 	const activeSpace = getActiveSpaceState();
 
 	interface Props {
-		recipe?: Tables<'recipes'> | null; // Allow recipe to be null for loading state
+		recipe?: Recipe | null; // Allow recipe to be null for loading state
 		showAddToPlanButton?: boolean; // Optional prop to control visibility of Add to Plan button
 		class?: string;
 	}
@@ -46,21 +43,8 @@
 							<ChefHat class="size-12 text-muted-foreground" />
 						</div>
 					{/if}
-					<img
-						src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
-						alt={recipe.title}
-						class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-10"
-						onload={(e) => {
-							const placeholder = (e.currentTarget as HTMLImageElement).previousElementSibling;
-							if (placeholder) placeholder.remove();
-						}}
-						onerror={(e) => {
-							if (recipe.image_ids && recipe.image_ids[0]) {
-								(e.currentTarget as HTMLImageElement).src =
-									`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`;
-							}
-						}}
-					/>
+
+					<RecipeImage {recipe} class="absolute inset-0 w-full h-full object-cover" />
 				</a>
 
 				{#if recipe.source_type === 'website'}
