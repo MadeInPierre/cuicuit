@@ -92,11 +92,11 @@
 		{#each pages as page, i (i)}
 			<Carousel.Item class="">
 				<div
-					class="grid"
+					class="grid gap-4"
 					style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(${rowsPerPage}, auto);`}
 				>
 					{#each page as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
-						<RecipeCard {recipe} showAddToPlanButton class="p-2" />
+						<RecipeCard {recipe} showAddToPlanButton />
 
 						<!-- <div
 							class="grid space-y-1 p-2 mb-4 rounded-2xl bg-gradient-to-br from-amber-200/60 to-amber-200 dark:from-amber-900/90 dark:to-amber-900 group"
