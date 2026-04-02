@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Plus, Shuffle } from 'lucide-svelte';
-	import { Button } from '$lib/shared/components/ui/button';
-	import { cn } from '$lib/utils';
-	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
-	import { fade } from 'svelte/transition';
 	import { type ShoppingRecommendation } from '$lib/features/spaces/queries/get-shopping-recommendations';
+	import { Button } from '$lib/shared/components/ui/button';
+	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
+	import { cn } from '$lib/utils';
+	import { Plus, Shuffle } from 'lucide-svelte';
+	import { fade } from 'svelte/transition';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 
 	type Props = {

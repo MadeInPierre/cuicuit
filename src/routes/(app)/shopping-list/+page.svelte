@@ -1,11 +1,22 @@
 <script lang="ts">
+	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
+	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
+	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
+	import {
+		getShoppingRecommendations,
+		type ShoppingRecommendation
+	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
+	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
-	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
-	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { cn } from '$lib/utils';
 	import {
 		BetweenHorizonalEnd,
 		Calendar,
@@ -18,25 +29,14 @@
 		User,
 		Users
 	} from 'lucide-svelte';
-	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
-	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { cn } from '$lib/utils';
-	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
 	import { flip } from 'svelte/animate';
-	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
-	import {
-		getShoppingRecommendations,
-		type ShoppingRecommendation
-	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { slide } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import { type CombinedShoppingListItem, generateShoppingList } from './generate-shopping-list';
-	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
-	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
-	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
+	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
+	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
+	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
 
 	const space = getActiveSpaceState();
 	const meals = $derived(space.activePlanMeals || []);
@@ -289,7 +289,7 @@
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<div
 					class="flex group"
-					animate:flip={{ duration: 300 }}
+					animate:flip={{ duration: 200 }}
 					onmouseenter={() => {
 						if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
 						if (!item.ingredient) return; // No hover state for manual items

@@ -1,14 +1,13 @@
 import { supabase } from '$lib/shared/db/supabase-client';
-import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
 import {
-	AUTH_CONTEXT,
-	failHandled,
-	getAuthMethodLabel,
-	getLogMethodLabel,
-	handleUnknownAuthError,
-	isHandledAuthError
+    AUTH_CONTEXT,
+    failHandled,
+    getAuthMethodLabel,
+    getLogMethodLabel,
+    handleUnknownAuthError,
+    isHandledAuthError
 } from './auth-error-utils';
 import { handleEmailPasswordAuth } from './handlers/email-password-handler';
 import { handleGoogleOAuth } from './handlers/google-oauth-handler';

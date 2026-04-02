@@ -1,4 +1,4 @@
-import { User, Lock, Users, Scroll, ScanLine, LayoutDashboard, Bell, House } from 'lucide-svelte';
+import { Bell, House, LayoutDashboard, Lock, ScanLine, Scroll, User, Users } from 'lucide-svelte';
 
 export type NavLink = {
 	href: string; // Link to the page
@@ -7,7 +7,7 @@ export type NavLink = {
 	startPath?: string; // Optionally specify a different value than href for startsWith
 	className?: string; // Optional additional tailwind classes
 	icon?: any; // Custom icon to be displayed alongside (e.g. command menu, user settings sidebar)
-}
+};
 
 export const navLinksMarketing: NavLink[] = [
 	{

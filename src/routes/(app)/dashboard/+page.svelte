@@ -1,17 +1,18 @@
 <script lang="ts">
+	import { signOut } from '$lib/features/auth/actions/sign-out';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { jsonStringify } from '$lib/utils';
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
-	import { signOut } from '$lib/features/auth/actions/sign-out';
-	import { onMount } from 'svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
+	import { jsonStringify } from '$lib/utils';
+	import { onMount } from 'svelte';
+	import SyncStatus from './SyncStatus.svelte';
 
 	onMount(async () => {
 		const { data, error } = await supabase.auth.getClaims();
-		if(data) console.log('Claims:', data);
-		if(error) console.error('Error fetching claims:', error);
+		if (data) console.log('Claims:', data);
+		if (error) console.error('Error fetching claims:', error);
 	});
 
 	const activeSpaceState = getActiveSpaceState();
@@ -30,13 +31,7 @@
 	<div class="flex gap-2 items-center m-2">
 		<ButtonThemed onclick={signOut}>Sign out</ButtonThemed>
 
-		<!-- <ButtonThemed
-			onclick={() => {
-				syncMode.toggle();
-			}}
-		>
-			{syncMode.mode}
-		</ButtonThemed> -->
+		<SyncStatus status="offline" />
 	</div>
 
 	<pre class="w-[800px] overflow-hidden mb-8 rounded-md p-4 bg-muted">User Auth: {jsonStringify(

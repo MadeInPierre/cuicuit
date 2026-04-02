@@ -194,7 +194,7 @@
 				!processedIngredient}
 			class:h-80={displayRows === 3 &&
 				(processedIngredient?.matches.length ?? 0) > displayColumns * 2}
-			transition:slide
+			transition:slide={{ duration: 200 }}
 		>
 			{#if processedIngredient}
 				<div

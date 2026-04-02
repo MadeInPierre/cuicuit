@@ -1,4 +1,3 @@
-import type { Unit } from '$lib/shared/utils/quantity';
 
 // Oven, Microwave, Stove, Fridge, Freezer, Blender, Mixer, Food processor, Toaster, Grill,
 // Pressure cooker, Slow cooker, Rice cooker, Steamer, Coffee maker, Kettle, Juicer, Scale,

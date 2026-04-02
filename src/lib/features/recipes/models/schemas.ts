@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { languageKeys } from '$lib/features/user-settings/consts';
+import { z } from 'zod';
 
 export const createRecipeFormSchema = z
 	.object({
@@ -119,4 +119,4 @@ export const importRecipeUrlSchema = z.object({
 	url: z.string().url({ message: 'Oops, please enter a valid URL.' })
 });
 
-export type ImportRecipeUrlSchema = typeof importRecipeUrlSchema;
+export type importRecipeUrlSchema = typeof importRecipeUrlSchema;

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
+	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from 'lucide-svelte';
-	import { deletePlanItem } from '../actions/update-item';
 	import { flip } from 'svelte/animate';
+	import { deletePlanItem } from '../actions/update-item';
 	import { selectedMealIngredient } from '../state/hovered-meal-ingredient.svelte';
 
 	const activeSpace = getActiveSpaceState();
@@ -94,7 +95,8 @@
 
 				{#if independentItems && independentItems.length > 0}
 					<div
-						class="pt-2 relative grid grid-cols-3 gap-2 max-h-[380px] pb-2 overflow-x-visible overflow-y-clip"
+						class="pt-2 relative grid grid-cols-1 gap-2 max-h-[380px] pb-2 overflow-x-visible overflow-y-clip"
+						class:grid-cols-3={!selectedMealIngredient.value?.id}
 					>
 						{#if independentItems && independentItems.length > 9}
 							<div
@@ -103,18 +105,33 @@
 						{/if}
 
 						{#each independentItems as item (item.id)}
-							<div animate:flip={{ duration: 300 }}>
-								<ShoppingItemCardGrid
-									ingredient={item.ingredient!}
-									description={item.name}
-									amount={item.quantity}
-									unit={item.unit === 'whole' ? '' : item.unit || ''}
-									size="sm"
-									onclick={async () => {
-										// TODO add edit functionality (quantity, unit, name)
-										await deletePlanItem(activeSpace, item.id);
-									}}
-								/>
+							<div animate:flip={{ duration: 200 }}>
+								{#if !selectedMealIngredient.value?.id}
+									<ShoppingItemCardGrid
+										ingredient={item.ingredient!}
+										description={item.name}
+										amount={item.quantity}
+										unit={item.unit === 'whole' ? '' : item.unit || ''}
+										size="sm"
+										onclick={async () => {
+											// TODO add edit functionality (quantity, unit, name)
+											await deletePlanItem(activeSpace, item.id);
+										}}
+									/>
+								{:else}
+									<ShoppingItemCardList
+										ingredient={item.ingredient!}
+										description={item.name}
+										amount={item.quantity}
+										unit={item.unit === 'whole' ? '' : item.unit || ''}
+										size="sm"
+										onclick={async () => {
+											await deletePlanItem(activeSpace, item.id);
+										}}
+									>
+										<span class="text-muted-foreground text-xs">2d ago by @pieru-chan</span>
+									</ShoppingItemCardList>
+								{/if}
 							</div>
 						{/each}
 					</div>

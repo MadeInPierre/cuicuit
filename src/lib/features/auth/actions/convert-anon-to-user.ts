@@ -1,8 +1,8 @@
+import { supabase } from '$lib/shared/db/supabase-client';
 import { AuthMethod } from '../models/auth-method';
 import type { LogMethod } from '../models/log-method';
-import { onAuthSuccess } from './on-auth-success';
-import { supabase } from '$lib/shared/db/supabase-client';
 import { AUTH_CONTEXT, failHandled, getAuthErrorMessage } from './auth-error-utils';
+import { onAuthSuccess } from './on-auth-success';
 
 export async function convertAnonToUser(
 	logMethod: LogMethod,

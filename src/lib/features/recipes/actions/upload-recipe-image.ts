@@ -1,5 +1,5 @@
-import { toast } from 'svelte-sonner';
 import { supabase } from '$lib/shared/db/supabase-client';
+import { toast } from 'svelte-sonner';
 
 function generateUuid() {
 	const c = globalThis.crypto;
@@ -8,7 +8,7 @@ function generateUuid() {
 	}
 
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-		const r = Math.random() * 16 | 0;
+		const r = (Math.random() * 16) | 0;
 		const v = char === 'x' ? r : (r & 0x3) | 0x8;
 		return v.toString(16);
 	});

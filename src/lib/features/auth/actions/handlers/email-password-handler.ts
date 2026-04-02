@@ -1,15 +1,13 @@
-import { toast } from 'svelte-sonner';
-import { onAuthSuccess } from '../on-auth-success';
 import { supabase } from '$lib/shared/db/supabase-client';
+import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../../models/auth-method';
 import { LogMethod } from '../../models/log-method';
 import {
-	AUTH_CONTEXT,
-	assertEmailPasswordInputs,
-	failHandled,
-	getAuthErrorMessage,
-	isSupabaseErrorCode
+    assertEmailPasswordInputs, AUTH_CONTEXT, failHandled,
+    getAuthErrorMessage,
+    isSupabaseErrorCode
 } from '../auth-error-utils';
+import { onAuthSuccess } from '../on-auth-success';
 
 interface EmailPasswordArgs {
 	logMethod: LogMethod;

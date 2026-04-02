@@ -1,11 +1,11 @@
 <script lang="ts">
-	import IngredientImage from './IngredientImage.svelte';
-	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
-	import NumberFlow from '@number-flow/svelte';
-	import { Circle, CircleCheckBig } from 'lucide-svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import NumberFlow from '@number-flow/svelte';
+	import { Circle, CircleCheckBig } from 'lucide-svelte';
+	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
+	import IngredientImage from './IngredientImage.svelte';
 
 	type Props = {
 		ingredient: RecipeIngredientWithTranslations | null;
@@ -74,21 +74,23 @@
 		{@render children?.()}
 	</div>
 
-	<Button
-		size="icon"
-		variant="ghost"
-		class={cn('ml-auto mt-1 size-10 rounded-full')}
-		onclick={() => {
-			checked = !checked;
-			onCheckedChange(checked);
-		}}
-	>
-		{#if checked}
-			<CircleCheckBig class="size-5 text-muted-foreground" />
-		{:else}
-			<Circle class="size-5 text-muted-foreground/60" />
-		{/if}
-	</Button>
+	{#if checkable}
+		<Button
+			size="icon"
+			variant="ghost"
+			class={cn('ml-auto mt-1 size-10 rounded-full')}
+			onclick={() => {
+				checked = !checked;
+				onCheckedChange(checked);
+			}}
+		>
+			{#if checked}
+				<CircleCheckBig class="size-5 text-muted-foreground" />
+			{:else}
+				<Circle class="size-5 text-muted-foreground/60" />
+			{/if}
+		</Button>
+	{/if}
 </div>
 
 <style>

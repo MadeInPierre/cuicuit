@@ -1,7 +1,7 @@
 import type { ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
 import type {
-	MealWithRecipeAndIngredients,
-	ShoppingIngredient
+    MealWithRecipeAndIngredients,
+    ShoppingIngredient
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 

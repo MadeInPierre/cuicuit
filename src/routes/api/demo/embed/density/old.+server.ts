@@ -4,10 +4,10 @@
  * using the script src/lib/scripts/generate-density-embeddings.ts).
  */
 
-import type { IngredientDensities } from '$lib/scripts/generate-density-embeddings.js';
 import { HUGGINGFACE_API_KEY } from '$env/static/private';
-import { HfInference } from '@huggingface/inference';
+import type { IngredientDensities } from '$lib/scripts/generate-density-embeddings.js';
 import { cosineSimilarity } from '$lib/utils';
+import { HfInference } from '@huggingface/inference';
 import { json } from '@sveltejs/kit';
 
 // TODO

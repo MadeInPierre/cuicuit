@@ -1,7 +1,7 @@
 import { supabase } from '$lib/shared/db/supabase-client';
 import type { User } from '@supabase/supabase-js';
-import { getUserPublicProfile, type UserPublicProfile } from '../queries/get-user-public-profile';
 import { getUserPreferences, type UserPreferences } from '../queries/get-user-preferences';
+import { getUserPublicProfile, type UserPublicProfile } from '../queries/get-user-public-profile';
 
 function createUserState() {
 	if (!supabase) throw new Error('Supabase client not available');

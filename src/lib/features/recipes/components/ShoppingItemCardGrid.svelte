@@ -1,14 +1,13 @@
 <script lang="ts">
-	import IngredientImage from './IngredientImage.svelte';
-	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
-	import { cn } from '$lib/utils';
-	import Button from '$lib/shared/components/ui/button/button.svelte';
-	import { CircleCheckBig, Circle, PanelLeft, PanelLeftClose } from 'lucide-svelte';
 	import {
 		hoveredMealIngredient,
 		selectedMealIngredient
 	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import { cn } from '$lib/utils';
+	import { PanelLeft, PanelLeftClose } from 'lucide-svelte';
+	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
+	import IngredientImage from './IngredientImage.svelte';
 
 	type Props = {
 		// Ingredient
