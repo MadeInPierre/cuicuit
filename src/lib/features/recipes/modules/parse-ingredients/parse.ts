@@ -12,11 +12,11 @@
  * - "sugar" (no quantity)
  */
 import {
-	unitSchema,
-	volumeAliases,
-	weightAliases,
-	wholeAliases,
-	type Unit
+    unitSchema,
+    volumeAliases,
+    weightAliases,
+    wholeAliases,
+    type Unit
 } from '$lib/shared/utils/quantity';
 import { z } from 'zod';
 

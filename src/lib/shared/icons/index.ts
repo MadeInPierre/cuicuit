@@ -22,22 +22,22 @@ import Trash from 'lucide-svelte/icons/trash';
 import User from 'lucide-svelte/icons/user';
 import X from 'lucide-svelte/icons/x';
 
+import type { SvelteComponent } from 'svelte';
 import Apple from './apple.svelte';
 import Aria from './aria.svelte';
+import CardBookmark from './card-bookmark.svelte';
+import CloudCheck from './cloud-check.svelte';
 import GitHub from './github.svelte';
 import Google from './google.svelte';
+import Hamburger from './hamburger.svelte';
 import Logo from './logo.svelte';
 import Npm from './npm.svelte';
 import PayPal from './paypal.svelte';
 import Pnpm from './pnpm.svelte';
 import RadixSvelte from './radix-svelte.svelte';
 import Tailwind from './tailwind.svelte';
-import Yarn from './yarn.svelte';
 import Twitter from './twitter.svelte';
-import Hamburger from './hamburger.svelte';
-import type { SvelteComponent } from 'svelte';
-import CloudCheck from './cloud-check.svelte';
-import CardBookmark from './card-bookmark.svelte';
+import Yarn from './yarn.svelte';
 
 export type Icon = SvelteComponent;
 

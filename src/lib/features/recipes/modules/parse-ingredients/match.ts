@@ -1,5 +1,5 @@
-import { supabase } from '$lib/shared/db/supabase-client';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
+import { supabase } from '$lib/shared/db/supabase-client';
 import type { Tables } from '$lib/shared/db/supabase.types';
 
 export type MatchIngredientsResponse = {

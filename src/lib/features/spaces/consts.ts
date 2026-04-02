@@ -1,11 +1,11 @@
 import Armchair from 'lucide-svelte/icons/armchair';
+import Cat from 'lucide-svelte/icons/cat';
+import Handshake from 'lucide-svelte/icons/handshake';
+import House from 'lucide-svelte/icons/house';
 import LampDesk from 'lucide-svelte/icons/lamp-desk';
 import PawPrint from 'lucide-svelte/icons/paw-print';
-import Handshake from 'lucide-svelte/icons/handshake';
 import Refrigerator from 'lucide-svelte/icons/refrigerator';
 import UsersRound from 'lucide-svelte/icons/users-round';
-import House from 'lucide-svelte/icons/house';
-import Cat from 'lucide-svelte/icons/cat';
 
 export const spaceIcons = {
 	house: House,

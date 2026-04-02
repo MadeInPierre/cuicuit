@@ -1,7 +1,7 @@
+import { z } from 'zod';
 import type { RecipeIngredientWithTranslations } from '../../queries/get-recipe-detailed';
 import { matchIngredients } from './match';
 import { parsedSearchInputSchema, parseIngredientString } from './parse';
-import { z } from 'zod';
 
 export const ingredientProcessedSchema = z.object({
 	sourceText: z.string(),

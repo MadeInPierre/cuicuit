@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Mic, SearchIcon, X } from 'lucide-svelte';
-	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
-	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/QuickSearch.svelte';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
+	import { Mic, SearchIcon, X } from 'lucide-svelte';
+	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/QuickSearch.svelte';
 
 	type Props = {
 		class?: string;

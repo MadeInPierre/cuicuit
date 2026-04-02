@@ -1,10 +1,10 @@
+import { query } from '$app/server';
+import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
 import { modelMistral } from '$lib/shared/llm/mistral';
 import type { MistralLanguageModelOptions } from '@ai-sdk/mistral';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
-import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
-import { query } from '$app/server';
-import { parsedSearchInputSchema } from './parse-ingredients/parse';
 import z from 'zod';
+import { parsedSearchInputSchema } from './parse-ingredients/parse';
 
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe developer.
 The user will provide you with a draft or incomplete recipe.

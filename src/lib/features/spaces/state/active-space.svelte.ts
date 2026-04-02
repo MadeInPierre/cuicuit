@@ -1,20 +1,20 @@
-import { getContext, setContext } from 'svelte';
-import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-import type { Tables } from '$lib/shared/db/supabase.types';
+import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
 import type { UserState } from '$lib/features/auth/state/user-state.svelte';
 import {
-	getUserSpacesWithMembers,
-	type ActiveSpaceWithMembers
-} from '../queries/get-user-spaces-with-members';
-import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
-import {
-	getPlanMeals,
-	type MealWithRecipeAndIngredients
-} from '$lib/features/plans/queries/get-plan-meals';
-import {
-	getShoppingListItems,
-	type ShoppingListItem
+    getShoppingListItems,
+    type ShoppingListItem
 } from '$lib/features/plans/queries/get-plan-items';
+import {
+    getPlanMeals,
+    type MealWithRecipeAndIngredients
+} from '$lib/features/plans/queries/get-plan-meals';
+import type { Tables } from '$lib/shared/db/supabase.types';
+import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+import { getContext, setContext } from 'svelte';
+import {
+    getUserSpacesWithMembers,
+    type ActiveSpaceWithMembers
+} from '../queries/get-user-spaces-with-members';
 
 const activeSpaceIdState = createPersistentState<string | undefined>('active-space-id', undefined);
 

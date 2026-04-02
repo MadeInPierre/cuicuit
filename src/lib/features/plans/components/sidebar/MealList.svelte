@@ -1,12 +1,12 @@
 <script lang="ts">
 	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { flip } from 'svelte/animate';
-	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
-	import { updateMealPosition } from '../../actions/update-meal';
-	import { toast } from 'svelte-sonner';
-	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
 	import { GripVertical } from 'lucide-svelte';
+	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
+	import { toast } from 'svelte-sonner';
+	import { flip } from 'svelte/animate';
+	import { updateMealPosition } from '../../actions/update-meal';
+	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -14,9 +14,9 @@
 		meals: MealWithRecipeAndIngredients[];
 	};
 
-	let { meals }: Props = $props()
+	let { meals }: Props = $props();
 
-	const flipDurationMs = 220;
+	const flipDurationMs = 200;
 
 	function updateLocalMealPositions(items: MealWithRecipeAndIngredients[]) {
 		if (!activeSpace.activePlanMeals) return;

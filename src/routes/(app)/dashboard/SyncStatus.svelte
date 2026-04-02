@@ -1,33 +1,14 @@
 <script lang="ts">
-	import type { DocSyncStatus } from '$lib/shared/db/doc-state.svelte';
 	import CloudCheck from '$lib/shared/icons/cloud-check.svelte';
-	import { Loader2, X, CloudOff, CloudUpload, CloudDownload } from 'lucide-svelte';
+	import { CloudDownload, CloudOff, CloudUpload, LoaderCircle, X } from 'lucide-svelte';
 
 	interface Props {
-		status: DocSyncStatus;
+		status: string;
 	}
 
 	const { status }: Props = $props();
 
-	// Old icons
-	// import {
-	// 	disabled,
-	// 	downloading,
-	// 	pending,
-	// 	synchronized,
-	// 	uploading
-	// } from '$lib/shared/icons/sync-icons';
-	// const statusIcon: Record<DocSyncStatus, any> = {
-	// 	'does-not-exist': disabled,
-	// 	loading: undefined,
-	// 	offline: disabled,
-	// 	pending: pending,
-	// 	uploading: uploading,
-	// 	downloading: downloading,
-	// 	synchronized: synchronized
-	// };
-
-	const statusLabel: Record<DocSyncStatus, string> = {
+	const statusLabel: Record<string, string> = {
 		'does-not-exist': 'Does not exist',
 		loading: 'Loading...',
 		offline: 'Offline',
@@ -40,7 +21,7 @@
 
 <div class="group w-min flex items-center gap-2 whitespace-nowrap text-sm">
 	{#if status === 'loading'}
-		<Loader2 class="w-4 h-4 animate-spin" />
+		<LoaderCircle class="w-4 h-4 animate-spin" />
 	{:else if status === 'does-not-exist'}
 		<X class="w-4 h-4 text-red-600" />
 	{:else if status === 'offline'}

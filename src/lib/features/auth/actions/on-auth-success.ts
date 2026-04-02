@@ -1,10 +1,10 @@
+import { goto } from '$app/navigation';
+import { supabase } from '$lib/shared/db/supabase-client';
+import type { User } from '@supabase/supabase-js';
+import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
 import { createUserData } from './create-user-data';
-import { goto } from '$app/navigation';
-import { toast } from 'svelte-sonner';
-import { supabase } from '$lib/shared/db/supabase-client';
-import type { User } from '@supabase/supabase-js';
 import { resendConfirmationEmail } from './send-signup-confirmation-email';
 
 /**

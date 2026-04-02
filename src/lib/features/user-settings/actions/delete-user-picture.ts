@@ -1,6 +1,6 @@
+import { supabase } from '$lib/shared/db/supabase-client';
 import { toast } from 'svelte-sonner';
 import { updateUserAvatar } from './update-user-avatar';
-import { supabase } from '$lib/shared/db/supabase-client';
 
 /**
  * Remove the picture from the storage and update the userDoc avatar

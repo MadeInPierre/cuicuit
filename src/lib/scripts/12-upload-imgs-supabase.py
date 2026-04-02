@@ -18,7 +18,7 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- Storage Bucket Name ---
-STORAGE_BUCKET_NAME = "ingredients"  # IMPORTANT: Make sure this bucket exists in your Supabase project!
+STORAGE_BUCKET_NAME = "ingredients"  # importANT: Make sure this bucket exists in your Supabase project!
 
 # --- Path to your images folder ---
 IMAGES_FOLDER = "data/ingredients/marmiton"
