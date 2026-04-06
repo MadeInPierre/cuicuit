@@ -1,24 +1,24 @@
 <script lang="ts">
-	import type { LanguageKey } from '$lib/features/user-settings/consts';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { slide } from 'svelte/transition';
-	import { capitalize, cn } from '$lib/utils';
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import {
 		processIngredientString,
 		type IngredientProcessed
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
-	import type { Snippet } from 'svelte';
-	import { Bird, Search } from 'lucide-svelte';
-	import { LoaderCircle } from '@lucide/svelte';
 	import {
 		getRecipesDetailed,
 		type Recipe
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import type { LanguageKey } from '$lib/features/user-settings/consts';
+	import { Input } from '$lib/shared/components/ui/input';
+	import { capitalize, cn } from '$lib/utils';
+	import { LoaderCircle } from '@lucide/svelte';
+	import { Bird, Search } from 'lucide-svelte';
+	import type { Snippet } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
-	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { slide } from 'svelte/transition';
 
 	type Props = {
 		onSelect: (
@@ -112,7 +112,7 @@
 	}
 
 	async function onSelectRecipe(recipe: Recipe) {
-		await addRecipeToActivePlan(space, recipe.id, 1); // TODO refactor to allow choosing servings & send this function to parent component
+		await addRecipeToActivePlan(space, recipe.id, recipe.servings); // TODO refactor to allow choosing servings & send this function to parent component
 
 		// Reset the search input and matches
 		value = '';

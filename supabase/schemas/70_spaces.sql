@@ -104,7 +104,7 @@ ALTER TABLE ONLY "public"."space_meals"
 ADD CONSTRAINT "space_meals_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."space_meals"
-ADD CONSTRAINT "space_meals_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users" ("id");
+ADD CONSTRAINT "space_meals_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."user_public_profiles" ("user_id");
 
 ALTER TABLE ONLY "public"."space_meals"
 ADD CONSTRAINT "space_meals_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes" ("id") ON DELETE CASCADE;
@@ -187,7 +187,7 @@ ALTER TABLE ONLY "public"."space_items"
 ADD CONSTRAINT "space_items_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."space_items"
-ADD CONSTRAINT "space_items_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users" ("id");
+ADD CONSTRAINT "space_items_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."user_public_profiles" ("user_id");
 
 ALTER TABLE ONLY "public"."space_items"
 ADD CONSTRAINT "space_items_ingredient_id_fkey" FOREIGN KEY ("ingredient_id") REFERENCES "public"."ingredients" ("id") ON DELETE CASCADE;

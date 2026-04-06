@@ -2,7 +2,7 @@
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { capitalize, cn } from '$lib/utils';
+	import { cn, formatTime } from '$lib/utils';
 	import {
 		Bookmark,
 		CalendarPlus,
@@ -11,12 +11,10 @@
 		Signal,
 		SignalHigh,
 		SignalLow,
-		SignalMedium,
-		Users
+		SignalMedium
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import type { Recipe } from '../queries/get-recipe-detailed';
-	import CookableStatus from './CookableStatus.svelte';
 	import RecipeImage from './RecipeImage.svelte';
 
 	const activeSpace = getActiveSpaceState();
@@ -126,7 +124,7 @@
 							{/if}
 						</div>
 
-						<span>{recipe.time_total_minutes} min</span>
+						<span class="select-none">{formatTime(recipe.time_total_minutes || 0)}</span>
 					</div>
 
 					<!-- <div class="bg-white rounded-full px-2 pl-0.5 py-0.5 flex items-center gap-1">
@@ -148,7 +146,7 @@
 
 		<div class="flex items-center gap-2 p-2 w-full">
 			<a class="grid w-full" href={'/recipes/' + recipe.id}>
-				<h3 class="text-sm font-semibold line-clamp-1">
+				<h3 class="text-sm font-medium line-clamp-2">
 					<!-- <span class="mr-2 text-muted-foreground text-xs font-normal">{recipe.servings} 
 						<Users class="size-3 inline-block -translate-y-[1px]" />
 					</span> -->
@@ -164,7 +162,7 @@
 					<Users class="size-3 inline-block ml-0.5 mr-4" />
 				</div> -->
 
-				<CookableStatus />
+				<!-- <CookableStatus /> -->
 			</a>
 		</div>
 	</div>

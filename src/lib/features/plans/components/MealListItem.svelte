@@ -6,7 +6,15 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
-	import { Check, Plus, ShoppingBasket, Trash2, Weight } from 'lucide-svelte';
+	import {
+		Check,
+		CircleSlash,
+		EllipsisVertical,
+		ShoppingBasket,
+		ShoppingCart,
+		Trash2
+	} from 'lucide-svelte';
+	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
@@ -41,14 +49,14 @@
 	let hovered = $derived(
 		hoveredMealIngredient.value &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === hoveredMealIngredient.value?.id && ing.deleted_at === null
+				(ing) => ing.ingredient_id === hoveredMealIngredient.value?.id
 			)
 	);
 
 	let selected = $derived(
 		selectedMealIngredient.value?.id !== null &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === selectedMealIngredient.value?.id && ing.deleted_at === null
+				(ing) => ing.ingredient_id === selectedMealIngredient.value?.id
 			)
 	);
 
@@ -67,15 +75,15 @@
 		>
 			{#snippet endSnippet()}
 				{#if hovered || selected}
-					<div
-						class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto"
-						in:fade={{ duration: 200 }}
-					>
+					<!-- in:fade={{ duration: 75 }} -->
+					<div class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto">
 						<IngredientImage id={activeId} class="size-7 rounded-full" />
 
 						<span>
-							{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ||
-								''}
+							{(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
+								0) *
+								(meal.servings / meal.recipe.servings) || ''}
+
 							{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ===
 							'whole'
 								? ''
@@ -83,6 +91,10 @@
 									''}
 						</span>
 					</div>
+				{:else}
+					<Button variant="ghost" size="icon" class="ml-auto size-7 text-muted-foreground">
+						<EllipsisVertical class="size-4" />
+					</Button>
 				{/if}
 			{/snippet}
 		</RecipeListItem>
@@ -111,111 +123,89 @@
 							return true;
 						})
 						.sort((a, b) => {
-							// Sort by checked state first, then by quantity (considering meal servings), then by name
-							if (!a.checked_at && b.checked_at) return 1;
-							if (a.checked_at && !b.checked_at) return -1;
+							// Sort by ignored state first
+							const aIgnored = a.deleted_at && !a.checked_at;
+							const bIgnored = b.deleted_at && !b.checked_at;
+							if (aIgnored && !bIgnored) return 1;
+							if (!aIgnored && bIgnored) return -1;
 
-							const aQuantity = a.quantity ?? 0;
-							const bQuantity = b.quantity ?? 0;
-							const aQty = (aQuantity * meal.servings) / meal.recipe.servings;
-							const bQty = (bQuantity * meal.servings) / meal.recipe.servings;
+							// Then by deleted state
+							if (a.deleted_at && !b.deleted_at) return 1;
+							if (!a.deleted_at && b.deleted_at) return -1;
 
-							if (aQty === bQty) {
-								return (a.name || a.ingredient?.translations[0]?.name_singular || '').localeCompare(b.name || b.ingredient?.translations[0]?.name_singular || '');
-							}
+							// Then by checked state
+							if (!a.checked_at && b.checked_at) return -1;
+							if (a.checked_at && !b.checked_at) return 1;
+
+							// Then by quantity (adjusted for meal servings)
+							const aQty = ((a.quantity ?? 0) * meal.servings) / meal.recipe.servings;
+							const bQty = ((b.quantity ?? 0) * meal.servings) / meal.recipe.servings;
+
+							// If quantities are equal, sort alphabetically
+							const aName = a.ingredient?.translations[0]?.name_singular || a.name || '';
+							const bName = b.ingredient?.translations[0]?.name_singular || b.name || '';
+							if (aQty === bQty) return aName.localeCompare(bName);
+
 							return bQty - aQty;
-						}) as shopping_ingredient, i (shopping_ingredient.ingredient_id)}
-						{@const t = shopping_ingredient.ingredient?.translations?.[0]}
+						}) as si (si.ingredient_id)}
+						{@const t = si.ingredient?.translations?.[0]}
 
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class={cn(
-								'grid text-xs text-muted-foreground rounded-sm duration-75 relative group transition-all',
-								activeId === shopping_ingredient.ingredient_id &&
-									'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary font-medium'
+								'grid text-xs rounded-sm duration-75 relative transition-all group/si',
+								activeId === si.ingredient_id &&
+									'bg-primary/10 text-primary dark:bg-primary/20 font-medium'
 							)}
 							onmouseenter={() => {
-								hoveredMealIngredient.value = shopping_ingredient.ingredient;
+								hoveredMealIngredient.value = si.ingredient;
 							}}
 							onmouseleave={() => {
 								hoveredMealIngredient.value = null;
 							}}
+							animate:flip={{ duration: 200 }}
 						>
 							<!-- <div
-								class="absolute opacity-0 group-hover:opacity-100 transition-opacity top-[3px] -translate-x-1/2 -right-6 z-10 rounded-sm border bg-muted"
+								class="size-6 absolute top-1/2 -translate-y-1/2 -left-6 z-10 rounded-full border bg-white opacity-0 group-hover/si:opacity-100 transition-opacity"
 							>
-								<Ellipsis class="size-3.5" />
+								<Pencil class="size-3.5 text-black m-auto" />
 							</div> -->
 
 							<div class="h-[22px] p-0.5 px-2 flex items-center">
 								<span
 									class={cn(
-										'line-clamp-1',
-										shopping_ingredient.meal_origin === 'ignored' &&
-											'line-through text-muted-foreground/60',
-										shopping_ingredient.checked_at && 'line-through text-primary'
+										'line-clamp-1 text-muted-foreground group-hover/si:text-primary ',
+										si.deleted_at && !si.checked_at && 'line-through'
 									)}
 								>
-									{shopping_ingredient.quantity && shopping_ingredient.quantity > 1
+									{si.quantity && si.quantity > 1
 										? t?.name_plural || t?.name_singular
-										: t?.name_singular || t?.name_plural || shopping_ingredient.name}
+										: t?.name_singular || t?.name_plural || si.name}
 								</span>
-
-								{#if shopping_ingredient.meal_origin === 'recipe'}
-									<!-- <Circle class="size-3 text-muted-foreground" /> -->
-								{:else if shopping_ingredient.meal_origin === 'adjusted'}
-									<Weight class="size-3 text-muted-foreground" />
-								{:else if shopping_ingredient.meal_origin === 'ignored'}
-									<!-- <X class="size-3 text-muted-foreground" /> -->
-								{:else if shopping_ingredient.meal_origin === 'added'}
-									<Plus class="size-3 text-muted-foreground" />
-								{/if}
 
 								<span
 									class={cn(
-										'ml-auto font-medium whitespace-nowrap select-none min-w-8 text-right text-green-600',
-										shopping_ingredient.meal_origin === 'ignored' &&
-											'line-through text-muted-foreground/60',
-										shopping_ingredient.checked_at && 'text-primary line-through'
+										'ml-auto font-medium whitespace-nowrap select-none min-w-8 text-right text-red-600',
+										si.checked_at && 'text-blue-600',
+										si.deleted_at && 'text-green-600',
+										si.deleted_at && !si.checked_at && 'text-muted-foreground'
 									)}
 								>
-									{#if showExpandedButtons}
-										<NumberFlow
-											value={((shopping_ingredient.quantity ?? 0) * meal.servings) /
-												meal.recipe.servings}
-										/>
-									{:else}
-										{((shopping_ingredient.quantity ?? 0) * meal.servings) / meal.recipe.servings}
-									{/if}
+									<NumberFlow value={((si.quantity ?? 0) * meal.servings) / meal.recipe.servings} />
 
-									{shopping_ingredient.unit === 'whole' ? '' : shopping_ingredient.unit}
+									{si.unit === 'whole' ? '' : si.unit}
 								</span>
 
-								{#if shopping_ingredient.checked_at}
-									<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-primary" />
-								{:else}
+								{#if si.deleted_at && !si.checked_at}
+									<CircleSlash class="ml-1 max-w-3 max-h-3 text-muted-foreground" />
+								{:else if si.deleted_at}
 									<Check class="ml-1 max-w-3 max-h-3 text-green-600" />
+								{:else if si.checked_at}
+									<ShoppingCart class="ml-1 max-w-3 max-h-3 text-blue-600" />
+								{:else}
+									<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-red-600" />
 								{/if}
 							</div>
-
-							<!-- {#if i === 0}
-								<div class="flex gap-2 px-4 my-2">
-									<Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
-										<CircleSlash />
-										Cook without
-									</Button>
-
-									<Button variant="default" size="sm" class="h-6 w-full text-xs rounded-sm">
-										<ShoppingCart />
-										Buy Later
-									</Button>
-
-									<Button variant="link" size="sm" class="h-6 w-min px-1.5 text-xs rounded-sm">
-										<Ellipsis />
-										Swap
-									</Button>
-								</div>
-							{/if} -->
 						</div>
 					{/each}
 				</div>

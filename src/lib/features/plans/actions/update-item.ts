@@ -23,7 +23,8 @@ export async function updatePlanItemChecked(
 
 	// Refresh the active plan items after updating
 	if (options?.skipRefresh) return;
-	await activeSpace.refreshActivePlanItems();
+	activeSpace.refreshActivePlanItems();
+	activeSpace.refreshActivePlanMeals();
 }
 
 export async function deletePlanItem(
@@ -37,16 +38,15 @@ export async function deletePlanItem(
 	if (!itemId) throw new Error('Item ID not provided');
 
 	const now = new Date().toISOString();
-
+	
 	// Soft delete the plan item
-	const { error } = await supabase
-		.from('space_items')
-		.update({ deleted_at: now })
-		.eq('id', itemId);
+	console.log('Delete ingredient', itemId);
+	const { error } = await supabase.from('space_items').update({ deleted_at: now }).eq('id', itemId);
 
 	if (error) throw new Error('Error deleting plan item: ' + error.message);
 
 	// Refresh the active plan items after deleting
-	if (options?.skipRefresh) return;
-	await activeSpace.refreshActivePlanItems();
+	if (options?.skipRefresh === true) return;
+	activeSpace.refreshActivePlanItems();
+	activeSpace.refreshActivePlanMeals();
 }

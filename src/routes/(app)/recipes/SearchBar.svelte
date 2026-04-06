@@ -16,7 +16,7 @@
 	class={cn('h-9 bg-white dark:bg-muted border-none shadow-2xs', className)}
 	{...others}
 >
-	<InputGroup.Input class="" placeholder="Add item or recipe..." bind:value bind:this={inputRef} />
+	<InputGroup.Input class="" placeholder="Search recipes..." bind:value bind:this={inputRef} />
 	<InputGroup.Addon>
 		<SearchIcon />
 	</InputGroup.Addon>

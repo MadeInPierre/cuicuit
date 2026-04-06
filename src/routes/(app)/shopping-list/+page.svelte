@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
+	import { deletePlanItem, updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
@@ -306,8 +306,11 @@
 						amount={item.mergedQuantity?.amount}
 						unit={item.mergedQuantity?.unit}
 						size="md"
-						checkable
 						selectable
+						onDelete={() => {
+							// Soft delete all origins of the item
+							item.items.forEach((si) => deletePlanItem(space, si.id));
+						}}
 						checked={item.items.some((si) => si.checked_at)}
 						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
 					>

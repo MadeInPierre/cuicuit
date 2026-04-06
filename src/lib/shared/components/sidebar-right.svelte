@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import PlanList from '$lib/features/plans/components/PlanList.svelte';
+	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { ArrowRight, Calendar, ScrollText, X } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
-	import PlanList from '$lib/features/plans/components/PlanList.svelte';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import SearchShoppingItemBar from './SearchShoppingItemBar.svelte';
-	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { Button } from './ui/button';
-	import { page } from '$app/state';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
 
@@ -80,7 +80,7 @@
 				<Sidebar.MenuItem class="text-muted-foreground">
 					<Sidebar.MenuButton onclick={() => goto('/plan')}>
 						<Calendar />
-						<span>See full plan</span>
+						<span>Full plan</span>
 						<ArrowRight class="ml-auto" />
 					</Sidebar.MenuButton>
 				</Sidebar.MenuItem>
