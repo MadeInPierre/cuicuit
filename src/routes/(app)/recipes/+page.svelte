@@ -7,7 +7,6 @@
 		recipeTimesOfDaySectionHeaders
 	} from '$lib/features/recipes/components/consts';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
-	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import {
 		recipeCourses,
 		recipeCuisines,
@@ -23,7 +22,7 @@
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { RotateCcw } from '@lucide/svelte';
-	import { ArrowRight, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
+	import { ArrowRight, ChefHat, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
@@ -208,6 +207,8 @@
 			setParameters({ ...parameters, groupBy: 'cuisine' });
 		} else if (groupBy === 'cuisine' && parameters.filters.cuisine.length === 1) {
 			setParameters({ ...parameters, groupBy: 'timeOfDay' });
+		} else {
+			// setParameters({ ...parameters, groupBy: 'recommended' });
 		}
 	});
 
@@ -253,8 +254,9 @@
 		<div class="flex items-center">
 			<div class="grid space-y-0.5">
 				<div class="flex gap-6 items-center">
-					<h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>
-					<ServingsPlusMinus value={counter.value || 1} size="lg" onChange={counter.set} />
+					<h1 class="text-4xl font-bold tracking-tight">Recipes</h1>
+					<!-- <h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>
+					<ServingsPlusMinus value={counter.value || 1} size="lg" onChange={counter.set} /> -->
 
 					<!-- <Button>
 						<RotateCcw class="size-4" />
@@ -263,7 +265,7 @@
 				</div>
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
-					<span class="py-1">Recipes grouped by</span>
+					<span class="py-1">Grouped by</span>
 					<FilterDropdown
 						value={parameters.groupBy}
 						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
@@ -286,7 +288,7 @@
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
 					/> -->
 
-					<SearchBar class="w-40 2xl:w-80" bind:value={searchInput} loading={searchLoading} />
+					<SearchBar class="w-40 lg:w-80" bind:value={searchInput} loading={searchLoading} />
 
 					<ImportRecipeDialog dropdownAlign="end">
 						{#snippet trigger({ props })}
@@ -302,7 +304,7 @@
 					{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
 						<Button
 							variant="ghost"
-							class="h-7 px-2 text-muted-foreground"
+							class="size-7 px-2 text-muted-foreground"
 							onclick={() => {
 								searchInput = '';
 								setParameters({
@@ -345,11 +347,11 @@
 						}}
 					/>
 
-					<FilterButton text="Cookable" />
+					<!-- <FilterButton text="Cookable" /> -->
 					<FilterButton text="My Recipes" />
-					<FilterButton text="Expire soon" class="hidden lg:flex" />
+					<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
 					<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
-					<FilterButton icon={FunnelPlus} primary />
+					<!-- <FilterButton icon={FunnelPlus} primary /> -->
 				</div>
 			</div>
 		</div>
@@ -403,7 +405,10 @@
 						</div>
 					{/if}
 
-					<RecipeCarousel recipes={sectionRecipes.recipes} />
+					<RecipeCarousel
+						recipes={sectionRecipes.recipes}
+						expand={(['recommended', 'cookableState'] as GroupByKey[]).includes(parameters.groupBy)}
+					/>
 				</div>
 			{/if}
 		{/each}

@@ -5,7 +5,7 @@
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 
-	const { recipes }: { recipes: Recipe[] } = $props();
+	const { recipes, expand = false }: { recipes: Recipe[]; expand?: boolean } = $props();
 
 	// Check if we're in loading state
 	const isLoading = $derived(recipes.length === 0);
@@ -78,61 +78,69 @@
 	});
 </script>
 
-<Carousel.Root
-	opts={{
-		active: recipes.length > itemsPerCarouselPage && !isLoading,
-		slidesToScroll: 1
-	}}
-	setApi={(emblaApi) => (api = emblaApi)}
-	class="w-full overflow-x-hidden"
->
-	<Carousel.Content>
-		{#each pages as page, i (i)}
-			<Carousel.Item class="">
-				<div
-					class="grid gap-4"
-					style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(${rowsPerPage}, auto);`}
-				>
-					{#each page as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
-						<RecipeCard {recipe} showAddToPlanButton />
+{#if !expand && totalSlides > 1}
+	<Carousel.Root
+		opts={{
+			active: recipes.length > itemsPerCarouselPage && !isLoading && !expand,
+			slidesToScroll: 1
+		}}
+		setApi={(emblaApi) => (api = emblaApi)}
+		class="w-full overflow-x-hidden"
+	>
+		<Carousel.Content>
+			{#each pages as page, i (i)}
+				<Carousel.Item class="">
+					{@render recipeGrid(page)}
+				</Carousel.Item>
+			{/each}
+		</Carousel.Content>
 
-						<!-- <div
-							class="grid space-y-1 p-2 mb-4 rounded-2xl bg-gradient-to-br from-amber-200/60 to-amber-200 dark:from-amber-900/90 dark:to-amber-900 group"
-						>
-							<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
-								<RecipeCard {recipe} showAddToPlanButton />
-							</div>
-							<div
-								class="p-2 pb-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300"
-							>
-								<BellRing class="size-4" />
-								<span><strong>2</strong> ingredients expire!</span>
+		{#if currentSlide > 1 && !isLoading}
+			<Carousel.Previous class="left-8 -translate-y-10" />
+		{/if}
+		{#if currentSlide < totalSlides && !isLoading}
+			<Carousel.Next class="right-8 -translate-y-10" />
+		{/if}
+	</Carousel.Root>
+{:else}
+	{@render recipeGrid(displayRecipes)}
+{/if}
 
-								<Star class="size-4" />
-								<span class="">You love this recipe!</span> 
+{#snippet recipeGrid(recipes: Recipe[])}
+	<div
+		class="grid gap-4"
+		style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(auto, auto);`}
+	>
+		{#each recipes as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
+			<RecipeCard {recipe} showAddToPlanButton />
 
-								<Button
-									size="icon"
-									variant="ghost"
-									class="ml-auto w-6 h-6 text-amber-700 dark:text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-amber-100 dark:hover:bg-amber-800"
-								>
-									<FunnelPlus class="size-4" />
-								</Button>
-							</div>
-						</div> -->
-					{/each}
+			<!-- <div
+				class="grid space-y-1 p-2 mb-4 rounded-2xl bg-gradient-to-br from-amber-200/60 to-amber-200 dark:from-amber-900/90 dark:to-amber-900 group"
+			>
+				<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
+					<RecipeCard {recipe} showAddToPlanButton />
 				</div>
-			</Carousel.Item>
-		{/each}
-	</Carousel.Content>
+				<div
+					class="p-2 pb-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300"
+				>
+					<BellRing class="size-4" />
+					<span><strong>2</strong> ingredients expire!</span>
 
-	{#if currentSlide > 1 && !isLoading}
-		<Carousel.Previous class="left-8 -translate-y-10" />
-	{/if}
-	{#if currentSlide < totalSlides && !isLoading}
-		<Carousel.Next class="right-8 -translate-y-10" />
-	{/if}
-</Carousel.Root>
+					<Star class="size-4" />
+					<span class="">You love this recipe!</span> 
+
+					<Button
+						size="icon"
+						variant="ghost"
+						class="ml-auto w-6 h-6 text-amber-700 dark:text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-amber-100 dark:hover:bg-amber-800"
+					>
+						<FunnelPlus class="size-4" />
+					</Button>
+				</div>
+			</div> -->
+		{/each}
+	</div>
+{/snippet}
 
 <!-- <div class="text-muted-foreground py-2 text-center text-sm">
 	Slide {currentSlide} of {totalSlides}, showing {displayRecipes.length} of {recipes.length} recipes

@@ -5,6 +5,7 @@
 	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
+	import { slide } from 'svelte/transition';
 	import { updateMealPosition } from '../../actions/update-meal';
 	import type { MealWithRecipeAndIngredients } from '../../queries/get-plan-meals';
 
@@ -63,12 +64,17 @@
 	class="grid space-y-2 rounded-sm"
 >
 	{#each meals as meal (meal.id)}
-		<div animate:flip={{ duration: flipDurationMs }} class="flex gap-0.5 relative group">
+		<div
+			animate:flip={{ duration: flipDurationMs }}
+			transition:slide={{ duration: 200 }}
+			class="flex gap-0.5 relative group"
+		>
 			<div use:dragHandle class="mt-5">
 				<GripVertical
 					class="absolute -left-2 -translate-x-1.5 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
 				/>
 			</div>
+
 			<MealListItem {meal} showExpandedButtons size={cardSize} />
 		</div>
 	{/each}

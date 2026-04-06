@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import { cn } from '$lib/utils';
+	import { cn, formatDateAgo } from '$lib/utils';
 	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
 	import { deletePlanItem } from '../actions/update-item';
@@ -119,7 +120,7 @@
 										amount={item.quantity}
 										unit={item.unit === 'whole' ? '' : item.unit || ''}
 										size="sm"
-										onclick={async () => {
+										onDelete={async () => {
 											// TODO add edit functionality (quantity, unit, name)
 											await deletePlanItem(activeSpace, item.id);
 										}}
@@ -135,7 +136,15 @@
 											await deletePlanItem(activeSpace, item.id);
 										}}
 									>
-										<span class="text-muted-foreground text-xs">2d ago by @pieru-chan</span>
+										<span class="text-muted-foreground text-xs">
+											{item.updated_at
+												? formatDateAgo(new Date(item.updated_at), true)
+												: 'Added recently'}
+											by
+											{item.created_by === userState.user?.id
+												? 'you'
+												: item.author_profile.user_name || 'someone'}
+										</span>
 									</ShoppingItemCardList>
 								{/if}
 							</div>
@@ -143,7 +152,7 @@
 					</div>
 				{:else if !selectedMealIngredient.value?.id}
 					<div
-						class="pt-2 py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+						class="mt-2 py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
 					>
 						<ShoppingBasket class="size-8" />
 						<p class="mx-auto w-28 text-center">Search for items to add them here</p>

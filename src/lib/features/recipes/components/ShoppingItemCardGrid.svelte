@@ -5,7 +5,7 @@
 	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
-	import { PanelLeft, PanelLeftClose } from 'lucide-svelte';
+	import { PanelLeft, PanelLeftClose, Trash } from 'lucide-svelte';
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import IngredientImage from './IngredientImage.svelte';
 
@@ -22,11 +22,11 @@
 		children?: any;
 		topRight?: any;
 		// Interactions
-		checkable?: boolean;
 		selectable?: boolean;
 		// State
 		checked?: boolean;
-		onCheckedChange?: (checked: boolean) => void;
+		onCheckedChange?: ((checked: boolean) => void) | undefined;
+		onDelete?: (() => void) | undefined;
 		onclick?: () => void;
 		// Others
 		[key: string]: any;
@@ -41,10 +41,10 @@
 		class: className,
 		children,
 		topRight,
-		checkable = false,
 		selectable = false,
 		checked = $bindable(false),
-		onCheckedChange = () => {},
+		onCheckedChange = undefined,
+		onDelete = undefined,
 		onclick = () => {},
 		...others
 	}: Props = $props();
@@ -71,9 +71,8 @@
 		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-colors duration-0 select-none',
 
 		checked &&
-			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900',
+			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900 hover:ring-muted-foreground/30',
 
-		// !checked && hovered && !selected && selectable && 'ring-2 ring-primary/20 dark:ring-primary/30',
 		!checked &&
 			hovered &&
 			!selected &&
@@ -88,7 +87,7 @@
 	)}
 	onclick={(e) => {
 		// Toggle checked state
-		if (checkable) {
+		if (onCheckedChange) {
 			e.preventDefault();
 			checked = !checked;
 			onCheckedChange(checked);
@@ -106,17 +105,17 @@
 	}}
 	{...others}
 >
-	{#if selectable && ingredient}
-		<div
-			class={cn(
-				'absolute top-1 left-1 opacity-0 transition-opacity group-hover:opacity-100',
-				selected && 'md:opacity-100'
-			)}
-		>
+	<div
+		class={cn(
+			'absolute top-1 left-1 opacity-0 transition-opacity duration-75 group-hover:opacity-100 grid space-y-0',
+			selected && 'md:opacity-100'
+		)}
+	>
+		{#if selectable && ingredient}
 			<Button
 				size="icon"
 				variant="ghost"
-				class={cn('size-10 rounded-full text-muted hover:bg-primary/10 hover:text-primary')}
+				class={cn('size-8 rounded-full text-muted hover:bg-primary/10 hover:text-primary')}
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -126,13 +125,29 @@
 				}}
 			>
 				{#if selected}
-					<PanelLeftClose class="size-5 text-primary" />
+					<PanelLeftClose class="size-4 text-primary" />
 				{:else}
-					<PanelLeft class="size-5" />
+					<PanelLeft class="size-4" />
 				{/if}
 			</Button>
-		</div>
-	{/if}
+		{/if}
+
+		{#if onDelete}
+			<Button
+				size="icon"
+				variant="ghost"
+				class="size-8 rounded-full text-muted hover:bg-primary/10 hover:text-primary"
+				onclick={async (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					onDelete();
+				}}
+			>
+				<Trash class="size-4" />
+			</Button>
+		{/if}
+	</div>
 
 	{#if topRight}
 		<div
@@ -148,7 +163,7 @@
 			name={name || description || '?'}
 			class={cn(
 				'aspect-square h-full w-auto max-h-16 mx-auto transition-opacity',
-				checked && 'opacity-40 group-hover:opacity-100'
+				checked && 'opacity-40'
 			)}
 		/>
 	</div>
@@ -169,7 +184,7 @@
 		<span
 			class={cn(
 				'line-clamp-2 text-balance pb-0.5',
-				checked && !hovered && 'line-through text-muted-foreground'
+				checked && 'line-through text-muted-foreground'
 				// !amount && name && name.length < 20 && 'pb-1.5'
 			)}
 		>

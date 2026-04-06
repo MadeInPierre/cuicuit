@@ -524,6 +524,13 @@ export const publicSpaceItemsUpdateSchema = z.object({
 
 export const publicSpaceItemsRelationshipsSchema = z.tuple([
   z.object({
+    foreignKeyName: z.literal("space_items_created_by_fkey"),
+    columns: z.tuple([z.literal("created_by")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("user_public_profiles"),
+    referencedColumns: z.tuple([z.literal("user_id")]),
+  }),
+  z.object({
     foreignKeyName: z.literal("space_items_ingredient_id_fkey"),
     columns: z.tuple([z.literal("ingredient_id")]),
     isOneToOne: z.literal(false),
@@ -583,6 +590,13 @@ export const publicSpaceMealsUpdateSchema = z.object({
 });
 
 export const publicSpaceMealsRelationshipsSchema = z.tuple([
+  z.object({
+    foreignKeyName: z.literal("space_meals_created_by_fkey"),
+    columns: z.tuple([z.literal("created_by")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("user_public_profiles"),
+    referencedColumns: z.tuple([z.literal("user_id")]),
+  }),
   z.object({
     foreignKeyName: z.literal("space_meals_recipe_id_fkey"),
     columns: z.tuple([z.literal("recipe_id")]),

@@ -148,3 +148,58 @@ export const removeAccents = (text: string): string => {
 		text
 	);
 };
+
+export function formatDateInterval(start: Date, end: Date): string {
+	const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+	const startStr = start.toLocaleDateString(undefined, options);
+	const endStr = end.toLocaleDateString(undefined, options);
+
+	if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+		return `${start.getDate()} - ${endStr}`;
+	} else {
+		return `${startStr} - ${endStr}`;
+	}
+}
+
+export function formatDateAgo(date: Date, concise = false): string {
+	const now = new Date();
+	const diffMs = now.getTime() - date.getTime();
+	const diffSeconds = Math.floor(diffMs / 1000);
+	const diffMinutes = Math.floor(diffSeconds / 60);
+	const diffHours = Math.floor(diffMinutes / 60);
+	const diffDays = Math.floor(diffHours / 24);
+
+	if (diffDays > 0) {
+		return concise ? `${diffDays}d ago` : `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+	} else if (diffHours > 0) {
+		return concise ? `${diffHours}h ago` : `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+	} else if (diffMinutes > 0) {
+		return concise
+			? `${diffMinutes}m ago`
+			: `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+	} else {
+		return concise ? `Now` : `Just now`;
+	}
+}
+
+export function formatTime(
+	minutes: number,
+	conciseLevel: 'm' | 'min' | 'minutes' = 'min',
+	forgetMinAfterHr: number = 8
+): string {
+	const days = Math.floor(minutes / (60 * 24));
+	const hours = Math.floor(minutes / 60);
+	const mins = minutes % 60;
+
+	const dayStr = days === 1 ? 'day' : 'days';
+	const hourStr =
+		conciseLevel === 'm' ? 'h' : conciseLevel === 'min' ? 'h' : hours === 1 ? 'hour' : 'hours';
+	const minStr =
+		conciseLevel === 'm' ? 'm' : conciseLevel === 'min' ? 'min' : mins === 1 ? 'minute' : 'minutes';
+
+	let s = days ? `${days}${dayStr} ` : '';
+	if (hours > 0) s += `${hours}${hourStr} `;
+	if (mins > 0 && hours < forgetMinAfterHr) s += `${mins}${minStr}`;
+
+	return s.trim();
+}

@@ -9,20 +9,21 @@ export function getPlanMeals(spaceId: string, languageId: number) {
 			.from('space_meals')
 			.select(
 				`*, 
-			recipe:recipes(
-				*,
-				language:languages(*)
-			),
-			shopping_ingredients:space_items(
-				*,
-				ingredient:ingredients(
+				recipe:recipes(
 					*,
-					translations:ingredient_translations(
+					language:languages(*)
+				),
+				shopping_ingredients:space_items(
+					*,
+					author_profile:user_public_profiles(*),
+					ingredient:ingredients(
 						*,
-						language:languages(lang)
+						translations:ingredient_translations(
+							*,
+							language:languages(lang)
+						)
 					)
-				)
-			)`
+				)`
 			)
 			.eq('space_id', spaceId)
 			// Only get translations in the user language

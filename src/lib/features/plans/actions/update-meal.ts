@@ -42,6 +42,7 @@ export async function updateMealPosition(
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;
 	activeSpace.refreshActivePlanMeals();
+	activeSpace.refreshActivePlanItems();
 }
 
 export async function deleteMeal(

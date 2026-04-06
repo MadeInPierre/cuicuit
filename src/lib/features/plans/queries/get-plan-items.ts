@@ -6,6 +6,7 @@ export function getShoppingListItems(spaceId: string, languageId: number) {
 			.from('space_items')
 			.select(
 				`*, 
+				author_profile:user_public_profiles(*),
 				ingredient:ingredients!ingredient_id(
 					*,
 					translations:ingredient_translations(

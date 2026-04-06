@@ -390,6 +390,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "space_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "space_items_ingredient_id_fkey"
             columns: ["ingredient_id"]
             isOneToOne: false
@@ -447,6 +454,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "space_meals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_public_profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "space_meals_recipe_id_fkey"
             columns: ["recipe_id"]
