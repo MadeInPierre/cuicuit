@@ -302,6 +302,7 @@
 				>
 					<ShoppingItemCardGrid
 						ingredient={item.ingredient}
+						name={item.name}
 						description={Object.entries(item.mergedQuantity.withOptionals)
 							.map(([unit, quantity]) => `${quantity} ${unit === 'whole' ? '' : unit}`)
 							.join(', ') +

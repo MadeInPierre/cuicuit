@@ -89,8 +89,10 @@
 						<p class="mx-auto w-28 text-center">Search for recipes to add meals here</p>
 					</div>
 				{:else}
-					<div class="py-10 text-center text-xs bg-muted text-muted-foreground rounded-md">
-						<p class="mx-auto w-28 text-center">No meals with this ingredient</p>
+					<div
+						class="py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
+					>
+						No meals with this ingredient
 					</div>
 				{/if}
 			</div>
