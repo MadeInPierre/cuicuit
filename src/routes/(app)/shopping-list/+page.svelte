@@ -303,16 +303,32 @@
 					<ShoppingItemCardGrid
 						ingredient={item.ingredient}
 						name={item.name}
-						description={Object.entries(item.mergedQuantity.withOptionals)
-							.map(([unit, quantity]) => `${quantity} ${unit === 'whole' ? '' : unit}`)
-							.join(', ') +
-							(Object.entries(item.mergedQuantity.withOptionals).some(
-								([unit, quantity]) => quantity > (item.mergedQuantity.requiredOnly[unit] || 0)
+						description={Object.entries(item.mergedQuantity)
+							.sort(([unitA], [unitB]) => {
+								// Custom sort to show "whole" units first, then by length of unit name
+								if (unitA === 'whole') return -1;
+								if (unitB === 'whole') return 1;
+								return unitA.length - unitB.length;
+							})
+							.map(
+								([unit, quantities]) =>
+									`${
+										quantities.optionalOnly > 0
+											? quantities.requiredOnly > 0
+												? `${quantities.requiredOnly} to ${quantities.withOptionals}`
+												: `${quantities.optionalOnly}`
+											: `${quantities.withOptionals}`
+									}${unit === 'whole' ? '' : ` ${unit}`}`
 							)
-								? ` (${item.items.length > 1 ? 'has ' : ''}opt)`
+							.join(' + ') +
+							(Object.keys(item.mergedQuantity).length > 0 &&
+							!Object.entries(item.mergedQuantity).some(
+								([_, quantities]) => quantities.requiredOnly > 0
+							)
+								? ` (opt)`
 								: '')}
-						plural={Object.entries(item.mergedQuantity.withOptionals).some(
-							([_, quantity]) => quantity > 1
+						plural={Object.entries(item.mergedQuantity).some(
+							([_, quantities]) => quantities.withOptionals > 1
 						)}
 						size="md"
 						selectable
