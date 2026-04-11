@@ -1,11 +1,12 @@
 <script lang="ts">
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
-	import { Minus, Plus, Trash2, User, Users } from 'lucide-svelte';
 	import NumberFlow from '@number-flow/svelte';
+	import { Minus, Plus, Trash2, User, Users } from 'lucide-svelte';
 
 	type Props = {
 		value: number;
+		step?: number; // Amount to increment/decrement by. Default is 1.
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 		variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
 		allowDelete?: boolean; // If true, show a trash icon on the minus button when counter is 1
@@ -19,6 +20,7 @@
 
 	let {
 		value = $bindable(1),
+		step = 1,
 		size = 'md',
 		variant = 'secondary',
 		class: className = '',
@@ -78,16 +80,16 @@
 	const currentVariant = $derived(variants.size[size]);
 
 	function onButtonIncrement() {
-		value = value + 1;
+		value = value + step;
 		onChange?.(value);
 		onIncrement?.(value);
 	}
 
 	function onButtonDecrement() {
-		if (value <= 1) {
+		if (value <= step) {
 			if (allowDelete) onDelete?.();
 		} else {
-			value = value - 1;
+			value = value - step;
 			onChange?.(value);
 			onDecrement?.(value);
 		}

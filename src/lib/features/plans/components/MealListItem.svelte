@@ -83,10 +83,6 @@
 		optional: 3
 	} as Record<Enums<'item_priority'>, number>;
 
-	function getScaledQuantity(si: ShoppingIngredient, servings: number, recipeServings: number) {
-		return ((si.quantity ?? 0) * servings) / recipeServings;
-	}
-
 	function getDisplayName(si: ShoppingIngredient) {
 		const t = si.ingredient?.translations?.[0];
 		return si.quantity && si.quantity > 1
@@ -119,14 +115,10 @@
 		if (a.checked_at && !b.checked_at) return 1;
 
 		// Finally, sort by quantity (scaled to meal servings), then name
-		const aQty = getScaledQuantity(a, servings, recipeServings);
-		const bQty = getScaledQuantity(b, servings, recipeServings);
-
 		const aName = a.ingredient?.translations?.[0]?.name_singular || a.name || '';
 		const bName = b.ingredient?.translations?.[0]?.name_singular || b.name || '';
-		if (aQty === bQty) return aName.localeCompare(bName);
-
-		return bQty - aQty;
+		if (a.quantity && b.quantity && a.quantity === b.quantity) return aName.localeCompare(bName);
+		return (b.quantity || 0) - (a.quantity || 0);
 	}
 
 	let sortedIngredients = $derived(
@@ -150,7 +142,7 @@
 	<div class="grid w-full">
 		<RecipeListItem
 			recipe={meal.recipe}
-			showServings={(!expanded || !showExpandedButtons) && !(hovered || selected) && showServings}
+			servings={(!expanded || !showExpandedButtons) && !(hovered || selected) && showServings && meal.servings}
 			{size}
 			class={cn(hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60', className)}
 			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
@@ -164,8 +156,8 @@
 
 						<span>
 							{(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
-								0) *
-								(meal.servings / meal.recipe.servings) || ''}
+								0) ||
+								''}
 
 							{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ===
 							'whole'
@@ -175,7 +167,15 @@
 						</span>
 					</div>
 				{:else}
-					<Button variant="ghost" size="icon" class="ml-auto size-7 text-muted-foreground">
+					<Button
+						variant="ghost"
+						size="icon"
+						class="ml-auto size-7 text-muted-foreground"
+						onclick={(e) => {
+							e.stopPropagation();
+							// TODO menu to edit/switch ingredients, etc.
+						}}
+					>
 						<EllipsisVertical class="size-4" />
 					</Button>
 				{/if}
@@ -197,7 +197,7 @@
 
 					{#each requiredIngredients as si (si.ingredient_id)}
 						<div animate:flip={{ duration: 200 }}>
-							{@render ingredientRow(meal, si)}
+							{@render ingredientRow(si)}
 						</div>
 					{/each}
 
@@ -228,7 +228,7 @@
 						<div transition:slide={{ duration: 200 }}>
 							{#each optionalIngredients as si (si.ingredient_id)}
 								<div animate:flip={{ duration: 200 }}>
-									{@render ingredientRow(meal, si, 'optional')}
+									{@render ingredientRow(si, 'optional')}
 								</div>
 							{/each}
 						</div>
@@ -246,8 +246,15 @@
 								value={meal.servings}
 								size="xs"
 								variant="link"
-								onIncrement={() => updateMealServings(space, meal.id, meal.servings + 1)}
-								onDecrement={() => updateMealServings(space, meal.id, meal.servings - 1)}
+								step={meal.recipe.servings}
+								onIncrement={() =>
+									updateMealServings(space, meal, meal.servings + meal.recipe.servings)}
+								onDecrement={() =>
+									updateMealServings(
+										space,
+										meal,
+										Math.max(0, meal.servings - meal.recipe.servings)
+									)}
 								onDelete={() => deleteMeal(space, meal.id)}
 							/>
 						</div>
@@ -259,8 +266,6 @@
 								class="size-5"
 								onclick={() => deleteMeal(space, meal.id)}
 							>
-								<!-- <Ellipsis class="max-w-3.5 max-h-3.5" /> -->
-								<!-- <Pencil class="max-w-3.5 max-h-3.5" /> -->
 								<Trash2 class="max-w-3.5 max-h-3.5 text-destructive" />
 							</Button>
 						</div>
@@ -275,11 +280,7 @@
 	</div>
 {/if}
 
-{#snippet ingredientRow(
-	meal: MealWithRecipeAndIngredients,
-	si: ShoppingIngredient,
-	variant: 'default' | 'optional' = 'default'
-)}
+{#snippet ingredientRow(si: ShoppingIngredient, variant: 'default' | 'optional' = 'default')}
 	{@const displayName = getDisplayName(si)}
 
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -314,7 +315,7 @@
 					si.deleted_at && !si.checked_at && 'text-muted-foreground'
 				)}
 			>
-				<NumberFlow value={getScaledQuantity(si, meal.servings, meal.recipe.servings)} />
+				<NumberFlow value={si.quantity || 0} />
 				{si.unit === 'whole' ? '' : si.unit}
 			</span>
 

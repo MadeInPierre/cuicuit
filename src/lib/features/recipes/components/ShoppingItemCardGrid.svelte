@@ -12,6 +12,7 @@
 	type Props = {
 		// Ingredient
 		ingredient?: RecipeIngredientWithTranslations | null;
+		name?: string;
 		description?: string | null;
 		plural?: boolean;
 		// Appearance
@@ -32,6 +33,7 @@
 
 	let {
 		ingredient = null,
+		name = undefined,
 		description,
 		plural = false,
 		size = 'md',
@@ -48,7 +50,8 @@
 
 	const translation = $derived(ingredient?.translations?.[0]);
 
-	const name = $derived.by(() => {
+	const displayName = $derived.by(() => {
+		if (!ingredient) return name || description || '?';
 		if (plural) return translation?.name_plural || translation?.name_singular;
 		else return translation?.name_singular || translation?.name_plural;
 	});
@@ -80,7 +83,7 @@
 			'ring-2 ring-primary/60 dark:ring-primary/60',
 
 		selectable && selected && 'ring-2 ring-primary/80 dark:ring-primary/80',
-		size === 'sm' && 'p-1.5 h-26',
+		size === 'sm' && 'p-1.5 h-26'
 	)}
 	onclick={(e) => {
 		// Toggle checked state
@@ -159,7 +162,7 @@
 	<div class="flex-1 min-h-0 w-full">
 		<IngredientImage
 			id={ingredient?.id || null}
-			name={name || description || '?'}
+			name={displayName || description || '?'}
 			class={cn(
 				'aspect-square h-full w-auto max-h-16 mx-auto transition-opacity',
 				checked && 'opacity-40'
@@ -186,7 +189,7 @@
 				size === 'sm' && 'text-xs'
 			)}
 		>
-			{name || description || ''}
+			{displayName || description || ''}
 		</span>
 
 		{@render children?.()}
