@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
@@ -35,6 +36,7 @@
 		Salad,
 		Utensils
 	} from 'lucide-svelte';
+	import SeparatorZigZag from '../../shopping-list/SeparatorZigZag.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
 	const space = getActiveSpaceState();
@@ -274,7 +276,7 @@
 					<div class="grid auto-rows-max items-start gap-x-4 gap-y-12">
 						<div class="grid space-y-4">
 							<div class="flex gap-2 items-center">
-								<h2 class="text-xl font-semibold">Plan</h2>
+								<h2 class="text-xl font-semibold">Your plan</h2>
 
 								<Button
 									size="sm"
@@ -288,16 +290,15 @@
 								</Button>
 							</div>
 
-							<div
-								class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
-							>
-								<span>This recipe is not in your plan yet.</span>
-
-								<!-- <ButtonThemed size="sm" type="submit" class="flex gap-2 mx-auto">
-								<CalendarPlus class="size-4" />
-								Add to plan
-							</ButtonThemed> -->
-							</div>
+							{#each (space.activePlanMeals || []).filter((m) => recipe && m.recipe_id === recipe.id) as meal (meal.id)}
+								<MealListItem {meal} showExpandedButtons />
+							{:else}
+								<div
+									class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
+								>
+									<span>This recipe is not in your plan yet.</span>
+								</div>
+							{/each}
 						</div>
 
 						<div class="grid space-y-4">
@@ -330,20 +331,18 @@
 
 							{#if recipe.ingredients.filter((i) => i.is_optional).length > 0}
 								<div
-									class="relative mt-8 pt-6 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-border before:to-transparent grid"
+									class="flex gap-2 items-center text-sm text-muted-foreground uppercase font-medium tracking-wide"
 								>
-									<span
-										class="mx-auto mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wide"
-									>
-										Optional
-									</span>
-
-									{@render displayIngredients(
-										recipe.ingredients,
-										ingredientsView.value || 'grid',
-										true
-									)}
+									<SeparatorZigZag />
+									<span>Optional</span>
+									<SeparatorZigZag />
 								</div>
+
+								{@render displayIngredients(
+									recipe.ingredients,
+									ingredientsView.value || 'grid',
+									true
+								)}
 							{/if}
 						</div>
 
@@ -386,6 +385,7 @@
 			{#if view === 'grid'}
 				<ShoppingItemCardGrid
 					ingredient={ing.ingredient}
+					plural={!!ing.quantity && ing.quantity > 1}
 					description={ing.quantity?.toString() +
 						' ' +
 						(ing.unit === 'whole' ? '' : ing.unit || '')}

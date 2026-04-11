@@ -68,8 +68,7 @@
 	};
 </script>
 
-<Button
-	variant="outline"
+<button
 	class={cn(
 		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-colors duration-0 select-none',
 
@@ -83,6 +82,7 @@
 			'ring-2 ring-primary/60 dark:ring-primary/60',
 
 		selectable && selected && 'ring-2 ring-primary/80 dark:ring-primary/80',
+		
 		size === 'sm' && 'p-1.5 h-26'
 	)}
 	onclick={(e) => {
@@ -194,4 +194,4 @@
 
 		{@render children?.()}
 	</div>
-</Button>
+</button>
