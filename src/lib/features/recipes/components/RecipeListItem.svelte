@@ -8,7 +8,7 @@
 
 	interface Props {
 		recipe?: Recipe | null; // null for loading state
-		showServings?: boolean; // Whether to show servings count in collapsed view
+		servings?: number | boolean; // If number, show servings. If false, don't show. If true, show if servings exist on recipe.
 		endSnippet?: Snippet | null; // Optional snippet to render at the end of the item (e.g. for actions)
 		size?: 'md' | 'lg';
 		class?: string;
@@ -17,7 +17,7 @@
 
 	let {
 		recipe = null,
-		showServings = true,
+		servings = recipe?.servings ?? false,
 		endSnippet = null,
 		size = 'md',
 		class: className = '',
@@ -49,7 +49,7 @@
 			<CookableStatus />
 		</div>
 
-		{#if showServings}
+		{#if servings}
 			<div
 				class={cn(
 					'ml-auto flex shrink-0 items-center gap-1 text-xs font-semibold',
@@ -57,7 +57,7 @@
 				)}
 			>
 				<div class="flex items-center gap-1">
-					<span>{recipe.servings}</span>
+					<span>{servings}</span>
 					<Users class={cn('inline-block size-3', size == 'lg' && 'size-4')} />
 				</div>
 			</div>

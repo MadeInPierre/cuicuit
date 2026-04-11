@@ -11,7 +11,8 @@ export function getPlanMeals(spaceId: string, languageId: number) {
 				`*, 
 				recipe:recipes(
 					*,
-					language:languages(*)
+					language:languages(*),
+					recipe_ingredients(*)
 				),
 				shopping_ingredients:space_items(
 					*,

@@ -308,7 +308,7 @@
 							(Object.entries(item.mergedQuantity.withOptionals).some(
 								([unit, quantity]) => quantity > (item.mergedQuantity.requiredOnly[unit] || 0)
 							)
-								? ` (${item.items.length > 1 ? 'has ' : ''}opt.)`
+								? ` (${item.items.length > 1 ? 'has ' : ''}opt)`
 								: '')}
 						plural={Object.entries(item.mergedQuantity.withOptionals).some(
 							([_, quantity]) => quantity > 1

@@ -1,21 +1,40 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
+import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 
 export async function updateMealServings(
 	activeSpace: ActiveSpaceState,
-	mealId: string,
+	meal: MealWithRecipeAndIngredients,
 	servings: number,
 	options?: { skipRefresh?: boolean }
 ) {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
-	if (!mealId) throw new Error('Meal ID not provided');
 	if (servings < 1) throw new Error('Servings must be at least 1');
 
 	// Update the meal servings in Supabase
-	const { error } = await supabase.from('space_meals').update({ servings }).eq('id', mealId);
+	const { error } = await supabase.from('space_meals').update({ servings }).eq('id', meal.id);
 	if (error) throw new Error('Error updating meal servings: ' + error.message);
+
+	// Update every shopping list item related to this meal to reflect the new amounts
+	for (const ing of meal.recipe.recipe_ingredients) {
+		const newAmount = ((ing.quantity ?? 1) * servings) / meal.recipe.servings;
+
+		const { error: itemError } = await supabase
+			.from('space_items')
+			.update({ quantity: newAmount })
+			.eq('space_id', activeSpace.activeSpace.id)
+			.eq('meal_id', meal.id)
+			.eq('ingredient_id', ing.ingredient_id);
+
+		// Continue updating other items even if one fails
+		if (itemError) {
+			console.error(
+				`Error updating shopping list item ${ing.ingredient_id} for meal ${meal.id}: ${itemError.message}`
+			);
+		}
+	}
 
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;

@@ -1,5 +1,25 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
+	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
+	import {
+		recipeCourses,
+		recipeCuisines,
+		recipeTimesOfDay
+	} from '$lib/features/recipes/db/recipe-doc';
+	import {
+		getRecipeDetailed,
+		type RecipeDetailedWithAuthor,
+		type RecipeIngredientDetailed
+	} from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
+	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
+	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { capitalize } from '$lib/utils';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -15,26 +35,6 @@
 		Salad,
 		Utensils
 	} from 'lucide-svelte';
-	import {
-		recipeCourses,
-		recipeCuisines,
-		recipeTimesOfDay
-	} from '$lib/features/recipes/db/recipe-doc';
-	import { page } from '$app/state';
-	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
-	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { capitalize } from '$lib/utils';
-	import {
-		getRecipeDetailed,
-		type RecipeDetailedWithAuthor,
-		type RecipeIngredientDetailed
-	} from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
-	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
-	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
 	const space = getActiveSpaceState();
@@ -386,9 +386,9 @@
 			{#if view === 'grid'}
 				<ShoppingItemCardGrid
 					ingredient={ing.ingredient}
-					description={ing.raw_input}
-					amount={ing.quantity}
-					unit={ing.unit === 'whole' ? '' : ing.unit || ''}
+					description={ing.quantity?.toString() +
+						' ' +
+						(ing.unit === 'whole' ? '' : ing.unit || '')}
 				/>
 			{:else}
 				<ShoppingItemCardList
