@@ -1,7 +1,7 @@
 import type { ShoppingListItem } from '$lib/features/plans/queries/get-plan-items';
 import type {
-    MealWithRecipeAndIngredients,
-    ShoppingIngredient
+	MealWithRecipeAndIngredients,
+	ShoppingIngredient
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 
@@ -11,8 +11,12 @@ export type CombinedShoppingListItem = {
 	items: ShoppingListItem[];
 	meals: MealWithRecipeAndIngredients[];
 	mergedQuantity: {
-		amount: number;
-		unit: string;
+		withOptionals: {
+			[unit: string]: number; // Map of unit to total amount (e.g., { "g": 500, "cup": 2 })
+		};
+		requiredOnly: {
+			[unit: string]: number; // Map of unit to total amount for required items only
+		};
 	};
 };
 
@@ -41,8 +45,8 @@ export function generateShoppingList(
 				items: [],
 				meals: [],
 				mergedQuantity: {
-					amount: 0,
-					unit: shoppingItem.unit || ''
+					withOptionals: {},
+					requiredOnly: {}
 				}
 			};
 		}
@@ -52,9 +56,16 @@ export function generateShoppingList(
 
 		// TODO Merge quantities
 		if (shoppingItem.quantity) {
-			ingredientMap[key].mergedQuantity.amount += shoppingItem.quantity;
-			ingredientMap[key].mergedQuantity.unit =
-				shoppingItem.unit || ingredientMap[key].mergedQuantity.unit;
+			const isOptional = shoppingItem.priority === 'optional';
+			const unitKey = shoppingItem.unit?.trim() || '';
+
+			ingredientMap[key].mergedQuantity.withOptionals[unitKey] =
+				(ingredientMap[key].mergedQuantity.withOptionals[unitKey] || 0) + shoppingItem.quantity;
+
+			if (!isOptional) {
+				ingredientMap[key].mergedQuantity.requiredOnly[unitKey] =
+					(ingredientMap[key].mergedQuantity.requiredOnly[unitKey] || 0) + shoppingItem.quantity;
+			}
 		}
 	});
 
@@ -77,16 +88,14 @@ export function generateShoppingList(
 					items: [],
 					meals: [],
 					mergedQuantity: {
-						amount: 0,
-						unit: shoppingIngredient.unit || ''
+						withOptionals: {},
+						requiredOnly: {}
 					}
 				};
 			}
 
 			// Push this meal as an origin and the shopping item
-			// if (!ingredientMap[key].meals.some((m) => m.id === meal.id)) {
 			ingredientMap[key].meals.push(meal);
-			// }
 		});
 	});
 

@@ -1,5 +1,6 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
+import { toast } from 'svelte-sonner';
 
 export async function updatePlanItemChecked(
 	activeSpace: ActiveSpaceState,
@@ -38,12 +39,33 @@ export async function deletePlanItem(
 	if (!itemId) throw new Error('Item ID not provided');
 
 	const now = new Date().toISOString();
-	
+
 	// Soft delete the plan item
-	console.log('Delete ingredient', itemId);
 	const { error } = await supabase.from('space_items').update({ deleted_at: now }).eq('id', itemId);
 
 	if (error) throw new Error('Error deleting plan item: ' + error.message);
+
+	toast.success('Item deleted', {
+		duration: 5000,
+		action: {
+			label: 'Undo',
+			actionButtonStyle: 'outline',
+			onClick: async () => {
+				const { error: undoError } = await supabase
+					.from('space_items')
+					.update({ deleted_at: null })
+					.eq('id', itemId)
+					.eq('deleted_at', now); // Only undo if it was deleted at the expected time
+
+				if (undoError) {
+					toast.error('Error undoing delete: ' + undoError.message);
+				} else {
+					activeSpace.refreshActivePlanItems();
+					activeSpace.refreshActivePlanMeals();
+				}
+			}
+		}
+	});
 
 	// Refresh the active plan items after deleting
 	if (options?.skipRefresh === true) return;

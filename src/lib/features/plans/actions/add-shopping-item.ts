@@ -17,7 +17,8 @@ export async function addShoppingItem(
 		ingredient_id: ingredientId,
 		quantity: quantity,
 		unit: unit,
-		name: capitalize(name).trim()
+		name: capitalize(name).trim(),
+		priority: 'required'
 	});
 
 	// Update UI

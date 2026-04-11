@@ -81,6 +81,13 @@ export const publicIngredientSubstitutionStrengthSchema = z.union([
   z.literal("variant"),
 ]);
 
+export const publicItemPrioritySchema = z.union([
+  z.literal("required"),
+  z.literal("nicetohave"),
+  z.literal("whynot"),
+  z.literal("optional"),
+]);
+
 export const publicRecipeSourceTypeSchema = z.union([
   z.literal("website"),
   z.literal("user-manual"),
@@ -481,6 +488,7 @@ export const publicSpaceItemsRowSchema = z.object({
   meal_id: z.string().nullable(),
   meal_origin: z.string().nullable(),
   name: z.string().nullable(),
+  priority: publicItemPrioritySchema,
   quantity: z.number().nullable(),
   space_id: z.string(),
   type: z.string(),
@@ -498,6 +506,7 @@ export const publicSpaceItemsInsertSchema = z.object({
   meal_id: z.string().optional().nullable(),
   meal_origin: z.string().optional().nullable(),
   name: z.string().optional().nullable(),
+  priority: publicItemPrioritySchema.optional(),
   quantity: z.number().optional().nullable(),
   space_id: z.string(),
   type: z.string(),
@@ -515,6 +524,7 @@ export const publicSpaceItemsUpdateSchema = z.object({
   meal_id: z.string().optional().nullable(),
   meal_origin: z.string().optional().nullable(),
   name: z.string().optional().nullable(),
+  priority: publicItemPrioritySchema.optional(),
   quantity: z.number().optional().nullable(),
   space_id: z.string().optional(),
   type: z.string().optional(),
@@ -823,6 +833,7 @@ export type PublicIngredientBaseUnit = z.infer<
 export type PublicIngredientSubstitutionStrength = z.infer<
   typeof publicIngredientSubstitutionStrengthSchema
 >;
+export type PublicItemPriority = z.infer<typeof publicItemPrioritySchema>;
 export type PublicRecipeSourceType = z.infer<
   typeof publicRecipeSourceTypeSchema
 >;
