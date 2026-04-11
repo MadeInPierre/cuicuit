@@ -350,6 +350,7 @@ export type Database = {
           meal_id: string | null
           meal_origin: string | null
           name: string | null
+          priority: Database["public"]["Enums"]["item_priority"]
           quantity: number | null
           space_id: string
           type: string
@@ -366,6 +367,7 @@ export type Database = {
           meal_id?: string | null
           meal_origin?: string | null
           name?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
           quantity?: number | null
           space_id: string
           type: string
@@ -382,6 +384,7 @@ export type Database = {
           meal_id?: string | null
           meal_origin?: string | null
           name?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
           quantity?: number | null
           space_id?: string
           type?: string
@@ -703,6 +706,7 @@ export type Database = {
         | "close"
         | "far"
         | "variant"
+      item_priority: "required" | "nicetohave" | "whynot" | "optional"
       recipe_source_type: "website" | "user-manual"
       recipe_tool:
         | "blender"
@@ -911,6 +915,7 @@ export const Constants = {
         "far",
         "variant",
       ],
+      item_priority: ["required", "nicetohave", "whynot", "optional"],
       recipe_source_type: ["website", "user-manual"],
       recipe_tool: [
         "blender",

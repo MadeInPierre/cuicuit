@@ -204,11 +204,12 @@
 					{#each processedIngredient.matches.slice(0, displayRows * displayColumns - (allowCustom ? 1 : 0)) as ingredient, index (ingredient.id)}
 						<ShoppingItemCardGrid
 							{ingredient}
-							description={processedIngredient.parsed.description}
-							amount={processedIngredient.parsed.quantity?.amount}
-							unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
-								? ''
-								: processedIngredient.parsed.quantity?.unitText}
+							description={(processedIngredient.parsed.quantity?.amount || '') +
+								' ' +
+								(processedIngredient.parsed.quantity?.unitKey?.replace('whole', '') || '') +
+								' ' +
+								(processedIngredient.parsed.description || '')}
+							plural={(processedIngredient.parsed.quantity?.amount || 0) > 1}
 							onclick={() => onSelectIngredient(index)}
 							size="sm"
 						/>

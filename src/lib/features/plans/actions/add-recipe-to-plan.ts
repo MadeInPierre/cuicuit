@@ -1,5 +1,6 @@
 import { type ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
+import type { TablesInsert } from '$lib/shared/db/supabase.types';
 
 export async function addRecipeToActivePlan(
 	space: ActiveSpaceState,
@@ -48,17 +49,21 @@ export async function addRecipeToActivePlan(
 		return;
 	}
 
-	const shoppingListItems = recipeIngredients.map((ingredient) => ({
-		space_id: activeSpaceId,
-		created_by: space.activeMember!.user_id,
-		type: 'meal',
-		meal_id: mealId,
-		meal_origin: 'recipe',
-		ingredient_id: ingredient.ingredient_id,
-		name: ingredient.raw_input,
-		quantity: ingredient.quantity ?? 1,
-		unit: ingredient.unit
-	}));
+	const shoppingListItems = recipeIngredients.map(
+		(ingredient) =>
+			({
+				space_id: activeSpaceId,
+				created_by: space.activeMember!.user_id,
+				type: 'meal',
+				meal_id: mealId,
+				meal_origin: 'recipe',
+				ingredient_id: ingredient.ingredient_id,
+				priority: ingredient.is_optional ? 'optional' : 'required',
+				name: ingredient.raw_input,
+				quantity: ingredient.quantity ?? 1,
+				unit: ingredient.unit
+			}) satisfies TablesInsert<'space_items'>
+	);
 
 	const { error: shoppingListError } = await supabase.from('space_items').insert(shoppingListItems);
 

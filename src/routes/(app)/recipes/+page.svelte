@@ -29,6 +29,7 @@
 	import FilterDropdown from './FilterSelect.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
 	import SearchBar from './SearchBar.svelte';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];
@@ -138,7 +139,7 @@
 
 	let searchInput: string = $state('');
 
-	let counter = createPersistentState<number>('global-recipe-page-servings', 2, {
+	let servingsPref = createPersistentState<number>('global-recipe-page-servings', 2, {
 		toString: (value: number) => value.toString(),
 		fromString: (value: string) => parseInt(value, 10)
 	});
@@ -252,11 +253,13 @@
 <div class="space-y-8 pb-16 min-h-full">
 	<div class="space-y-6 mb-12">
 		<div class="flex items-center">
-			<div class="grid space-y-0.5">
+			<div class="grid space-y-1">
 				<div class="flex gap-6 items-center">
-					<h1 class="text-4xl font-bold tracking-tight">Recipes</h1>
+					<h1 class="text-4xl font-bold tracking-tight">
+						Good morning, {userState.preferences?.first_name || 'Chef'}!
+					</h1>
 					<!-- <h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>
-					<ServingsPlusMinus value={counter.value || 1} size="lg" onChange={counter.set} /> -->
+					<ServingsPlusMinus value={servingsPref.value || 1} size="lg" onChange={servingsPref.set} /> -->
 
 					<!-- <Button>
 						<RotateCcw class="size-4" />
@@ -265,7 +268,7 @@
 				</div>
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
-					<span class="py-1">Grouped by</span>
+					<span class="py-1">Recipes grouped by</span>
 					<FilterDropdown
 						value={parameters.groupBy}
 						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}

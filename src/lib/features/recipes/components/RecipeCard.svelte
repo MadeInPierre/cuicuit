@@ -62,7 +62,8 @@
 							'size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm',
 							bookmarked === false && 'opacity-0 group-hover:opacity-100 transition-opacity'
 						)}
-						aria-label="Bookmark recipe"
+						aria-label="Add to cookbook"
+						title="Add to cookbook"
 						onclick={async () => {
 							// TODO: Implement bookmark functionality
 							const prev = bookmarked || false;
@@ -99,6 +100,7 @@
 							size="icon"
 							class="size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
 							aria-label="Add to plan"
+							title="Add to plan"
 							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}
 						>
 							<CalendarPlus class="size-4 text-black" />

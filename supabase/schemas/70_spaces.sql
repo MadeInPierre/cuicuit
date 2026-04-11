@@ -124,6 +124,13 @@ GRANT ALL ON TABLE "public"."space_meals" TO "authenticated";
 
 GRANT ALL ON TABLE "public"."space_meals" TO "service_role";
 
+---------------------
+-- Ingredient base unit enum
+---------------------
+CREATE TYPE "public"."item_priority" AS ENUM('required', 'nicetohave', 'whynot', 'optional');
+
+ALTER TYPE "public"."item_priority" OWNER TO "postgres";
+
 --------------------
 -- Space plan shopping lists
 --------------------
@@ -142,6 +149,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_items" (
     "quantity" numeric,
     "unit" "text",
     "name" "text",
+    "priority" "public"."item_priority" DEFAULT 'required'::"public"."item_priority" NOT NULL,
     "checked_at" timestamp with time zone DEFAULT NULL,
     CONSTRAINT "space_items_check" CHECK (
         (

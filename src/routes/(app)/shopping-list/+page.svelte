@@ -302,9 +302,17 @@
 				>
 					<ShoppingItemCardGrid
 						ingredient={item.ingredient}
-						description={item.name}
-						amount={item.mergedQuantity?.amount}
-						unit={item.mergedQuantity?.unit}
+						description={Object.entries(item.mergedQuantity.withOptionals)
+							.map(([unit, quantity]) => `${quantity} ${unit === 'whole' ? '' : unit}`)
+							.join(', ') +
+							(Object.entries(item.mergedQuantity.withOptionals).some(
+								([unit, quantity]) => quantity > (item.mergedQuantity.requiredOnly[unit] || 0)
+							)
+								? ` (${item.items.length > 1 ? 'has ' : ''}opt.)`
+								: '')}
+						plural={Object.entries(item.mergedQuantity.withOptionals).some(
+							([_, quantity]) => quantity > 1
+						)}
 						size="md"
 						selectable
 						onDelete={() => {
@@ -348,8 +356,6 @@
 					<ShoppingItemCardList
 						ingredient={item.ingredient}
 						description={item.name}
-						amount={item.mergedQuantity!.amount}
-						unit={item.mergedQuantity!.unit}
 						checkable
 						checked={item.items.some((si) => si.checked_at)}
 						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}

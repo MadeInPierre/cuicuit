@@ -13,9 +13,7 @@
 		// Ingredient
 		ingredient?: RecipeIngredientWithTranslations | null;
 		description?: string | null;
-		// Quantity
-		amount?: number | null;
-		unit?: string | null;
+		plural?: boolean;
 		// Appearance
 		size?: 'sm' | 'md' | 'lg';
 		class?: string;
@@ -34,9 +32,8 @@
 
 	let {
 		ingredient = null,
-		amount,
-		unit,
 		description,
+		plural = false,
 		size = 'md',
 		class: className,
 		children,
@@ -52,8 +49,7 @@
 	const translation = $derived(ingredient?.translations?.[0]);
 
 	const name = $derived.by(() => {
-		if (amount === null || amount === undefined || amount === 0 || (amount && amount > 1))
-			return translation?.name_plural || translation?.name_singular;
+		if (plural) return translation?.name_plural || translation?.name_singular;
 		else return translation?.name_singular || translation?.name_plural;
 	});
 
@@ -63,6 +59,10 @@
 	const selected = $derived(
 		selectedMealIngredient.value && selectedMealIngredient.value.id === ingredient?.id
 	);
+
+	const isTouchPointerEvent = (event: MouseEvent | PointerEvent) => {
+		return 'pointerType' in event && event.pointerType === 'touch';
+	};
 </script>
 
 <Button
@@ -80,10 +80,7 @@
 			'ring-2 ring-primary/60 dark:ring-primary/60',
 
 		selectable && selected && 'ring-2 ring-primary/80 dark:ring-primary/80',
-
-		size === 'sm' && 'h-26 p-1 text-xs duration-75',
-		size === 'lg' && 'h-32 p-3 text-md duration-75',
-		className
+		size === 'sm' && 'p-1.5 h-26',
 	)}
 	onclick={(e) => {
 		// Toggle checked state
@@ -117,6 +114,7 @@
 				variant="ghost"
 				class={cn('size-8 rounded-full text-muted hover:bg-primary/10 hover:text-primary')}
 				onclick={(e) => {
+					if (isTouchPointerEvent(e)) return;
 					e.preventDefault();
 					e.stopPropagation();
 
@@ -138,6 +136,7 @@
 				variant="ghost"
 				class="size-8 rounded-full text-muted hover:bg-primary/10 hover:text-primary"
 				onclick={async (e) => {
+					if (isTouchPointerEvent(e)) return;
 					e.preventDefault();
 					e.stopPropagation();
 
@@ -169,26 +168,25 @@
 	</div>
 
 	<div class="grid space-y-0.5 text-center shrink-0">
-		{#if amount}
+		{#if description}
 			<span
 				class={cn(
 					'line-clamp-1 text-xs text-muted-foreground font-normal',
 					size === 'lg' && 'text-sm'
 				)}
 			>
-				{amount}
-				{unit === 'whole' ? '' : unit}
+				{description}
 			</span>
 		{/if}
 
 		<span
 			class={cn(
-				'line-clamp-2 text-balance pb-0.5',
-				checked && 'line-through text-muted-foreground'
-				// !amount && name && name.length < 20 && 'pb-1.5'
+				'font-medium line-clamp-2 text-balance pb-0.5',
+				checked && 'line-through text-muted-foreground',
+				size === 'sm' && 'text-xs'
 			)}
 		>
-			<span class="font-medium">{name || description || ''}</span>
+			{name || description || ''}
 		</span>
 
 		{@render children?.()}

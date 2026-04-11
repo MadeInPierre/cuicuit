@@ -22,7 +22,7 @@
 
 	// Rows per page based on screen size
 	const rowsPerPage = $derived.by(() => {
-		if (media['2xl']) return 2;
+		if (media['2xl']) return 3;
 		if (media.xl) return 2;
 		if (media.lg) return 2;
 		if (media.md) return 2;
@@ -78,7 +78,7 @@
 	});
 </script>
 
-{#if !expand && totalSlides > 1}
+{#if isLoading || (!expand && totalSlides > 1)}
 	<Carousel.Root
 		opts={{
 			active: recipes.length > itemsPerCarouselPage && !isLoading && !expand,

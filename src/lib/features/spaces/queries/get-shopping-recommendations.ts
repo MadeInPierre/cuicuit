@@ -19,10 +19,6 @@ export async function getShoppingRecommendations(spaceId: string, lang: string) 
 	});
 	if (error) throw error;
 
-	console.log(
-		`Fetched ${data?.length || 0} shopping recommendations for space ${spaceId} with ${MAX_RECOMMENDATIONS} max and ${PER_AISLE_LIMIT} per aisle.`
-	);
-
 	return data || [];
 }
 
