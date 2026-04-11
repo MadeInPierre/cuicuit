@@ -165,7 +165,7 @@
 						<div
 							class="mt-2 py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
 						>
-							No independent items
+							No additional items
 						</div>
 					{/if}
 

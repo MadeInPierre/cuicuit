@@ -6,7 +6,7 @@ import { ingredientDensities, type IngredientDensityKey } from '$lib/data/ingred
 import z from 'zod';
 
 // Define the conversion rates for each unit in a map (separately for volume and weight):
-const volumeConversionRates = {
+export const volumeConversionRates = {
 	// Metric
 	ml: 1,
 	cl: 10,
@@ -41,7 +41,7 @@ const volumeConversionRates = {
 	aucup: 250
 } as const;
 
-const weightConversionRates = {
+export const weightConversionRates = {
 	g: 1,
 	kg: 1000,
 	oz: 28.349523,

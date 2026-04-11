@@ -142,7 +142,10 @@
 	<div class="grid w-full">
 		<RecipeListItem
 			recipe={meal.recipe}
-			servings={(!expanded || !showExpandedButtons) && !(hovered || selected) && showServings && meal.servings}
+			servings={(!expanded || !showExpandedButtons) &&
+				!(hovered || selected) &&
+				showServings &&
+				meal.servings}
 			{size}
 			class={cn(hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60', className)}
 			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
@@ -201,37 +204,38 @@
 						</div>
 					{/each}
 
-					<!-- Toggle show optional ingredients -->
-					<button
-						class={cn(
-							'text-xs rounded-sm duration-75 transition-all hover:bg-accent hover:text-primary hover:font-medium',
-							showOptional && 'font-medium'
-						)}
-						onclick={() => (toggleOptional = !toggleOptional)}
-					>
-						<div class="h-[22px] p-0.5 px-2 flex items-center gap-1">
-							<span class={cn('text-muted-foreground')}>
-								+{optionalIngredients.length}
-								optional{optionalIngredients.length > 1 ? 's' : ''}
-							</span>
+					{#if optionalIngredients.length > 0}
+						<button
+							class={cn(
+								'text-xs rounded-sm duration-75 transition-all hover:bg-accent hover:text-primary hover:font-medium',
+								showOptional && 'font-medium'
+							)}
+							onclick={() => (toggleOptional = !toggleOptional)}
+						>
+							<div class="h-[22px] p-0.5 px-2 flex items-center gap-1">
+								<span class={cn('text-muted-foreground')}>
+									+{optionalIngredients.length}
+									optional{optionalIngredients.length > 1 ? 's' : ''}
+								</span>
 
-							<ChevronRight
-								class={cn(
-									'max-w-3 max-h-3 text-muted-foreground transition-transform duration-75',
-									showOptional && 'rotate-90'
-								)}
-							/>
-						</div>
-					</button>
+								<ChevronRight
+									class={cn(
+										'max-w-3 max-h-3 text-muted-foreground transition-transform duration-75',
+										showOptional && 'rotate-90'
+									)}
+								/>
+							</div>
+						</button>
 
-					{#if showOptional}
-						<div transition:slide={{ duration: 200 }}>
-							{#each optionalIngredients as si (si.ingredient_id)}
-								<div animate:flip={{ duration: 200 }}>
-									{@render ingredientRow(si, 'optional')}
-								</div>
-							{/each}
-						</div>
+						{#if showOptional}
+							<div transition:slide={{ duration: 200 }}>
+								{#each optionalIngredients as si (si.ingredient_id)}
+									<div animate:flip={{ duration: 200 }}>
+										{@render ingredientRow(si, 'optional')}
+									</div>
+								{/each}
+							</div>
+						{/if}
 					{/if}
 				</div>
 

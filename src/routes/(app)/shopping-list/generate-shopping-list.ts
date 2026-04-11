@@ -4,6 +4,8 @@ import type {
 	ShoppingIngredient
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
+import { mergeQuantities } from '$lib/shared/utils/merge-quantities';
+import type { Unit } from '$lib/shared/utils/quantity';
 
 export type CombinedShoppingListItem = {
 	name: string;
@@ -11,11 +13,11 @@ export type CombinedShoppingListItem = {
 	items: ShoppingListItem[];
 	meals: MealWithRecipeAndIngredients[];
 	mergedQuantity: {
-		withOptionals: {
-			[unit: string]: number; // Map of unit to total amount (e.g., { "g": 500, "cup": 2 })
-		};
-		requiredOnly: {
-			[unit: string]: number; // Map of unit to total amount for required items only
+		// Map of unit to total amount for that unit, separated into required and optional quantities
+		[unit in Unit]?: {
+			withOptionals: number; // Total amount including optional items
+			requiredOnly: number; // Total amount for required items only
+			optionalOnly: number; // Total amount for optional items only (calculated as withOptionals - requiredOnly)
 		};
 	};
 };
@@ -44,10 +46,7 @@ export function generateShoppingList(
 				ingredient: shoppingItem.ingredient || null,
 				items: [],
 				meals: [],
-				mergedQuantity: {
-					withOptionals: {},
-					requiredOnly: {}
-				}
+				mergedQuantity: {}
 			};
 		}
 
@@ -57,19 +56,24 @@ export function generateShoppingList(
 		// TODO Merge quantities
 		if (shoppingItem.quantity) {
 			const isOptional = shoppingItem.priority === 'optional';
-			const unitKey = shoppingItem.unit?.trim() || '';
+			const unitKey = (shoppingItem.unit?.trim() as Unit) || 'unknown';
 
-			ingredientMap[key].mergedQuantity.withOptionals[unitKey] =
-				(ingredientMap[key].mergedQuantity.withOptionals[unitKey] || 0) + shoppingItem.quantity;
+			const unitTotals = ingredientMap[key].mergedQuantity[unitKey] ?? {
+				withOptionals: 0,
+				requiredOnly: 0,
+				optionalOnly: 0
+			};
 
-			if (!isOptional) {
-				ingredientMap[key].mergedQuantity.requiredOnly[unitKey] =
-					(ingredientMap[key].mergedQuantity.requiredOnly[unitKey] || 0) + shoppingItem.quantity;
-			}
+			unitTotals.withOptionals += shoppingItem.quantity;
+
+			if (isOptional) unitTotals.optionalOnly += shoppingItem.quantity;
+			else unitTotals.requiredOnly += shoppingItem.quantity;
+
+			ingredientMap[key].mergedQuantity[unitKey] = unitTotals;
 		}
 	});
 
-	// Process meals first to populate the ingredient map with recipe ingredients and their origins
+	// Merge meal ingredients, keeping track of which meals they come from.
 	meals.forEach((meal) => {
 		meal.shopping_ingredients.forEach((shoppingIngredient) => {
 			const key =
@@ -87,16 +91,59 @@ export function generateShoppingList(
 					ingredient: shoppingIngredient.ingredient || null,
 					items: [],
 					meals: [],
-					mergedQuantity: {
-						withOptionals: {},
-						requiredOnly: {}
-					}
+					mergedQuantity: {}
 				};
 			}
 
 			// Push this meal as an origin and the shopping item
 			ingredientMap[key].meals.push(meal);
 		});
+	});
+
+	// Compact quantities for each ingredient using mergeQuantities (separately for required and optional)
+	Object.values(ingredientMap).forEach((ingredient) => {
+		// Keep only units that can actually be merged
+		const entries = Object.entries(ingredient.mergedQuantity).filter(
+			([unit, q]) =>
+				unit !== 'unknown' && q && (q.withOptionals > 0 || q.requiredOnly > 0 || q.optionalOnly > 0)
+		);
+
+		// Early skip if nothing to merge
+		if (entries.length === 0) {
+			ingredient.mergedQuantity = {};
+			return;
+		}
+
+		const merged: typeof ingredient.mergedQuantity = {};
+		const quantityTypes = ['withOptionals', 'requiredOnly', 'optionalOnly'] as const;
+
+		for (const quantityType of quantityTypes) {
+			const quantitiesToMerge = entries.reduce(
+				(acc, [unit, quantities]) => {
+					const qty = quantities[quantityType];
+					if (qty > 0) acc[unit as Unit] = qty;
+					return acc;
+				},
+				{} as Partial<Record<Unit, number>>
+			);
+
+			// Early skip this bucket if empty or has 1
+			if (Object.keys(quantitiesToMerge).length === 0) continue;
+
+			const mergedQuantities = mergeQuantities(quantitiesToMerge);
+
+			for (const [unit, qty] of Object.entries(mergedQuantities)) {
+				const unitKey = unit as Unit;
+				const target = (merged[unitKey] ??= {
+					withOptionals: 0,
+					requiredOnly: 0,
+					optionalOnly: 0
+				});
+				target[quantityType] = qty;
+			}
+		}
+
+		ingredient.mergedQuantity = merged;
 	});
 
 	return Object.values(ingredientMap).sort((a, b) => {
