@@ -16,6 +16,7 @@
 		ShoppingCart,
 		Trash2
 	} from 'lucide-svelte';
+	import type { Snippet } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
@@ -32,18 +33,22 @@
 
 	interface Props {
 		meal?: MealWithRecipeAndIngredients | null; // null for loading state
+		expandable?: boolean; // Whether the meal card can be expanded to show ingredients
 		showServings?: boolean; // Whether to show servings count in collapsed view
 		showExpandedButtons?: boolean;
 		size?: 'md' | 'lg';
 		class?: string;
+		cardEndSnippet?: Snippet | null; // Additional content to show at the end of the meal card (e.g. for shopping list)
 	}
 
 	let {
 		meal = null,
+		expandable = true,
 		showServings = true,
 		showExpandedButtons = false,
 		size = 'md',
-		class: className = ''
+		class: className = '',
+		cardEndSnippet = null
 	}: Props = $props();
 
 	let activeId = $derived(
@@ -51,20 +56,22 @@
 	);
 
 	let hovered = $derived(
-		hoveredMealIngredient.value &&
+		(hoveredMealIngredient.value &&
 			meal?.shopping_ingredients.some(
 				(ing) => ing.ingredient_id === hoveredMealIngredient.value?.id
-			)
+			)) ||
+			false
 	);
 
 	let selected = $derived(
-		selectedMealIngredient.value?.id !== null &&
+		(selectedMealIngredient.value?.id !== null &&
 			meal?.shopping_ingredients.some(
 				(ing) => ing.ingredient_id === selectedMealIngredient.value?.id
-			)
+			)) ||
+			false
 	);
 
-	let expanded = $derived(openMealCardId.value === meal?.id || selected);
+	let expanded = $derived(expandable && (openMealCardId.value === meal?.id || selected));
 
 	let toggleOptional = $state(false);
 	let showOptional = $derived(
@@ -141,51 +148,50 @@
 </script>
 
 {#if meal}
+	{#snippet defaultEndSnippet()}
+		{#if hovered || selected}
+			<!-- in:fade={{ duration: 75 }} -->
+			<div class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto">
+				<IngredientImage id={activeId} class="size-7 rounded-full" />
+
+				<span>
+					{(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
+						0) ||
+						''}
+
+					{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit === 'whole'
+						? ''
+						: meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit || ''}
+				</span>
+			</div>
+		{:else if expanded}
+			<Button
+				variant="ghost"
+				size="icon"
+				class="ml-auto size-7 text-muted-foreground"
+				onclick={(e) => {
+					e.stopPropagation();
+					// TODO menu to edit/switch ingredients, etc.
+				}}
+			>
+				<EllipsisVertical class="size-4" />
+			</Button>
+		{/if}
+	{/snippet}
+
 	<div class="grid w-full">
 		<RecipeListItem
 			recipe={meal.recipe}
-			servings={(!expanded || !showExpandedButtons) &&
-				!(hovered || selected) &&
-				showServings &&
-				meal.servings}
+			servings={meal.servings}
 			{size}
 			class={cn(hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60', className)}
-			onclick={() => (openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id)}
+			onclick={() => {
+				if (!expandable) return;
+				openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;
+			}}
 			aria-expanded={expanded}
-		>
-			{#snippet endSnippet()}
-				{#if hovered || selected}
-					<!-- in:fade={{ duration: 75 }} -->
-					<div class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto">
-						<IngredientImage id={activeId} class="size-7 rounded-full" />
-
-						<span>
-							{(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
-								0) ||
-								''}
-
-							{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ===
-							'whole'
-								? ''
-								: meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit ||
-									''}
-						</span>
-					</div>
-				{:else}
-					<Button
-						variant="ghost"
-						size="icon"
-						class="ml-auto size-7 text-muted-foreground"
-						onclick={(e) => {
-							e.stopPropagation();
-							// TODO menu to edit/switch ingredients, etc.
-						}}
-					>
-						<EllipsisVertical class="size-4" />
-					</Button>
-				{/if}
-			{/snippet}
-		</RecipeListItem>
+			endSnippet={cardEndSnippet || (expanded || hovered ? defaultEndSnippet : null)}
+		></RecipeListItem>
 
 		{#if expanded}
 			<div
