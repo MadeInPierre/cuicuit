@@ -11,7 +11,7 @@
 		},
 		{
 			value: 'cookable',
-			label: 'Cookable state',
+			label: 'Cookability',
 			description: 'Ready to cook, change of plans, ...',
 			icon: CheckCheck
 		},

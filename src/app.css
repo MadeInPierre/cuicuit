@@ -322,6 +322,14 @@
 	::-webkit-scrollbar-thumb {
 		@apply bg-muted-foreground/30! rounded-sm;
 	}
+
+	/* === Fonts === */
+
+	.schoolbell-regular {
+		font-family: 'Schoolbell', cursive;
+		font-weight: 400;
+		font-style: normal;
+	}
 }
 
 @utility no-scrollbar {
