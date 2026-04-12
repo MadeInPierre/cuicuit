@@ -103,9 +103,36 @@
 
 <div class="space-y-6 pb-16 min-h-full">
 	<div class="flex items-center">
-		<div class="space-y-0.5">
+		<div class="space-y-1">
 			<h2 class="text-2xl font-bold tracking-tight">Shopping list</h2>
-			<p class="text-muted-foreground">Here is your plan neatly organized by market aisle.</p>
+
+			<div class="flex items-center gap-2 text-muted-foreground">
+				<span>Items by aisle, filtered by</span>
+
+				<FilterSelect
+					bind:value={shoppingListFilter}
+					options={[
+						{
+							value: 'all',
+							label: 'All items',
+							description: 'Meals and additional items together',
+							icon: Apple
+						},
+						{
+							value: 'meals',
+							label: 'Meals only',
+							description: 'Ingredients that are part of planned meals',
+							icon: Calendar
+						},
+						{
+							value: 'independent',
+							label: 'Additional only',
+							description: 'Manually added items',
+							icon: ClipboardList
+						}
+					]}
+				/>
+			</div>
 		</div>
 	</div>
 
@@ -222,7 +249,8 @@
 
 							// Apply view filter
 							if (shoppingListFilter === 'meals') return item.meals.length > 0;
-							if (shoppingListFilter === 'independent') return item.items.some((si) => si.type === 'independent');
+							if (shoppingListFilter === 'independent')
+								return item.items.some((si) => si.type === 'independent');
 							return true;
 						})}
 
