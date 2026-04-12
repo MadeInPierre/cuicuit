@@ -9,7 +9,7 @@
 	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
-	import { deletePlanItem } from '../actions/update-item';
+	import { updatePlanItemDeleted } from '../actions/update-item';
 	import { selectedMealIngredient } from '../state/hovered-meal-ingredient.svelte';
 
 	type Props = {
@@ -126,7 +126,7 @@
 											size="sm"
 											onDelete={async () => {
 												// TODO add edit functionality (quantity, unit, name)
-												await deletePlanItem(activeSpace, item.id);
+												await updatePlanItemDeleted(activeSpace, item.id);
 											}}
 										/>
 									{:else}
@@ -137,7 +137,7 @@
 											unit={item.unit === 'whole' ? '' : item.unit || ''}
 											size="sm"
 											onDelete={async () => {
-												await deletePlanItem(activeSpace, item.id);
+												await updatePlanItemDeleted(activeSpace, item.id);
 											}}
 										>
 											<span class="text-muted-foreground text-xs">
