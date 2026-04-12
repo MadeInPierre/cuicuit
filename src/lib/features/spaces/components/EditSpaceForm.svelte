@@ -1,17 +1,18 @@
 <script lang="ts">
-	import { Loader2 } from 'lucide-svelte';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { toast } from 'svelte-sonner';
-	import { superForm, defaults } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
+	import { cn } from '$lib/utils';
+	import { Loader2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, superForm } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import { editSpace } from '../actions/edit-space';
+	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import { createSpaceFormSchema } from '../models/schemas';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
-	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
-	import { cn } from '$lib/utils';
-	import { editSpace } from '../actions/edit-space';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
@@ -30,8 +31,8 @@
 
 	const form = superForm(defaults(zod(schema)), {
 		SPA: true,
+		resetForm: false,
 		validators: zod(schema),
-		clearOnSubmit: 'errors-and-message',
 		onUpdate({ form }) {
 			if (form.valid) onSubmit();
 			else toast.error('Please fix the errors in the form.');
@@ -44,11 +45,16 @@
 
 	// Set the form data to the current space data
 	$effect(() => {
+		refreshFormData();
+	});
+
+	function refreshFormData() {
 		if (!activeSpace.activeSpace || !activeSpace.activeMember) return;
 		$formData.name = activeSpace.activeSpace.name;
 		$formData.iconSlug = activeSpace.activeSpace.icon;
 		$formData.theme = activeSpace.activeMember.theme;
-	});
+		$formData.lang = activeSpace.activeSpace.language.lang as LanguageKey;
+	}
 
 	// Disable the submit button if the form is loading or the data is the same as the current space
 	const disabled = $derived(
@@ -59,7 +65,8 @@
 			!activeSpace.activeMember ||
 			($formData.name === activeSpace.activeSpace.name &&
 				$formData.iconSlug === activeSpace.activeSpace.icon &&
-				$formData.theme === activeSpace.activeMember.theme)
+				$formData.theme === activeSpace.activeMember.theme &&
+				$formData.lang === (activeSpace.language?.lang as LanguageKey))
 	);
 
 	function onSubmit() {
@@ -67,7 +74,7 @@
 			toast.error('You must be logged in to edit a space.');
 			return;
 		}
-		
+
 		if (!activeSpace.id) {
 			toast.error('You must select a space to edit.');
 			return;
@@ -75,14 +82,16 @@
 
 		loading = true;
 		editSpace(
+			activeSpace,
 			userState.user.id,
-			activeSpace.id,
 			$formData.name,
 			$formData.theme as SpaceThemeKey,
-			$formData.iconSlug as SpaceIconKey
+			$formData.iconSlug as SpaceIconKey,
+			$formData.lang as LanguageKey
 		)
 			.then(() => {
 				loading = false;
+				refreshFormData();
 			})
 			.catch((error: Error) => {
 				if (error.message === 'space-already-exists')
@@ -116,6 +125,31 @@
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>
+	</div>
+
+	<div class="space-y-2">
+		<Form.Fieldset {form} name="lang">
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Language</Form.Label>
+
+					<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 items-center w-full">
+						{#each Object.keys(languages) as LanguageKey[] as l}
+							<Button
+								{...props}
+								size="sm"
+								variant={l === $formData.lang ? 'default' : 'secondary'}
+								onclick={() => ($formData.lang = l)}
+							>
+								{languages[l as keyof typeof languages].emoji}
+								{languages[l as keyof typeof languages].label}
+							</Button>
+						{/each}
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Fieldset>
 	</div>
 
 	<div class="space-y-2">
@@ -153,7 +187,8 @@
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>
-						Theme <span class="font-normal text-muted-foreground text-xs"> (for you only) </span>
+						Theme
+						<span class="font-normal text-muted-foreground text-xs"> (applies to you only) </span>
 					</Form.Label>
 
 					<div class="flex gap-2 items-center w-full">

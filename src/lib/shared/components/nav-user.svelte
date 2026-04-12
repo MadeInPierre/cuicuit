@@ -3,14 +3,12 @@
 	import { signOut } from '$lib/features/auth/actions/sign-out';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import * as Avatar from '$lib/shared/components/ui/avatar/index.js';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
+	import { Settings } from 'lucide-svelte';
 	import BadgeCheck from 'lucide-svelte/icons/badge-check';
-	import Bell from 'lucide-svelte/icons/bell';
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
-	import CreditCard from 'lucide-svelte/icons/credit-card';
 	import LogOut from 'lucide-svelte/icons/log-out';
 	import Sparkles from 'lucide-svelte/icons/sparkles';
 
@@ -27,9 +25,9 @@
 					<Sidebar.MenuButton
 						{...props}
 						size="lg"
-						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-full"
 					>
-						<UserAvatar profile={userState.profile} />
+						<UserAvatar profile={userState.profile} class="size-8" />
 						<div class="grid flex-1 text-left text-sm leading-tight">
 							<span class="truncate font-semibold">{user.name}</span>
 							<span class="truncate text-xs">{user.email}</span>
@@ -46,27 +44,25 @@
 			>
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-						<Avatar.Root class="h-8 w-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
-						</Avatar.Root>
+						<UserAvatar profile={userState.profile} class="mx-1 mb-1 mt-0" />
+
 						<div class="grid flex-1 text-left text-sm leading-tight">
 							<span class="truncate font-semibold">{user.name}</span>
 							<span class="truncate text-xs">{user.email}</span>
 						</div>
 					</div>
 				</DropdownMenu.Label>
-				<DropdownMenu.Separator />
-				<DropdownMenu.Group>
+				<!-- <DropdownMenu.Separator /> -->
+				<!-- <DropdownMenu.Group>
 					<DropdownMenu.Item>
 						<Sparkles />
 						Upgrade to Pro
 					</DropdownMenu.Item>
-				</DropdownMenu.Group>
+				</DropdownMenu.Group> -->
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item onclick={() => goto('/settings')}>
-						<BadgeCheck />
+						<Settings />
 						Settings
 					</DropdownMenu.Item>
 					<!-- <DropdownMenu.Item>
@@ -78,7 +74,7 @@
 						Notifications
 					</DropdownMenu.Item> -->
 				</DropdownMenu.Group>
-				<DropdownMenu.Separator />
+				<!-- <DropdownMenu.Separator /> -->
 				<DropdownMenu.Item onclick={signOut}>
 					<LogOut />
 					Log out

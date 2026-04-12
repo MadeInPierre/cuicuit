@@ -151,7 +151,7 @@
 	{#snippet defaultEndSnippet()}
 		{#if hovered || selected}
 			<!-- in:fade={{ duration: 75 }} -->
-			<div class="shrink-0 flex flex-col gap-0 items-center text-xs ml-auto">
+			<div class="shrink-0 flex flex-col gap-0 items-center text-xs">
 				<IngredientImage id={activeId} class="size-7 rounded-full" />
 
 				<span>
@@ -168,7 +168,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				class="ml-auto size-7 text-muted-foreground"
+				class="size-7 text-muted-foreground"
 				onclick={(e) => {
 					e.stopPropagation();
 					// TODO menu to edit/switch ingredients, etc.

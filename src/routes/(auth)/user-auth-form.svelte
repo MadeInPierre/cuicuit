@@ -3,24 +3,24 @@
 </script>
 
 <script lang="ts">
-	import { z } from 'zod';
-	import { Icons } from '$lib/shared/icons';
-	import { Button } from '$lib/shared/components/ui/button';
-	import { Input } from '$lib/shared/components/ui/input';
-	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
-	import { cn } from '$lib/utils';
-	import { Check, Eye, EyeOff, ShieldQuestion } from 'lucide-svelte';
 	import { goto } from '$app/navigation';
-	import { superForm, defaults } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
-	import * as Form from '$lib/shared/components/ui/form';
-	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
+	import { resetPassword } from '$lib/features/auth/actions/reset-password';
+	import { signupOrLogin } from '$lib/features/auth/actions/signup-or-login';
 	import { AuthMethod } from '$lib/features/auth/models/auth-method';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
-	import { signupOrLogin } from '$lib/features/auth/actions/signup-or-login';
-	import { resetPassword } from '$lib/features/auth/actions/reset-password';
-	import { toast } from 'svelte-sonner';
+	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
+	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
+	import { Button } from '$lib/shared/components/ui/button';
+	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client';
+	import { Icons } from '$lib/shared/icons';
+	import { cn } from '$lib/utils';
+	import { Check, Eye, EyeOff, ShieldQuestion } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, superForm } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import { z } from 'zod';
 
 	// Component props
 	interface Props {
@@ -103,6 +103,7 @@
 				// });
 			}
 		}
+		isLoading = false;
 	}
 </script>
 

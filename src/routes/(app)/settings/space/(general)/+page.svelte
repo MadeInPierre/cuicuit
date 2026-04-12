@@ -1,14 +1,14 @@
 <script lang="ts">
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { leaveSpace } from '$lib/features/spaces/actions/leave-space';
 	import EditSpaceForm from '$lib/features/spaces/components/EditSpaceForm.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
-	import { LogOut } from 'lucide-svelte';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { leaveSpace } from '$lib/features/spaces/actions/leave-space';
+	import { Separator } from '$lib/shared/components/ui/separator';
+	import { LogOut } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	const spaceState = getActiveSpaceState();
 
@@ -49,10 +49,13 @@
 
 <div class="space-y-6">
 	<div>
-		<h3 class="text-lg font-medium">{spaceState.activeSpace?.name || 'Space'} settings</h3>
-		<p class="text-sm text-muted-foreground">Settings related to the currently active space.</p>
+		<h3 class="text-lg font-medium">
+			Settings for
+			<span class="font-bold">{spaceState.activeSpace?.name || 'Space'}</span>
+		</h3>
+		<!-- <p class="text-sm text-muted-foreground">Settings related to the currently active space.</p> -->
 	</div>
-	<Separator />
+	<!-- <Separator /> -->
 
 	<EditSpaceForm />
 

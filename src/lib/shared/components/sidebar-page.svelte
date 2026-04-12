@@ -77,7 +77,9 @@
 				<CommandMenu />
 				<ThemeButton class="md:hidden" />
 
-				<UserAvatar profile={userState.profile} class="size-8 md:hidden" />
+				<a href="/settings" class="md:hidden">
+					<UserAvatar profile={userState.profile} class="size-10" />
+				</a>
 			</div>
 		</header>
 

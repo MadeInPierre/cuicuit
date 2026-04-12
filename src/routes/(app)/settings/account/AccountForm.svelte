@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { Check, Eye, EyeOff, KeyRound, Trash2, User as UserIcon } from 'lucide-svelte';
-	import { Button } from '$lib/shared/components/ui/button';
-	import * as Avatar from '$lib/shared/components/ui/avatar';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { Badge } from '$lib/shared/components/ui/badge';
-	import { Label } from '$lib/shared/components/ui/label';
+	import { signOut } from '$lib/features/auth/actions/sign-out';
+	import { LogMethod } from '$lib/features/auth/models/log-method';
+	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
-	import { toast } from 'svelte-sonner';
+	import * as Avatar from '$lib/shared/components/ui/avatar';
+	import { Badge } from '$lib/shared/components/ui/badge';
+	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
-	import { superForm, defaults } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
-	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
-	import UserAuthForm from '../../../(auth)/user-auth-form.svelte';
-	import { LogMethod } from '$lib/features/auth/models/log-method';
-	import AddProvider from './AddProvider.svelte';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { Input } from '$lib/shared/components/ui/input';
+	import { Label } from '$lib/shared/components/ui/label';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { capitalize } from '$lib/utils';
 	import type { Provider, User } from '@supabase/supabase-js';
-	import { signOut } from '$lib/features/auth/actions/sign-out';
+	import { Check, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, superForm } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import UserAuthForm from '../../../(auth)/user-auth-form.svelte';
+	import AddProvider from './AddProvider.svelte';
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(passwordFormSchema)), {
@@ -340,8 +340,8 @@
 			{/if}
 
 			<div class="mt-8 grid items-center md:grid-cols-2">
-				<p class="text-center md:mr-auto text-sm text-muted-foreground">
-					{userState.user.id || 'unknown'}
+				<p class="text-xs md:mr-auto text-muted-foreground">
+					Your user id: {userState.user.id || 'unknown'}
 				</p>
 
 				<Button

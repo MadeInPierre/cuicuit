@@ -3,6 +3,7 @@
 		hoveredMealIngredient,
 		selectedMealIngredient
 	} from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
 	import { PanelLeft, PanelLeftClose, Trash } from 'lucide-svelte';
@@ -48,7 +49,9 @@
 		...others
 	}: Props = $props();
 
-	const translation = $derived(ingredient?.translations?.[0]);
+	const space = getActiveSpaceState();
+
+	const translation = $derived(ingredient?.translations?.find((t) => t.language.lang === space.language?.lang) || null);
 
 	const displayName = $derived.by(() => {
 		if (!ingredient) return name || description || '?';

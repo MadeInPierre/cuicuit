@@ -1,19 +1,19 @@
 import { getUserPublicProfiles } from '$lib/features/auth/queries/get-user-public-profile';
 import type { UserState } from '$lib/features/auth/state/user-state.svelte';
 import {
-    getShoppingListItems,
-    type ShoppingListItem
+	getShoppingListItems,
+	type ShoppingListItem
 } from '$lib/features/plans/queries/get-plan-items';
 import {
-    getPlanMeals,
-    type MealWithRecipeAndIngredients
+	getPlanMeals,
+	type MealWithRecipeAndIngredients
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { Tables } from '$lib/shared/db/supabase.types';
 import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 import { getContext, setContext } from 'svelte';
 import {
-    getUserSpacesWithMembers,
-    type ActiveSpaceWithMembers
+	getUserSpacesWithMembers,
+	type ActiveSpaceWithMembers
 } from '../queries/get-user-spaces-with-members';
 
 const activeSpaceIdState = createPersistentState<string | undefined>('active-space-id', undefined);
@@ -68,23 +68,8 @@ class ActiveSpaceState {
 
 		// Fetch the user's spaces rows and members when the user state changes
 		$effect(() => {
-			if (this._userId) {
-				// Fetch spaces where user is a member, including members of each space
-				getUserSpacesWithMembers(this._userId)
-					.then((spaces) => {
-						this.userSpaces = spaces;
-
-						// Fetch the profile and preferences for each member in all spaces
-						const memberIds = spaces.flatMap((space) => space.members.map((m) => m.user_id));
-						return getUserPublicProfiles(memberIds);
-					})
-					.then((profiles) => {
-						// Filter out any null profiles just to make TypeScript happy
-						this.friendProfiles = profiles.filter((profile) => profile !== null);
-					});
-			} else {
-				this.userSpaces = null;
-			}
+			if (this._userId) this.refreshSpaces();
+			else this.userSpaces = null;
 		});
 
 		$effect(() => {
@@ -97,6 +82,23 @@ class ActiveSpaceState {
 				this.activePlanItems = undefined;
 			}
 		});
+	}
+
+	async refreshSpaces() {
+		if (!this._userId) return;
+
+		try {
+			const spaces = await getUserSpacesWithMembers(this._userId);
+			this.userSpaces = spaces;
+
+			// Fetch the profile and preferences for each member in all spaces
+			const memberIds = spaces.flatMap((space) => space.members.map((m) => m.user_id));
+			const profiles = await getUserPublicProfiles(memberIds);
+			this.friendProfiles = profiles.filter((profile) => profile !== null);
+		} catch (error) {
+			console.error('Error refreshing spaces:', error);
+			this.userSpaces = [];
+		}
 	}
 
 	/** Fetches the active plan meals for the current active space */
