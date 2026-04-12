@@ -27,6 +27,7 @@
 		House,
 		List,
 		PanelBottom,
+		RotateCcw,
 		ShoppingBasket,
 		User,
 		Users
@@ -127,11 +128,25 @@
 						{
 							value: 'independent',
 							label: 'Additional only',
-							description: 'Manually added items',
+							description: 'Items added by members',
 							icon: ClipboardList
 						}
 					]}
 				/>
+
+				{#if shoppingListFilter !== 'all'}
+					<Button
+						variant="ghost"
+						size="icon"
+						class="size-7"
+						onclick={() => {
+							shoppingListFilter = 'all';
+						}}
+					>
+						<RotateCcw class="min-w-4 h-4" />
+						<span class="sr-only">Show all items</span>
+					</Button>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -142,34 +157,10 @@
 
 	<Tabs.Root value="aisle">
 		<div class="flex gap-2 items-center">
-			<!-- <Tabs.List>
+			<Tabs.List>
 				<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
 				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
-			</Tabs.List> -->
-
-			<FilterSelect
-				bind:value={shoppingListFilter}
-				options={[
-					{
-						value: 'all',
-						label: 'All items',
-						description: 'Meals and additional items together',
-						icon: Apple
-					},
-					{
-						value: 'meals',
-						label: 'Meals only',
-						description: 'Ingredients that are part of planned meals',
-						icon: Calendar
-					},
-					{
-						value: 'independent',
-						label: 'Additional only',
-						description: 'Manually added items',
-						icon: ClipboardList
-					}
-				]}
-			/>
+			</Tabs.List>
 
 			<Button
 				variant="ghost"

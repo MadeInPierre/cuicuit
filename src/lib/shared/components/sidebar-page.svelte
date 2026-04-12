@@ -50,14 +50,16 @@
 			data-last-y="0"
 			class="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-background/60 backdrop-blur-md transition-all duration-200 ease-out"
 		>
-			<div class="flex flex-1 items-center gap-4 px-3 mx-2 md:mx-6">
+			<div class="flex flex-1 items-center gap-2 px-3 mx-2 md:mx-6">
 				<!-- <Sidebar.Trigger /> -->
 				<!-- <Separator orientation="vertical" class="mr-2 h-4" /> -->
 
-				<a href="/recipes" class="flex gap-2 items-center mr-auto">
+				<a href="/recipes" class="flex gap-2 items-center">
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="size-8" />
 					<h1 class="text-lg font-semibold">Cuicuit</h1>
 				</a>
+
+				<span class="mr-auto text-lg text-[#fab030] schoolbell-regular">alpha</span>
 
 				<!-- <Breadcrumb.Root>
 					<Breadcrumb.List>
