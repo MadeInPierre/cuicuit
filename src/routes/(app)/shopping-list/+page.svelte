@@ -18,9 +18,11 @@
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
 	import {
+		Apple,
 		BetweenHorizonalEnd,
 		Calendar,
 		ChefHat,
+		ClipboardList,
 		Grid3x3,
 		House,
 		List,
@@ -31,6 +33,7 @@
 	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
+	import FilterSelect from '../recipes/FilterSelect.svelte';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import { type CombinedShoppingListItem, generateShoppingList } from './generate-shopping-list';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
@@ -53,6 +56,8 @@
 		'view-shopping-list-items-layout',
 		'list'
 	);
+
+	let shoppingListFilter = $state<'all' | 'meals' | 'independent'>('all');
 
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
@@ -110,10 +115,34 @@
 
 	<Tabs.Root value="aisle">
 		<div class="flex gap-2 items-center">
-			<Tabs.List>
+			<!-- <Tabs.List>
 				<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
 				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
-			</Tabs.List>
+			</Tabs.List> -->
+
+			<FilterSelect
+				bind:value={shoppingListFilter}
+				options={[
+					{
+						value: 'all',
+						label: 'All items',
+						description: 'Meals and additional items together',
+						icon: Apple
+					},
+					{
+						value: 'meals',
+						label: 'Meals only',
+						description: 'Ingredients that are part of planned meals',
+						icon: Calendar
+					},
+					{
+						value: 'independent',
+						label: 'Additional only',
+						description: 'Manually added items',
+						icon: ClipboardList
+					}
+				]}
+			/>
 
 			<Button
 				variant="ghost"
@@ -161,9 +190,16 @@
 
 						// Show aisles that have items or recommendations
 						.filter(([aisleKey]) => {
-							// Show all aisles while recommendations are loading
-							// if (!rawShoppingRecommendations) return true;
+							// Apply view filter
+							if (shoppingListFilter === 'meals') {
+								// Show aisle if it has any meal items
+								return shoppingList.some((item) => item.meals.length > 0 && (item.ingredient?.aisle || 'default') === aisleKey);
+							} else if (shoppingListFilter === 'independent') {
+								// Show aisle if it has any independent items
+								return shoppingList.some( (item) => item.items.some((si) => si.type === 'independent' && (item.ingredient?.aisle || 'default') === aisleKey) );
+							}
 
+							// Show aisle if it has items or recommendations, depending on UI layout
 							if (checkedItemsLayout.value === 'bottom') {
 								// Show aisle if it has any unchecked items
 								return shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey && item.items.some((si) => !si.checked_at));
@@ -177,10 +213,16 @@
 							throw new Error('Invalid checked items layout');
 						}) as [aisleKey, aisleHeader] (aisleKey)}
 						{@const aisleItems = shoppingList.filter((item) => {
+							// Skip items that don't belong to the aisle
 							if ((item.ingredient?.aisle || 'default') !== aisleKey) return false;
 
+							// Apply UI layout filter
 							if (checkedItemsLayout.value === 'bottom')
 								return item.items.some((si) => !si.checked_at);
+
+							// Apply view filter
+							if (shoppingListFilter === 'meals') return item.meals.length > 0;
+							if (shoppingListFilter === 'independent') return item.items.some((si) => si.type === 'independent');
 							return true;
 						})}
 

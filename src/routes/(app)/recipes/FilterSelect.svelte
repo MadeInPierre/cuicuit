@@ -2,18 +2,11 @@
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { CheckCheck, Clock, Globe, HandPlatter, Sparkle } from 'lucide-svelte';
 
-	type Props = {
-		value: string;
-		onChange: (value: string) => void;
-	};
-
-	let { value = $bindable('timeOfDay'), onChange = () => {} }: Props = $props();
-
-	const options = [
+	const defaultOptions = [
 		{
 			value: 'recommended',
 			label: 'Recommended',
-			description: "Best picks for you",
+			description: 'Best picks for you',
 			icon: Sparkle
 		},
 		{
@@ -42,7 +35,30 @@
 		}
 	];
 
-	const triggerContent = $derived(options.find((f) => f.value === value)?.label ?? 'recommended');
+	type Props = {
+		value?: string;
+		onChange?: (value: string) => void;
+		options?: {
+			value: string;
+			label: string;
+			description: string;
+			icon: typeof CheckCheck;
+		}[];
+	};
+
+	let {
+		value = $bindable('timeOfDay'),
+		onChange = () => {},
+		options = defaultOptions
+	}: Props = $props();
+
+	const triggerLabel = $derived(
+		options.find((f) => f.value === value)?.label ?? defaultOptions[0].label
+	);
+
+	const TriggerIcon = $derived(
+		options.find((f) => f.value === value)?.icon ?? defaultOptions[0].icon
+	);
 </script>
 
 <Select.Root
@@ -54,7 +70,8 @@
 	}}
 >
 	<Select.Trigger class="w-auto h-min px-2 py-0.5 text-md border-0 bg-muted">
-		<span class="mr-1.5">{triggerContent.toLowerCase()}</span>
+		<TriggerIcon class="mr-1.5 size-4"></TriggerIcon>
+		<span class="mr-1.5">{triggerLabel}</span>
 	</Select.Trigger>
 	<Select.Content align="start">
 		<Select.Group>
