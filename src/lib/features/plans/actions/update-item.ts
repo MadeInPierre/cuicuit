@@ -25,7 +25,6 @@ export async function updatePlanItemChecked(
 	// Refresh the active plan items after updating
 	if (options?.skipRefresh) return;
 	activeSpace.refreshActivePlanItems();
-	activeSpace.refreshActivePlanMeals();
 }
 
 export async function deletePlanItem(

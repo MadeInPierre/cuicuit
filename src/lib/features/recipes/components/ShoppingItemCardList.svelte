@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
-	import { Circle, CircleCheckBig } from 'lucide-svelte';
+	import { Circle, CircleCheckBig, Trash } from 'lucide-svelte';
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import IngredientImage from './IngredientImage.svelte';
 
@@ -16,6 +15,7 @@
 		checkable?: boolean;
 		checked?: boolean;
 		onCheckedChange?: (checked: boolean) => void;
+		onDelete?: () => void;
 	};
 
 	let {
@@ -26,10 +26,9 @@
 		checkable = false,
 		checked = $bindable(false),
 		onCheckedChange = () => {},
+		onDelete = () => {},
 		...others
 	}: Props = $props();
-
-	const space = getActiveSpaceState();
 
 	const translation = $derived(ingredient?.translations[0]);
 
@@ -89,6 +88,15 @@
 			{:else}
 				<Circle class="size-5 text-muted-foreground/60" />
 			{/if}
+		</Button>
+	{:else if onDelete}
+		<Button
+			size="icon"
+			variant="ghost"
+			class="ml-auto mt-1 size-10 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+			onclick={() => onDelete()}
+		>
+			<Trash class="size-4" />
 		</Button>
 	{/if}
 </div>

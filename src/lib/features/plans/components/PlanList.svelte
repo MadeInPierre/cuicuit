@@ -136,7 +136,7 @@
 											amount={item.quantity}
 											unit={item.unit === 'whole' ? '' : item.unit || ''}
 											size="sm"
-											onclick={async () => {
+											onDelete={async () => {
 												await deletePlanItem(activeSpace, item.id);
 											}}
 										>
