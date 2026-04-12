@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { deleteMeal, updateMealServings } from '$lib/features/plans/actions/update-meal';
 	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
+	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
 	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
 	import {
@@ -21,6 +23,7 @@
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
+	import NumberFlow from '@number-flow/svelte';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -29,11 +32,12 @@
 		Camera,
 		Equal,
 		Globe,
-		Grid3x3,
 		HandCoins,
-		List,
 		Plus,
+		RotateCcw,
 		Salad,
+		User,
+		Users,
 		Utensils
 	} from 'lucide-svelte';
 	import SeparatorZigZag from '../../shopping-list/SeparatorZigZag.svelte';
@@ -65,6 +69,8 @@
 
 	let recipe: RecipeDetailedWithAuthor | undefined | null = $state(undefined);
 
+	let displayServings = $state(1);
+
 	// Fetch the recipe from Supabase when the component mounts or when the pageRecipeId changes
 	$effect(() => {
 		if (!pageRecipeId) {
@@ -74,6 +80,7 @@
 
 		getRecipe(pageRecipeId).then((result) => {
 			recipe = result;
+			displayServings = recipe?.servings || 1;
 		});
 	});
 </script>
@@ -281,17 +288,40 @@
 								<Button
 									size="sm"
 									type="submit"
-									class="flex gap-2 ml-auto"
-									onclick={() =>
-										recipe && addRecipeToActivePlan(space, recipe.id, recipe.servings || 1)}
+									class="flex ml-auto"
+									onclick={() => recipe && addRecipeToActivePlan(space, recipe.id, displayServings)}
 								>
 									<CalendarPlus class="size-4" />
-									Add meal
+
+									<div class="flex items-center gap-0.5">
+										Add
+										<NumberFlow value={displayServings} class="ml-0.5" />
+										{#if displayServings > 1}
+											<Users class="size-3" />
+										{:else}
+											<User class="size-3" />
+										{/if}
+									</div>
 								</Button>
 							</div>
 
 							{#each (space.activePlanMeals || []).filter((m) => recipe && m.recipe_id === recipe.id) as meal (meal.id)}
-								<MealListItem {meal} showExpandedButtons />
+								<MealListItem {meal} showExpandedButtons expandable={false}>
+									{#snippet cardEndSnippet()}
+										<ServingsPlusMinus
+											value={meal.servings}
+											variant="ghost"
+											size="xs"
+											allowDelete
+											onChange={async (newServings) => {
+												await updateMealServings(space, meal, newServings);
+											}}
+											onDelete={async () => {
+												await deleteMeal(space, meal.id);
+											}}
+										/>
+									{/snippet}
+								</MealListItem>
 							{:else}
 								<div
 									class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
@@ -302,10 +332,23 @@
 						</div>
 
 						<div class="grid space-y-4">
-							<div class="text-xl font-semibold flex items-center">
-								<span>Ingredients</span>
+							<div class="text-xl font-semibold flex items-center gap-3">
+								<span>Ingredients for</span>
 
-								<Button
+								<ServingsPlusMinus bind:value={displayServings} size="sm" />
+
+								{#if displayServings !== recipe.servings}
+									<Button
+										variant="ghost"
+										size="icon"
+										class="ml-auto h-7 w-7 text-muted-foreground"
+										onclick={() => (displayServings = recipe?.servings || 1)}
+									>
+										<RotateCcw class="size-4" />
+									</Button>
+								{/if}
+
+								<!-- <Button
 									variant="ghost"
 									size="icon"
 									class="ml-auto h-7 w-7"
@@ -320,7 +363,7 @@
 										<Grid3x3 class="min-w-4 h-4" />
 										<span class="sr-only">Switch to grid view</span>
 									{/if}
-								</Button>
+								</Button> -->
 							</div>
 
 							{@render displayIngredients(
@@ -382,19 +425,20 @@
 		{#each ingredients
 			.filter((i) => i.is_optional === optional)
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0)) || [] as ing (ing.ingredient_id)}
+			{@const amount = (ing.quantity || 0) * (displayServings / (recipe?.servings || 1))}
+			{@const displayAmount = amount > 10 ? Math.round(amount).toString() : amount.toString()}
+
 			{#if view === 'grid'}
 				<ShoppingItemCardGrid
 					ingredient={ing.ingredient}
 					plural={!!ing.quantity && ing.quantity > 1}
-					description={ing.quantity?.toString() +
-						' ' +
-						(ing.unit === 'whole' ? '' : ing.unit || '')}
+					description={displayAmount + ' ' + ing.unit?.replace('whole', '')}
 				/>
 			{:else}
 				<ShoppingItemCardList
 					ingredient={ing.ingredient}
 					description={ing.raw_input}
-					amount={ing.quantity}
+					{amount}
 					unit={ing.unit === 'whole' ? '' : ing.unit || ''}
 				/>
 			{/if}

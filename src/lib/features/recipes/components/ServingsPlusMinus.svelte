@@ -2,7 +2,7 @@
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
-	import { Minus, Plus, Trash2, User, Users } from 'lucide-svelte';
+	import { Minus, Plus, Trash, User, Users } from 'lucide-svelte';
 
 	type Props = {
 		value: number;
@@ -111,7 +111,7 @@
 		aria-label={showDelete ? 'Delete' : 'Change servings'}
 	>
 		{#if showDelete}
-			<Trash2 class={cn('text-destructive', currentVariant.buttonIcon)} />
+			<Trash class={cn('text-destructive', currentVariant.buttonIcon)} />
 		{:else}
 			<Icon class={currentVariant.buttonIcon} />
 		{/if}

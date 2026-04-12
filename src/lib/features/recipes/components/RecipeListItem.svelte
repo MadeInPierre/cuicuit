@@ -49,7 +49,9 @@
 			<CookableStatus />
 		</div>
 
-		{#if servings}
+		{#if endSnippet !== null}
+			{@render endSnippet()}
+		{:else if servings}
 			<div
 				class={cn(
 					'ml-auto flex shrink-0 items-center gap-1 text-xs font-semibold',
@@ -61,8 +63,6 @@
 					<Users class={cn('inline-block size-3', size == 'lg' && 'size-4')} />
 				</div>
 			</div>
-		{:else if endSnippet}
-			{@render endSnippet()}
 		{/if}
 	</button>
 {:else}
