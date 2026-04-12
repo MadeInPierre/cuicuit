@@ -26,7 +26,7 @@
 	import { slide } from 'svelte/transition';
 	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
-	import FilterDropdown from './FilterSelect.svelte';
+	import FilterSelect from './FilterSelect.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
 	import SearchBar from './SearchBar.svelte';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
@@ -269,7 +269,7 @@
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
 					<span class="py-1">Recipes grouped by</span>
-					<FilterDropdown
+					<FilterSelect
 						value={parameters.groupBy}
 						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
 					/>
