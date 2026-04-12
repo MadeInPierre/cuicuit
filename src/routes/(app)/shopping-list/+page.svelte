@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { updatePlanItemDeleted, updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
+	import {
+		updatePlanItemChecked,
+		updatePlanItemDeleted
+	} from '$lib/features/plans/actions/update-item';
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
@@ -24,7 +27,6 @@
 		ChefHat,
 		ClipboardList,
 		Grid3x3,
-		House,
 		List,
 		PanelBottom,
 		RotateCcw,
@@ -36,7 +38,11 @@
 	import { slide } from 'svelte/transition';
 	import FilterSelect from '../recipes/FilterSelect.svelte';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
-	import { type CombinedShoppingListItem, generateShoppingList } from './generate-shopping-list';
+	import {
+		type CombinedShoppingListItem,
+		formatCombinedItemQuantity,
+		generateShoppingList
+	} from './generate-shopping-list';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
@@ -372,30 +378,7 @@
 					<ShoppingItemCardGrid
 						ingredient={item.ingredient}
 						name={item.name}
-						description={Object.entries(item.mergedQuantity)
-							.sort(([unitA], [unitB]) => {
-								// Custom sort to show "whole" units first, then by length of unit name
-								if (unitA === 'whole') return -1;
-								if (unitB === 'whole') return 1;
-								return unitA.length - unitB.length;
-							})
-							.map(
-								([unit, quantities]) =>
-									`${
-										quantities.optionalOnly > 0
-											? quantities.requiredOnly > 0
-												? `${quantities.requiredOnly} to ${quantities.withOptionals}`
-												: `${quantities.optionalOnly}`
-											: `${quantities.withOptionals}`
-									}${unit === 'whole' ? '' : ` ${unit}`}`
-							)
-							.join(' + ') +
-							(Object.keys(item.mergedQuantity).length > 0 &&
-							!Object.entries(item.mergedQuantity).some(
-								([_, quantities]) => quantities.requiredOnly > 0
-							)
-								? ` (opt)`
-								: '')}
+						description={formatCombinedItemQuantity(item)}
 						plural={Object.entries(item.mergedQuantity).some(
 							([_, quantities]) => quantities.withOptionals > 1
 						)}
@@ -441,20 +424,19 @@
 				<div class="flex group" animate:flip={{ duration: 300 }}>
 					<ShoppingItemCardList
 						ingredient={item.ingredient}
-						description={item.name}
 						checkable
 						checked={item.items.some((si) => si.checked_at)}
 						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
 					>
 						<span class="text-xs text-muted-foreground/80 flex gap-3">
-							<div class="flex items-center gap-1">
+							<!-- <div class="flex items-center gap-1">
 								<House class="size-3 inline-block" />
 								None
-							</div>
+							</div> -->
 
 							<div class="flex items-center gap-1">
 								<Calendar class="size-3 inline-block" />
-								600 ml
+								{formatCombinedItemQuantity(item) || 'Any'}
 							</div>
 
 							{#if item.meals.length > 0}

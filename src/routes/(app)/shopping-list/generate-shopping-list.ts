@@ -167,3 +167,40 @@ export function generateShoppingList(
 		return aSlug.localeCompare(bSlug);
 	});
 }
+
+/**
+ * Formats the combined quantity of a shopping list item for display, showing required and optional quantities.
+ * For example: "2 to 5 cups + 1 tbsp" (if there are 2 required cups and 3 optional cups, and 1 required tbsp).
+ */
+export function formatCombinedItemQuantity(item: CombinedShoppingListItem): string {
+	const parts: string[] = [];
+
+	for (const [unit, qty] of Object.entries(item.mergedQuantity)) {
+		const unitStr = unit === 'whole' ? '' : ` ${unit}`;
+		if (qty.optionalOnly > 0) {
+			if (qty.requiredOnly > 0) {
+				parts.push(`${qty.requiredOnly} to ${qty.withOptionals}${unitStr}`);
+			} else {
+				parts.push(`${qty.optionalOnly}${unitStr}`);
+			}
+		} else {
+			parts.push(`${qty.withOptionals}${unitStr}`);
+		}
+	}
+
+	const nOptionals = Object.values(item.mergedQuantity).reduce(
+		(acc, q) => acc + (q.optionalOnly > 0 ? 1 : 0),
+		0
+	);
+
+	let optText = '';
+	if (
+		nOptionals === 1 ||
+		(nOptionals > 0 && nOptionals === Object.keys(item.mergedQuantity).length)
+	) {
+		optText = ' (opt)';
+	} else if (nOptionals > 1) {
+		optText = ' (has opt)';
+	}
+	return parts.join(' + ') + optText;
+}
