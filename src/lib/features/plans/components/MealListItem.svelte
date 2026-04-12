@@ -8,16 +8,18 @@
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
 	import {
-		Check,
 		ChevronRight,
 		CircleSlash,
 		EllipsisVertical,
+		Home,
 		ShoppingBasket,
 		ShoppingCart,
 		Trash2
 	} from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
+	import { updatePlanItemChecked, updatePlanItemDeleted } from '../actions/update-item';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 	import {
@@ -286,6 +288,14 @@
 
 {#snippet ingredientRow(si: ShoppingIngredient, variant: 'default' | 'optional' = 'default')}
 	{@const displayName = getDisplayName(si)}
+	{@const status =
+		si.deleted_at && !si.checked_at
+			? 'ignore'
+			: si.deleted_at
+				? 'home'
+				: si.checked_at
+					? 'cart'
+					: 'missing'}
 
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
@@ -300,10 +310,10 @@
 			hoveredMealIngredient.value = null;
 		}}
 	>
-		<div class="h-[22px] p-0.5 px-2 flex items-center">
+		<div class="h-[22px] p-0.5 pl-2 flex items-center">
 			<span
 				class={cn(
-					'text-muted-foreground group-hover/si:text-primary',
+					'mr-auto text-muted-foreground group-hover/si:text-primary',
 					variant === 'optional' && 'italic',
 					si.deleted_at && !si.checked_at && 'line-through'
 				)}
@@ -311,27 +321,103 @@
 				{displayName}
 			</span>
 
-			<span
-				class={cn(
-					'ml-auto font-medium whitespace-nowrap select-none min-w-8 text-right text-red-600',
-					si.checked_at && 'text-blue-600',
-					si.deleted_at && 'text-green-600',
-					si.deleted_at && !si.checked_at && 'text-muted-foreground'
-				)}
-			>
-				<NumberFlow value={si.quantity || 0} />
-				{si.unit === 'whole' ? '' : si.unit}
-			</span>
+			<div class="min-w-22 h-[22px] group/qty flex items-center justify-end">
+				<div class="flex pr-2 group-hover/qty:hidden items-center">
+					<span
+						class={cn(
+							'font-medium whitespace-nowrap select-none min-w-8 text-right text-red-600',
+							si.checked_at && 'text-blue-600',
+							si.deleted_at && 'text-green-600',
+							si.deleted_at && !si.checked_at && 'text-muted-foreground'
+						)}
+					>
+						<NumberFlow value={si.quantity || 0} />
+						{si.unit === 'whole' ? '' : si.unit}
+					</span>
 
-			{#if si.deleted_at && !si.checked_at}
-				<CircleSlash class="ml-1 max-w-3 max-h-3 text-muted-foreground" />
-			{:else if si.deleted_at}
-				<Check class="ml-1 max-w-3 max-h-3 text-green-600" />
-			{:else if si.checked_at}
-				<ShoppingCart class="ml-1 max-w-3 max-h-3 text-blue-600" />
-			{:else}
-				<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-red-600" />
-			{/if}
+					{#if status === 'ignore'}
+						<CircleSlash class="ml-1 max-w-3 max-h-3 text-muted-foreground" />
+					{:else if status === 'home'}
+						<Home class="ml-1 max-w-3 max-h-3 text-green-600" />
+					{:else if status === 'cart'}
+						<ShoppingCart class="ml-1 max-w-3 max-h-3 text-blue-600" />
+					{:else if status === 'missing'}
+						<ShoppingBasket class="ml-1 max-w-3 max-h-3 text-red-600" />
+					{/if}
+				</div>
+
+				<div class="hidden pr-1 group-hover/qty:flex items-center">
+					{@render statusButton(
+						si,
+						'missing',
+						status === 'missing',
+						ShoppingBasket,
+						'bg-red-600 text-white'
+					)}
+					{@render statusButton(
+						si,
+						'cart',
+						status === 'cart',
+						ShoppingCart,
+						'bg-blue-600 text-white'
+					)}
+					{@render statusButton(si, 'home', status === 'home', Home, 'bg-green-600 text-white')}
+					{@render statusButton(
+						si,
+						'ignore',
+						status === 'ignore',
+						CircleSlash,
+						'bg-muted-foreground text-white'
+					)}
+				</div>
+			</div>
 		</div>
 	</div>
+{/snippet}
+
+{#snippet statusButton(
+	si: ShoppingIngredient,
+	status: 'missing' | 'cart' | 'home' | 'ignore',
+	isActive: boolean,
+	Icon: any,
+	activeClass: string
+)}
+	<Button
+		variant="link"
+		size="icon"
+		class={cn('w-5 h-5 text-muted-foreground', isActive && activeClass)}
+		onclick={async (e) => {
+			e.stopPropagation();
+
+			let checked = status === 'cart' || status === 'home';
+			let deleted = status === 'home' || status === 'ignore';
+			const undoChecked = await updatePlanItemChecked(space, si.id, checked, {
+				skipRefresh: true
+			});
+			const undoDeleted = await updatePlanItemDeleted(space, si.id, deleted, {
+				skipRefresh: true
+			});
+
+			const toastId = toast.success(`Set ${getDisplayName(si)} to ${status}`, {
+				duration: 5000,
+				description: meal?.recipe.title || '',
+				action: {
+					label: 'Undo',
+					onClick: async () => {
+						toast.loading('Reverting changes...', { id: toastId });
+						await undoChecked();
+						await undoDeleted();
+						await space.refreshActivePlanMeals();
+						await space.refreshActivePlanItems();
+						toast.success('Changes reverted', { id: toastId });
+					}
+				}
+			});
+
+			await space.refreshActivePlanMeals();
+			await space.refreshActivePlanItems();
+		}}
+	>
+		<Icon class="size-3" />
+	</Button>
 {/snippet}

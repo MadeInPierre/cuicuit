@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { deletePlanItem, updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
+	import { updatePlanItemDeleted, updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
@@ -70,6 +70,7 @@
 		);
 
 		// Refresh after all updates are done to avoid UI jitter
+		space.refreshActivePlanMeals();
 		space.refreshActivePlanItems();
 	}
 
@@ -402,7 +403,7 @@
 						selectable
 						onDelete={() => {
 							// Soft delete all origins of the item
-							item.items.forEach((si) => deletePlanItem(space, si.id));
+							item.items.forEach((si) => updatePlanItemDeleted(space, si.id));
 						}}
 						checked={item.items.some((si) => si.checked_at)}
 						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}

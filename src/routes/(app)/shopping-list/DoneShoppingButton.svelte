@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { deletePlanItem } from '$lib/features/plans/actions/update-item';
+	import { updatePlanItemDeleted } from '$lib/features/plans/actions/update-item';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Check } from 'lucide-svelte';
@@ -18,7 +18,7 @@
 	variant="default"
 	onclick={async () => {
 		activeSpace.activePlanItems?.forEach((item) => {
-			if (item.checked_at) deletePlanItem(activeSpace, item.id);
+			if (item.checked_at) updatePlanItemDeleted(activeSpace, item.id);
 		});
 
 		await activeSpace.refreshActivePlanItems();
