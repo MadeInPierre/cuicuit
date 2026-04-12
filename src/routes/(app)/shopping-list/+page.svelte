@@ -63,7 +63,14 @@
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
 		const originIdsToUpdate = shoppingItem.items.map((si) => si.id);
-		await Promise.all(originIdsToUpdate.map((id) => updatePlanItemChecked(space, id, newChecked)));
+		await Promise.all(
+			originIdsToUpdate.map((id) =>
+				updatePlanItemChecked(space, id, newChecked, { skipRefresh: true })
+			)
+		);
+
+		// Refresh after all updates are done to avoid UI jitter
+		space.refreshActivePlanItems();
 	}
 
 	let rawShoppingRecommendations = $state<ShoppingRecommendation[] | undefined>(undefined);
