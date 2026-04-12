@@ -36,7 +36,7 @@
 	>
 		<RecipeImage {recipe} class={size == 'lg' ? 'size-16' : 'size-11'} />
 
-		<div class="grid">
+		<div class="grid mr-auto">
 			<h3
 				class={cn(
 					'mb-0.5 line-clamp-1 text-start text-xs font-semibold leading-tight',
@@ -54,7 +54,7 @@
 		{:else if servings}
 			<div
 				class={cn(
-					'ml-auto flex shrink-0 items-center gap-1 text-xs font-semibold',
+					'flex shrink-0 items-center gap-1 text-xs font-semibold',
 					size == 'lg' && 'gap-1.5 text-sm'
 				)}
 			>

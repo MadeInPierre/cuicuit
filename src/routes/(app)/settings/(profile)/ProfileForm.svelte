@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { toast } from 'svelte-sonner';
-	import * as Form from '$lib/shared/components/ui/form';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
-	import { Check, Loader2, X } from 'lucide-svelte';
 	import { profileFormSchema, type ProfileFormSchema } from '$lib/features/auth/models/schemas';
-	import { updateUserProfile } from '$lib/features/user-settings/actions/update-user-profile';
-	import ImagePicker from './AvatarForm.svelte';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import { updateUserPreferences } from '$lib/features/user-settings/actions/update-user-preferences';
+	import { updateUserProfile } from '$lib/features/user-settings/actions/update-user-profile';
+	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
+	import { Separator } from '$lib/shared/components/ui/separator';
+	import { Check, Loader2, X } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import ImagePicker from './AvatarForm.svelte';
 
 	// Show a status icon to the user in real-time
 	enum UpdateStatus {
@@ -113,7 +113,9 @@
 			</Form.Field>
 		</div>
 
-		<p class="text-sm text-muted-foreground">Only visible to you and your family members.</p>
+		<p class="text-sm text-muted-foreground">
+			Never shown to strangers, only visible to you and members of spaces you share.
+		</p>
 	</div>
 
 	<Form.Field {form} name="userName">
@@ -123,9 +125,7 @@
 				<Input {...props} bind:value={$formData.userName} placeholder="cuicarrot" />
 			{/snippet}
 		</Form.Control>
-		<Form.Description>
-			This is your public display name. You can only change this once every 30 days.
-		</Form.Description>
+		<Form.Description>This is your public display name.</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 

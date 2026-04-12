@@ -23,7 +23,6 @@
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
-	import NumberFlow from '@number-flow/svelte';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -36,8 +35,6 @@
 		Plus,
 		RotateCcw,
 		Salad,
-		User,
-		Users,
 		Utensils
 	} from 'lucide-svelte';
 	import SeparatorZigZag from '../../shopping-list/SeparatorZigZag.svelte';
@@ -293,15 +290,7 @@
 								>
 									<CalendarPlus class="size-4" />
 
-									<div class="flex items-center gap-0.5">
-										Add
-										<NumberFlow value={displayServings} class="ml-0.5" />
-										{#if displayServings > 1}
-											<Users class="size-3" />
-										{:else}
-											<User class="size-3" />
-										{/if}
-									</div>
+									<div class="flex items-center gap-0.5">Add to plan</div>
 								</Button>
 							</div>
 

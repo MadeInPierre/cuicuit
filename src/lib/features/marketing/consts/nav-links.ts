@@ -1,4 +1,4 @@
-import { Bell, House, LayoutDashboard, Lock, ScanLine, Scroll, User, Users } from 'lucide-svelte';
+import { House, LayoutDashboard, Lock, LogOut, ScanLine, Scroll, User, Users } from 'lucide-svelte';
 
 export type NavLink = {
 	href: string; // Link to the page
@@ -7,6 +7,7 @@ export type NavLink = {
 	startPath?: string; // Optionally specify a different value than href for startsWith
 	className?: string; // Optional additional tailwind classes
 	icon?: any; // Custom icon to be displayed alongside (e.g. command menu, user settings sidebar)
+	display?: 'mobile' | 'desktop' | 'both'; // Control visibility on mobile vs desktop
 };
 
 export const navLinksMarketing: NavLink[] = [
@@ -70,9 +71,10 @@ export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = 
 				icon: Lock
 			},
 			{
-				title: 'Notifications',
-				href: '/settings/notifications',
-				icon: Bell
+				title: 'Logout',
+				href: '/logout',
+				icon: LogOut,
+				display: 'mobile'
 			}
 		]
 	}

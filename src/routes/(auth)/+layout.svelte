@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { Heart } from 'lucide-svelte';
 	import Transition from './transition.svelte';
-	import { page } from '$app/state';
 
 	interface Props {
 		data: { url: string };
@@ -13,7 +13,7 @@
 	const TopRightComponent = $derived(page.data.topRight);
 </script>
 
-<div class="container relative h-screen lg:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+<div class="relative h-screen lg:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
 	<div class="absolute right-6 top-6 z-20 md:right-9 md:top-9">
 		<TopRightComponent />
 	</div>
@@ -49,7 +49,7 @@
 		</div>
 	</div>
 
-	<div class="relative mx-auto flex h-screen w-full flex-col justify-center sm:w-[350px]">
+	<div class="relative mx-auto flex h-screen flex-col justify-center w-full max-w-[380px]">
 		<Transition url={data.url} direction={page.data.direction}>
 			{@render children?.()}
 		</Transition>

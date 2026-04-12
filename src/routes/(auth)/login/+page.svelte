@@ -22,7 +22,7 @@
 
 <div class="flex flex-col space-y-2 text-center">
 	<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>
-	<p class="text-sm text-muted-foreground">We're so happy to see you again!</p>
+	<p class="text-sm text-muted-foreground">How's it going?</p>
 </div>
 
 <UserAuthForm logMethod={LogMethod.LOGIN} />

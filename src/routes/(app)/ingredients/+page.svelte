@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { supabase } from '$lib/shared/db/supabase-client';
-	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
+	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
+	import { supabase } from '$lib/shared/db/supabase-client';
+	import { onMount } from 'svelte';
 
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
 		try {
@@ -48,7 +48,7 @@
 
 			{#if ingredients.filter((ingredient) => ingredient.aisle === aisleKey).length > 0}
 				<div
-					style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem;"
+					style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.4rem; margin-top: 1rem;"
 				>
 					{#each ingredients
 						.filter((ingredient) => ingredient.aisle === aisleKey)
@@ -64,28 +64,7 @@
 							const bName = b.translations?.[0]?.name_singular ?? '';
 							return aName.localeCompare(bName);
 						}) as ingredient}
-						<div class="flex flex-col items-center">
-							<img
-								src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${ingredient.id}.jpg`}
-								alt={ingredient.translations[0].name_singular}
-								class="aspect-square w-24 h-24 object-cover rounded-md"
-								onerror={(e) => {
-									const el = e.currentTarget as HTMLImageElement;
-									el.style.display = 'none';
-									el.insertAdjacentHTML(
-										'afterend',
-										`<div class="aspect-square w-24 h-24 rounded-md flex items-center justify-center bg-muted text-xs text-muted-foreground">
-                                                No image
-                                            </div>`
-									);
-								}}
-							/>
-							<div class="grid gap-1 mt-1 text-center text-sm">
-								{#each ingredient.translations as translation}
-									<span>{translation.name_singular}</span>
-								{/each}
-							</div>
-						</div>
+						<ShoppingItemCardGrid {ingredient} size="sm" />
 					{/each}
 				</div>
 			{/if}
