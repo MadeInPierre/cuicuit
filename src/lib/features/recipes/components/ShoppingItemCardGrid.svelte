@@ -51,7 +51,9 @@
 
 	const space = getActiveSpaceState();
 
-	const translation = $derived(ingredient?.translations?.find((t) => t.language.lang === space.language?.lang) || null);
+	const translation = $derived(
+		ingredient?.translations?.find((t) => t.language.lang === space.language?.lang) || null
+	);
 
 	const displayName = $derived.by(() => {
 		if (!ingredient) return name || description || '?';
@@ -73,7 +75,7 @@
 
 <button
 	class={cn(
-		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-colors duration-0 select-none',
+		'h-28 border-none hover:bg-white dark:hover:bg-muted relative group flex flex-col items-center gap-1 w-full bg-white dark:bg-muted p-2 text-sm rounded-lg shadow-2xs transition-[color,box-shadow] select-none',
 
 		checked &&
 			'bg-transparent hover:bg-transparent ring-2 ring-muted dark:bg-green-950 dark:ring-green-900 hover:ring-muted-foreground/30',
@@ -84,8 +86,8 @@
 			!selectable &&
 			'ring-2 ring-primary/60 dark:ring-primary/60',
 
-		selectable && selected && 'ring-2 ring-primary/80 dark:ring-primary/80',
-		
+		selectable && selected && 'border-ring ring-ring/50 ring-[3px]',
+
 		size === 'sm' && 'p-1.5 h-26'
 	)}
 	onclick={(e) => {
