@@ -124,7 +124,7 @@
 					</div>
 				</div> -->
 
-				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+				<div class="grid gap-12 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
 						<Carousel.Root class="w-full relative">
 							<Carousel.Content>
@@ -261,19 +261,9 @@
 							)}
 						</div>
 
-						<div class="grid mt-6 space-y-6">
-							<h2 class="text-xl font-semibold">Steps</h2>
+						<div class="hidden md:block">
 
-							{#each recipe.steps || [] as step, i (step)}
-								<div class="flex items-start min-h-12">
-									<span
-										class="text-md font-semibold text-primary bg-muted rounded-lg size-8 min-w-8 flex justify-center items-center"
-									>
-										{i + 1}
-									</span>
-									<span class="ml-4 pt-0.5 text-md">{step}</span>
-								</div>
-							{/each}
+							{@render steps()}
 						</div>
 					</div>
 
@@ -388,6 +378,11 @@
 							<div class="grid grid-cols-2 gap-4">TODO History of personal makes</div>
 						</div> -->
 
+						<div class="md:hidden">
+
+							{@render steps()}
+						</div>
+
 						<div class="grid space-y-4">
 							<Button variant="outline" href={'/recipes/' + pageRecipeId + '/edit'} class="w-full">
 								Edit
@@ -431,6 +426,23 @@
 					unit={ing.unit === 'whole' ? '' : ing.unit || ''}
 				/>
 			{/if}
+		{/each}
+	</div>
+{/snippet}
+
+{#snippet steps()}
+	<div class="grid space-y-6">
+		<h2 class="text-xl font-semibold">Steps</h2>
+
+		{#each recipe?.steps || [] as step, i (step)}
+			<div class="flex items-start min-h-12">
+				<span
+					class="text-md font-semibold text-primary bg-muted rounded-lg size-8 min-w-8 flex justify-center items-center"
+				>
+					{i + 1}
+				</span>
+				<span class="ml-4 pt-0.5 text-md">{step}</span>
+			</div>
 		{/each}
 	</div>
 {/snippet}

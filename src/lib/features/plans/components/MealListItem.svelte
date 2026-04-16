@@ -184,7 +184,11 @@
 			recipe={meal.recipe}
 			servings={meal.servings}
 			{size}
-			class={cn(hovered && !selected && 'ring-2 ring-primary/60 dark:ring-primary/60', className)}
+			class={cn(
+				'transition-[color,box-shadow]',
+				hovered && !selected && 'border-ring ring-ring/50 ring-[3px]',
+				className
+			)}
 			onclick={() => {
 				if (!expandable) return;
 				openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;

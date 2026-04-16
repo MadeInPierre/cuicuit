@@ -1,21 +1,25 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { cn } from '$lib/utils';
 	import {
-		ChefHat,
-		User,
-		Refrigerator,
-		Camera,
-		Mic,
 		Calendar,
-		ShoppingBasket,
+		Camera,
+		ChefHat,
 		MessageCircle,
-		Search
+		Mic,
+		Refrigerator,
+		Search,
+		ShoppingBasket,
+		User,
+		X
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
-	import { cn } from '$lib/utils';
-	import { page } from '$app/state';
+	import Input from './ui/input/input.svelte';
 
 	let style = $state<'classic' | 'float' | 'ai'>('float');
+
+	let open = $state(true);
 </script>
 
 {#snippet navItem(label: string, Icon: any, href: string)}
@@ -54,37 +58,59 @@
 	></div>
 	<!-- <div class="z-50 sticky bottom-28 mx-12 md:hidden">
 		<div
-			class="w-full border border-border/60 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center gap-2 p-3"
+			class="w-full border border-border/60 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center gap-3 py-3 px-4"
 		>
 			<Search class="size-5 text-muted-foreground" />
 			<input
 				type="search"
 				placeholder="Search..."
-				class="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+				class="w-full bg-transparent placeholder:text-muted-foreground"
 			/>
 		</div>
 	</div> -->
-	<div class="z-50 sticky bottom-6 mx-12 flex gap-3 md:hidden">
+	<div class="z-50 sticky h-18 bottom-6 mx-auto px-2 flex gap-3 max-w-md md:hidden">
 		<nav
-			class="flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md"
+			class={cn(
+				'flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md',
+				open && 'hidden'
+			)}
 		>
 			{@render navItem('Recipes', ChefHat, '/recipes')}
 			{@render navItem('Plan', Calendar, '/plan')}
 			{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
 			{@render navItem('Pantry', Refrigerator, '/pantry')}
-			<!-- {@render navItem('Chat', MessageCircle, '/chat')} -->
 		</nav>
+
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<nav
-			class="w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md"
-			onclick={() => {
-				// TODO Handle chat button click
-				location.reload();
-			}}
+		<div
+			class={cn(
+				'w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md',
+				open && 'w-full flex gap-4 px-6'
+			)}
 		>
-			{@render navItem('', MessageCircle, '')}
-		</nav>
+			{#if open}
+				<Search class="size-6 text-muted-foreground" />
+				<Input
+					placeholder="Search or ask..."
+					class="w-full bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
+					tabindex={-1}
+				/>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="size-8 rounded-full ml-auto"
+					onclick={() => (open = false)}
+				>
+					<X class="size-5" />
+				</Button>
+			{:else}
+				<button onclick={() => (open = true)}>
+					<MessageCircle class="size-6 text-muted-foreground" />
+					<span class="sr-only">Open chat</span>
+				</button>
+			{/if}
+		</div>
 	</div>
 {:else}
 	<nav
