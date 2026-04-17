@@ -255,7 +255,7 @@
 		<div class="flex items-center">
 			<div class="grid space-y-1">
 				<div class="flex gap-6 items-center">
-					<h1 class="text-4xl font-bold tracking-tight">
+					<h1 class="text-2xl md:text-3xl xl:text-4xl font-bold tracking-tight">
 						Good morning, {userState.preferences?.first_name || 'Chef'}!
 					</h1>
 					<!-- <h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>

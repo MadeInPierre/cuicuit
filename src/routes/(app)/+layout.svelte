@@ -1,16 +1,14 @@
 <script lang="ts">
-	import { ModeWatcher } from 'mode-watcher';
-	import { Toaster } from '$lib/shared/components/ui/sonner';
-	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
-	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
+	import { goto } from '$app/navigation';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import ChatBackdrop from '$lib/shared/components/ChatBackdrop.svelte';
+	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import MobileBottomNavbar from '$lib/shared/components/mobile-bottom-navbar.svelte';
-	import { onMount } from 'svelte';
-	import { supabase } from '$lib/shared/db/supabase-client';
-	import { redirect } from '@sveltejs/kit';
+	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
+	import { Toaster } from '$lib/shared/components/ui/sonner';
+	import { ModeWatcher } from 'mode-watcher';
 
 	// Initialize the active space state, this will create a persistent state
 	// that will be used to store the active space and its related data
@@ -43,6 +41,8 @@
 		event.stopPropagation();
 		return false;
 	};
+
+	let openChat = $state(false);
 </script>
 
 <ModeWatcher />
@@ -53,9 +53,13 @@
 {#if !userState.isComplete}
 	<LoadingSplash />
 {:else}
+	{#if openChat}
+		<ChatBackdrop />
+	{/if}
+
 	<SidebarPage>
 		{@render children?.()}
 	</SidebarPage>
 
-	<MobileBottomNavbar />
+	<MobileBottomNavbar bind:openChat />
 {/if}
