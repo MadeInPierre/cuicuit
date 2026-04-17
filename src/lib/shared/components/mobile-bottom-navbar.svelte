@@ -14,12 +14,13 @@
 		X
 	} from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import { fade, slide } from 'svelte/transition';
 	import { Button } from './ui/button';
 	import Input from './ui/input/input.svelte';
 
 	let style = $state<'classic' | 'float' | 'ai'>('float');
 
-	let open = $state(true);
+	let { openChat = $bindable(false) } = $props();
 </script>
 
 {#snippet navItem(label: string, Icon: any, href: string)}
@@ -68,45 +69,51 @@
 			/>
 		</div>
 	</div> -->
-	<div class="z-50 sticky h-18 bottom-6 mx-auto px-2 flex gap-3 max-w-md md:hidden">
-		<nav
-			class={cn(
-				'flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md',
-				open && 'hidden'
-			)}
-		>
-			{@render navItem('Recipes', ChefHat, '/recipes')}
-			{@render navItem('Plan', Calendar, '/plan')}
-			{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
-			{@render navItem('Pantry', Refrigerator, '/pantry')}
-		</nav>
+	<div class="z-50 h-18 sticky bottom-6 mx-auto px-2 flex gap-3 max-w-md md:hidden">
+		{#if !openChat}
+			<nav
+				class={cn(
+					'flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md'
+				)}
+				transition:slide={{ axis: 'x', duration: 75 }}
+
+			>
+				{@render navItem('Recipes', ChefHat, '/recipes')}
+				{@render navItem('Plan', Calendar, '/plan')}
+				{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
+				{@render navItem('Pantry', Refrigerator, '/pantry')}
+			</nav>
+		{/if}
 
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
 			class={cn(
-				'w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md',
-				open && 'w-full flex gap-4 px-6'
+				'w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md ml-auto transition-all',
+				openChat && 'w-full flex gap-4 px-6'
 			)}
 		>
-			{#if open}
-				<Search class="size-6 text-muted-foreground" />
-				<Input
-					placeholder="Search or ask..."
-					class="w-full bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
-					tabindex={-1}
-				/>
-				<Button
-					variant="ghost"
-					size="icon"
-					class="size-8 rounded-full ml-auto"
-					onclick={() => (open = false)}
-				>
-					<X class="size-5" />
-				</Button>
+			{#if openChat}
+				<Search class="size-6 text-muted-foreground mr-auto" />
+
+				<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
+					<Input
+						placeholder="Search or ask..."
+						class="w-full bg-transparent dark:bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
+						tabindex={-1}
+					/>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="size-8 rounded-full ml-auto"
+						onclick={() => (openChat = false)}
+					>
+						<X class="size-5" />
+					</Button>
+				</div>
 			{:else}
-				<button onclick={() => (open = true)}>
-					<MessageCircle class="size-6 text-muted-foreground" />
+				<button onclick={() => (openChat = true)}>
+					<MessageCircle class="size-6" />
 					<span class="sr-only">Open chat</span>
 				</button>
 			{/if}
