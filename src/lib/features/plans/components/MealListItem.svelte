@@ -58,7 +58,7 @@
 	let hovered = $derived(
 		(hoveredMealIngredient.value &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === hoveredMealIngredient.value?.id
+				(ing) => ing.ingredient_id === hoveredMealIngredient.value?.id && !ing.deleted_at
 			)) ||
 			false
 	);
@@ -66,7 +66,7 @@
 	let selected = $derived(
 		(selectedMealIngredient.value?.id !== null &&
 			meal?.shopping_ingredients.some(
-				(ing) => ing.ingredient_id === selectedMealIngredient.value?.id
+				(ing) => ing.ingredient_id === selectedMealIngredient.value?.id && !ing.deleted_at
 			)) ||
 			false
 	);

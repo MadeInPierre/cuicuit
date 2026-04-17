@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
+	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { onMount } from 'svelte';
 
@@ -64,7 +64,7 @@
 							const bName = b.translations?.[0]?.name_singular ?? '';
 							return aName.localeCompare(bName);
 						}) as ingredient}
-						<ShoppingItemCardGrid {ingredient} size="sm" />
+						<ShoppingItemCard {ingredient} size="sm" />
 					{/each}
 				</div>
 			{/if}

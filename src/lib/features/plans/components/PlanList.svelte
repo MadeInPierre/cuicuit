@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
-	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
+	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { cn, formatDateAgo } from '$lib/utils';
@@ -117,29 +116,18 @@
 
 							{#each independentItems as item (item.id)}
 								<div animate:flip={{ duration: 200 }}>
-									{#if !selectedMealIngredient.value?.id}
-										<ShoppingItemCardGrid
-											ingredient={item.ingredient!}
-											description={item.priority === 'optional' ? ` (opt)` : ''}
-											amount={item.quantity}
-											unit={item.unit === 'whole' ? '' : item.unit || ''}
-											size="sm"
-											onDelete={async () => {
-												// TODO add edit functionality (quantity, unit, name)
-												await updatePlanItemDeleted(activeSpace, item.id);
-											}}
-										/>
-									{:else}
-										<ShoppingItemCardList
-											ingredient={item.ingredient!}
-											description={item.priority === 'optional' ? ` (opt)` : ''}
-											amount={item.quantity}
-											unit={item.unit === 'whole' ? '' : item.unit || ''}
-											size="sm"
-											onDelete={async () => {
-												await updatePlanItemDeleted(activeSpace, item.id);
-											}}
-										>
+									<ShoppingItemCard
+										layout={selectedMealIngredient.value?.id ? 'list' : 'grid'}
+										ingredient={item.ingredient!}
+										description={item.priority === 'optional' ? ` (opt)` : ''}
+										size="sm"
+										deletable
+										onDelete={async () => {
+											// TODO add edit functionality (quantity, unit, name)
+											await updatePlanItemDeleted(activeSpace, item.id);
+										}}
+									>
+										{#if selectedMealIngredient.value?.id}
 											<span class="text-muted-foreground text-xs">
 												{item.updated_at
 													? formatDateAgo(new Date(item.updated_at), true)
@@ -149,8 +137,8 @@
 													? `by @${item.author_profile.user_name}`
 													: ''}
 											</span>
-										</ShoppingItemCardList>
-									{/if}
+										{/if}
+									</ShoppingItemCard>
 								</div>
 							{/each}
 						</div>
