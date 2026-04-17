@@ -6,8 +6,7 @@
 	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
 	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
-	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
+	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
 		getShoppingRecommendations,
 		type ShoppingRecommendation
@@ -355,43 +354,53 @@
 </div>
 
 {#snippet itemsGrid(items: CombinedShoppingListItem[])}
-	{#if itemsLayout.value === 'grid'}
-		<div
-			class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2"
-		>
+	<!-- old for list: <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
 			{#each items as item (item.ingredient?.id || item.name)}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<div
-					class="flex group"
-					animate:flip={{ duration: 200 }}
-					onmouseenter={() => {
-						if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
-						if (!item.ingredient) return; // No hover state for manual items
-						hoveredMealIngredient.value = item.ingredient;
+				<div class="flex group" animate:flip={{ duration: 300 }}> -->
+	<div
+		class={cn(
+			'grid gap-2',
+			itemsLayout.value === 'grid' &&
+				'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 ',
+			itemsLayout.value === 'list' &&
+				'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 lg:gap-3'
+		)}
+	>
+		{#each items as item (item.ingredient?.id || item.name)}
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<div
+				class="flex group"
+				animate:flip={{ duration: 200 }}
+				onmouseenter={() => {
+					if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
+					if (!item.ingredient) return; // No hover state for manual items
+					hoveredMealIngredient.value = item.ingredient;
+				}}
+				onmouseleave={() => {
+					if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
+					hoveredMealIngredient.value = null;
+				}}
+			>
+				<ShoppingItemCard
+					layout={itemsLayout.value || 'grid'}
+					ingredient={item.ingredient}
+					name={item.name}
+					description={formatCombinedItemQuantity(item)}
+					plural={Object.entries(item.mergedQuantity).some(
+						([_, quantities]) => quantities.withOptionals > 1
+					)}
+					size="md"
+					selectable
+					onDelete={() => {
+						// Soft delete all origins of the item
+						item.items.forEach((si) => updatePlanItemDeleted(space, si.id));
 					}}
-					onmouseleave={() => {
-						if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
-						hoveredMealIngredient.value = null;
-					}}
+					checked={item.items.some((si) => si.checked_at)}
+					onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
 				>
-					<ShoppingItemCardGrid
-						ingredient={item.ingredient}
-						name={item.name}
-						description={formatCombinedItemQuantity(item)}
-						plural={Object.entries(item.mergedQuantity).some(
-							([_, quantities]) => quantities.withOptionals > 1
-						)}
-						size="md"
-						selectable
-						onDelete={() => {
-							// Soft delete all origins of the item
-							item.items.forEach((si) => updatePlanItemDeleted(space, si.id));
-						}}
-						checked={item.items.some((si) => si.checked_at)}
-						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-					>
-						{#snippet topRight()}
+					{#snippet topRight()}
+						{#if itemsLayout.value === 'grid'}
 							{#if item.meals.length > 0}
 								<div class="flex gap-0.5">
 									{#if item.meals.length > 1}
@@ -413,21 +422,10 @@
 									{/if}
 								</div>
 							{/if}
-						{/snippet}
-					</ShoppingItemCardGrid>
-				</div>
-			{/each}
-		</div>
-	{:else}
-		<div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
-			{#each items as item (item.ingredient?.id || item.name)}
-				<div class="flex group" animate:flip={{ duration: 300 }}>
-					<ShoppingItemCardList
-						ingredient={item.ingredient}
-						checkable
-						checked={item.items.some((si) => si.checked_at)}
-						onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-					>
+						{/if}
+					{/snippet}
+
+					{#if itemsLayout.value === 'list'}
 						<span class="text-xs text-muted-foreground/80 flex gap-3">
 							<!-- <div class="flex items-center gap-1">
 								<House class="size-3 inline-block" />
@@ -453,9 +451,9 @@
 								</div>
 							{/if}
 						</span>
-					</ShoppingItemCardList>
-				</div>
-			{/each}
-		</div>
-	{/if}
+					{/if}
+				</ShoppingItemCard>
+			</div>
+		{/each}
+	</div>
 {/snippet}

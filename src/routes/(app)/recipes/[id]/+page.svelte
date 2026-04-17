@@ -5,8 +5,7 @@
 	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
-	import ShoppingItemCardList from '$lib/features/recipes/components/ShoppingItemCardList.svelte';
+	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
 		recipeCourses,
 		recipeCuisines,
@@ -31,7 +30,9 @@
 		Camera,
 		Equal,
 		Globe,
+		Grid3x3,
 		HandCoins,
+		List,
 		Plus,
 		RotateCcw,
 		Salad,
@@ -262,7 +263,6 @@
 						</div>
 
 						<div class="hidden md:block">
-
 							{@render steps()}
 						</div>
 					</div>
@@ -327,7 +327,7 @@
 									</Button>
 								{/if}
 
-								<!-- <Button
+								<Button
 									variant="ghost"
 									size="icon"
 									class="ml-auto h-7 w-7"
@@ -342,7 +342,7 @@
 										<Grid3x3 class="min-w-4 h-4" />
 										<span class="sr-only">Switch to grid view</span>
 									{/if}
-								</Button> -->
+								</Button>
 							</div>
 
 							{@render displayIngredients(
@@ -379,7 +379,6 @@
 						</div> -->
 
 						<div class="md:hidden">
-
 							{@render steps()}
 						</div>
 
@@ -412,20 +411,19 @@
 			{@const amount = (ing.quantity || 0) * (displayServings / (recipe?.servings || 1))}
 			{@const displayAmount = amount > 10 ? Math.round(amount).toString() : amount.toString()}
 
-			{#if view === 'grid'}
-				<ShoppingItemCardGrid
-					ingredient={ing.ingredient}
-					plural={!!ing.quantity && ing.quantity > 1}
-					description={displayAmount + ' ' + ing.unit?.replace('whole', '')}
-				/>
-			{:else}
-				<ShoppingItemCardList
-					ingredient={ing.ingredient}
-					description={ing.raw_input}
-					{amount}
-					unit={ing.unit === 'whole' ? '' : ing.unit || ''}
-				/>
-			{/if}
+			<ShoppingItemCard
+				layout={view}
+				ingredient={ing.ingredient}
+				plural={!!ing.quantity && ing.quantity > 1}
+				description={displayAmount + ' ' + ing.unit?.replace('whole', '')}
+				checkable={false}
+			>
+				{#if view === 'list'}
+					<span class="text-xs text-muted-foreground/80 flex gap-3">
+						{displayAmount + ' ' + ing.unit?.replace('whole', '')}
+					</span>
+				{/if}
+			</ShoppingItemCard>
 		{/each}
 	</div>
 {/snippet}

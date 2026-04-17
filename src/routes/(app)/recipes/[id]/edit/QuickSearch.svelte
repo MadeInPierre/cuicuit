@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
-	import ShoppingItemCardGrid from '$lib/features/recipes/components/ShoppingItemCardGrid.svelte';
+	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
 		processIngredientString,
 		type IngredientProcessed
@@ -202,7 +202,7 @@
 					style="grid-template-columns: repeat({displayColumns}, 1fr);"
 				>
 					{#each processedIngredient.matches.slice(0, displayRows * displayColumns - (allowCustom ? 1 : 0)) as ingredient, index (ingredient.id)}
-						<ShoppingItemCardGrid
+						<ShoppingItemCard
 							{ingredient}
 							description={(processedIngredient.parsed.quantity?.amount || '') +
 								' ' +
@@ -216,13 +216,9 @@
 					{/each}
 
 					{#if allowCustom}
-						<ShoppingItemCardGrid
+						<ShoppingItemCard
 							ingredient={undefined}
 							description={capitalize(processedIngredient.parsed.ingredientText)}
-							amount={processedIngredient.parsed.quantity?.amount}
-							unit={processedIngredient.parsed.quantity?.unitKey === 'whole'
-								? ''
-								: processedIngredient.parsed.quantity?.unitText}
 							onclick={() => onSelectIngredient(null)}
 							size="sm"
 						/>
