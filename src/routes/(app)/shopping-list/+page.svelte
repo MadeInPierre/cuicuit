@@ -255,7 +255,7 @@
 							if (shoppingListFilter === 'meals') return item.meals.length > 0;
 							if (shoppingListFilter === 'independent')
 								return item.items.some((si) => si.type === 'independent');
-							return true;
+							return true; // Just in case, should not happen
 						})}
 
 						{@const aisleRecommendations = shoppingRecommendations.filter(

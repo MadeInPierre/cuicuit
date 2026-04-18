@@ -155,15 +155,23 @@ export function generateShoppingList(
 			return Number(aChecked) - Number(bChecked);
 		}
 
-		const aSlug = a.ingredient?.slug || a.name;
-		const bSlug = b.ingredient?.slug || b.name;
-
-		// Only reverse order within checked items
+		// Within checked items, sort by descending checked_at
 		if (aChecked && bChecked) {
-			return bSlug.localeCompare(aSlug);
+			const toTimestamp = (value: Date | string | null | undefined): number => {
+				if (!value) return 0;
+				if (value instanceof Date) return value.getTime();
+				const time = new Date(value).getTime();
+				return Number.isNaN(time) ? 0 : time;
+			};
+
+			const aCheckedAt = Math.max(...a.items.map((si) => toTimestamp(si.checked_at)));
+			const bCheckedAt = Math.max(...b.items.map((si) => toTimestamp(si.checked_at)));
+			return bCheckedAt - aCheckedAt;
 		}
 
-		// Keep normal order within unchecked items
+		// Alphabetical order within unchecked items
+		const aSlug = a.ingredient?.slug || a.name;
+		const bSlug = b.ingredient?.slug || b.name;
 		return aSlug.localeCompare(bSlug);
 	});
 }
