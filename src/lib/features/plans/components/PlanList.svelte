@@ -3,29 +3,28 @@
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { cn, formatDateAgo } from '$lib/utils';
 	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import { updatePlanItemDeleted } from '../actions/update-item';
-	import { selectedMealIngredient } from '../state/hovered-meal-ingredient.svelte';
 
 	type Props = {
 		displayMode?: 'plan' | 'sidebar';
+		filterOnIngredientId?: string | null;
 	};
 
-	let { displayMode = 'plan' }: Props = $props();
+	let { displayMode = 'plan', filterOnIngredientId = null }: Props = $props();
 
 	const activeSpace = getActiveSpaceState();
 
 	const meals = $derived.by(() => {
 		// If hovering over a meal ingredient, only show meals that contain that ingredient
-		if (selectedMealIngredient.value?.id) {
+		if (filterOnIngredientId) {
 			return (
 				activeSpace.activePlanMeals?.filter((meal) =>
 					meal.shopping_ingredients.some(
-						(si) => si.ingredient_id === selectedMealIngredient.value!.id && !si.deleted_at
+						(si) => si.ingredient_id === filterOnIngredientId && !si.deleted_at
 					)
 				) || []
 			);
@@ -42,8 +41,8 @@
 				if (item.type !== 'independent' || item.deleted_at) return false;
 
 				// If hovering over a meal ingredient, only show matching items
-				if (selectedMealIngredient.value?.id) {
-					return item.ingredient_id === selectedMealIngredient.value.id;
+				if (filterOnIngredientId) {
+					return item.ingredient_id === filterOnIngredientId;
 				}
 
 				// Otherwise, include all independent items
@@ -65,108 +64,90 @@
 		</div>
 	{/snippet}
 
-	<Tabs.Root value="plan" class="">
-		<!-- <Tabs.List class="w-full">
-			<Tabs.Trigger class="w-full" value="plan">Plan</Tabs.Trigger>
-			<Tabs.Trigger class="w-full" value="shopping">Groceries</Tabs.Trigger>
-		</Tabs.List> -->
+	<div class={cn('grid space-y-8', displayMode === 'plan' && 'lg:grid-cols-2 lg:gap-4 xl:gap-8')}>
+		<div class="flex flex-col w-full gap-4">
+			{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
 
-		<Tabs.Content
-			value="plan"
-			class={cn('grid space-y-8', displayMode === 'plan' && 'lg:grid-cols-2 lg:gap-4 xl:gap-8')}
-		>
-			<div class="flex flex-col w-full gap-4">
-				{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
+			{#if meals.length > 0}
+				<MealList {meals} cardSize={displayMode === 'sidebar' ? 'md' : 'lg'} />
+			{:else if !filterOnIngredientId}
+				<div
+					class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+				>
+					<Utensils class="size-8" />
+					<p class="mx-auto w-28 text-center">Search for recipes to add meals here</p>
+				</div>
+			{:else}
+				<div
+					class="py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
+				>
+					No meals with this ingredient
+				</div>
+			{/if}
+		</div>
 
-				{#if meals.length > 0}
-					<MealList {meals} cardSize={displayMode === 'sidebar' ? 'md' : 'lg'} />
-				{:else if !selectedMealIngredient.value?.id}
+		{#if !page.url.pathname.startsWith('/shopping-list') || filterOnIngredientId}
+			<div class="flex flex-col w-full gap-2" transition:fade={{ duration: 75 }}>
+				{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
+
+				{#if independentItems && independentItems.length > 0}
 					<div
-						class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+						class={cn(
+							'py-2 relative grid grid-cols-1 gap-2',
+							displayMode === 'sidebar' && 'max-h-[380px] pb-2 overflow-x-visible overflow-y-clip'
+						)}
+						class:grid-cols-3={!filterOnIngredientId}
 					>
-						<Utensils class="size-8" />
-						<p class="mx-auto w-28 text-center">Search for recipes to add meals here</p>
+						{#if displayMode === 'sidebar' && independentItems && independentItems.length > 9}
+							<div
+								class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
+							></div>
+						{/if}
+
+						{#each independentItems as item (item.id)}
+							<div animate:flip={{ duration: 200 }}>
+								<ShoppingItemCard
+									layout={filterOnIngredientId ? 'list' : 'grid'}
+									ingredient={item.ingredient!}
+									description={item.priority === 'optional' ? ` (opt)` : ''}
+									size="sm"
+									deletable
+									onDelete={async () => {
+										// TODO add edit functionality (quantity, unit, name)
+										await updatePlanItemDeleted(activeSpace, item.id);
+									}}
+								>
+									{#if filterOnIngredientId}
+										<span class="text-muted-foreground text-xs">
+											{item.updated_at
+												? formatDateAgo(new Date(item.updated_at), true)
+												: 'Added recently'}
+
+											{item.author_profile.user_name ? `by @${item.author_profile.user_name}` : ''}
+										</span>
+									{/if}
+								</ShoppingItemCard>
+							</div>
+						{/each}
+					</div>
+				{:else if !filterOnIngredientId}
+					<div
+						class="mt-2 py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+					>
+						<ShoppingBasket class="size-8" />
+						<p class="mx-auto w-28 text-center">Search for items to add them here</p>
 					</div>
 				{:else}
 					<div
-						class="py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
+						class="mt-2 py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
 					>
-						No meals with this ingredient
+						No additional items
 					</div>
 				{/if}
 			</div>
+		{/if}
 
-			{#if !page.url.pathname.startsWith('/shopping-list') || selectedMealIngredient.value}
-				<div class="flex flex-col w-full gap-2" transition:fade={{ duration: 75 }}>
-					{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
-
-					{#if independentItems && independentItems.length > 0}
-						<div
-							class={cn(
-								'pt-2 relative grid grid-cols-1 gap-2',
-								displayMode === 'sidebar' && 'max-h-[380px] pb-2 overflow-x-visible overflow-y-clip'
-							)}
-							class:grid-cols-3={!selectedMealIngredient.value?.id}
-						>
-							{#if displayMode === 'sidebar' && independentItems && independentItems.length > 9}
-								<div
-									class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
-								></div>
-							{/if}
-
-							{#each independentItems as item (item.id)}
-								<div animate:flip={{ duration: 200 }}>
-									<ShoppingItemCard
-										layout={selectedMealIngredient.value?.id ? 'list' : 'grid'}
-										ingredient={item.ingredient!}
-										description={item.priority === 'optional' ? ` (opt)` : ''}
-										size="sm"
-										deletable
-										onDelete={async () => {
-											// TODO add edit functionality (quantity, unit, name)
-											await updatePlanItemDeleted(activeSpace, item.id);
-										}}
-									>
-										{#if selectedMealIngredient.value?.id}
-											<span class="text-muted-foreground text-xs">
-												{item.updated_at
-													? formatDateAgo(new Date(item.updated_at), true)
-													: 'Added recently'}
-
-												{item.author_profile.user_name
-													? `by @${item.author_profile.user_name}`
-													: ''}
-											</span>
-										{/if}
-									</ShoppingItemCard>
-								</div>
-							{/each}
-						</div>
-					{:else if !selectedMealIngredient.value?.id}
-						<div
-							class="mt-2 py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-						>
-							<ShoppingBasket class="size-8" />
-							<p class="mx-auto w-28 text-center">Search for items to add them here</p>
-						</div>
-					{:else}
-						<div
-							class="mt-2 py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
-						>
-							No additional items
-						</div>
-					{/if}
-
-					<!-- {#if activeSpace.activePlanItems && activeSpace.activePlanItems.length > 6}
-					<Button variant="link" class="mx-auto text-muted-foreground/60 font-normal group">
-						Show more
-						<ArrowRight class="size-4 group-hover:translate-x-1 transition-transform" />
-					</Button>
-				{/if} -->
-				</div>
-			{/if}
-
-			<!-- <div class="grid space-y-4">
+		<!-- <div class="grid space-y-4">
 				{@render sectionHeader(BellPlus, 'Refill suggestions', 'Ingredients that are running low')}
 				<div
 					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
@@ -178,7 +159,5 @@
 					</p>
 				</div>
 			</div> -->
-		</Tabs.Content>
-		<Tabs.Content value="shopping">Here you can manage your grocery list.</Tabs.Content>
-	</Tabs.Root>
+	</div>
 </div>

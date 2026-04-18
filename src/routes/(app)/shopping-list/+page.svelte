@@ -42,6 +42,7 @@
 		formatCombinedItemQuantity,
 		generateShoppingList
 	} from './generate-shopping-list';
+	import ItemDrawer from './ItemDrawer.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
@@ -114,6 +115,8 @@
 		refreshRecommendations();
 	});
 </script>
+
+<ItemDrawer />
 
 <div class="space-y-6 pb-16 min-h-full">
 	<div class="flex items-center">
