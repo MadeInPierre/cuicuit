@@ -63,7 +63,7 @@
 	</Sidebar.Header>
 
 	<Sidebar.Content class="p-4 no-scrollbar">
-		<PlanList displayMode="sidebar" />
+		<PlanList displayMode="sidebar" filterOnIngredientId={selectedMealIngredient.value?.id} />
 	</Sidebar.Content>
 
 	<Sidebar.Footer>
