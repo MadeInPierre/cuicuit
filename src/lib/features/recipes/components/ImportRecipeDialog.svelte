@@ -1,15 +1,12 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import type { Snippet } from 'svelte';
-	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
-	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
-	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
-	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
-	import { createDraftRecipe } from '../actions/create-draft-recipe';
-	import { toast } from 'svelte-sonner';
-	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
+	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
+	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
+	import type { Snippet } from 'svelte';
+	import CreateRecipeManualForm from './CreateRecipeManualForm.svelte';
+	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
@@ -29,10 +26,14 @@
 </script>
 
 {#snippet tabList()}
-	<Tabs.List class="grid w-full grid-cols-3 mt-6 mb-4">
+	<Tabs.List class="grid w-full grid-cols-4 mt-6 mb-4">
 		<Tabs.Trigger value="url">
 			<Globe class="mr-2 size-4" />
 			Web
+		</Tabs.Trigger>
+		<Tabs.Trigger value="manual">
+			<Pencil class="mr-2 size-4" />
+			Manual
 		</Tabs.Trigger>
 		<Tabs.Trigger value="image">
 			<FileImage class="mr-2 size-4" />
@@ -46,7 +47,20 @@
 {/snippet}
 
 <Dialog.Root bind:open={openDialog}>
-	<DropdownMenu.Root>
+	<Dialog.Trigger>
+		{#snippet child({ props })}
+			{#if trigger}
+				{@render trigger({ props })}
+			{:else}
+				<Button {...props} class="ml-auto" size="sm">
+					<Download class="mx-2 h-4 w-4" />
+					<span>Import</span>
+				</Button>
+			{/if}
+		{/snippet}
+	</Dialog.Trigger>
+
+	<!-- <DropdownMenu.Root>
 		<DropdownMenu.Trigger>
 			{#snippet child({ props })}
 				{#if trigger}
@@ -102,7 +116,7 @@
 				<span>Text or document...</span>
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>
-	</DropdownMenu.Root>
+	</DropdownMenu.Root> -->
 
 	<Dialog.Content class="max-w-[425px]">
 		<Tabs.Root bind:value={activeTab}>
@@ -150,6 +164,22 @@
 				{@render tabList()}
 
 				TODO
+			</Tabs.Content>
+
+			<Tabs.Content value="manual" class="">
+				<Dialog.Header class="w-min whitespace-nowrap">
+					<Dialog.Title class="flex gap-2 items-center">
+						<Pencil class="size-5" />
+						Create manually
+					</Dialog.Title>
+					<Dialog.Description>
+						Start with a blank recipe and fill in the details yourself.
+					</Dialog.Description>
+				</Dialog.Header>
+
+				{@render tabList()}
+
+				<CreateRecipeManualForm bind:openDialog />
 			</Tabs.Content>
 		</Tabs.Root>
 	</Dialog.Content>

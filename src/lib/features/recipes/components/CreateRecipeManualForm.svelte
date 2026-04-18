@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
-	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
@@ -10,7 +8,8 @@
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
-	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
+	import { createDraftRecipe } from '../actions/create-draft-recipe';
+	import { createRecipeManualSchema, type CreateRecipeManualSchema } from '../models/schemas';
 
 	type Props = {
 		openDialog?: boolean;
@@ -18,9 +17,9 @@
 
 	let { openDialog = $bindable() }: Props = $props();
 
-	const form = superForm(defaults(zod(importRecipeUrlSchema)), {
+	const form = superForm(defaults(zod(createRecipeManualSchema)), {
 		SPA: true,
-		validators: zod(importRecipeUrlSchema),
+		validators: zod(createRecipeManualSchema),
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
 			else toast.error('Please fix the errors in the form.');
@@ -33,31 +32,30 @@
 
 	const space = getActiveSpaceState();
 
-	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
+	async function onSubmit(data: Infer<CreateRecipeManualSchema>) {
 		loading = true;
 		try {
-			// Get the user
-			if (!userState.user?.id) {
-				toast.error('You must be logged in to import a recipe.');
+			if (!space.language?.id) {
+				toast.error(
+					'Active space does not have a language set. Please set a language before creating a recipe.'
+				);
 				loading = false;
 				return;
 			}
 
-			// Import the recipe from the URL
-			const result = await importRecipeFromUrl(space, data.url, userState.user.id);
+			// Create a draft recipe
+			const recipeId = await createDraftRecipe('user-manual', space.language?.id, data.title);
 
 			// Navigate based on completeness
-			if (result.isComplete) {
-				toast.success('Recipe imported successfully!');
+			if (recipeId) {
+				toast.success('Recipe created successfully!');
 				openDialog = false;
-				goto(`/recipes/${result.id}`);
+				goto(`/recipes/${recipeId}/edit`);
 			} else {
-				toast.warning('Some fields are missing, please complete the recipe.');
-				openDialog = false;
-				goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
+				toast.error('Failed to create recipe. Please try again.');
 			}
 		} catch (error) {
-			toast.error('Failed to import recipe. Please try again.');
+			toast.error('Failed to create recipe. Please try again.');
 		}
 		loading = false;
 	}
@@ -65,16 +63,12 @@
 
 <form method="POST" use:enhance class="w-full space-y-4">
 	<div class="space-y-2">
-		<Form.Field {form} name="url">
+		<Form.Field {form} name="title">
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Recipe link</Form.Label>
+					<Form.Label>Recipe title</Form.Label>
 
-					<Input
-						{...props}
-						placeholder="Paste any link to a recipe..."
-						bind:value={$formData.url}
-					/>
+					<Input {...props} placeholder="Recipe title..." bind:value={$formData.title} />
 				{/snippet}
 			</Form.Control>
 			<Form.FieldErrors />
@@ -90,19 +84,19 @@
 		{/if} -->
 
 		<Dialog.Footer class="mt-4">
-			<Form.Button type="submit" disabled={loading || !$formData.url} class="w-full">
+			<Form.Button type="submit" disabled={loading || !$formData.title} class="w-full">
 				{#if loading}
 					<div class="flex items-center gap-2">
 						<Loader2 class="size-4 animate-spin" />
-						Importing recipe...
+						Creating recipe...
 					</div>
 				{:else}
-					Import recipe
+					Create recipe
 				{/if}
 			</Form.Button>
 		</Dialog.Footer>
 		<p class="text-muted-foreground text-xs text-center">
-			By importing a recipe, you agree to our <a href="/terms" target="_blank" class="underline">
+			By creating a recipe, you agree to our <a href="/terms" target="_blank" class="underline">
 				terms of service
 			</a>.
 		</p>

@@ -5,7 +5,8 @@ import { toast } from 'svelte-sonner';
 
 export async function createDraftRecipe(
 	sourceType: 'user-manual' | 'website',
-	languageId: number
+	languageId: number,
+	title: string = ''
 ): Promise<Database['public']['Tables']['recipes']['Row']['id'] | undefined> {
 	if (!supabase) {
 		console.error('Supabase client not available');
@@ -30,7 +31,7 @@ export async function createDraftRecipe(
 				source_type: sourceType,
 
 				// General info
-				title: '',
+				title: title || 'New Recipe',
 				description: '',
 				notes: '',
 				author_id: userState.user.id,
