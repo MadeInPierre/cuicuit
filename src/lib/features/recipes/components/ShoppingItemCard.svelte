@@ -29,7 +29,7 @@
 		checked?: boolean;
 		onCheckedChange?: ((checked: boolean) => void) | undefined;
 		onDelete?: (() => void) | undefined;
-		onclick?: () => void;
+		onclick?: (e: MouseEvent | PointerEvent) => void;
 	};
 
 	let {
@@ -51,7 +51,7 @@
 		checked = $bindable(false),
 		onCheckedChange = undefined,
 		onDelete = undefined,
-		onclick = () => {}
+		onclick = (e: MouseEvent | PointerEvent) => {}
 	}: Props = $props();
 
 	const space = getActiveSpaceState();
@@ -113,7 +113,7 @@
 			onCheckedChange(checked);
 		}
 
-		onclick?.();
+		onclick?.(e);
 	}}
 	oncontextmenu={(e) => {
 		// Right click or long press to select the ingredient for detailed view in sidebar

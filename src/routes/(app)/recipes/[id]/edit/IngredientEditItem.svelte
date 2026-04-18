@@ -60,7 +60,7 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<Select.Root type="single" bind:value={unit} {...props} {disabled}>
-								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-20">
+								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-20 h-9">
 									{unit && Object.keys(unitLabels).includes(unit) ? unit : ''}
 								</Select.Trigger>
 								<Select.Content>

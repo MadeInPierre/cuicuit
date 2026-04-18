@@ -18,7 +18,7 @@ export function getPlanMeals(spaceId: string, languageId: number) {
 					*,
 					author_profile:user_public_profiles(*),
 					ingredient:ingredients(
-						*,
+						id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml,
 						translations:ingredient_translations(
 							*,
 							language:languages(lang)

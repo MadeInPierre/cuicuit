@@ -43,6 +43,7 @@
 		displayRows?: 1 | 2 | 3;
 		displayColumns?: number;
 		allowCustom?: boolean;
+		display?: 'recipes' | 'ingredients' | 'both';
 	};
 
 	let {
@@ -53,7 +54,8 @@
 		class: className,
 		displayRows = 1,
 		displayColumns = 3,
-		allowCustom = false
+		allowCustom = false,
+		display = 'both'
 	}: Props = $props();
 
 	const space = getActiveSpaceState();
@@ -83,18 +85,23 @@
 			}
 
 			// Process the ingredient string into a structured format matched to the database
-			processedIngredient = await processIngredientString(
-				value,
-				space.activeSpace.language.lang as LanguageKey
-			);
+			if (display === 'ingredients' || display === 'both') {
+				processedIngredient = await processIngredientString(
+					value,
+					space.activeSpace.language.lang as LanguageKey
+				);
+			}
 
 			// Also search for recipes
-			const { data, error } = await getRecipesDetailed(space.activeSpace.language_id, value).limit(
-				3
-			);
-			if (error) {
-				toast.error('Error fetching recipes');
-			} else recipes = data ?? undefined;
+			if (display === 'recipes' || display === 'both') {
+				const { data, error } = await getRecipesDetailed(
+					space.activeSpace.language_id,
+					value
+				).limit(3);
+				if (error) {
+					toast.error('Error fetching recipes');
+				} else recipes = data ?? undefined;
+			}
 
 			// State updates
 			hasTypedThisFocus = true; // Fixes escape key details
@@ -126,6 +133,17 @@
 			hasTypedThisFocus = true;
 		}
 	});
+
+	const height = $derived.by(() => {
+		const matchesCount = processedIngredient?.matches.length ?? 0;
+
+		if (!processedIngredient) return 'h-26';
+		if (displayRows === 1 && matchesCount > 0) return 'h-26';
+		if (displayRows === 2 && matchesCount > displayColumns) return 'h-54';
+		if (displayRows === 3 && matchesCount > displayColumns * 2) return 'h-80';
+
+		return '';
+	});
 </script>
 
 <div
@@ -148,6 +166,7 @@
 			},
 			onkeydown: (e: KeyboardEvent) => {
 				if (e.key === 'Enter' && processedIngredient?.matches) {
+					e.preventDefault(); // Avoid submitting the form
 					onSelectIngredient(0);
 				}
 				if (e.key === 'Escape') {
@@ -174,6 +193,7 @@
 			}}
 			onkeydown={(e) => {
 				if (e.key === 'Enter' && processedIngredient?.matches) {
+					e.preventDefault(); // Avoid submitting the form
 					onSelectIngredient(0);
 				}
 				if (e.key === 'Escape') {
@@ -186,16 +206,7 @@
 	{/if}
 
 	{#if openSearchResults}
-		<div
-			class="grid"
-			class:h-26={displayRows === 1 && (processedIngredient?.matches.length ?? 0) > 0}
-			class:h-54={(displayRows === 2 &&
-				(processedIngredient?.matches.length ?? 0) > displayColumns) ||
-				!processedIngredient}
-			class:h-80={displayRows === 3 &&
-				(processedIngredient?.matches.length ?? 0) > displayColumns * 2}
-			transition:slide={{ duration: 200 }}
-		>
+		<div class={cn('grid', height)} transition:slide={{ duration: 200 }}>
 			{#if processedIngredient}
 				<div
 					class="grid w-full gap-2 self-start content-start auto-rows-min"
@@ -210,7 +221,10 @@
 								' ' +
 								(processedIngredient.parsed.description || '')}
 							plural={(processedIngredient.parsed.quantity?.amount || 0) > 1}
-							onclick={() => onSelectIngredient(index)}
+							onclick={(e) => {
+								e.preventDefault(); // Avoid submitting the form
+								onSelectIngredient(index);
+							}}
 							size="sm"
 						/>
 					{/each}
@@ -219,7 +233,10 @@
 						<ShoppingItemCard
 							ingredient={undefined}
 							description={capitalize(processedIngredient.parsed.ingredientText)}
-							onclick={() => onSelectIngredient(null)}
+							onclick={(e) => {
+								e.preventDefault(); // Avoid submitting the form
+								onSelectIngredient(null);
+							}}
 							size="sm"
 						/>
 					{/if}
