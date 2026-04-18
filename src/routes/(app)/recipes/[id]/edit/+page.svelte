@@ -1144,8 +1144,13 @@
 			<AlertDialog.Action
 				class={dismissDialogMode == 'delete' ? 'bg-red-700' : ''}
 				onclick={async () => {
-					if (dismissDialogMode == 'delete') await deleteRecipe(pageRecipeId);
-					goto('/recipes' + (isNewRecipe ? '' : `/${pageRecipeId}`));
+					if (dismissDialogMode == 'delete') {
+						await deleteRecipe(pageRecipeId);
+						goto('/recipes');
+					} else {
+						if (window) window.history.back();
+					}
+					// goto('/recipes' + (isNewRecipe ? '' : `/${pageRecipeId}`));
 				}}
 			>
 				{#if dismissDialogMode == 'delete'}
