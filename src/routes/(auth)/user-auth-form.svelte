@@ -21,6 +21,7 @@
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { z } from 'zod';
+	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
 
 	// Component props
 	interface Props {
@@ -108,7 +109,7 @@
 </script>
 
 <div class={cn('grid gap-4', className)} {...restProps}>
-	<div class="grid grid-cols-2 gap-6">
+	<div class="grid grid-cols-1 gap-6">
 		<Button
 			variant="outline"
 			type="button"
@@ -123,7 +124,7 @@
 			Google
 		</Button>
 
-		<Button
+		<!-- <Button
 			variant="outline"
 			type="button"
 			disabled={isLoading}
@@ -135,16 +136,15 @@
 				<Icons.gitHub class="mr-2 h-4 w-4" />
 			{/if}
 			GitHub
-		</Button>
+		</Button> -->
 	</div>
 
-	<div class="relative">
-		<div class="absolute inset-0 flex items-center">
-			<span class="w-full border-t"></span>
-		</div>
-		<div class="relative flex justify-center text-xs uppercase">
-			<span class="bg-background px-2 text-muted-foreground"> Or continue with </span>
-		</div>
+	<div class="flex gap-3 items-center mt-2">
+		<SeparatorZigZag />
+
+		<span class="text-muted-foreground uppercase text-xs min-w-max"> Or continue with </span>
+
+		<SeparatorZigZag />
 	</div>
 
 	<form method="POST" use:enhance>
