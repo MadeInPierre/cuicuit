@@ -5,7 +5,7 @@
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { IsMobile } from '../hooks/is-mobile.svelte';
+	import { useMedia } from '../hooks/use-media.svelte';
 	import ThemeButton from './ThemeButton.svelte';
 
 	interface Props {
@@ -13,7 +13,7 @@
 	}
 	let { children }: Props = $props();
 
-	const isMobile = new IsMobile();
+	const media = useMedia();
 </script>
 
 <svelte:window
@@ -40,7 +40,7 @@
 <Sidebar.Provider open={false}>
 	<SidebarLeft collapsible="icon" />
 
-	{#if !isMobile.current}
+	{#if media.md}
 		<SidebarRight />
 	{/if}
 

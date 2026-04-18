@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import type { NavLink } from '$lib/features/marketing/consts/nav-links';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { IsMobile } from '$lib/shared/hooks/is-mobile.svelte';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 	import { Circle } from 'lucide-svelte';
 	import { cubicInOut } from 'svelte/easing';
@@ -15,7 +15,7 @@
 
 	let { class: className = undefined, groups }: Props = $props();
 
-	const isMobile = new IsMobile();
+	const media = useMedia();
 
 	const [send, receive] = crossfade({
 		duration: 250,
@@ -28,7 +28,7 @@
 		<p class="text-muted-foreground text-sm font-medium">{group.name}</p>
 
 		<div class="grid w-full grid-cols-3 gap-1 lg:grid-cols-1 max-w-lg">
-			{#each group.links.filter((link) => !link.display || link.display === (isMobile.current ? 'mobile' : 'desktop') || link.display === 'both') as link}
+			{#each group.links.filter((link) => !link.display || link.display === (media.md ? 'desktop' : 'mobile') || link.display === 'both') as link}
 				{@const isActive = page.url.pathname === link.href}
 
 				<Button

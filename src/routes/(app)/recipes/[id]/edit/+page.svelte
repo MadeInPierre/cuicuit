@@ -1,33 +1,8 @@
 <script lang="ts">
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-	import CirclePlus from 'lucide-svelte/icons/circle-plus';
-	import Heart from 'lucide-svelte/icons/heart';
-	import { Button } from '$lib/shared/components/ui/button/index.js';
-	import * as Card from '$lib/shared/components/ui/card/index.js';
-	import { Input } from '$lib/shared/components/ui/input/index.js';
-	import { Label } from '$lib/shared/components/ui/label/index.js';
-	import * as Form from '$lib/shared/components/ui/form';
-	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
-	import * as Select from '$lib/shared/components/ui/select/index.js';
-	import { superForm, defaults, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
-	import {
-		ChevronDown,
-		ChevronUp,
-		Plus,
-		X,
-		LoaderCircle,
-		Users,
-		Minus,
-		Camera,
-		Trash2
-	} from 'lucide-svelte';
-	import {
-		createRecipeFormSchema,
-		type CreateRecipeFormSchema
-	} from '$lib/features/recipes/models/schemas';
-	import ImgUploadButton from './ImgUploadButton.svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import {
 		recipeCourses,
 		recipeCuisines,
@@ -38,24 +13,47 @@
 		type RecipeTimeOfDayKey,
 		type RecipeToolKey
 	} from '$lib/features/recipes/db/recipe-doc';
-	import { capitalize, cn } from '$lib/utils';
+	import {
+		createRecipeFormSchema,
+		type CreateRecipeFormSchema
+	} from '$lib/features/recipes/models/schemas';
+	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
+	import { getLanguageId } from '$lib/features/recipes/queries/get-language-id';
+	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { toast } from 'svelte-sonner';
-	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
+	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
-	import { slide } from 'svelte/transition';
-	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
-	import QuickSearch from './QuickSearch.svelte';
-	import type { Tables } from '$lib/shared/db/supabase.types';
+	import { Button } from '$lib/shared/components/ui/button/index.js';
+	import * as Card from '$lib/shared/components/ui/card/index.js';
+	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input/index.js';
+	import { Label } from '$lib/shared/components/ui/label/index.js';
+	import * as Select from '$lib/shared/components/ui/select/index.js';
+	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import { supabase } from '$lib/shared/db/supabase-client';
-	import { onMount } from 'svelte';
-	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { getLanguageId } from '$lib/features/recipes/queries/get-language-id';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
-	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
+	import type { Tables } from '$lib/shared/db/supabase.types';
+	import { capitalize, cn } from '$lib/utils';
+	import {
+		ChevronDown,
+		ChevronUp,
+		LoaderCircle,
+		Minus,
+		Plus,
+		Trash2,
+		Users,
+		X
+	} from 'lucide-svelte';
+	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+	import CirclePlus from 'lucide-svelte/icons/circle-plus';
+	import Heart from 'lucide-svelte/icons/heart';
+	import { toast } from 'svelte-sonner';
+	import { slide } from 'svelte/transition';
+	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import ImgUploadButton from './ImgUploadButton.svelte';
 	import IngredientEditItem from './IngredientEditItem.svelte';
-	import { goto } from '$app/navigation';
+	import QuickSearch from './QuickSearch.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id as string;
@@ -71,7 +69,7 @@
 		SPA: true,
 		validators: zod(createRecipeFormSchema),
 		resetForm: false,
-		taintedMessage: 'Leave this page without saving your changes?',
+		taintedMessage: null,
 		async onUpdate({ form }) {
 			if (form.valid) {
 				await onSubmit(form.data);
@@ -88,73 +86,74 @@
 
 	// Update the form data with the recipe document data whenever it changes
 
-	onMount(async () => {
+	$effect(() => {
 		// If it's a new recipe, we don't need to fetch the recipe data
 		if (isNewRecipe || !activeSpace.language) return;
 
 		// Fetch the recipe from Supabase
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(
-			pageRecipeId,
-			activeSpace.language.id
-		);
+		getRecipeDetailed(pageRecipeId, activeSpace.language.id).then(
+			({ data: recipeData, error: recipeError }) => {
+				console.log('Fetched recipe data:', recipeData, 'Error:', recipeError);
 
-		if (recipeError) {
-			console.error('Error fetching recipe:', recipeError);
-			return;
-		}
+				if (recipeError) {
+					console.error('Error fetching recipe:', recipeError);
+					return;
+				}
 
-		formData.update(
-			(f) => {
-				// General info
-				f.language = (recipeData.language.lang as LanguageKey) || 'fr-FR';
-				f.title = recipeData.title || 'New recipe';
-				f.description = recipeData.description || 'Delicious new recipe';
+				formData.update(
+					(f) => {
+						// General info
+						f.language = (recipeData.language.lang as LanguageKey) || 'fr-FR';
+						f.title = recipeData.title || 'New recipe';
+						f.description = recipeData.description || 'Delicious new recipe';
 
-				// Images
-				f.imageIds = recipeData.image_ids || [];
+						// Images
+						f.imageIds = recipeData.image_ids || [];
 
-				// Filters
-				f.timesofday_ids = recipeData.times_of_day || [];
-				f.course_ids = recipeData.courses || [];
-				f.cuisine_ids = recipeData.cuisines || [];
-				// f.tag_ids = recipeData.tags || []; // TODO revisit later
-				f.tool_ids = recipeData.tools || [];
+						// Filters
+						f.timesofday_ids = recipeData.times_of_day || [];
+						f.course_ids = recipeData.courses || [];
+						f.cuisine_ids = recipeData.cuisines || [];
+						// f.tag_ids = recipeData.tags || []; // TODO revisit later
+						f.tool_ids = recipeData.tools || [];
 
-				// Levels
-				f.effortLevel = recipeData.effort_level || 'low';
-				f.skillLevel = recipeData.skill_level || 'beginner';
-				f.cleanupLevel = recipeData.cleanup_level || 'none';
-				f.costLevel = recipeData.cost_level || 'budget';
+						// Levels
+						f.effortLevel = recipeData.effort_level || 'low';
+						f.skillLevel = recipeData.skill_level || 'beginner';
+						f.cleanupLevel = recipeData.cleanup_level || 'none';
+						f.costLevel = recipeData.cost_level || 'budget';
 
-				// Cook times
-				f.timePrep = recipeData.time_prep_minutes || 0;
-				f.timeCook = recipeData.time_cook_minutes || 0;
-				f.timeRest = recipeData.time_rest_minutes || 0;
+						// Cook times
+						f.timePrep = recipeData.time_prep_minutes || 0;
+						f.timeCook = recipeData.time_cook_minutes || 0;
+						f.timeRest = recipeData.time_rest_minutes || 0;
 
-				// Servings & Ingredients
-				f.servings = recipeData.servings || 4;
-				f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
-				f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
-				f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
-				f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
-				f.ingredientRawInputs = recipeData.ingredients.map((ing) => ing.raw_input || '');
+						// Servings & Ingredients
+						f.servings = recipeData.servings || 4;
+						f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
+						f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
+						f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
+						f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
+						f.ingredientRawInputs = recipeData.ingredients.map((ing) => ing.raw_input || '');
 
-				f.ingredientNames = recipeData.ingredients.map((ing) => {
-					const amount = ing.quantity || 1;
-					const translation = ing.ingredient.translations?.[0];
-					if (!translation) return 'Unknown ingredient';
-					const name =
-						amount > 1
-							? translation.name_plural || translation.name_singular
-							: translation.name_singular || translation.name_plural;
-					return name || 'Unknown ingredient';
-				});
+						f.ingredientNames = recipeData.ingredients.map((ing) => {
+							const amount = ing.quantity || 1;
+							const translation = ing.ingredient.translations?.[0];
+							if (!translation) return 'Unknown ingredient';
+							const name =
+								amount > 1
+									? translation.name_plural || translation.name_singular
+									: translation.name_singular || translation.name_plural;
+							return name || 'Unknown ingredient';
+						});
 
-				// Steps
-				f.stepDescriptions = recipeData.steps || [''];
-				return f;
-			},
-			{ taint: false }
+						// Steps
+						f.stepDescriptions = recipeData.steps || [''];
+						return f;
+					},
+					{ taint: false }
+				);
+			}
 		);
 	});
 
@@ -173,6 +172,14 @@
 		}
 
 		const chosenMatch = ingredientProcessed.matches[chosenMatchIndex];
+
+		// Exit if there is already an ingredient with the same ID in the list to avoid duplicates
+		if ($formData.ingredientIds.includes(chosenMatch.id)) {
+			toast.error('Already in the list.', {
+				description: 'Please edit the existing ingredient instead.'
+			});
+			return;
+		}
 
 		const translation =
 			chosenMatch.translations.find((t) => t.language?.lang === $formData.language) ||
@@ -362,7 +369,7 @@
 			<div class="mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
 				<div class="flex items-center gap-4">
 					<Button
-						variant="outline"
+						variant="secondary"
 						size="icon"
 						class="h-7 w-7"
 						onclick={() => {
@@ -392,7 +399,7 @@
 						<Badge class="ml-auto sm:ml-0 bg-yellow-600 text-white dark:bg-yellow-900">Draft</Badge>
 					{/if}
 
-					<div class="hidden items-center gap-2 md:ml-auto md:flex">
+					<div class="items-center gap-2 ml-auto flex">
 						{#if !isNewRecipe}
 							<Button
 								variant="outline"
@@ -404,7 +411,7 @@
 								}}
 							>
 								<Trash2 class="size-3.5" />
-								Delete
+								<span class="hidden md:block">Delete</span>
 							</Button>
 						{/if}
 
@@ -566,7 +573,13 @@
 							<Card.Content class="grid gap-3">
 								<Label>Type to add:</Label>
 
-								<QuickSearch onSelect={onAddIngredient} class="mb-3" displayColumns={5} />
+								<QuickSearch
+									onSelect={onAddIngredient}
+									class="mb-3"
+									displayColumns={5}
+									displayRows={1}
+									display="ingredients"
+								/>
 
 								<Label>Required</Label>
 								{@render ingredientList(false)}
@@ -675,22 +688,20 @@
 														{/if}
 													</div>
 
-													<div class="flex gap-2 min-h-24">
+													<div class="flex gap-2 min-h-20">
 														<Textarea
 															{...props}
 															id="description"
 															placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
-															class="min-h-24 max-h-52"
+															class="min-h-20 max-h-52"
 															bind:value={$formData.stepDescriptions[i]}
 														/>
 
-														<!-- <Separator orientation="vertical" /> -->
-
-														<label
+														<!-- <label
 															class="h-24 aspect-square rounded-md border border-dashed cursor-pointer bg-muted flex items-center justify-center"
 														>
 															<Camera class="text-muted-foreground size-4" />
-														</label>
+														</label> -->
 													</div>
 
 													<!-- <div class="w-full grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
@@ -1131,16 +1142,16 @@
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action
-				class={dismissDialogMode == 'delete' ? 'bg-destructive' : ''}
+				class={dismissDialogMode == 'delete' ? 'bg-red-700' : ''}
 				onclick={async () => {
 					if (dismissDialogMode == 'delete') await deleteRecipe(pageRecipeId);
-					goto('/recipes');
+					goto('/recipes' + (isNewRecipe ? '' : `/${pageRecipeId}`));
 				}}
 			>
 				{#if dismissDialogMode == 'delete'}
-					Delete
+					Delete forever
 				{:else}
-					Discard
+					Discard changes
 				{/if}
 			</AlertDialog.Action>
 		</AlertDialog.Footer>
