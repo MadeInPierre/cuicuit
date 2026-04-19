@@ -172,11 +172,11 @@
 	<Separator class="my-6" />
 
 	<Tabs.Root value="aisle">
-		<div class="flex gap-2 items-center">
-			<Tabs.List>
+		<div class="flex gap-2 items-center justify-end">
+			<!-- <Tabs.List>
 				<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
 				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
-			</Tabs.List>
+			</Tabs.List> -->
 
 			<Button
 				variant="ghost"
@@ -210,7 +210,7 @@
 				{/if}
 			</Button>
 
-			<DoneShoppingButton onclick={refreshRecommendations} class="ml-auto" />
+			<DoneShoppingButton onclick={refreshRecommendations} />
 		</div>
 
 		<Tabs.Content value="aisle" class="mt-8">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
-	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
+	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
 		processIngredientString,
@@ -269,7 +269,7 @@
 	{#if recipes && recipes.length > 0}
 		<div class="grid space-y-2" transition:slide={{ duration: 200 }}>
 			{#each recipes as recipe (recipe.id)}
-				<RecipeListItem {recipe} onclick={() => onSelectRecipe(recipe)} />
+				<RecipeCard {recipe} onclick={() => onSelectRecipe(recipe)} />
 			{/each}
 		</div>
 	{/if}

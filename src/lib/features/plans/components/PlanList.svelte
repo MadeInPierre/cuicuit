@@ -12,9 +12,14 @@
 	type Props = {
 		displayMode?: 'plan' | 'sidebar';
 		filterOnIngredientId?: string | null;
+		disableAnimations?: boolean;
 	};
 
-	let { displayMode = 'plan', filterOnIngredientId = null }: Props = $props();
+	let {
+		displayMode = 'plan',
+		filterOnIngredientId = null,
+		disableAnimations = false
+	}: Props = $props();
 
 	const activeSpace = getActiveSpaceState();
 
@@ -53,45 +58,54 @@
 	});
 </script>
 
-<div class="flex w-full max-w-4xl flex-col gap-6">
+<div class="flex w-full max-w-4xl flex-col gap-4">
 	{#snippet sectionHeader(Icon: any, title: string, description: string)}
-		<div class="flex items-center gap-4">
+		<div class={cn('flex items-center gap-2 ml-2', displayMode === 'sidebar' && 'gap-4 ml-0')}>
 			<Icon class="size-5" />
 			<div class="grid gap-0.5">
 				<h3 class="text-sm font-semibold">{title}</h3>
-				<p class="text-xs text-muted-foreground">{description}</p>
+				{#if displayMode === 'sidebar'}
+					<p class="text-xs text-muted-foreground">{description}</p>
+				{/if}
 			</div>
 		</div>
 	{/snippet}
 
-	<div class={cn('grid space-y-8', displayMode === 'plan' && 'lg:grid-cols-2 lg:gap-4 xl:gap-8')}>
-		<div class="flex flex-col w-full gap-4">
-			{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
+	<div class={cn('grid space-y-4', displayMode === 'plan' && 'lg:grid-cols-2 lg:gap-4 xl:gap-8')}>
+		{#if meals.length > 0 || displayMode === 'sidebar'}
+			<div class="flex flex-col w-full gap-4 pb-2">
+				{#if displayMode === 'sidebar'}
+					{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
+				{/if}
 
-			{#if meals.length > 0}
-				<MealList
-					{meals}
-					cardSize={displayMode === 'sidebar' ? 'md' : 'lg'}
-					expandOnSelected={displayMode === 'sidebar'}
-				/>
-			{:else if !filterOnIngredientId}
-				<div
-					class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-				>
-					<Utensils class="size-8" />
-					<p class="mx-auto w-28 text-center">Search for recipes to add meals here</p>
-				</div>
-			{:else}
-				<div
-					class="py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
-				>
-					No meals with this ingredient
-				</div>
-			{/if}
-		</div>
+				{#if meals.length > 0}
+					<MealList
+						{meals}
+						cardSize={displayMode === 'sidebar' ? 'md' : 'lg'}
+						expandOnSelected={displayMode === 'sidebar'}
+					/>
+				{:else if !filterOnIngredientId}
+					<div
+						class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+					>
+						<Utensils class="size-8" />
+						<p class="mx-auto w-28 text-center">Search for recipes to add meals here</p>
+					</div>
+				{:else}
+					<div
+						class="py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
+					>
+						No meals with this ingredient
+					</div>
+				{/if}
+			</div>
+		{/if}
 
-		{#if !page.url.pathname.startsWith('/shopping-list') || filterOnIngredientId}
-			<div class="flex flex-col w-full gap-2" transition:fade={{ duration: 75 }}>
+		{#if (independentItems && independentItems.length > 0) || (displayMode === 'sidebar' && (!page.url.pathname.startsWith('/shopping-list') || filterOnIngredientId))}
+			<div
+				class="flex flex-col w-full gap-2"
+				transition:fade={{ duration: disableAnimations ? 0 : 75 }}
+			>
 				{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
 
 				{#if independentItems && independentItems.length > 0}
@@ -109,7 +123,7 @@
 						{/if}
 
 						{#each independentItems as item (item.id)}
-							<div animate:flip={{ duration: 200 }}>
+							<div animate:flip={{ duration: disableAnimations ? 0 : 200 }}>
 								<ShoppingItemCard
 									layout={filterOnIngredientId ? 'list' : 'grid'}
 									ingredient={item.ingredient!}
