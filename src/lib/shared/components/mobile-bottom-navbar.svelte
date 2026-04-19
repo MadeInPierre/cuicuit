@@ -22,6 +22,7 @@
 	let { openChat = $bindable(false) } = $props();
 
 	let inputValue = $state('');
+	let inputRef: HTMLInputElement | null = $state(null);
 </script>
 
 {#snippet navItem(label: string, Icon: any, href: string)}
@@ -112,12 +113,22 @@
 
 						<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
 							<Input
+								bind:ref={inputRef}
 								bind:value={inputValue}
 								placeholder={page.url.pathname.startsWith('/recipes')
 									? 'Search or ask...'
 									: 'Add item or recipe...'}
 								class="w-full bg-transparent dark:bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
 								tabindex={-1}
+								autocomplete="off"
+								autocorrect="off"
+								onkeydown={(e) => {
+									if (e.key === 'Enter' && inputValue) {
+										// TODO Handle sending message
+										inputValue = '';
+										inputRef?.focus();
+									}
+								}}
 							/>
 							<!-- <Button variant="secondary" size="sm" class='h-6 p-2'>Demo</Button> -->
 
@@ -129,6 +140,7 @@
 									if (inputValue) {
 										// TODO Handle sending message
 										inputValue = '';
+										inputRef?.focus();
 									} else {
 										openChat = false;
 									}
@@ -148,7 +160,15 @@
 					</div>
 				</div>
 			{:else}
-				<button onclick={() => (openChat = true)}>
+				<button
+					onclick={() => {
+						openChat = true;
+						// Focus the input after opening the chat
+						setTimeout(() => {
+							inputRef?.focus();
+						}, 100);
+					}}
+				>
 					{#if page.url.pathname.startsWith('/recipes')}
 						<Search class="size-6" />
 					{:else}
