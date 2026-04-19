@@ -21,7 +21,7 @@
 </script>
 
 {#snippet itemHeader(ingredient: RecipeIngredientWithTranslations)}
-	<div class="flex items-center gap-4 mt-2 mb-4">
+	<div class="flex items-center gap-4 mt-2 mb-8">
 		<IngredientImage id={ingredient.id} class="size-12 rounded-md" />
 
 		<div class="grid">

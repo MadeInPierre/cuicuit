@@ -5,8 +5,8 @@
 		Calendar,
 		Camera,
 		ChefHat,
-		MessageCircle,
 		Mic,
+		Plus,
 		Refrigerator,
 		Search,
 		ShoppingBasket,
@@ -76,7 +76,6 @@
 					'flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md'
 				)}
 				transition:slide={{ axis: 'x', duration: 75 }}
-
 			>
 				{@render navItem('Recipes', ChefHat, '/recipes')}
 				{@render navItem('Plan', Calendar, '/plan')}
@@ -94,11 +93,18 @@
 			)}
 		>
 			{#if openChat}
-				<Search class="size-6 text-muted-foreground mr-auto" />
+				{#if page.url.pathname.startsWith('/recipes')}
+					<Search class="size-6 text-muted-foreground mr-auto" />
+				{:else}
+					<Plus class="size-6 text-muted-foreground mr-auto" />
+					<!-- <MessageCircle class="size-6" /> -->
+				{/if}
 
 				<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
 					<Input
-						placeholder="Search or ask..."
+						placeholder={page.url.pathname.startsWith('/recipes')
+							? 'Search or ask...'
+							: 'Add item or recipe...'}
 						class="w-full bg-transparent dark:bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
 						tabindex={-1}
 					/>
@@ -113,7 +119,12 @@
 				</div>
 			{:else}
 				<button onclick={() => (openChat = true)}>
-					<MessageCircle class="size-6" />
+					{#if page.url.pathname.startsWith('/recipes')}
+						<Search class="size-6" />
+					{:else}
+						<Plus class="size-6" />
+						<!-- <MessageCircle class="size-6" /> -->
+					{/if}
 					<span class="sr-only">Open chat</span>
 				</button>
 			{/if}

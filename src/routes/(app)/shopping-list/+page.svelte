@@ -12,7 +12,6 @@
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Separator } from '$lib/shared/components/ui/separator';
@@ -47,6 +46,7 @@
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
+	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
 
 	const space = getActiveSpaceState();
 	const meals = $derived(space.activePlanMeals || []);
@@ -124,7 +124,7 @@
 			<h2 class="text-2xl font-bold tracking-tight">Shopping list</h2>
 
 			<div class="flex items-center gap-2 text-muted-foreground">
-				<span>Items by aisle, filtered by</span>
+				<span class="hidden md:block">Items by aisle, filtered by</span>
 
 				<FilterSelect
 					bind:value={shoppingListFilter}
@@ -165,14 +165,8 @@
 				{/if}
 			</div>
 		</div>
-	</div>
 
-	<SearchShoppingItemBar class="md:hidden" />
-
-	<Separator class="my-6" />
-
-	<Tabs.Root value="aisle">
-		<div class="flex gap-2 items-center justify-end">
+		<div class="flex gap-2 items-center justify-end ml-auto">
 			<!-- <Tabs.List>
 				<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
 				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
@@ -212,7 +206,13 @@
 
 			<DoneShoppingButton onclick={refreshRecommendations} />
 		</div>
+	</div>
 
+	<!-- <SearchShoppingItemBar class="md:hidden" /> -->
+
+	<Separator class="my-6" />
+
+	<Tabs.Root value="aisle">
 		<Tabs.Content value="aisle" class="mt-8">
 			<!-- <h3 class="text-xl font-semibold mb-6">Planned meals</h3> -->
 			<!-- <RecipeCarousel recipes={meals.map((meal) => meal.recipe)} /> -->

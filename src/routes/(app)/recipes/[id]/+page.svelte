@@ -61,7 +61,6 @@
 			return null;
 		}
 
-		console.log('Fetched recipe from db:', recipeData);
 		return recipeData;
 	}
 
