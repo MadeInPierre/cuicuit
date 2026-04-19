@@ -1,5 +1,5 @@
 <script lang="ts">
-	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
+	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { GripVertical } from 'lucide-svelte';
 	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
@@ -14,9 +14,10 @@
 	type Props = {
 		meals: MealWithRecipeAndIngredients[];
 		cardSize?: 'md' | 'lg';
+		expandOnSelected?: boolean; // Whether to automatically expand meal cards when an ingredient is selected
 	};
 
-	let { meals, cardSize = 'md' }: Props = $props();
+	let { meals, cardSize = 'md', expandOnSelected = false }: Props = $props();
 
 	const flipDurationMs = 200;
 
@@ -75,7 +76,7 @@
 				/>
 			</div>
 
-			<MealListItem {meal} showExpandedButtons size={cardSize} />
+			<MealCard {meal} showExpandedButtons size={cardSize} {expandOnSelected} />
 		</div>
 	{/each}
 </section>

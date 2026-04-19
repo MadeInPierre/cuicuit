@@ -9,13 +9,9 @@
 
 	let lastSelectedIngredientId = $state<string | null>(null);
 	$effect(() => {
-		selectedMealIngredient.value?.id; // Trigger effect
-
 		// Save the last selected ingredient ID when it changes
 		// This limits UI jitter when opening/closing the drawer
-		if (selectedMealIngredient.value?.id) {
-			lastSelectedIngredientId = selectedMealIngredient.value.id;
-		}
+		lastSelectedIngredientId = selectedMealIngredient.value?.id || lastSelectedIngredientId;
 	});
 </script>
 
@@ -24,7 +20,8 @@
 	onOpenChange={(open) => {
 		if (!open) selectedMealIngredient.value = null;
 	}}
-    disablePreventScroll
+	disablePreventScroll
+	shouldScaleBackground={false}
 >
 	<Drawer.Content class="max-h-[80%]">
 		<!-- <Drawer.Header>
@@ -32,7 +29,7 @@
 			<Drawer.Description>This action cannot be undone.</Drawer.Description>
 		</Drawer.Header> -->
 
-		<ScrollArea class="px-4 py-8 overflow-auto" type="always">
+		<ScrollArea class="px-4 py-8 overflow-auto no-scrollbar">
 			<PlanList filterOnIngredientId={lastSelectedIngredientId} />
 		</ScrollArea>
 

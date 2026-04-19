@@ -3,7 +3,7 @@
 		updatePlanItemChecked,
 		updatePlanItemDeleted
 	} from '$lib/features/plans/actions/update-item';
-	import MealCard from '$lib/features/plans/components/MealListItem.svelte';
+	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
