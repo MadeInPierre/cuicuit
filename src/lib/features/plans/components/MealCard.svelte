@@ -34,7 +34,7 @@
 	interface Props {
 		meal?: MealWithRecipeAndIngredients | null; // null for loading state
 		expandable?: boolean; // Whether the meal card can be expanded to show ingredients
-		showServings?: boolean; // Whether to show servings count in collapsed view
+		expandOnSelected?: boolean; // Whether to automatically expand the card when an ingredient is selected
 		showExpandedButtons?: boolean;
 		size?: 'md' | 'lg';
 		class?: string;
@@ -44,7 +44,7 @@
 	let {
 		meal = null,
 		expandable = true,
-		showServings = true,
+		expandOnSelected = false,
 		showExpandedButtons = false,
 		size = 'md',
 		class: className = '',
@@ -71,7 +71,9 @@
 			false
 	);
 
-	let expanded = $derived(expandable && (openMealCardId.value === meal?.id || selected));
+	let expanded = $derived(
+		expandable && (openMealCardId.value === meal?.id || (expandOnSelected && selected))
+	);
 
 	let toggleOptional = $state(false);
 	let showOptional = $derived(

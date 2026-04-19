@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { deleteMeal, updateMealServings } from '$lib/features/plans/actions/update-meal';
-	import MealListItem from '$lib/features/plans/components/MealListItem.svelte';
+	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
@@ -285,7 +285,7 @@
 							</div>
 
 							{#each (space.activePlanMeals || []).filter((m) => recipe && m.recipe_id === recipe.id) as meal (meal.id)}
-								<MealListItem {meal} showExpandedButtons expandable={false}>
+								<MealCard {meal} showExpandedButtons expandable={false}>
 									{#snippet cardEndSnippet()}
 										<ServingsPlusMinus
 											value={meal.servings}
@@ -300,7 +300,7 @@
 											}}
 										/>
 									{/snippet}
-								</MealListItem>
+								</MealCard>
 							{:else}
 								<div
 									class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"

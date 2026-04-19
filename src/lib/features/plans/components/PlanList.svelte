@@ -69,7 +69,11 @@
 			{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
 
 			{#if meals.length > 0}
-				<MealList {meals} cardSize={displayMode === 'sidebar' ? 'md' : 'lg'} />
+				<MealList
+					{meals}
+					cardSize={displayMode === 'sidebar' ? 'md' : 'lg'}
+					expandOnSelected={displayMode === 'sidebar'}
+				/>
 			{:else if !filterOnIngredientId}
 				<div
 					class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
