@@ -38,7 +38,7 @@ export async function updateMealServings(
 
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;
-	activeSpace.refreshActivePlanMeals();
+	activeSpace.refreshActivePlanMeals({ refreshShoppingList: false });
 	activeSpace.refreshActivePlanItems();
 }
 
@@ -60,7 +60,7 @@ export async function updateMealPosition(
 
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;
-	activeSpace.refreshActivePlanMeals();
+	activeSpace.refreshActivePlanMeals({ refreshShoppingList: false });
 	activeSpace.refreshActivePlanItems();
 }
 
@@ -99,6 +99,6 @@ export async function deleteMeal(
 	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
 
 	if (options?.skipRefresh) return;
-	activeSpace.refreshActivePlanMeals();
+	activeSpace.refreshActivePlanMeals({ refreshShoppingList: false });
 	activeSpace.refreshActivePlanItems();
 }

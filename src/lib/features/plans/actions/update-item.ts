@@ -33,7 +33,7 @@ export async function updatePlanItemChecked(
 		if (undoError) {
 			toast.error('Error undoing check: ' + undoError.message);
 		} else {
-			activeSpace.refreshActivePlanItems();
+			activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 			activeSpace.refreshActivePlanMeals();
 		}
 	};
@@ -51,7 +51,7 @@ export async function updatePlanItemChecked(
 
 	// Refresh the active plan items after updating
 	if (!options?.skipRefresh) {
-		activeSpace.refreshActivePlanItems();
+		activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 		activeSpace.refreshActivePlanMeals();
 	}
 	return undoFn;
@@ -89,7 +89,7 @@ export async function updatePlanItemDeleted(
 		if (undoError) {
 			toast.error('Error undoing delete: ' + undoError.message);
 		} else {
-			activeSpace.refreshActivePlanItems();
+			activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 			activeSpace.refreshActivePlanMeals();
 		}
 	};
@@ -107,7 +107,7 @@ export async function updatePlanItemDeleted(
 
 	// Refresh the active plan items after deleting
 	if (!options?.skipRefresh) {
-		activeSpace.refreshActivePlanItems();
+		activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 		activeSpace.refreshActivePlanMeals();
 	}
 	return undoFn;
