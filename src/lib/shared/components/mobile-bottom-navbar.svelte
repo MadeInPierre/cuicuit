@@ -120,7 +120,7 @@
 									: 'Add item or recipe...'}
 								class="w-full bg-transparent dark:bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
 								tabindex={-1}
-								autocomplete="new-password"
+								autocomplete="one-time-code"
 								autocorrect="off"
 								onkeydown={(e) => {
 									if (e.key === 'Enter' && inputValue) {
