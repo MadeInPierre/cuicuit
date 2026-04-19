@@ -101,7 +101,7 @@
 			</div>
 		{/if}
 
-		{#if (independentItems && independentItems.length > 0) || (displayMode === 'sidebar' && (!page.url.pathname.startsWith('/shopping-list') || filterOnIngredientId))}
+		{#if (displayMode === 'plan' && independentItems && independentItems.length > 0) || (displayMode === 'sidebar' && (!page.url.pathname.startsWith('/shopping-list') || filterOnIngredientId))}
 			<div
 				class="flex flex-col w-full gap-2"
 				transition:fade={{ duration: disableAnimations ? 0 : 75 }}

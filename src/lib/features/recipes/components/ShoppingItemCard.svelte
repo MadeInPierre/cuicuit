@@ -119,7 +119,7 @@
 		// Right click or long press to select the ingredient for detailed view in sidebar
 		e.preventDefault();
 		selectedMealIngredient.value =
-			selectedMealIngredient.value?.id === ingredient?.id ? null : ingredient;
+		selectedMealIngredient.value?.id === ingredient?.id ? null : ingredient;
 	}}
 >
 	{#if layout === 'grid'}

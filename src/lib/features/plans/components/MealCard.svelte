@@ -293,10 +293,6 @@
 			</div>
 		{/if}
 	</div>
-{:else}
-	<div class="w-full bg-muted rounded-md p-2">
-		<!-- <div class="animate-pulse h-10 bg-gray-200 rounded-md"></div> -->
-	</div>
 {/if}
 
 {#snippet ingredientRow(si: ShoppingIngredient, variant: 'default' | 'optional' = 'default')}

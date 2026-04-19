@@ -53,9 +53,9 @@
 {#if !userState.isComplete}
 	<LoadingSplash />
 {:else}
-	{#if openChat}
+	<!-- {#if openChat}
 		<ChatBackdrop />
-	{/if}
+	{/if} -->
 
 	<SidebarPage>
 		{@render children?.()}

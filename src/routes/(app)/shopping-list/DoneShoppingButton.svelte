@@ -27,5 +27,6 @@
 	}}
 >
 	<Check class="size-4 mr-2" />
-	Done shopping
+	Done
+	<span class="hidden md:block">shopping</span>
 </Button>

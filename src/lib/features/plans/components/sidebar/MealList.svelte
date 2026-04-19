@@ -19,7 +19,7 @@
 
 	let { meals, cardSize = 'md', expandOnSelected = false }: Props = $props();
 
-	const flipDurationMs = 200;
+	const flipDurationMs = 300;
 
 	function updateLocalMealPositions(items: MealWithRecipeAndIngredients[]) {
 		if (!activeSpace.activePlanMeals) return;
@@ -59,7 +59,12 @@
 </script>
 
 <section
-	use:dragHandleZone={{ items: meals, flipDurationMs, delayTouchStart: 300 }}
+	use:dragHandleZone={{
+		items: meals,
+		flipDurationMs: flipDurationMs,
+		delayTouchStart: 300,
+		dropTargetStyle: { outline: '0px' }
+	}}
 	onconsider={handleDndConsider}
 	onfinalize={handleDndFinalize}
 	class="grid space-y-2 rounded-sm"
