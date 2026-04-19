@@ -28,5 +28,5 @@
 >
 	<Check class="size-4 mr-2" />
 	Done
-	<span class="hidden md:block">shopping</span>
+	<span class="hidden md:inline-block">shopping</span>
 </Button>

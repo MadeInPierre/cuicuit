@@ -33,8 +33,8 @@ export async function updatePlanItemChecked(
 		if (undoError) {
 			toast.error('Error undoing check: ' + undoError.message);
 		} else {
-			activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-			activeSpace.refreshActivePlanMeals();
+			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+			await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 		}
 	};
 
@@ -51,8 +51,8 @@ export async function updatePlanItemChecked(
 
 	// Refresh the active plan items after updating
 	if (!options?.skipRefresh) {
-		activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-		activeSpace.refreshActivePlanMeals();
+		await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+		await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 	}
 	return undoFn;
 }
@@ -89,8 +89,8 @@ export async function updatePlanItemDeleted(
 		if (undoError) {
 			toast.error('Error undoing delete: ' + undoError.message);
 		} else {
-			activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-			activeSpace.refreshActivePlanMeals();
+			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+			await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 		}
 	};
 
@@ -107,8 +107,8 @@ export async function updatePlanItemDeleted(
 
 	// Refresh the active plan items after deleting
 	if (!options?.skipRefresh) {
-		activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-		activeSpace.refreshActivePlanMeals();
+		await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+		await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 	}
 	return undoFn;
 }

@@ -87,8 +87,10 @@ class ActiveSpaceState {
 		$effect(() => {
 			if (this.activeSpace) {
 				// Whenever the active space changes, fetch its plan's meals and items
-				this.refreshActivePlanMeals({ refreshShoppingList: false });
-				this.refreshActivePlanItems({ refreshShoppingList: true });
+				this.refreshActivePlanMeals({ refreshShoppingList: false }).then(() => {
+					// Wait for meals to avoid refreshing the shopping list twice (race condition)
+					this.refreshActivePlanItems({ refreshShoppingList: true });
+				});
 				// this.refreshActiveShoppingList();
 			} else {
 				this.activePlanMeals = undefined;
