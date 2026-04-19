@@ -2,10 +2,10 @@
 	import { page } from '$app/state';
 	import { cn } from '$lib/utils';
 	import {
+		AudioWaveform,
 		Calendar,
-		Camera,
 		ChefHat,
-		Mic,
+		MessageCircle,
 		Plus,
 		Refrigerator,
 		Search,
@@ -13,7 +13,6 @@
 		User,
 		X
 	} from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 	import { fade, slide } from 'svelte/transition';
 	import { Button } from './ui/button';
 	import Input from './ui/input/input.svelte';
@@ -21,6 +20,8 @@
 	let style = $state<'classic' | 'float' | 'ai'>('float');
 
 	let { openChat = $bindable(false) } = $props();
+
+	let inputValue = $state('');
 </script>
 
 {#snippet navItem(label: string, Icon: any, href: string)}
@@ -69,7 +70,7 @@
 			/>
 		</div>
 	</div> -->
-	<div class="z-50 h-18 sticky bottom-6 mx-auto px-2 flex gap-3 max-w-md md:hidden">
+	<div class="z-50 min-h-18 sticky bottom-6 mx-auto px-6 flex gap-3 max-w-lg md:hidden">
 		{#if !openChat}
 			<nav
 				class={cn(
@@ -88,34 +89,63 @@
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
 			class={cn(
-				'w-18 border border-border/60 flex justify-center items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md ml-auto transition-all',
-				openChat && 'w-full flex gap-4 px-6'
+				'w-18 min-h-18 border border-border/60 flex justify-center items-center rounded-[36px] drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md ml-auto transition-all',
+				openChat && 'w-full'
+				// !!inputValue && 'rounded-2xl'
 			)}
 		>
 			{#if openChat}
-				{#if page.url.pathname.startsWith('/recipes')}
-					<Search class="size-6 text-muted-foreground mr-auto" />
-				{:else}
-					<Plus class="size-6 text-muted-foreground mr-auto" />
-					<!-- <MessageCircle class="size-6" /> -->
-				{/if}
+				<div class="w-full grid">
+					{#if inputValue}
+						<span class="p-6 mb-30" transition:slide={{ duration: 150 }}></span>
+					{/if}
 
-				<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
-					<Input
-						placeholder={page.url.pathname.startsWith('/recipes')
-							? 'Search or ask...'
-							: 'Add item or recipe...'}
-						class="w-full bg-transparent dark:bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
-						tabindex={-1}
-					/>
-					<Button
-						variant="ghost"
-						size="icon"
-						class="size-8 rounded-full ml-auto"
-						onclick={() => (openChat = false)}
-					>
-						<X class="size-5" />
-					</Button>
+					<div class="h-18 flex items-center gap-4 px-4">
+						<Button
+							variant="secondary"
+							size="icon"
+							class="size-11 rounded-full shadow-none mr-auto"
+							onclick={() => {}}
+						>
+							<AudioWaveform class="size-5 text-muted-foreground " />
+						</Button>
+
+						<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
+							<Input
+								bind:value={inputValue}
+								placeholder={page.url.pathname.startsWith('/recipes')
+									? 'Search or ask...'
+									: 'Add item or recipe...'}
+								class="w-full bg-transparent dark:bg-transparent placeholder:text-muted-foreground outline-0 border-0 focus:ring-0 focus-visible:ring-0 shadow-none"
+								tabindex={-1}
+							/>
+							<!-- <Button variant="secondary" size="sm" class='h-6 p-2'>Demo</Button> -->
+
+							<Button
+								variant={inputValue ? 'default' : 'ghost'}
+								size="icon"
+								class="size-11 rounded-full ml-auto"
+								onclick={() => {
+									if (inputValue) {
+										// TODO Handle sending message
+										inputValue = '';
+									} else {
+										openChat = false;
+									}
+								}}
+							>
+								{#if inputValue}
+									<div in:fade={{ duration: 75, delay: 75 }}>
+										<MessageCircle class="size-5" />
+									</div>
+								{:else}
+									<div in:fade={{ duration: 75, delay: 75 }}>
+										<X class="size-5" />
+									</div>
+								{/if}
+							</Button>
+						</div>
+					</div>
 				</div>
 			{:else}
 				<button onclick={() => (openChat = true)}>
@@ -130,43 +160,4 @@
 			{/if}
 		</div>
 	</div>
-{:else}
-	<nav
-		class="sticky bottom-0 z-40 bg-background border-t flex justify-around items-center gap-6 py-3 px-6 md:hidden max-w-screen"
-	>
-		{@render navItem('Recipes', ChefHat, '/recipes')}
-		{@render navItem('Plan', Calendar, '/plan')}
-
-		<a
-			href="/chat"
-			class="w-full h-8 bg-muted rounded-full text-sm text-muted-foreground/80 flex items-center px-0.5"
-		>
-			<Button
-				variant="ghost"
-				size="icon"
-				class="size-8 rounded-full mr-1"
-				onclick={() => {
-					// TODO Handle camera button click
-					toast.success('Camera button clicked');
-				}}
-			>
-				<Camera class="size-5" />
-			</Button>
-			<span>Search...</span>
-			<Button
-				variant="ghost"
-				size="icon"
-				class="size-8 rounded-full ml-auto"
-				onclick={() => {
-					// TODO Handle mic button click
-					toast.success('Mic button clicked');
-				}}
-			>
-				<Mic class="size-5" />
-			</Button>
-		</a>
-
-		{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
-		{@render navItem('Pantry', Refrigerator, '/pantry')}
-	</nav>
 {/if}

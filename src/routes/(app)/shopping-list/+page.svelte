@@ -168,6 +168,11 @@
 				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
 			</Tabs.List> -->
 
+			<!-- <Button variant="outline"  onclick={() => {}}>
+				<Settings2 />
+				View
+			</Button> -->
+
 			<Button
 				variant="ghost"
 				size="icon"
@@ -200,7 +205,7 @@
 				{/if}
 			</Button>
 
-			<DoneShoppingButton onclick={refreshRecommendations} />
+			<DoneShoppingButton onclick={refreshRecommendations} class="hidden md:flex" />
 		</div>
 	</div>
 
@@ -331,6 +336,8 @@
 								</div>
 							</div>
 						</div>
+					{:else}
+						<DoneShoppingButton onclick={refreshRecommendations} class="w-full md:hidden" />
 					{/if}
 				</div>
 			</div>

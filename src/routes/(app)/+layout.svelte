@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import ChatBackdrop from '$lib/shared/components/ChatBackdrop.svelte';
 	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import MobileBottomNavbar from '$lib/shared/components/mobile-bottom-navbar.svelte';
 	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
