@@ -4,7 +4,7 @@
 	import PlanList from '$lib/features/plans/components/PlanList.svelte';
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { type RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { ArrowRight, Calendar, ScrollText, X } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
@@ -12,9 +12,30 @@
 	import { Button } from './ui/button';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
-
-	const spaceState = getActiveSpaceState();
 </script>
+
+{#snippet itemHeader(ingredient: RecipeIngredientWithTranslations)}
+	<div class="flex items-center gap-4">
+		<IngredientImage id={ingredient.id} class="size-10 rounded-md" />
+
+		<div class="grid">
+			<h1 class="text-md font-semibold">
+				{ingredient.translations[0]?.name_plural || ingredient.translations[0]?.name_singular}
+			</h1>
+			<p class="text-xs text-muted-foreground">Detailed meals and items.</p>
+		</div>
+
+		<Button
+			variant="ghost"
+			size="icon"
+			class="ml-auto size-8"
+			onclick={() => (selectedMealIngredient.value = null)}
+		>
+			<X class="size-4" size="icon" />
+			<span class="sr-only">Close detailed view</span>
+		</Button>
+	</div>
+{/snippet}
 
 <Sidebar.Root
 	bind:ref
@@ -23,41 +44,16 @@
 	{...restProps}
 >
 	<Sidebar.Header class="border-sidebar-border border-b p-4">
-		<div class="flex items-center gap-4">
-			{#if selectedMealIngredient.value?.id}
-				<IngredientImage id={selectedMealIngredient.value.id} class="size-10 rounded-md" />
-			{/if}
-
-			<div class="grid">
-				<h1 class="text-md font-semibold">
-					{#if selectedMealIngredient.value?.id}
-						{selectedMealIngredient.value.translations[0]?.name_plural ||
-							selectedMealIngredient.value.translations[0]?.name_singular}
-					{:else}
-						Your plan
-					{/if}
-				</h1>
-				<p class="text-xs text-muted-foreground">
-					{#if selectedMealIngredient.value?.id}
-						Detailed meals and items.
-					{:else}
-						Add recipes and items to get a shopping list.
-					{/if}
-				</p>
+		{#if selectedMealIngredient.value}
+			{@render itemHeader(selectedMealIngredient.value)}
+		{:else}
+			<div class="flex items-center gap-4">
+				<div class="grid">
+					<h1 class="text-md font-semibold">Your plan</h1>
+					<p class="text-xs text-muted-foreground">Add recipes and items to get a shopping list.</p>
+				</div>
 			</div>
-
-			{#if selectedMealIngredient.value?.id}
-				<Button
-					variant="ghost"
-					size="icon"
-					class="ml-auto size-8"
-					onclick={() => (selectedMealIngredient.value = null)}
-				>
-					<X class="size-4" size="icon" />
-					<span class="sr-only">Close detailed view</span>
-				</Button>
-			{/if}
-		</div>
+		{/if}
 
 		<SearchShoppingItemBar class="mt-2" />
 	</Sidebar.Header>

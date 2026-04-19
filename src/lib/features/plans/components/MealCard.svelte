@@ -1,6 +1,6 @@
 <script lang="ts">
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import RecipeListItem from '$lib/features/recipes/components/RecipeListItem.svelte';
+	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -182,7 +182,7 @@
 	{/snippet}
 
 	<div class="grid w-full">
-		<RecipeListItem
+		<RecipeCard
 			recipe={meal.recipe}
 			servings={meal.servings}
 			{size}
@@ -196,8 +196,9 @@
 				openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;
 			}}
 			aria-expanded={expanded}
-			endSnippet={cardEndSnippet || (expanded || hovered ? defaultEndSnippet : null)}
-		></RecipeListItem>
+			endSnippet={cardEndSnippet ||
+				(selected || hovered  ? defaultEndSnippet : null)}
+		></RecipeCard>
 
 		{#if expanded}
 			<div

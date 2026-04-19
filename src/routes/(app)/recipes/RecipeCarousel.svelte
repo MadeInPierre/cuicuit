@@ -1,5 +1,5 @@
 <script lang="ts">
-	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
+	import RecipeCarouselCard from '$lib/features/recipes/components/RecipeCarouselCard.svelte';
 	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
@@ -112,13 +112,13 @@
 		style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(auto, auto);`}
 	>
 		{#each recipes as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
-			<RecipeCard {recipe} showAddToPlanButton />
+			<RecipeCarouselCard {recipe} showAddToPlanButton />
 
 			<!-- <div
 				class="grid space-y-1 p-2 mb-4 rounded-2xl bg-gradient-to-br from-amber-200/60 to-amber-200 dark:from-amber-900/90 dark:to-amber-900 group"
 			>
 				<div class="bg-background rounded-2xl shadow-md p-2 pb-0">
-					<RecipeCard {recipe} showAddToPlanButton />
+					<RecipeCarouselCard {recipe} showAddToPlanButton />
 				</div>
 				<div
 					class="p-2 pb-1 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300"

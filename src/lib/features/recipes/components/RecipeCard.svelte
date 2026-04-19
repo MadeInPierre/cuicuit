@@ -1,188 +1,87 @@
 <script lang="ts">
-	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
-	import { cn, formatTime } from '$lib/utils';
-	import {
-		Bookmark,
-		CalendarPlus,
-		ChefHat,
-		LoaderCircle,
-		Signal,
-		SignalHigh,
-		SignalLow,
-		SignalMedium
-	} from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
+	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
+	import { cn } from '$lib/utils';
+	import { Users } from 'lucide-svelte';
+	import type { Snippet } from 'svelte';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 	import RecipeImage from './RecipeImage.svelte';
 
-	const activeSpace = getActiveSpaceState();
-
 	interface Props {
-		recipe?: Recipe | null; // Allow recipe to be null for loading state
-		showAddToPlanButton?: boolean; // Optional prop to control visibility of Add to Plan button
+		recipe?: Recipe | null; // null for loading state
+		servings?: number | boolean; // If number, show servings. If false, don't show. If true, show if servings exist on recipe.
+		endSnippet?: Snippet | null; // Optional snippet to render at the end of the item (e.g. for actions)
+		size?: 'md' | 'lg';
 		class?: string;
+		[key: string]: any; // Allow additional props (e.g. on:click)
 	}
 
-	let bookmarked: boolean | undefined = $state(false); // TODO
-
-	let { recipe = null, class: className = '', showAddToPlanButton = false }: Props = $props();
+	let {
+		recipe = null,
+		servings = recipe?.servings ?? false,
+		endSnippet = null,
+		size = 'md',
+		class: className = '',
+		...others
+	}: Props = $props();
 </script>
 
 {#if recipe}
-	<div class={cn('w-full group flex flex-col items-start', className)}>
-		{#if recipe.image_ids && recipe.image_ids.length > 0}
-			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-sm">
-				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block relative">
-					{#if recipe.image_ids[0]}
-						<div
-							class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
-						>
-							<ChefHat class="size-12 text-muted-foreground" />
-						</div>
-					{/if}
+	<button
+		class={cn(
+			'relative z-10 flex w-full items-center rounded-md bg-white p-2 shadow-2xs transition-all group dark:bg-muted gap-2',
+			size == 'lg' && 'rounded-lg gap-3 p-1.5 pr-4',
+			className
+		)}
+		{...others}
+	>
+		<RecipeImage {recipe} class={size == 'lg' ? 'size-16' : 'size-11'} />
 
-					<RecipeImage {recipe} class="absolute inset-0 w-full h-full object-cover" />
-				</a>
-
-				{#if recipe.source_type === 'website'}
-					<div
-						class="absolute top-2 right-2 text-xs rounded-full bg-black/60 text-white py-0.5 px-1.5"
-					>
-						{recipe.source_type}
-					</div>
-				{/if}
-
-				<div class="absolute top-2 right-2 grid space-y-2 z-10">
-					<Button
-						variant="ghost"
-						size="icon"
-						class={cn(
-							'size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm',
-							bookmarked === false && 'opacity-0 group-hover:opacity-100 transition-opacity'
-						)}
-						aria-label="Add to cookbook"
-						title="Add to cookbook"
-						onclick={async () => {
-							// TODO: Implement bookmark functionality
-							const prev = bookmarked || false;
-							const toastId = toast.loading(
-								prev ? 'Removing from cookbook...' : 'Adding to cookbook...'
-							);
-							bookmarked = undefined; // Mark as loading
-							await new Promise((resolve) => setTimeout(resolve, 1000));
-							bookmarked = !prev;
-							toast.success(prev ? "Removed from 'Flemme'" : "Added to 'Flemme'", {
-								id: toastId,
-								description: 'Click here to edit',
-								action: {
-									label: 'Edit',
-									onClick: () => {
-										// TODO: Implement edit functionality
-									}
-								}
-							});
-						}}
-					>
-						{#if bookmarked === true}
-							<Bookmark class="size-4" fill="orange" color="orange" />
-						{:else if bookmarked === false}
-							<Bookmark class="size-4" fill="none" color="black" />
-						{:else}
-							<LoaderCircle class="size-4 animate-spin text-primary" />
-						{/if}
-					</Button>
-
-					{#if showAddToPlanButton}
-						<Button
-							variant="ghost"
-							size="icon"
-							class="size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-							aria-label="Add to plan"
-							title="Add to plan"
-							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}
-						>
-							<CalendarPlus class="size-4 text-black" />
-						</Button>
-					{/if}
-				</div>
-
-				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-xs z-10">
-					<div
-						class="bg-white dark:bg-background/60 rounded-full px-2 py-0.5 flex items-center gap-1"
-					>
-						<div class="relative flex items-center" style="width: 1rem; height: 1rem;">
-							<Signal class="absolute top-0 left-0 size-3.5 text-muted rounded-full" />
-
-							{#if recipe.effort_level == 'none'}
-								<SignalLow class="absolute top-0 left-0 size-3.5 rounded-full text-green-600" />
-							{:else if recipe.effort_level == 'low'}
-								<SignalMedium class="absolute top-0 left-0 size-3.5 rounded-full text-green-600" />
-							{:else if recipe.effort_level == 'medium'}
-								<SignalHigh class="absolute top-0 left-0 size-3.5 text-yellow-600" />
-							{:else if recipe.effort_level == 'high'}
-								<Signal class="absolute top-0 left-0 size-3.5 text-red-600" />
-							{/if}
-						</div>
-
-						<span class="select-none">{formatTime(recipe.time_total_minutes || 0)}</span>
-					</div>
-
-					<!-- <div class="bg-white rounded-full px-2 pl-0.5 py-0.5 flex items-center gap-1">
-						<Star class="size-3.5 ml-1 text-amber-400" fill="#fbbf24" />
-						<span>4.5</span>
-						<span class="text-[10px] text-muted-foreground">(134)</span>
-					</div> -->
-				</div>
-			</div>
-		{:else}
-			<a
-				href={'/recipes/' + recipe.id}
-				class="w-full aspect-square bg-muted rounded-xl flex items-center justify-center"
-				aria-label={'Recipe ' + recipe.title}
+		<div class="grid mr-auto">
+			<h3
+				class={cn(
+					'mb-0.5 line-clamp-1 text-start text-xs font-semibold leading-tight',
+					size == 'lg' && 'mb-1 text-sm'
+				)}
 			>
-				<ChefHat class="size-1/4 text-muted-foreground" />
-			</a>
-		{/if}
+				{recipe.title}
+			</h3>
 
-		<div class="flex items-center gap-2 p-2 w-full">
-			<a class="grid w-full" href={'/recipes/' + recipe.id}>
-				<h3 class="text-sm font-medium line-clamp-2">
-					<!-- <span class="mr-2 text-muted-foreground text-xs font-normal">{recipe.servings} 
-						<Users class="size-3 inline-block -translate-y-[1px]" />
-					</span> -->
-					{recipe.title}
-				</h3>
-
-				<!-- <div class="text-xs text-muted-foreground flex items-center">
-					<span class="mr-4">{recipe.time_total_minutes}min</span>
-
-					<span class="mr-4">{capitalize(recipe.effort_level)}</span>
-
-					<span>{recipe.servings}</span>
-					<Users class="size-3 inline-block ml-0.5 mr-4" />
-				</div> -->
-
-				<!-- <CookableStatus /> -->
-			</a>
+			<CookableStatus />
 		</div>
-	</div>
-{:else}
-	<div class={cn('w-full group flex flex-col items-start', className)}>
-		<div class="relative w-full aspect-square rounded-xl overflow-hidden">
+
+		{#if endSnippet !== null}
+			{@render endSnippet()}
+		{:else if servings}
 			<div
-				class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
+				class={cn(
+					'flex shrink-0 items-center gap-1 text-xs font-semibold',
+					size == 'lg' && 'gap-1.5 text-sm'
+				)}
 			>
-				<!-- <ChefHat class="size-12 text-muted-foreground" /> -->
+				<div class="flex items-center gap-1">
+					<span>{servings}</span>
+					<Users class={cn('inline-block size-3', size == 'lg' && 'size-4')} />
+				</div>
 			</div>
-		</div>
-
-		<div class="flex items-center gap-2 p-2 w-full">
-			<div class="grid w-full">
-				<div class="h-4 bg-muted dark:bg-muted rounded animate-pulse"></div>
-				<div class="h-3 w-20 bg-muted dark:bg-muted rounded animate-pulse mt-2"></div>
-			</div>
+		{/if}
+	</button>
+{:else}
+	<div
+		class={cn(
+			'flex items-center rounded-md bg-white p-2 shadow-2xs animate-pulse dark:bg-muted space-x-2',
+			size == 'lg' && 'rounded-lg p-3 space-x-3',
+			className
+		)}
+	>
+		<div
+			class={cn(
+				'aspect-square size-11 rounded-md bg-gray-200',
+				size == 'lg' && 'size-12 rounded-lg'
+			)}
+		></div>
+		<div class="grid w-full flex-1">
+			<div class={cn('mb-1 h-3 w-3/4 rounded bg-gray-200', size == 'lg' && 'h-4')}></div>
+			<div class={cn('h-3 w-1/2 rounded bg-gray-200', size == 'lg' && 'h-4')}></div>
 		</div>
 	</div>
 {/if}
