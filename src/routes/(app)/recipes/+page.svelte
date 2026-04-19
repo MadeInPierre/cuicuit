@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import {
 		recipeCoursesSectionHeaders,
 		recipeCuisineSectionHeaders,
@@ -18,18 +19,17 @@
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
+	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { RotateCcw } from '@lucide/svelte';
 	import { ArrowRight, ChefHat, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
+	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
-	import FilterSelect from './FilterSelect.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
 	import SearchBar from './SearchBar.svelte';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];
@@ -269,7 +269,9 @@
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
 					<span class="py-1">Recipes grouped by</span>
-					<FilterSelect
+					<SelectResponsive
+						title="Group recipes by..."
+						description="Organize your recipes in different ways"
 						value={parameters.groupBy}
 						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
 					/>
@@ -293,7 +295,7 @@
 
 					<SearchBar class="w-40 lg:w-80" bind:value={searchInput} loading={searchLoading} />
 
-					<ImportRecipeDialog dropdownAlign="end">
+					<ImportRecipeDialog>
 						{#snippet trigger({ props })}
 							<Button {...props}>
 								<Plus class="size-4 mr-2" />
@@ -359,7 +361,7 @@
 			</div>
 		</div>
 
-		<Separator />
+		<SeparatorZigZag />
 	</div>
 
 	{#if loading}

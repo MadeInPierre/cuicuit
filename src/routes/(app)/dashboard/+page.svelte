@@ -3,6 +3,7 @@
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import DropdownResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { jsonStringify } from '$lib/utils';
@@ -27,6 +28,8 @@
 	</div>
 
 	<Separator class="my-6" />
+
+	<DropdownResponsive />
 
 	<div class="flex gap-2 items-center m-2">
 		<ButtonThemed onclick={signOut}>Sign out</ButtonThemed>
