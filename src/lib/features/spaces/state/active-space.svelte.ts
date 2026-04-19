@@ -12,6 +12,10 @@ import type { Tables } from '$lib/shared/db/supabase.types';
 import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 import { getContext, setContext } from 'svelte';
 import {
+	generateShoppingList,
+	type CombinedShoppingListItem
+} from '../../../../routes/(app)/shopping-list/generate-shopping-list';
+import {
 	getUserSpacesWithMembers,
 	type ActiveSpaceWithMembers
 } from '../queries/get-user-spaces-with-members';
@@ -56,6 +60,14 @@ class ActiveSpaceState {
 	/** The active space's plan's additional items */
 	activePlanItems: ShoppingListItem[] | undefined = $state(undefined);
 
+	/** A derived shopping list for the active space, generated from the combination of meals and items */
+	// activeShoppingList: CombinedShoppingListItem[] = $derived(
+	// 	generateShoppingList(this.activePlanMeals || [], this.activePlanItems || [])
+	// );
+	// Don't derive the shopping list for now since it can be a bit heavy to compute and we don't always need it.
+	// Instead, we'll generate it on demand in the shopping list page and cache it there if needed.
+	activeShoppingList: CombinedShoppingListItem[] | undefined = $state(undefined);
+
 	constructor(userState: UserState) {
 		this._userState = userState;
 
@@ -75,11 +87,13 @@ class ActiveSpaceState {
 		$effect(() => {
 			if (this.activeSpace) {
 				// Whenever the active space changes, fetch its plan's meals and items
-				this.refreshActivePlanMeals();
-				this.refreshActivePlanItems();
+				this.refreshActivePlanMeals({ refreshShoppingList: false });
+				this.refreshActivePlanItems({ refreshShoppingList: true });
+				// this.refreshActiveShoppingList();
 			} else {
 				this.activePlanMeals = undefined;
 				this.activePlanItems = undefined;
+				this.activeShoppingList = undefined;
 			}
 		});
 	}
@@ -102,7 +116,7 @@ class ActiveSpaceState {
 	}
 
 	/** Fetches the active plan meals for the current active space */
-	async refreshActivePlanMeals() {
+	async refreshActivePlanMeals(options?: { refreshShoppingList?: boolean }) {
 		if (!this.id || !this.language) return;
 
 		try {
@@ -110,6 +124,11 @@ class ActiveSpaceState {
 			const response = await getPlanMeals(this.id, this.language.id).is('deleted_at', null);
 			if (response.data)
 				this.activePlanMeals = response.data?.sort((a, b) => a.position - b.position) || [];
+
+			if (options?.refreshShoppingList !== false) {
+				// If specified, also refresh the shopping list after refreshing the meals since it depends on them
+				this.refreshActiveShoppingList();
+			}
 		} catch (error) {
 			console.error('Error refreshing active plan meals:', error);
 			this.activePlanMeals = [];
@@ -117,7 +136,7 @@ class ActiveSpaceState {
 	}
 
 	/** Fetches the active space's plan's items */
-	async refreshActivePlanItems() {
+	async refreshActivePlanItems(options?: { refreshShoppingList?: boolean }) {
 		if (!this.id || !this.language) return;
 
 		try {
@@ -131,10 +150,23 @@ class ActiveSpaceState {
 			} else {
 				this.activePlanItems = data || [];
 			}
+
+			if (options?.refreshShoppingList !== false) {
+				// If specified, also refresh the shopping list after refreshing the items since it depends on them
+				this.refreshActiveShoppingList();
+			}
 		} catch (error) {
 			console.error('Error refreshing active space items:', error);
 			this.activePlanItems = [];
 		}
+	}
+
+	/** Refreshes the active shopping list by regenerating it from the current meals and items */
+	refreshActiveShoppingList() {
+		this.activeShoppingList = generateShoppingList(
+			this.activePlanMeals || [],
+			this.activePlanItems || []
+		);
 	}
 }
 

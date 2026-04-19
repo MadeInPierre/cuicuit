@@ -21,7 +21,7 @@
 			if (item.checked_at) updatePlanItemDeleted(activeSpace, item.id);
 		});
 
-		await activeSpace.refreshActivePlanItems();
+		await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 		await activeSpace.refreshActivePlanMeals();
 		onclick();
 	}}

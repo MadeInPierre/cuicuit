@@ -37,8 +37,7 @@
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import {
 		type CombinedShoppingListItem,
-		formatCombinedItemQuantity,
-		generateShoppingList
+		formatCombinedItemQuantity
 	} from './generate-shopping-list';
 	import ItemDrawer from './ItemDrawer.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
@@ -47,10 +46,6 @@
 	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
 
 	const space = getActiveSpaceState();
-	const meals = $derived(space.activePlanMeals || []);
-	const items = $derived(space.activePlanItems || []);
-
-	const shoppingList: CombinedShoppingListItem[] = $derived(generateShoppingList(meals, items));
 
 	let checkedItemsLayout = createPersistentState<'aisle' | 'bottom'>(
 		'view-shopping-list-checked-items-layout',
@@ -74,7 +69,7 @@
 		);
 
 		// Refresh after all updates are done to avoid UI jitter
-		space.refreshActivePlanMeals();
+		space.refreshActivePlanMeals({ refreshShoppingList: false });
 		space.refreshActivePlanItems();
 	}
 
@@ -99,7 +94,7 @@
 	let shoppingRecommendations = $derived(
 		rawShoppingRecommendations?.filter(
 			(rec) =>
-				!shoppingList.some((item) => item.ingredient?.id === rec.ingredient_id) &&
+				!space.activeShoppingList?.some((item) => item.ingredient?.id === rec.ingredient_id) &&
 				!recentRecommendations[rec.aisle]?.some((r) => r.ingredient_id === rec.ingredient_id)
 		) || []
 	);
@@ -228,26 +223,26 @@
 							// Apply view filter
 							if (shoppingListFilter === 'meals') {
 								// Show aisle if it has any meal items
-								return shoppingList.some((item) => item.meals.length > 0 && (item.ingredient?.aisle || 'default') === aisleKey);
+								return space.activeShoppingList?.some((item) => item.meals.length > 0 && (item.ingredient?.aisle || 'default') === aisleKey);
 							} else if (shoppingListFilter === 'independent') {
 								// Show aisle if it has any independent items
-								return shoppingList.some( (item) => item.items.some((si) => si.type === 'independent' && (item.ingredient?.aisle || 'default') === aisleKey) );
+								return space.activeShoppingList?.some( (item) => item.items.some((si) => si.type === 'independent' && (item.ingredient?.aisle || 'default') === aisleKey) );
 							}
 
 							// Show aisle if it has items or recommendations, depending on UI layout
 							if (checkedItemsLayout.value === 'bottom') {
 								// Show aisle if it has any unchecked items
-								return shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey && item.items.some((si) => !si.checked_at));
+								return space.activeShoppingList?.some((item) => (item.ingredient?.aisle || 'default') === aisleKey && item.items.some((si) => !si.checked_at));
 							} else if (checkedItemsLayout.value === 'aisle') {
 								// Show aisle if it has any items
-								if (shoppingList.some((item) => (item.ingredient?.aisle || 'default') === aisleKey)) return true;
+								if (space.activeShoppingList?.some((item) => (item.ingredient?.aisle || 'default') === aisleKey)) return true;
 
 								// Show aisle if it has recommendations
 								return shoppingRecommendations.some((rec) => rec.aisle === aisleKey);
 							}
 							throw new Error('Invalid checked items layout');
 						}) as [aisleKey, aisleHeader] (aisleKey)}
-						{@const aisleItems = shoppingList.filter((item) => {
+						{@const aisleItems = space.activeShoppingList?.filter((item) => {
 							// Skip items that don't belong to the aisle
 							if ((item.ingredient?.aisle || 'default') !== aisleKey) return false;
 
@@ -290,7 +285,7 @@
 									/>
 								{/if}
 
-								{@render itemsGrid(aisleItems)}
+								{@render itemsGrid(aisleItems || [])}
 							</div>
 						</section>
 					{/each}
@@ -299,7 +294,7 @@
 						<div class="grid space-y-3">
 							<SeparatorZigZag />
 
-							{#if shoppingList.some((item) => item.items.some((si) => si.checked_at))}
+							{#if space.activeShoppingList?.some((item) => item.items.some((si) => si.checked_at))}
 								<div class="grid pt-8">
 									<div class="mb-4 flex items-center justify-between">
 										<SectionHeader
@@ -317,7 +312,9 @@
 
 									<div class="grid space-y-2 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
 										{@render itemsGrid(
-											shoppingList.filter((item) => item.items.some((si) => si.checked_at))
+											space.activeShoppingList.filter((item) =>
+												item.items.some((si) => si.checked_at)
+											)
 										)}
 									</div>
 								</div>
@@ -343,7 +340,7 @@
 			<h3 class="text-xl font-semibold mb-6">Planned meals</h3>
 
 			<div class="grid grid-cols-1 md:grid-cols-4 gap-4 overflow-auto">
-				{#each meals as meal (meal.id)}
+				{#each space.activePlanMeals as meal (meal.id)}
 					<div class="w-full">
 						<MealCard {meal} showExpandedButtons class="" />
 					</div>

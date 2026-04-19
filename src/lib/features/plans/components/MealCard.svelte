@@ -196,8 +196,7 @@
 				openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;
 			}}
 			aria-expanded={expanded}
-			endSnippet={cardEndSnippet ||
-				(selected || hovered  ? defaultEndSnippet : null)}
+			endSnippet={cardEndSnippet || (selected || hovered ? defaultEndSnippet : null)}
 		></RecipeCard>
 
 		{#if expanded}
@@ -416,14 +415,14 @@
 						toast.loading('Reverting changes...', { id: toastId });
 						await undoChecked();
 						await undoDeleted();
-						await space.refreshActivePlanMeals();
+						await space.refreshActivePlanMeals({ refreshShoppingList: false });
 						await space.refreshActivePlanItems();
 						toast.success('Changes reverted', { id: toastId });
 					}
 				}
 			});
 
-			await space.refreshActivePlanMeals();
+			await space.refreshActivePlanMeals({ refreshShoppingList: false });
 			await space.refreshActivePlanItems();
 		}}
 	>
