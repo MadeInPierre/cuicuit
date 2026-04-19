@@ -1,9 +1,10 @@
 <script lang="ts">
-	import '../app.css';
-	import Metadata from './Metadata.svelte';
-	import { ModeWatcher } from 'mode-watcher';
+	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import { Toaster } from '$lib/shared/components/ui/sonner';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip';
+	import { ModeWatcher } from 'mode-watcher';
+	import '../app.css';
+	import Metadata from './Metadata.svelte';
 
 	let { children } = $props();
 </script>
@@ -13,5 +14,7 @@
 <Toaster />
 
 <Tooltip.Provider>
-	{@render children()}
+	<Dialog.Root>
+		{@render children()}
+	</Dialog.Root>
 </Tooltip.Provider>

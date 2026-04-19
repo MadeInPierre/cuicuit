@@ -13,8 +13,8 @@
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
+	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
@@ -34,7 +34,6 @@
 	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
-	import FilterSelect from '../recipes/FilterSelect.svelte';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import {
 		type CombinedShoppingListItem,
@@ -46,7 +45,6 @@
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
-	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
 
 	const space = getActiveSpaceState();
 	const meals = $derived(space.activePlanMeals || []);
@@ -125,8 +123,11 @@
 
 			<div class="flex items-center gap-2 text-muted-foreground">
 				<span class="hidden md:block">Items by aisle, filtered by</span>
+				<span class="md:hidden">Showing</span>
 
-				<FilterSelect
+				<SelectResponsive
+					title="Filter shopping items"
+					description="Choose which items are displayed in the list"
 					bind:value={shoppingListFilter}
 					options={[
 						{
@@ -138,7 +139,7 @@
 						{
 							value: 'meals',
 							label: 'Meals only',
-							description: 'Ingredients that are part of planned meals',
+							description: 'Ingredients part of planned meals',
 							icon: Calendar
 						},
 						{
@@ -210,10 +211,10 @@
 
 	<!-- <SearchShoppingItemBar class="md:hidden" /> -->
 
-	<Separator class="my-6" />
+	<SeparatorZigZag />
 
 	<Tabs.Root value="aisle">
-		<Tabs.Content value="aisle" class="mt-8">
+		<Tabs.Content value="aisle" class="mt-12">
 			<!-- <h3 class="text-xl font-semibold mb-6">Planned meals</h3> -->
 			<!-- <RecipeCarousel recipes={meals.map((meal) => meal.recipe)} /> -->
 			<!-- <h3 class="mt-6 text-xl font-semibold mb-6">Shopping list</h3> -->

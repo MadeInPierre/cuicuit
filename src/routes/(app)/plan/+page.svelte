@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import PlanList from '../../../lib/features/plans/components/PlanList.svelte';
+	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 </script>
 
 <div class="space-y-6 pb-16 min-h-full">
@@ -12,9 +12,9 @@
 		</div>
 	</div>
 
-	<SearchShoppingItemBar class="md:hidden" />
+	<!-- <SearchShoppingItemBar class="md:hidden" /> -->
 
-	<Separator class="my-6" />
+	<SeparatorZigZag />
 
 	<!-- <Dial subtitle="Pears" min={0} max={12} step={0.25} initial={1} value={1} /> -->
 

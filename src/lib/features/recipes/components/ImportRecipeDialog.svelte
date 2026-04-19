@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
@@ -11,18 +10,11 @@
 	type Props = {
 		trigger?: Snippet<[any]> | undefined;
 		openDialog?: boolean;
-		dropdownAlign?: 'start' | 'center' | 'end';
 	};
 
-	let {
-		trigger = undefined,
-		openDialog = $bindable(false),
-		dropdownAlign = 'start'
-	}: Props = $props();
+	let { trigger = undefined, openDialog = $bindable(false) }: Props = $props();
 
 	let activeTab: 'url' | 'image' | 'text' = $state('url');
-
-	const space = getActiveSpaceState();
 </script>
 
 {#snippet tabList()}
