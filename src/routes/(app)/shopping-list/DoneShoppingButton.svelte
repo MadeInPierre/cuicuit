@@ -13,20 +13,21 @@
 	const activeSpace = getActiveSpaceState();
 </script>
 
-<Button
-	class={className}
-	variant="default"
-	onclick={async () => {
-		activeSpace.activePlanItems?.forEach((item) => {
-			if (item.checked_at) updatePlanItemDeleted(activeSpace, item.id);
-		});
+{#if activeSpace.activeShoppingList?.some((si) => si.items.some((item) => item.checked_at))}
+	<Button
+		class={className}
+		variant="default"
+		onclick={async () => {
+			activeSpace.activePlanItems?.forEach((item) => {
+				if (item.checked_at) updatePlanItemDeleted(activeSpace, item.id);
+			});
 
-		await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-		await activeSpace.refreshActivePlanMeals();
-		onclick();
-	}}
->
-	<Check class="size-4 mr-2" />
-	Done
-	<span class="hidden md:inline-block">shopping</span>
-</Button>
+			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+			await activeSpace.refreshActivePlanMeals();
+			onclick();
+		}}
+	>
+		<Check class="size-4 mr-2" />
+		Done shopping
+	</Button>
+{/if}

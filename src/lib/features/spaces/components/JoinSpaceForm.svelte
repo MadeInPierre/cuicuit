@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { Loader2 } from 'lucide-svelte';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { toast } from 'svelte-sonner';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
-	import { superForm, defaults } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
 	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
+	import { cn } from '$lib/utils';
+	import { Loader2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { defaults, superForm } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
+	import { joinSpace } from '../actions/join-space';
+	import { themeButtonClasses, type SpaceThemeKey } from '../consts';
 	import { joinSpaceFormSchema } from '../models/schemas';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
-	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
-	import { cn } from '$lib/utils';
-	import { joinSpace } from '../actions/join-space';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	let { openDialog = $bindable() } = $props();
 
