@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { navLinksAppSettingsSidebar } from '$lib/features/marketing/consts/nav-links';
 	import { Separator } from '$lib/shared/components/ui/separator';
+	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import SettingsSidebarNav from './SettingsSidebarNav.svelte';
 
 	interface Props {
@@ -16,7 +17,7 @@
 		<p class="text-muted-foreground">Manage your account settings and set e-mail preferences.</p>
 	</div>
 
-	<Separator class="my-6" />
+	<SeparatorZigZag class="my-6" />
 
 	<div class="flex flex-col space-y-8 pb-16 lg:flex-row lg:space-x-12 lg:space-y-0">
 		<aside class="min-w-40 lg:w-1/6">

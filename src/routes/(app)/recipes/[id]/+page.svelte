@@ -311,7 +311,7 @@
 
 						<div class="grid space-y-4">
 							<div class="text-xl font-semibold flex items-center gap-3">
-								<span>Ingredients for</span>
+								<span>Cook for</span>
 
 								<ServingsPlusMinus bind:value={displayServings} size="sm" />
 
@@ -319,7 +319,7 @@
 									<Button
 										variant="ghost"
 										size="icon"
-										class="ml-auto h-7 w-7 text-muted-foreground"
+										class="mr-auto h-7 w-7 text-muted-foreground"
 										onclick={() => (displayServings = recipe?.servings || 1)}
 									>
 										<RotateCcw class="size-4" />

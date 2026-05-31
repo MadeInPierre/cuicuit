@@ -77,7 +77,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors />
+			<Form.FieldErrors class="text-red-600"/>
 		</Form.Field>
 	</div>
 
@@ -101,10 +101,9 @@
 				{/if}
 			</Form.Button>
 		</Dialog.Footer>
-		<p class="text-muted-foreground text-xs text-center">
-			By importing a recipe, you agree to our <a href="/terms" target="_blank" class="underline">
-				terms of service
-			</a>.
-		</p>
+		<!-- <p class="text-muted-foreground text-xs text-center">
+			By importing a recipe, you agree to our
+			<a href="/terms" target="_blank" class="underline"> terms of service </a>.
+		</p> -->
 	</div>
 </form>

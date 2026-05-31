@@ -55,7 +55,7 @@
 				{/if}
 
 				<div class="absolute top-2 right-2 grid space-y-2 z-10">
-					<Button
+					<!-- <Button
 						variant="ghost"
 						size="icon"
 						class={cn(
@@ -92,7 +92,7 @@
 						{:else}
 							<LoaderCircle class="size-4 animate-spin text-primary" />
 						{/if}
-					</Button>
+					</Button> -->
 
 					{#if showAddToPlanButton}
 						<Button

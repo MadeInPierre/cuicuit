@@ -1,7 +1,6 @@
 <script lang="ts">
-	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { cn } from '$lib/utils';
-	import { Users } from 'lucide-svelte';
+	import { Calendar, Users } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 	import RecipeImage from './RecipeImage.svelte';
@@ -46,7 +45,11 @@
 				{recipe.title}
 			</h3>
 
-			<CookableStatus />
+			<!-- <CookableStatus /> -->
+			<span class="text-muted-foreground text-xs mr-auto flex items-center gap-1">
+				<Calendar class="size-3" />
+				No date
+			</span>
 		</div>
 
 		{#if endSnippet !== null}

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import { Toaster } from '$lib/shared/components/ui/sonner';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip';
 	import { ModeWatcher } from 'mode-watcher';
@@ -14,7 +13,5 @@
 <Toaster />
 
 <Tooltip.Provider>
-	<Dialog.Root>
-		{@render children()}
-	</Dialog.Root>
+	{@render children()}
 </Tooltip.Provider>

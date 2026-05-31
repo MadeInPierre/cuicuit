@@ -6,7 +6,9 @@
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useMedia } from '../hooks/use-media.svelte';
+	import HelloDialog from './HelloDialog.svelte';
 	import ThemeButton from './ThemeButton.svelte';
+	import { Button } from './ui/button';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -14,6 +16,7 @@
 	let { children }: Props = $props();
 
 	const media = useMedia();
+	let openAlphaDialog = $state(false);
 </script>
 
 <svelte:window
@@ -59,7 +62,11 @@
 					<h1 class="text-lg font-semibold">Cuicuit</h1>
 				</a>
 
-				<span class="mr-auto text-lg text-[#fab030] schoolbell-regular">alpha</span>
+				<HelloDialog>
+					<Button variant="link" class="px-2 text-lg text-[#fab030] schoolbell-regular cursor-help">
+						alpha
+					</Button>
+				</HelloDialog>
 
 				<!-- <Breadcrumb.Root>
 					<Breadcrumb.List>

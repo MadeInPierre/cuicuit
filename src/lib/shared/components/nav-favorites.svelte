@@ -7,10 +7,12 @@
 	import Link from 'lucide-svelte/icons/link';
 	import StarOff from 'lucide-svelte/icons/star-off';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import { useMedia } from '../hooks/use-media.svelte';
 
 	let { favorites }: { favorites: { name: string; url: string; emoji: string }[] } = $props();
 
 	const sidebar = useSidebar();
+	const media = useMedia();
 </script>
 
 <Sidebar.Group class="group-data-[collapsible=icon]:hidden">
