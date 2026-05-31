@@ -64,9 +64,9 @@
 			<Icon class="size-5" />
 			<div class="grid gap-0.5">
 				<h3 class="text-sm font-semibold">{title}</h3>
-				{#if displayMode === 'sidebar'}
-					<p class="text-xs text-muted-foreground">{description}</p>
-				{/if}
+				<!-- {#if displayMode === 'sidebar'} -->
+				<p class="text-xs text-muted-foreground">{description}</p>
+				<!-- {/if} -->
 			</div>
 		</div>
 	{/snippet}
@@ -74,9 +74,7 @@
 	<div class={cn('grid space-y-4', displayMode === 'plan' && 'lg:grid-cols-2 lg:gap-4 xl:gap-8')}>
 		{#if meals.length > 0 || displayMode === 'sidebar'}
 			<div class="flex flex-col w-full gap-4 pb-2">
-				{#if displayMode === 'sidebar'}
-					{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
-				{/if}
+				{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
 
 				{#if meals.length > 0}
 					<MealList

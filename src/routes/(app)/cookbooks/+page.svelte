@@ -2,10 +2,12 @@
 	import { spaceIcons } from '$lib/features/spaces/consts';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 	import { Separator } from '$lib/shared/components/ui/separator';
 	import {
 		Candy,
 		EllipsisVertical,
+		ExternalLink,
 		Flower,
 		House,
 		PawPrint,
@@ -26,7 +28,21 @@
 
 	<Separator class="my-6" />
 
-	<div class="grid space-y-12">
+	<div class="absolute inset-0 z-10 flex flex-col gap-3 items-center justify-center px-20">
+		<div class="text-center space-y-2">
+			<p class="text-xl font-semibold">Interested in cookbooks?</p>
+			<p class="text-muted-foreground max-w-90">
+				Cookbooks are coming soon! Help us prioritize this feature by voting for it.
+			</p>
+		</div>
+
+		<Button href="https://github.com/MadeInPierre/cuicuit2/discussions" target="_blank">
+			Vote for this feature
+			<ExternalLink class="size-4" />
+		</Button>
+	</div>
+
+	<div class="grid space-y-12 pt-6 opacity-40">
 		<div class="grid space-y-6">
 			<SectionHeader
 				header={{

@@ -117,9 +117,9 @@
 			onclick={() => onSubmit(AuthMethod.GOOGLE)}
 		>
 			{#if isLoading && selectedMethod == AuthMethod.GOOGLE}
-				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
+				<Icons.spinner class="mr-2 size-4 animate-spin" />
 			{:else}
-				<Icons.google class="mr-2 h-4 w-4" />
+				<Icons.google class="mr-2 size-4" />
 			{/if}
 			Google
 		</Button>
@@ -131,9 +131,9 @@
 			onclick={() => onSubmit(AuthMethod.GITHUB)}
 		>
 			{#if isLoading && selectedMethod == AuthMethod.GITHUB}
-				<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
+				<Icons.spinner class="mr-2 size-4 animate-spin" />
 			{:else}
-				<Icons.gitHub class="mr-2 h-4 w-4" />
+				<Icons.gitHub class="mr-2 size-4" />
 			{/if}
 			GitHub
 		</Button> -->
@@ -205,7 +205,7 @@
 								<Button
 									size="icon"
 									variant="link"
-									class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
+									class="absolute right-3 top-1/2 size-4 -translate-y-1/2 transform"
 									onclick={() => {
 										showPassword = !showPassword;
 									}}
@@ -234,7 +234,7 @@
 							<Check class="mr-2 h-5 w-5" />
 							Your email is on the way, click on the link!
 						{:else if isLoading && selectedMethod == AuthMethod.EMAIL_PASSWORD}
-							<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
+							<Icons.spinner class="mr-2 size-4 animate-spin" />
 							Sending email...
 						{:else if logMethod == LogMethod.LOGIN}
 							Log in with Email
@@ -250,19 +250,13 @@
 	{#if logMethod == LogMethod.SIGNUP}
 		<AlertDialog.Root>
 			<AlertDialog.Trigger>
-				<Button
-					variant="ghost"
-					size="sm"
-					class="w-full font-normal"
-					type="button"
-					disabled={isLoading}
-				>
+				<Button variant="ghost" size="sm" class="w-full font-normal" disabled={isLoading}>
 					{#if isLoading && selectedMethod == AuthMethod.ANONYMOUS}
-						<Icons.spinner class="mr-2 h-4 w-4 animate-spin" />
+						<Icons.spinner class="size-4 animate-spin" />
 					{:else}
-						<ShieldQuestion class="mr-2 h-4 w-4" />
+						<ShieldQuestion class="size-4" />
 					{/if}
-					Continue anonymously
+					<span class="pt-0.5">Continue anonymously</span>
 				</Button>
 			</AlertDialog.Trigger>
 			<AlertDialog.Content>

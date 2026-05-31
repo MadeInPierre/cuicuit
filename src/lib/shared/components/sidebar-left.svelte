@@ -1,18 +1,34 @@
 <script lang="ts">
-	import Calendar from 'lucide-svelte/icons/calendar';
+	import { page } from '$app/state';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
 	import NavFavorites from '$lib/shared/components/nav-favorites.svelte';
 	import NavMain from '$lib/shared/components/nav-main.svelte';
 	import NavSecondary from '$lib/shared/components/nav-secondary.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import type { ComponentProps } from 'svelte';
-	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
 	import { ChefHat, Megaphone, Notebook, Refrigerator, Send, ShoppingBasket } from 'lucide-svelte';
-	import { page } from '$app/state';
+	import Calendar from 'lucide-svelte/icons/calendar';
+	import type { ComponentProps } from 'svelte';
+	import type { TAILWIND_BREAKPOINTS } from '../hooks/use-media.svelte';
 	import NavUser from './nav-user.svelte';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	// This is sample data.
-	const data = $derived({
+	const data: {
+		navMain: {
+			title: string;
+			url: string;
+			icon: any;
+			isActive?: boolean;
+			showUpTo?: keyof typeof TAILWIND_BREAKPOINTS;
+		}[];
+		navSecondary: { title: string; url: string; icon: any }[];
+		favorites: { name: string; url: string; emoji: string }[];
+		workspaces: {
+			name: string;
+			emoji: string;
+			pages: { name: string; url: string; emoji: string }[];
+		}[];
+	} = $derived({
 		navMain: [
 			{
 				title: 'Recipes',
@@ -20,12 +36,13 @@
 				icon: ChefHat,
 				isActive: page.url.pathname.startsWith('/recipes')
 			},
-			// {
-			// 	title: 'Meal plan',
-			// 	url: '/plan',
-			// 	icon: Calendar,
-			// 	isActive: page.url.pathname.startsWith('/plan')
-			// },
+			{
+				title: 'Meal plan',
+				url: '/plan',
+				icon: Calendar,
+				isActive: page.url.pathname.startsWith('/plan'),
+				showUpTo: 'lg'
+			},
 			{
 				title: 'Cookbooks',
 				url: '/cookbooks',
@@ -43,7 +60,7 @@
 				url: '/pantry',
 				icon: Refrigerator,
 				isActive: page.url.pathname.startsWith('/pantry')
-			},
+			}
 			// {
 			// 	title: 'Chat',
 			// 	url: '/chat',

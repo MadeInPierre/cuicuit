@@ -20,7 +20,7 @@
 
 	<a
 		href="/"
-		class="absolute flex gap-2 left-6 top-6 z-20 items-center justify-center md:left-9 md:top-9 lg:text-white"
+		class="absolute flex gap-2 left-6 top-6 z-20 md:left-9 md:top-9 lg:text-white"
 	>
 		<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-10" />
 		<h1 class="pt-2 text-lg font-medium">Cuicuit</h1>

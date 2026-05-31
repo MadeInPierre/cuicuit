@@ -24,15 +24,15 @@
 		"supazod:update": "npx supazod -i src/lib/shared/db/supabase.types.ts -o src/lib/shared/db/supazod.schemas.ts --inline-types"
 	},
 	"devDependencies": {
-		"@internationalized/date": "^3.6.0",
-		"@lucide/svelte": "^0.482.0",
+		"@internationalized/date": "^3.12.2",
+		"@lucide/svelte": "^1.17.0",
 		"@playwright/test": "^1.28.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.15.2",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@tailwindcss/vite": "^4.1.12",
 		"@types/eslint": "^9.6.0",
-		"bits-ui": "^1.8.0",
+		"bits-ui": "^2.18.1",
 		"clsx": "^2.1.1",
 		"embla-carousel-svelte": "^8.6.0",
 		"eslint": "^9.0.0",

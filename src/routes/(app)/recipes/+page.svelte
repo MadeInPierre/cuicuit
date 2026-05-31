@@ -23,7 +23,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { RotateCcw } from '@lucide/svelte';
-	import { ArrowRight, ChefHat, Plus } from 'lucide-svelte';
+	import { ArrowRight, ChefHat, Funnel, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import FilterButton from './FilterButton.svelte';
@@ -53,6 +53,14 @@
 		const course = filters.course.join(',');
 		const cuisine = filters.cuisine.join(',');
 		return `${timeOfDay}|${course}|${cuisine}`;
+	}
+
+	// Return a time-based greeting
+	function getGreeting() {
+		const hour = new Date().getHours();
+		if (hour < 12) return 'Good morning';
+		if (hour < 18) return 'Good afternoon';
+		return 'Good evening';
 	}
 
 	function decodeFilters(filters: string | null): RecipeSearchFilters {
@@ -256,7 +264,7 @@
 			<div class="grid space-y-1">
 				<div class="flex gap-6 items-center">
 					<h1 class="text-2xl md:text-3xl xl:text-4xl font-bold tracking-tight">
-						Good morning, {userState.preferences?.first_name || 'Chef'}!
+						{getGreeting()}, {userState.preferences?.first_name || 'Chef'}!
 					</h1>
 					<!-- <h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>
 					<ServingsPlusMinus value={servingsPref.value || 1} size="lg" onChange={servingsPref.set} /> -->
@@ -297,8 +305,8 @@
 
 					<ImportRecipeDialog>
 						{#snippet trigger({ props })}
-							<Button {...props}>
-								<Plus class="size-4 mr-2" />
+							<Button {...props} class="h-9 rounded-md">
+								<Plus class="size-4" />
 								Add
 							</Button>
 						{/snippet}
@@ -356,7 +364,7 @@
 					<FilterButton text="My Recipes" />
 					<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
 					<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
-					<!-- <FilterButton icon={FunnelPlus} primary /> -->
+					<FilterButton icon={Funnel} primary />
 				</div>
 			</div>
 		</div>
