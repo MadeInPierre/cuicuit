@@ -5,6 +5,7 @@ This is a python REST server that takes a recipe URL and returns the parsed reci
 Build the image with: 
 
 ```bash
+cd scraper/
 docker build -t madeinpierre/cuicuit-scraper .
 ```
 
