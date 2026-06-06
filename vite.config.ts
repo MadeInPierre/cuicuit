@@ -1,7 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
-import { visualizer } from 'rollup-plugin-visualizer';
-import { VitePWA } from 'vite-plugin-pwa';
+import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -14,7 +13,7 @@ export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit(),
-		VitePWA({
+		SvelteKitPWA({
 			registerType: 'autoUpdate',
 			strategies: 'generateSW',
 			manifest: {
@@ -37,10 +36,18 @@ export default defineConfig({
 				]
 			},
 			workbox: {
-				maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-				navigateFallback: '/offline.html',
-				navigateFallbackDenylist: [/^\/api\//, /^\/(auth)\//],
-				globIgnores: ['**/stats.html'],
+				globPatterns: [
+					'client/**/*.{js,css,ico,png,svg,webp,webmanifest,html}',
+					'prerendered/**/*.{html,json}'
+				],
+				navigateFallback: '/app-shell',
+				navigateFallbackAllowlist: [
+					/^\/$/,
+					/^\/recipes/,
+					/^\/pantry/,
+					/^\/settings/
+					// Add any other paths belonging to your (app) group here
+				],
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
@@ -52,19 +59,19 @@ export default defineConfig({
 					}
 				]
 			},
-			includeAssets: ['favicon.png', 'offline.html'],
+			includeAssets: ['favicon.png'],
 			devOptions: {
 				enabled: true
 			}
-		}),
-		visualizer({
-			// Plugin used to generate a visual representation of the production bundle.
-			// It generates an HTML file with a treemap of the bundle size.
-			// Run `npm run build` and open `.svelte-kit/output/client/stats.html` in
-			// your browser to see the treemap.
-			emitFile: true,
-			filename: 'stats.html'
 		})
+		// visualizer({
+		// 	// Plugin used to generate a visual representation of the production bundle.
+		// 	// It generates an HTML file with a treemap of the bundle size.
+		// 	// Run `npm run build` and open `.svelte-kit/output/client/stats.html` in
+		// 	// your browser to see the treemap.
+		// 	emitFile: true,
+		// 	filename: 'stats.html'
+		// })
 	],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']

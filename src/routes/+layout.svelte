@@ -5,20 +5,39 @@
 	import { onMount } from 'svelte';
 	import '../app.css';
 	import Metadata from './Metadata.svelte';
+	// @ts-ignore
+	import { pwaInfo } from 'virtual:pwa-info';
 
 	let { children } = $props();
 
 	onMount(async () => {
-		if ('serviceWorker' in navigator) {
-			try {
-				const { registerSW } = await import('virtual:pwa-register');
-				registerSW({ immediate: true });
-			} catch (error) {
-				console.log('Service Worker registration failed:', error);
-			}
+		if (pwaInfo) {
+			// @ts-ignore
+			const { registerSW } = await import('virtual:pwa-register');
+
+			registerSW({
+				immediate: true,
+				onRegistered(r: ServiceWorkerRegistration | undefined) {
+					// uncomment following code if you want check for updates
+					// r && setInterval(() => {
+					//    console.log('Checking for sw update')
+					//    r.update()
+					// }, 20000 /* 20s for testing purposes */)
+					console.log(`SW Registered: ${r}`);
+				},
+				onRegisterError(error: any) {
+					console.log('SW registration error', error);
+				}
+			});
 		}
 	});
+
+	const webManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
 </script>
+
+<svelte:head>
+	{@html webManifest}
+</svelte:head>
 
 <Metadata />
 <ModeWatcher />
