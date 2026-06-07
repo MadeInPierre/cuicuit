@@ -79,7 +79,7 @@
 	}
 </script>
 
-<form method="POST" use:enhance class="w-min space-y-4">
+<form method="POST" use:enhance class="w-full space-y-4">
 	<div class="space-y-2">
 		<Form.Field {form} name="name">
 			<Form.Control>
@@ -155,8 +155,8 @@
 		</Form.Fieldset>
 	</div>
 
-	<div class="space-y-2">
-		<Dialog.Footer class="mt-4">
+	<div class="grid space-y-2">
+		<Dialog.Footer class="">
 			<Form.Button
 				type="submit"
 				disabled={loading || !$formData.name}
@@ -180,8 +180,5 @@
 				{/if}
 			</Form.Button>
 		</Dialog.Footer>
-		<p class="text-muted-foreground text-xs">
-			The space's name and icon are shared with all members.
-		</p>
 	</div>
 </form>

@@ -13,18 +13,6 @@
 			icon: HandPlatter
 		},
 		{
-			value: 'recommended',
-			label: 'Recommended',
-			description: 'A mix of your favorites, best picks, and more',
-			icon: Sparkle
-		},
-		{
-			value: 'cookable',
-			label: 'Cookability',
-			description: 'Ready to cook, change of plans, ...',
-			icon: CheckCheck
-		},
-		{
 			value: 'timeOfDay',
 			label: 'Time of day',
 			description: 'Breakfast, lunch, snack, ...',
@@ -35,6 +23,22 @@
 			label: 'Cuisine',
 			description: 'Italian, Chinese, Mexican, ...',
 			icon: Globe
+		},
+		{
+			value: 'recommended',
+			label: 'Recommended',
+			// description: 'A mix of your favorites, best picks, and more',
+			description: 'Coming soon: dynamic recommendations',
+			icon: Sparkle,
+			disabled: true // For coming soon features
+		},
+		{
+			value: 'cookable',
+			label: 'Cookability',
+			// description: 'Ready to cook, change of plans, ...',
+			description: 'Coming soon: pantry-aware recommendations',
+			icon: CheckCheck,
+			disabled: true // For coming soon features
 		}
 	];
 
@@ -49,6 +53,7 @@
 			label: string;
 			description: string;
 			icon: typeof CheckCheck;
+			disabled?: boolean;
 		}[];
 	};
 
@@ -96,7 +101,12 @@
 				<Select.Group>
 					<!-- <Label >Group recipes by...</Label> -->
 					{#each options as fruit (fruit.value)}
-						<Select.Item value={fruit.value} label={fruit.label} side="right">
+						<Select.Item
+							value={fruit.value}
+							label={fruit.label}
+							side="right"
+							disabled={fruit.disabled}
+						>
 							<div class="flex items-center mr-4">
 								<fruit.icon class="mr-3 size-4" />
 								<div class="grid">
@@ -128,6 +138,7 @@
 								value === fruit.value && 'ring-3 ring-primary/60 border-0'
 							)}
 							size="lg"
+							disabled={fruit.disabled}
 						>
 							<div class="px-2 flex items-center gap-2">
 								<fruit.icon class="mr-3 size-5" />

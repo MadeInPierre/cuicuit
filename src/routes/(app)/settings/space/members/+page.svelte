@@ -49,7 +49,7 @@
 	{#if activeSpaceMembersProfiles.length === 0}
 		<p class="text-sm text-muted-foreground">No members yet.</p>
 	{:else}
-		<div class="grid gap-4 grid-cols-2">
+		<div class="grid gap-4 md:grid-cols-2">
 			{#each activeSpaceMembersProfiles as profile (profile.user_id)}
 				<div class="rounded-lg p-3 flex items-center gap-4 shadow-sm bg-white dark:bg-muted">
 					<UserAvatar {profile} class="size-12" />

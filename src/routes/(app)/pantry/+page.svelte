@@ -25,18 +25,18 @@
 
 	<div class="my-20 flex flex-col items-center gap-6 mx-auto max-w-lg">
 		<div class="grid md:grid-cols-2 gap-2 md:gap-4 justify-items-start">
-			<CookableStatus />
-			<CookableStatus />
-			<CookableStatus />
-			<CookableStatus />
-			<CookableStatus />
-			<CookableStatus />
-			<CookableStatus />
-			<CookableStatus />
+			<CookableStatus status="cookable" />
+			<CookableStatus status="cookable-required" />
+			<CookableStatus status="cookable-almost" />
+			<CookableStatus status="cookable-close" />
+			<CookableStatus status="cookable-far" />
+			<CookableStatus status="cookable-enough" />
+			<CookableStatus status="change-of-plans" />
+			<CookableStatus status="missing-ingredients" />
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-3 items-center justify-center px-20">
+	<div class="flex flex-col gap-3 items-center justify-center px-10">
 		<div class="text-center space-y-2">
 			<p class="text-xl font-semibold">Interested in meal recommendations?</p>
 			<p class="text-muted-foreground max-w-120">

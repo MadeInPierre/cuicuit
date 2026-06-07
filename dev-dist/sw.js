@@ -77,11 +77,11 @@ define(['./workbox-25613826'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "/",
-    "revision": "0.1mc08brbaag"
+    "url": "/app-shell",
+    "revision": "0.0srl0n7huv8"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/"), {
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/app-shell"), {
     allowlist: [/^\/$/]
   }));
   workbox.registerRoute(/^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i, new workbox.CacheFirst({
