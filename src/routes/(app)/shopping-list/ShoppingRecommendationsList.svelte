@@ -8,10 +8,9 @@
 
 	type Props = {
 		recommendations: ShoppingRecommendation[];
-		loading: boolean;
 		class?: string;
 	};
-	let { recommendations, loading, class: className = '' }: Props = $props();
+	let { recommendations, class: className = '' }: Props = $props();
 	const activeSpace = getActiveSpaceState();
 </script>
 
@@ -29,12 +28,8 @@
 			></ShoppingItemBadge>
 		</div>
 	{:else}
-		{#if loading}
-			{#each Array.from( { length: Math.max(1, Math.floor(Math.random() * 4) + 1) } ) as _, index (`empty-${index}`)}
-				<div animate:flip={{ duration: 200 }}>
-					<ShoppingItemBadge class={cn('w-full', className)} />
-				</div>
-			{/each}
-		{/if}
+		{#each Array.from({ length: 4 }) as _, index (`empty-${index}`)}
+			<ShoppingItemBadge class={cn('w-24', className)} />
+		{/each}
 	{/each}
 </div>

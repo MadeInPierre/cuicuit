@@ -20,7 +20,7 @@ export default defineConfig({
 				name: 'Cuicuit',
 				short_name: 'Cuicuit',
 				description:
-					'Your favorite kitchen companion! Get pantry-aware meal recommendations and share with friends.',
+					'Your favorite kitchen companion! Get pantry-aware meal recommendations from recipes you love and share with friends.',
 				start_url: '/recipes',
 				scope: '/',
 				display: 'standalone',

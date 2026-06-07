@@ -18,19 +18,18 @@
 
 	const activeSpace = getActiveSpaceState();
 
-	// Refine the form schema to validate the invite link, should contain a code of 20 alphanumeric characters,
-	// either with or without the cuicu.it/CODE or cuicuit.fr/in/CODE domains and/or https:// prefix, e.g.:
+	// Refine the form schema to validate the invite link, should contain a code of 20 alphanumeric characters, for example:
 	// - https://cuicu.it/k1wEDOXRmPdJk6eTulQE
-	// - cuicuit.fr/k1wEDOXRmPdJk6eTulQE
-	// - https://cuicuit.fr/in/k1wEDOXRmPdJk6eTulQE
-	// - cuicuit.fr/in/k1wEDOXRmPdJk6eTulQE
+	// - cuicuit.app/k1wEDOXRmPdJk6eTulQE
+	// - https://cuicuit.app/join/k1wEDOXRmPdJk6eTulQE
+	// - cuicuit.app/join/k1wEDOXRmPdJk6eTulQE
 	// - k1wEDOXRmPdJk6eTulQE
 	const schema = joinSpaceFormSchema.refine(
-		(v) => /^((https?:\/\/)?(cuicu\.it|cuicuit\.fr\/in)\/)?[a-zA-Z0-9]{20}$/.test(v.url),
+		(v) => /^((https?:\/\/)?(cuicu\.it|cuicuit\.app\/join)\/)?[a-zA-Z0-9]{20}$/.test(v.url),
 		{
 			path: ['url'],
 			message:
-				'The invite link should contain a code of 20 alphanumeric characters, e.g. k1wEDOXRmPdJk6eTulQE.'
+				'The invite link should contain a code of 20 alphanumeric characters, for example: "k1wEDOXRmPdJk6eTulQE".'
 		}
 	);
 
@@ -86,7 +85,7 @@
 	}
 </script>
 
-<form method="POST" use:enhance class="w-min space-y-4">
+<form method="POST" use:enhance class="w-full space-y-4">
 	<div class="space-y-2">
 		<Form.Field {form} name="url">
 			<Form.Control>
@@ -95,7 +94,7 @@
 
 					<Input
 						{...props}
-						placeholder="E.g. https://cuicu.it/k1wEDOXRmPdJk6eTulQE"
+						placeholder="Ex: https://cuicuit.app/join/k1wEDOXRmPdJk6eTulQE"
 						bind:value={$formData.url}
 					/>
 				{/snippet}
@@ -134,8 +133,8 @@
 		</Form.Fieldset>
 	</div>
 
-	<div class="space-y-2">
-		<Dialog.Footer class="mt-4">
+	<div class="grid space-y-2">
+		<Dialog.Footer class="">
 			<Form.Button
 				type="submit"
 				disabled={loading || !$formData.url}
@@ -151,8 +150,5 @@
 				{/if}
 			</Form.Button>
 		</Dialog.Footer>
-		<p class="text-muted-foreground text-xs">
-			The space's name and icon are shared with all members.
-		</p>
 	</div>
 </form>

@@ -138,9 +138,9 @@
 					<div class="bg-background flex size-6 items-center justify-center rounded-md border">
 						<HousePlus class="size-4" />
 					</div>
-					<div class="text-muted-foreground font-medium">Create a space...</div>
+					<div class="text-muted-foreground font-medium">Create or join...</div>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item
+				<!-- <DropdownMenu.Item
 					class="gap-2 p-2"
 					onclick={() => {
 						activeTab = 'join';
@@ -151,12 +151,12 @@
 						<UserPlus class="size-4" />
 					</div>
 					<div class="text-muted-foreground font-medium">Join a space...</div>
-				</DropdownMenu.Item>
+				</DropdownMenu.Item> -->
 			</Dialog.Trigger>
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 
-	<Dialog.Content class="max-w-[425px]">
+	<Dialog.Content class="sm:max-w-[410px]">
 		<Tabs.Root bind:value={activeTab}>
 			<Tabs.Content value="create" class="">
 				<Dialog.Header class="w-min whitespace-nowrap">

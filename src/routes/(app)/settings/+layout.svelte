@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { navLinksAppSettingsSidebar } from '$lib/features/marketing/consts/nav-links';
-	import { Separator } from '$lib/shared/components/ui/separator';
+	import { Button } from '$lib/shared/components/ui/button';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { ChevronLeft } from 'lucide-svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import SettingsSidebarNav from './SettingsSidebarNav.svelte';
 
@@ -9,23 +12,47 @@
 	}
 
 	let { children }: Props = $props();
+
+	const media = useMedia();
+
+	// On mobile, overlay the options to let the user select one, then navigate and hide the options. On desktop, always show the options.
+	let showOptions = $state(true);
 </script>
 
 <div class="space-y-6 pb-16">
-	<div class="space-y-0.5">
-		<h2 class="text-2xl font-bold tracking-tight">Settings</h2>
-		<p class="text-muted-foreground">Manage your account settings and set e-mail preferences.</p>
+	<div class="flex items-center gap-2 h-10">
+		{#if !media.md && !showOptions}
+			<Button variant="ghost" href="/settings" size="icon-lg" onclick={() => (showOptions = true)}>
+				<ChevronLeft class="size-6" />
+			</Button>
+		{/if}
+
+		<div class="space-y-0.5">
+			<h2 class="text-2xl font-bold tracking-tight">Settings</h2>
+			<p class="text-muted-foreground hidden md:block">Manage your account settings and set e-mail preferences.</p>
+		</div>
 	</div>
 
 	<SeparatorZigZag class="my-6" />
 
-	<div class="flex flex-col space-y-8 pb-16 lg:flex-row lg:space-x-12 lg:space-y-0">
-		<aside class="min-w-40 lg:w-1/6">
-			<SettingsSidebarNav groups={navLinksAppSettingsSidebar} />
-		</aside>
+	{#if media.md}
+		<div class="flex flex-col space-y-8 pb-16 lg:flex-row lg:space-x-12 lg:space-y-0">
+			<aside class="min-w-40 lg:w-1/6">
+				<SettingsSidebarNav groups={navLinksAppSettingsSidebar} />
+			</aside>
 
-		<div class="flex-1 lg:max-w-2xl">
+			<div class="flex-1 lg:max-w-2xl">
+				{@render children?.()}
+			</div>
+		</div>
+	{:else if showOptions && page.url.pathname === '/settings'}
+		<SettingsSidebarNav
+			groups={navLinksAppSettingsSidebar}
+			onSelect={() => (showOptions = false)}
+		/>
+	{:else}
+		<div class="flex flex-col space-y-8">
 			{@render children?.()}
 		</div>
-	</div>
+	{/if}
 </div>

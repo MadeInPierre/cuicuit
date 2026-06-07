@@ -23,8 +23,9 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { RotateCcw } from '@lucide/svelte';
-	import { ArrowRight, ChefHat, Funnel, Plus } from 'lucide-svelte';
+	import { ArrowRight, Bookmark, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
+	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
@@ -276,7 +277,7 @@
 				</div>
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
-					<span class="py-1">Recipes grouped by</span>
+					<span class="py-1">Recipes by</span>
 					<SelectResponsive
 						title="Group recipes by..."
 						description="Organize your recipes in different ways"
@@ -289,6 +290,11 @@
 					</Button> -->
 				</p>
 			</div>
+
+			<Button variant="secondary" class="ml-auto sm:hidden" href="/cookbooks">
+				<Bookmark class="size-4" />
+				Saved
+			</Button>
 
 			<div class="hidden sm:grid ml-auto space-y-3">
 				<div class="flex gap-2 justify-end">
@@ -313,63 +319,23 @@
 					</ImportRecipeDialog>
 				</div>
 
-				<div class="flex justify-end gap-2">
-					{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
-						<Button
-							variant="ghost"
-							class="size-7 px-2 text-muted-foreground"
-							onclick={() => {
-								searchInput = '';
-								setParameters({
-									...parameters,
-									filters: {
-										timeOfDay: [],
-										course: [],
-										cuisine: []
-									}
-								});
-							}}
-						>
-							<RotateCcw class="size-4" />
-						</Button>
-					{/if}
-
-					<FilterButtonMulti
-						title="course"
-						options={Object.entries(recipeCourses).map(([value, label]) => ({
-							value,
-							label
-						}))}
-						defaultValue={['main']}
-						values={parameters.filters.course}
-						onChange={(values) => {
-							setParameters({ ...parameters, filters: { ...parameters.filters, course: values } });
-						}}
-					/>
-
-					<FilterButtonMulti
-						title="cuisine"
-						options={Object.entries(recipeCuisines).map(([value, label]) => ({
-							value,
-							label
-						}))}
-						defaultValue={['french']}
-						values={parameters.filters.cuisine}
-						onChange={(values) => {
-							setParameters({ ...parameters, filters: { ...parameters.filters, cuisine: values } });
-						}}
-					/>
-
-					<!-- <FilterButton text="Cookable" /> -->
-					<FilterButton text="My Recipes" />
-					<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
-					<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
-					<FilterButton icon={Funnel} primary />
-				</div>
+				{@render filters('justify-end')}
 			</div>
 		</div>
 
 		<SeparatorZigZag />
+
+		<div class="relative max-w-100 sm:hidden overflow-hidden">
+			<div
+				class="overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+			>
+				{@render filters('flex-row-reverse justify-end')}
+			</div>
+
+			<div
+				class="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent"
+			></div>
+		</div>
 	</div>
 
 	{#if loading}
@@ -451,3 +417,59 @@
 		</div>
 	{/if}
 </div>
+
+{#snippet filters(className: string = '')}
+	<div class={cn('flex gap-2', className)}>
+		{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
+			<Button
+				variant="ghost"
+				class="size-7 px-2 text-muted-foreground"
+				onclick={() => {
+					searchInput = '';
+					setParameters({
+						...parameters,
+						filters: {
+							timeOfDay: [],
+							course: [],
+							cuisine: []
+						}
+					});
+				}}
+			>
+				<RotateCcw class="size-4" />
+			</Button>
+		{/if}
+
+		<FilterButtonMulti
+			title="course"
+			options={Object.entries(recipeCourses).map(([value, label]) => ({
+				value,
+				label
+			}))}
+			defaultValue={['main']}
+			values={parameters.filters.course}
+			onChange={(values) => {
+				setParameters({ ...parameters, filters: { ...parameters.filters, course: values } });
+			}}
+		/>
+
+		<FilterButtonMulti
+			title="cuisine"
+			options={Object.entries(recipeCuisines).map(([value, label]) => ({
+				value,
+				label
+			}))}
+			defaultValue={['french']}
+			values={parameters.filters.cuisine}
+			onChange={(values) => {
+				setParameters({ ...parameters, filters: { ...parameters.filters, cuisine: values } });
+			}}
+		/>
+
+		<!-- <FilterButton text="Cookable" /> -->
+		<FilterButton text="My Recipes" />
+		<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
+		<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
+		<FilterButton icon={FunnelPlus} primary />
+	</div>
+{/snippet}

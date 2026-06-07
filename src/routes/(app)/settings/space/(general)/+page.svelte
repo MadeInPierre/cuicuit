@@ -50,7 +50,7 @@
 <div class="space-y-6">
 	<div>
 		<h3 class="text-lg font-medium">
-			Settings for
+			General settings for
 			<span class="font-bold">{spaceState.activeSpace?.name || 'Space'}</span>
 		</h3>
 		<!-- <p class="text-sm text-muted-foreground">Settings related to the currently active space.</p> -->

@@ -14,7 +14,7 @@
 	let { recommendations, total, onShuffle, loading }: Props = $props();
 </script>
 
-{#if recommendations.length > 0 && !loading}
+{#if recommendations.length > 0 || loading}
 	<div class="relative xl:hidden overflow-hidden" transition:slide={{ axis: 'y', duration: 200 }}>
 		<div
 			class="h-8 w-full flex items-center gap-2 pr-4 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
@@ -23,7 +23,7 @@
 				<Lightbulb class="size-4" />
 			</span>
 
-			<ShoppingRecommendationsList {recommendations} {loading} />
+			<ShoppingRecommendationsList {recommendations} />
 
 			{#if total > 10}
 				<Button variant="link" class="shrink-0" onclick={() => onShuffle(recommendations)}>

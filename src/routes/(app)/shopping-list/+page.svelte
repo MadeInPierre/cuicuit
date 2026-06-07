@@ -33,7 +33,6 @@
 		Users
 	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
-	import { slide } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import {
 		type CombinedShoppingListItem,
@@ -266,7 +265,7 @@
 							(rec) => rec.aisle === aisleKey
 						)}
 
-						<section transition:slide={{ duration: 300 }}>
+						<section>
 							<div class="mb-4 flex items-center justify-between">
 								<SectionHeader header={aisleHeader} size="sm" class="" />
 
@@ -330,7 +329,6 @@
 								<div class="overflow-hidden max-h-44 xl:max-h-26">
 									<ShoppingRecommendationsList
 										recommendations={shoppingRecommendations.slice(0, 30)}
-										loading={rawShoppingRecommendations === undefined}
 										class="flex-wrap min-w-auto m-0.5"
 									/>
 								</div>

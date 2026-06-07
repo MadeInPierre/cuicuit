@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { Calendar, Users } from 'lucide-svelte';
+	import { Users } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import type { Recipe } from '../queries/get-recipe-detailed';
+	import CookableStatus from './CookableStatus.svelte';
 	import RecipeImage from './RecipeImage.svelte';
 
 	interface Props {
@@ -45,11 +46,11 @@
 				{recipe.title}
 			</h3>
 
-			<!-- <CookableStatus /> -->
-			<span class="text-muted-foreground text-xs mr-auto flex items-center gap-1">
+			<CookableStatus status="cookable" />
+			<!-- <span class="text-muted-foreground text-xs mr-auto flex items-center gap-1">
 				<Calendar class="size-3" />
 				No date
-			</span>
+			</span> -->
 		</div>
 
 		{#if endSnippet !== null}

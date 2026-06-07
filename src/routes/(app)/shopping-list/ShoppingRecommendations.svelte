@@ -4,6 +4,7 @@
 	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
 	import { cn } from '$lib/utils';
 	import { Plus, Shuffle } from 'lucide-svelte';
+	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 
@@ -14,9 +15,28 @@
 		loading: boolean;
 	};
 	let { recommendations, total, onShuffle, loading }: Props = $props();
+
+	let showSkeleton = $state(false);
+	let _skeletonTimer: ReturnType<typeof setTimeout> | null = null;
+	$effect(() => {
+		if (loading) {
+			if (_skeletonTimer) clearTimeout(_skeletonTimer);
+			_skeletonTimer = setTimeout(() => (showSkeleton = true), 500);
+		} else {
+			if (_skeletonTimer) {
+				clearTimeout(_skeletonTimer);
+				_skeletonTimer = null;
+			}
+			showSkeleton = false;
+		}
+	});
+
+	onDestroy(() => {
+		if (_skeletonTimer) clearTimeout(_skeletonTimer);
+	});
 </script>
 
-{#if recommendations.length > 0 && !loading}
+{#if recommendations.length > 0 || showSkeleton}
 	<div class="hidden xl:flex items-center group" transition:fade={{ duration: 200 }}>
 		<Tooltip.Root delayDuration={600}>
 			<Tooltip.Trigger>
@@ -34,15 +54,15 @@
 				>
 					{#if total > 4}
 						{#if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
-							<Shuffle class="size-4" />
+							<Shuffle class="size-4 mr-2" />
 						{:else}
 							<Plus class="size-4 group-hover:hidden" />
 							<Shuffle class="size-4 hidden group-hover:block" />
 						{/if}
 					{:else if typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0}
-						<Plus class="size-4 group-hover:rotate-45 transition-transform" />
+						<Plus class="size-4 rotate-45 mr-2" />
 					{:else}
-						<Plus class="size-4 rotate-45" />
+						<Plus class="size-4 group-hover:rotate-45 transition-transform" />
 					{/if}
 				</Button>
 			</Tooltip.Trigger>
@@ -51,10 +71,6 @@
 			</Tooltip.Content> -->
 		</Tooltip.Root>
 
-		{#key total}
-			<div in:fade={{ duration: 200 }}>
-				<ShoppingRecommendationsList {recommendations} {loading} />
-			</div>
-		{/key}
+		<ShoppingRecommendationsList {recommendations} />
 	</div>
 {/if}

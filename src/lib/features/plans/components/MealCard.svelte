@@ -10,11 +10,11 @@
 	import {
 		ChevronRight,
 		CircleSlash,
-		EllipsisVertical,
 		Home,
+		Play,
 		ShoppingBasket,
 		ShoppingCart,
-		Trash2
+		Trash
 	} from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import { toast } from 'svelte-sonner';
@@ -174,9 +174,10 @@
 				onclick={(e) => {
 					e.stopPropagation();
 					// TODO menu to edit/switch ingredients, etc.
+					deleteMeal(space, meal.id);
 				}}
 			>
-				<EllipsisVertical class="size-4" />
+				<Trash class="size-4" />
 			</Button>
 		{/if}
 	{/snippet}
@@ -195,9 +196,8 @@
 				if (!expandable) return;
 				openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;
 			}}
-			aria-expanded={expanded}
-			endSnippet={cardEndSnippet || (selected || hovered ? defaultEndSnippet : null)}
-		></RecipeCard>
+			endSnippet={cardEndSnippet || (selected || hovered || expanded ? defaultEndSnippet : null)}
+		/>
 
 		{#if expanded}
 			<div
@@ -277,16 +277,27 @@
 							/>
 						</div>
 
-						<div class="rounded-full p-1 bg-white border flex">
+						<div class="rounded-full p-1 bg-white flex border">
+							<Button
+								variant="link"
+								size="icon"
+								class="size-5"
+								onclick={() => toast('Starting meal...')}
+							>
+								<Play class="max-w-3.5 max-h-3.5 text-foreground" />
+							</Button>
+						</div>
+
+						<!-- <div class="rounded-full p-1 bg-white border flex">
 							<Button
 								variant="link"
 								size="icon"
 								class="size-5"
 								onclick={() => deleteMeal(space, meal.id)}
 							>
-								<Trash2 class="max-w-3.5 max-h-3.5 text-destructive" />
+								<Ellipsis class="max-w-3.5 max-h-3.5 text-destructive" />
 							</Button>
-						</div>
+						</div> -->
 					</div>
 				{/if}
 			</div>
