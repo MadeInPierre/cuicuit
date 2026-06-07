@@ -20,14 +20,14 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
 		.from('recipes')
 		.select(
 			`*,
-				language:languages(*),
-				ingredients:recipe_ingredients(
-					*,
-					ingredient:ingredients(
-						id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml,
-						translations:ingredient_translations(*, language:languages!inner(lang))
-					)
-				)`
+			language:languages(*),
+			ingredients:recipe_ingredients(
+				*,
+				ingredient:ingredients(
+					id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml,
+					translations:ingredient_translations(*, language:languages!inner(lang))
+				)
+			)`
 		)
 		.eq('ingredients.ingredient.translations.language_id', languageId); // Only get translations in the user language
 
