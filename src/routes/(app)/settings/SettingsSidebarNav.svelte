@@ -8,6 +8,7 @@
 	import { Circle } from 'lucide-svelte';
 	import { cubicInOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
+	import SettingsMobileSpaceSwitcher from './SettingsMobileSpaceSwitcher.svelte';
 
 	interface Props {
 		class?: string | undefined | null;
@@ -28,6 +29,10 @@
 <nav class={cn('flex flex-col space-x-2 space-y-3 lg:space-x-0 lg:space-y-1', className)}>
 	{#each groups as group}
 		<p class="md:text-muted-foreground md:text-sm font-medium">{group.name}</p>
+
+		{#if group.name == 'Active space' && !media.md}
+			<SettingsMobileSpaceSwitcher />
+		{/if}
 
 		<div class="grid w-full gap-1 grid-cols-1 max-w-lg space-y-3 md:space-y-0">
 			{#each group.links.filter((link) => !link.display || link.display === (media.md ? 'desktop' : 'mobile') || link.display === 'both') as link}
