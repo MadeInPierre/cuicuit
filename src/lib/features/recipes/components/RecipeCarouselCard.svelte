@@ -1,19 +1,17 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn, formatTime } from '$lib/utils';
 	import {
-		Bookmark,
 		CalendarPlus,
 		ChefHat,
-		LoaderCircle,
 		Signal,
 		SignalHigh,
 		SignalLow,
 		SignalMedium
 	} from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 	import RecipeImage from './RecipeImage.svelte';
 
@@ -34,7 +32,13 @@
 	<div class={cn('w-full group flex flex-col items-start', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
 			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-sm">
-				<a href={'/recipes/' + recipe.id} class="shrink-0 w-full h-full block relative">
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<!-- svelte-ignore a11y_missing_attribute -->
+				<a
+					class="shrink-0 w-full h-full block relative"
+					onclick={() => goto('/recipes/' + recipe.id)}
+				>
 					{#if recipe.image_ids[0]}
 						<div
 							class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
