@@ -17,7 +17,10 @@
 	let { showWarning, showSelected, selectedIcon = $bindable(), onChange }: Props = $props();
 </script>
 
-<div class="grid w-full grid-cols-8 gap-2 sm:grid-cols-12">
+<div
+	class="grid w-full gap-2"
+	style="grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr));"
+>
 	{#each Object.entries(nature_icons) as [icon_name, icon]}
 		{@const isSelected = selectedIcon == icon_name}
 
@@ -29,7 +32,7 @@
 						class="flex aspect-square h-full w-full items-center justify-center p-0"
 					>
 						{@const SvelteComponent = icon}
-						<SvelteComponent class="h-1/2 w-1/2" />
+						<SvelteComponent class="size-5" />
 					</Button>
 				</AlertDialog.Trigger>
 				<AlertDialog.Content>
@@ -63,7 +66,7 @@
 				}}
 			>
 				{@const SvelteComponent_1 = icon}
-				<SvelteComponent_1 class="h-1/2 w-1/2" />
+				<SvelteComponent_1 class="size-5" />
 			</Button>
 		{/if}
 	{/each}

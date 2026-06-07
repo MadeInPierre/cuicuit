@@ -1,15 +1,15 @@
 <script lang="ts">
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { deleteUserPicture } from '$lib/features/user-settings/actions/delete-user-picture';
+	import { updateUserAvatar } from '$lib/features/user-settings/actions/update-user-avatar';
+	import { uploadProfilePicture } from '$lib/features/user-settings/actions/upload-profile-picture';
+	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
+	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
-	import { Button } from '$lib/shared/components/ui/button';
-	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
-	import { Trash2, ImageUp, LoaderCircle } from 'lucide-svelte';
+	import { ImageUp, LoaderCircle, Trash2 } from 'lucide-svelte';
 	import IconPicker from './IconPicker.svelte';
-	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import { updateUserAvatar } from '$lib/features/user-settings/actions/update-user-avatar';
-	import { deleteUserPicture } from '$lib/features/user-settings/actions/delete-user-picture';
-	import { uploadProfilePicture } from '$lib/features/user-settings/actions/upload-profile-picture';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	let file: any = $state(undefined);
 	let loadingUpload = $state(false);
@@ -112,9 +112,10 @@
 			<IconPicker
 				selectedIcon={userState.profile.icon}
 				showSelected={!userState.profile.image_url}
-				onChange={(name) => {
+				onChange={async (name) => {
 					if (!userState.user?.id) return;
-					updateUserAvatar(userState.user.id, name, null);
+					await updateUserAvatar(userState.user.id, name, null);
+					userState.refresh();
 				}}
 				showWarning={!!userState.profile.image_url}
 			/>

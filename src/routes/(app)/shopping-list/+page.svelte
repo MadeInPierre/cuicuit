@@ -33,6 +33,7 @@
 		Users
 	} from 'lucide-svelte';
 	import { flip } from 'svelte/animate';
+	import { fade } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import {
 		type CombinedShoppingListItem,
@@ -292,13 +293,23 @@
 								{@render itemsGrid(aisleItems || [])}
 							</div>
 						</section>
+					{:else}
+						<div
+							class="bg-sidebar p-6 md:p-12 rounded-lg text-center text-muted-foreground text-sm"
+						>
+							<Apple class="size-12 mx-auto mb-4" />
+							<p class="mb-2 text-md font-medium">No items in your list yet</p>
+							<p class="w-60 mx-auto">
+								Plan meals or add items to your shopping list to get started
+							</p>
+						</div>
 					{/each}
 
 					{#if checkedItemsLayout.value === 'bottom'}
 						<div class="grid space-y-3">
-							<SeparatorZigZag />
-
 							{#if space.activeShoppingList?.some((item) => item.items.some((si) => si.checked_at))}
+								<SeparatorZigZag />
+
 								<div class="grid pt-8">
 									<div class="mb-4 flex items-center justify-between">
 										<SectionHeader
@@ -324,15 +335,17 @@
 								</div>
 							{/if}
 
-							<div class="grid space-y-2 xl:space-y-4">
-								<h3 class="pt-8 text-md font-medium">You might also need:</h3>
-								<div class="overflow-hidden max-h-44 xl:max-h-26">
-									<ShoppingRecommendationsList
-										recommendations={shoppingRecommendations.slice(0, 30)}
-										class="flex-wrap min-w-auto m-0.5"
-									/>
+							{#if shoppingRecommendations.length > 0}
+								<div class="grid space-y-2 xl:space-y-4" transition:fade={{ duration: 200 }}>
+									<h3 class="pt-8 text-md font-medium">You might also need:</h3>
+									<div class="overflow-hidden max-h-44 xl:max-h-26">
+										<ShoppingRecommendationsList
+											recommendations={shoppingRecommendations.slice(0, 30)}
+											class="flex-wrap min-w-auto m-0.5"
+										/>
+									</div>
 								</div>
-							</div>
+							{/if}
 						</div>
 					{:else}
 						<DoneShoppingButton onclick={refreshRecommendations} class="w-full md:hidden" />

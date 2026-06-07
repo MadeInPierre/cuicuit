@@ -54,6 +54,17 @@ function createUserState() {
 		},
 		stopListening: () => {
 			data.subscription.unsubscribe();
+		},
+		refresh: async () => {
+			if (!userState?.id) return;
+
+			// Refresh user profile
+			const profile = await getUserPublicProfile(userState.id);
+			userPublicProfile = profile;
+
+			// Refresh user preferences
+			const preferences = await getUserPreferences(userState.id);
+			userPreferences = preferences;
 		}
 	};
 }

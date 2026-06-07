@@ -4,6 +4,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { ChevronLeft } from 'lucide-svelte';
+	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import SettingsSidebarNav from './SettingsSidebarNav.svelte';
 
@@ -29,14 +30,16 @@
 
 		<div class="space-y-0.5">
 			<h2 class="text-2xl font-bold tracking-tight">Settings</h2>
-			<p class="text-muted-foreground hidden md:block">Manage your account settings and set e-mail preferences.</p>
+			<p class="text-muted-foreground hidden md:block">
+				Manage your account settings and set e-mail preferences.
+			</p>
 		</div>
 	</div>
 
 	<SeparatorZigZag class="my-6" />
 
 	{#if media.md}
-		<div class="flex flex-col space-y-8 pb-16 lg:flex-row lg:space-x-12 lg:space-y-0">
+		<div class="flex flex-col space-y-8 pb-16 md:flex-row md:space-x-12 md:space-y-0">
 			<aside class="min-w-40 lg:w-1/6">
 				<SettingsSidebarNav groups={navLinksAppSettingsSidebar} />
 			</aside>
@@ -46,6 +49,7 @@
 			</div>
 		</div>
 	{:else if showOptions && page.url.pathname === '/settings'}
+		
 		<SettingsSidebarNav
 			groups={navLinksAppSettingsSidebar}
 			onSelect={() => (showOptions = false)}
