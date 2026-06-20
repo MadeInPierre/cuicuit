@@ -78,7 +78,7 @@ define(['./workbox-25613826'], (function (workbox) { 'use strict';
    */
   workbox.precacheAndRoute([{
     "url": "/app-shell",
-    "revision": "0.0srl0n7huv8"
+    "revision": "0.4v7qr42mc3o"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/app-shell"), {

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
@@ -72,96 +71,92 @@
 	{/snippet}
 
 	<div class={cn('grid space-y-4', displayMode === 'plan' && 'lg:grid-cols-2 lg:gap-4 xl:gap-8')}>
-		{#if meals.length > 0 || displayMode === 'sidebar'}
-			<div class="flex flex-col w-full gap-4 pb-2">
-				{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
+		<div class="flex flex-col w-full gap-4 pb-2">
+			{@render sectionHeader(Calendar, 'Planned meals', 'Reserve pantry ingredients')}
 
-				{#if meals.length > 0}
-					<MealList
-						{meals}
-						cardSize={displayMode === 'sidebar' ? 'md' : 'lg'}
-						expandOnSelected={displayMode === 'sidebar'}
-					/>
-				{:else if !filterOnIngredientId}
-					<div
-						class="py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-					>
-						<Utensils class="size-8" />
-						<p class="mx-auto w-28 text-center">Search for recipes to add meals here</p>
-					</div>
-				{:else}
-					<div
-						class="py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
-					>
-						No meals with this ingredient
-					</div>
-				{/if}
-			</div>
-		{/if}
+			{#if meals.length > 0}
+				<MealList
+					{meals}
+					cardSize={displayMode === 'sidebar' ? 'md' : 'lg'}
+					expandOnSelected={displayMode === 'sidebar'}
+				/>
+			{:else if !filterOnIngredientId}
+				<div
+					class="py-10 text-center text-sm sm:text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed"
+				>
+					<Utensils class="size-8" />
+					<p class="mx-auto w-34 sm:w-28 text-center">Search for recipes to add meals here</p>
+				</div>
+			{:else}
+				<div
+					class="py-10 text-center text-sm sm:text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed italic"
+				>
+					No meals with this ingredient
+				</div>
+			{/if}
+		</div>
 
-		{#if (displayMode === 'plan' && independentItems && independentItems.length > 0) || (displayMode === 'sidebar' && (!page.url.pathname.startsWith('/shopping-list') || filterOnIngredientId))}
-			<div
-				class="flex flex-col w-full gap-2"
-				transition:fade={{ duration: disableAnimations ? 0 : 75 }}
-			>
-				{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
+		<div
+			class="flex flex-col w-full gap-2"
+			transition:fade={{ duration: disableAnimations ? 0 : 75 }}
+		>
+			{@render sectionHeader(ClipboardList, 'Anything else?', 'Add items to your grocery list')}
 
-				{#if independentItems && independentItems.length > 0}
-					<div
-						class={cn(
-							'py-2 relative grid grid-cols-1 gap-2',
-							displayMode === 'sidebar' && 'max-h-[380px] pb-2 overflow-x-visible overflow-y-clip'
-						)}
-						class:grid-cols-3={!filterOnIngredientId}
-					>
-						{#if displayMode === 'sidebar' && independentItems && independentItems.length > 9}
-							<div
-								class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
-							></div>
-						{/if}
+			{#if independentItems && independentItems.length > 0}
+				<div
+					class={cn(
+						'py-2 relative grid grid-cols-1 gap-2',
+						displayMode === 'sidebar' && 'max-h-[380px] pb-2 overflow-x-visible overflow-y-clip'
+					)}
+					class:grid-cols-3={!filterOnIngredientId}
+				>
+					{#if displayMode === 'sidebar' && independentItems && independentItems.length > 9}
+						<div
+							class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
+						></div>
+					{/if}
 
-						{#each independentItems as item (item.id)}
-							<div animate:flip={{ duration: disableAnimations ? 0 : 200 }}>
-								<ShoppingItemCard
-									layout={filterOnIngredientId ? 'list' : 'grid'}
-									ingredient={item.ingredient!}
-									description={item.priority === 'optional' ? ` (opt)` : ''}
-									size="sm"
-									deletable
-									onDelete={async () => {
-										// TODO add edit functionality (quantity, unit, name)
-										await updatePlanItemDeleted(activeSpace, item.id);
-									}}
-								>
-									{#if filterOnIngredientId}
-										<span class="text-muted-foreground text-xs">
-											{item.updated_at
-												? formatDateAgo(new Date(item.updated_at), true)
-												: 'Added recently'}
+					{#each independentItems as item (item.id)}
+						<div animate:flip={{ duration: disableAnimations ? 0 : 200 }}>
+							<ShoppingItemCard
+								layout={filterOnIngredientId ? 'list' : 'grid'}
+								ingredient={item.ingredient!}
+								description={item.priority === 'optional' ? ` (opt)` : ''}
+								size="sm"
+								deletable
+								onDelete={async () => {
+									// TODO add edit functionality (quantity, unit, name)
+									await updatePlanItemDeleted(activeSpace, item.id);
+								}}
+							>
+								{#if filterOnIngredientId}
+									<span class="text-muted-foreground text-xs">
+										{item.updated_at
+											? formatDateAgo(new Date(item.updated_at), true)
+											: 'Added recently'}
 
-											{item.author_profile.user_name ? `by @${item.author_profile.user_name}` : ''}
-										</span>
-									{/if}
-								</ShoppingItemCard>
-							</div>
-						{/each}
-					</div>
-				{:else if !filterOnIngredientId}
-					<div
-						class="mt-2 py-10 text-center text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
-					>
-						<ShoppingBasket class="size-8" />
-						<p class="mx-auto w-28 text-center">Search for items to add them here</p>
-					</div>
-				{:else}
-					<div
-						class="mt-2 py-10 text-center text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-2 border border-dashed italic"
-					>
-						No additional items
-					</div>
-				{/if}
-			</div>
-		{/if}
+										{item.author_profile.user_name ? `by @${item.author_profile.user_name}` : ''}
+									</span>
+								{/if}
+							</ShoppingItemCard>
+						</div>
+					{/each}
+				</div>
+			{:else if !filterOnIngredientId}
+				<div
+					class="mt-2 py-10 text-center text-sm sm:text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed"
+				>
+					<ShoppingBasket class="size-8" />
+					<p class="mx-auto w-34 sm:w-28 text-center">Search for items to add them here</p>
+				</div>
+			{:else}
+				<div
+					class="mt-2 py-10 text-center text-sm sm:text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed italic"
+				>
+					No additional items
+				</div>
+			{/if}
+		</div>
 
 		<!-- <div class="grid space-y-4">
 				{@render sectionHeader(BellPlus, 'Refill suggestions', 'Ingredients that are running low')}

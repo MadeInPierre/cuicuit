@@ -1,17 +1,14 @@
 <script lang="ts">
-	import * as Form from '$lib/shared/components/ui/form';
-	import { superForm, defaults } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
-	import { Input } from '$lib/shared/components/ui/input';
-	import { onMount } from 'svelte';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import { toast } from 'svelte-sonner';
-	import { getUserPreferences } from '$lib/features/auth/queries/get-user-preferences';
-	import { getUserPublicProfile } from '$lib/features/auth/queries/get-user-public-profile';
+	import { defaults, superForm } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
 
 	// Require the user to be signed in to get here
 	$effect(() => {
@@ -29,7 +26,7 @@
 			userState.preferences &&
 			userState.preferences.onboarding_status === 'finished'
 		) {
-			console.log('User has finished onboarding, going to app.');
+			console.log('User is already onboarded, going to app.');
 			goto('/recipes');
 		}
 	});
@@ -38,6 +35,7 @@
 	const form = superForm(defaults(zod(profileFormSchema)), {
 		SPA: true,
 		validators: zod(profileFormSchema),
+		resetForm: false,
 		async onUpdate({ form }) {
 			if (form.valid) {
 				if (!userState.user?.id) {
@@ -70,33 +68,32 @@
 				}
 
 				// Done, go to app!
-				goto('/recipes');
+				window.location.href = '/recipes';
 			}
 		}
 	});
 
 	const { form: formData, enhance } = form;
 
+	// Refresh the user's data once logged in
+	$effect(() => {
+		if (userState.user) userState.refresh();
+	});
+
 	// Get the current values in supabase to set the input values & placeholders
-	onMount(async () => {
-		if (userState.user) {
-			const preferences = await getUserPreferences(userState.user.id);
-			const profile = await getUserPublicProfile(userState.user.id);
-
-			if (!preferences || !profile) {
-				console.error('Failed to fetch user preferences or profile.');
-				toast.error('Failed to load your profile. Please try again later.');
-				return;
-			}
-
-			$formData.firstName = preferences.first_name;
-			$formData.lastName = preferences.last_name;
-			$formData.userName = profile.user_name;
-		}
+	$effect(() => {
+		$formData.firstName = userState.preferences?.first_name || '';
+		$formData.lastName = userState.preferences?.last_name || '';
+		$formData.userName = userState.profile?.user_name || '';
 	});
 </script>
 
-{#if userState.preferences && userState.preferences.onboarding_status !== 'finished'}
+{#if userState.preferences?.onboarding_status === 'finished'}
+	<div class="flex flex-col space-y-2 text-center">
+		<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>
+		<p class="text-sm text-muted-foreground">You've already finished the welcome step.</p>
+	</div>
+{:else}
 	<div class="flex flex-col space-y-2 text-center">
 		<h1 class="text-2xl font-semibold tracking-tight">Welcome to Cuicuit!</h1>
 		<p class="text-sm text-muted-foreground">Let's get to know each other a little!</p>
@@ -124,7 +121,7 @@
 				<Form.Field {form} name="lastName" class="w-full">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Form.Label>Last name</Form.Label>
+							<Form.Label>Last name (optional)</Form.Label>
 							<Input
 								{...props}
 								bind:value={$formData.lastName}
@@ -156,13 +153,8 @@
 
 		<!-- <ImagePicker /> -->
 
-		<Form.Button class="w-full">Continue</Form.Button>
+		<Form.Button class="w-full">Let's go!</Form.Button>
 	</form>
 
 	<!-- <p class="px-8 text-center text-sm text-muted-foreground"></p> -->
-{:else}
-	<div class="flex flex-col space-y-2 text-center">
-		<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>
-		<p class="text-sm text-muted-foreground">You've already finished the welcome step.</p>
-	</div>
 {/if}

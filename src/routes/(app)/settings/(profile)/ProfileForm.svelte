@@ -14,18 +14,18 @@
 
 	// Show a status icon to the user in real-time
 	enum UpdateStatus {
-		STANDBY,
+		IDLE,
 		LOADING,
 		SUCCESS,
 		FAILED
 	}
-	let updateStatus: UpdateStatus = $state(UpdateStatus.STANDBY);
+	let updateStatus: UpdateStatus = $state(UpdateStatus.IDLE);
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(profileFormSchema)), {
 		SPA: true,
 		validators: zod(profileFormSchema),
-
+		resetForm: false,
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
 		}
@@ -62,7 +62,8 @@
 		}
 
 		// Update the form placeholders with the new profile data
-		setTimeout(() => (updateStatus = UpdateStatus.STANDBY), 3000);
+		await userState.refresh();
+		updateStatus = UpdateStatus.IDLE;
 	}
 
 	// This effect runs when the userState changes to fill the form fields
@@ -105,8 +106,8 @@
 			<Form.Field {form} name="lastName" class="w-full">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Last name</Form.Label>
-						<Input {...props} bind:value={$formData.lastName} placeholder="Carrot" />
+						<Form.Label>Last name (optional)</Form.Label>
+						<Input {...props} bind:value={$formData.lastName} placeholder="Doe" />
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
@@ -114,7 +115,7 @@
 		</div>
 
 		<p class="text-sm text-muted-foreground">
-			Never shown to strangers, only visible to you and members of spaces you share.
+			Only visible to you and members of spaces you've joined.
 		</p>
 	</div>
 
@@ -122,10 +123,12 @@
 		<Form.Control>
 			{#snippet children({ props })}
 				<Form.Label>Username</Form.Label>
-				<Input {...props} bind:value={$formData.userName} placeholder="cuicarrot" />
+				<Input {...props} bind:value={$formData.userName} placeholder="eEg. ninjabird" />
 			{/snippet}
 		</Form.Control>
-		<Form.Description>This is your public display name.</Form.Description>
+		<Form.Description
+			>This is your public display name. Not used in the app yet, maybe in the future!</Form.Description
+		>
 		<Form.FieldErrors />
 	</Form.Field>
 
