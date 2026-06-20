@@ -43,7 +43,7 @@ class ActiveSpaceState {
 
 	/** The active space, derived from userSpaces based on the current id (convenient shortcut) */
 	activeSpace: ActiveSpaceWithMembers | undefined | null = $derived(
-		this.userSpaces?.find((space) => space.id === this.id) || null
+		this.userSpaces?.find((space) => space.id === this.id) || this.userSpaces?.[0] || null
 	);
 
 	/** The active space's language, derived from the activeSpace (convenient shortcut) */

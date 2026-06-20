@@ -1,3 +1,4 @@
+import { userState } from '$lib/features/auth/state/user-state.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
 
 /**
@@ -29,7 +30,8 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
 				)
 			)`
 		)
-		.eq('ingredients.ingredient.translations.language_id', languageId); // Only get translations in the user language
+		.eq('ingredients.ingredient.translations.language_id', languageId) // Only get translations in the user language
+		.eq('author_id', userState.user?.id || '');
 
 	if (searchText) {
 		// Remove accents from searchText for accent-insensitive search

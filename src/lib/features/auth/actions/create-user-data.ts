@@ -1,5 +1,6 @@
 import { supabase } from '$lib/shared/db/supabase-client';
 import { nature_icons } from '$lib/shared/icons/nature-icons';
+import { capitalize } from '$lib/utils';
 
 const ERROR_ALREADY_EXISTS = '23505'; // Unique constraint violation error code
 
@@ -19,7 +20,7 @@ export async function createUserData(userId: string): Promise<boolean> {
 	const { error: prefError } = await supabase.from('user_preferences').insert([
 		{
 			user_id: userId,
-			first_name: randomIconName,
+			first_name: capitalize(randomIconName),
 			last_name: ''
 		}
 	]);

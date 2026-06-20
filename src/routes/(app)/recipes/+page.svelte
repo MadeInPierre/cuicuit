@@ -392,15 +392,13 @@
 			{/if}
 		{/each}
 	{:else}
-		<div class="flex flex-col items-center max-w-60 mx-auto my-32">
-			<ChefHat class="size-16 text-slate-300" />
-
-			<p class="mt-4 mb-16 text-muted-foreground text-center text-balance">
-				<strong>No recipes found.</strong>
-				Start by adding one!
-			</p>
+		<div class="bg-sidebar p-6 md:p-12 rounded-lg text-center text-muted-foreground text-sm">
+			<ChefHat class="size-12 mx-auto mb-4" />
+			<p class="mb-2 text-md font-medium">No recipes yet</p>
 
 			{#if Object.values(parameters.filters).some((value) => value.length > 0)}
+				<p class="w-40 mx-auto mb-6">Try resetting your filters to get more results.</p>
+
 				<Button
 					onclick={() => {
 						searchInput = '';
@@ -413,6 +411,8 @@
 					<RotateCcw class="size-4 mr-2" />
 					Reset filters
 				</Button>
+			{:else}
+				<p class="w-40 mx-auto">Start by importing or creating new recipes!</p>
 			{/if}
 		</div>
 	{/if}

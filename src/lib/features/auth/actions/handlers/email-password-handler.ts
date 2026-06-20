@@ -7,24 +7,18 @@ import {
 	AUTH_CONTEXT,
 	failHandled,
 	getAuthErrorMessage,
+	getLogMethodLabel,
 	isSupabaseErrorCode
 } from '../auth-error-utils';
 import { onAuthSuccess } from '../on-auth-success';
 
 interface EmailPasswordArgs {
 	logMethod: LogMethod;
-	authMethod: AuthMethod;
 	email: string;
 	password: string;
-	logMethodLabel: string;
 }
 
-async function loginWithEmailPassword(
-	logMethod: LogMethod,
-	authMethod: AuthMethod,
-	email: string,
-	password: string
-): Promise<void> {
+async function loginWithEmailPassword(email: string, password: string) {
 	const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
 	if (error) {
@@ -39,35 +33,16 @@ async function loginWithEmailPassword(
 		failHandled('Login succeeded but no user returned.', 'Could not retrieve user after login.');
 	}
 
-	await onAuthSuccess(logMethod, authMethod, data.user);
+	await onAuthSuccess(LogMethod.LOGIN, AuthMethod.EMAIL_PASSWORD, data.user);
 }
 
-export async function handleEmailPasswordAuth({
-	logMethod,
-	authMethod,
-	email,
-	password,
-	logMethodLabel
-}: EmailPasswordArgs): Promise<{ emailSent: boolean }> {
-	assertEmailPasswordInputs(email, password);
-
-	if (logMethod === LogMethod.LOGIN) {
-		await loginWithEmailPassword(logMethod, authMethod, email, password);
-		return { emailSent: false };
-	}
-
-	if (logMethod !== LogMethod.SIGNUP) {
-		failHandled(
-			`Unsupported log method for EMAIL_PASSWORD flow: ${logMethodLabel}.`,
-			'This authentication mode is not available yet.'
-		);
-	}
-
+async function signupWithEmailPassword(email: string, password: string) {
 	const { data, error } = await supabase.auth.signUp({ email, password });
 
 	if (error) {
+		// If the user already exists, we can try to log them in instead of failing the signup
 		if (isSupabaseErrorCode(error, 'user_already_exists')) {
-			await loginWithEmailPassword(LogMethod.LOGIN, authMethod, email, password);
+			await loginWithEmailPassword(email, password);
 			return { emailSent: false };
 		}
 
@@ -96,6 +71,26 @@ export async function handleEmailPasswordAuth({
 		return { emailSent: true };
 	}
 
-	await onAuthSuccess(logMethod, authMethod, data.user);
+	await onAuthSuccess(LogMethod.SIGNUP, AuthMethod.EMAIL_PASSWORD, data.user);
 	return { emailSent: false };
+}
+
+export async function handleEmailPasswordAuth({
+	logMethod,
+	email,
+	password
+}: EmailPasswordArgs): Promise<{ emailSent: boolean }> {
+	assertEmailPasswordInputs(email, password);
+
+	if (logMethod === LogMethod.LOGIN) {
+		await loginWithEmailPassword(email, password);
+		return { emailSent: false };
+	} else if (logMethod === LogMethod.SIGNUP) {
+		return await signupWithEmailPassword(email, password);
+	}
+
+	failHandled(
+		`Unsupported log method for EMAIL_PASSWORD flow: ${getLogMethodLabel(logMethod)}.`,
+		'This authentication mode is not available yet.'
+	);
 }
