@@ -8,7 +8,7 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { ArrowRight, Calendar, ScrollText, X } from 'lucide-svelte';
 	import type { ComponentProps } from 'svelte';
-	import SearchShoppingItemBar from './SearchShoppingItemBar.svelte';
+	import SearchSidebar from './search/SearchSidebar.svelte';
 	import { Button } from './ui/button';
 
 	let { ref = $bindable(null), ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
@@ -55,7 +55,7 @@
 			</div>
 		{/if}
 
-		<SearchShoppingItemBar class="mt-2" />
+		<SearchSidebar class="mt-2" />
 	</Sidebar.Header>
 
 	<Sidebar.Content class="p-4 no-scrollbar">
