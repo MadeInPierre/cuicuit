@@ -15,8 +15,8 @@ export async function joinSpace(userId: string, spaceId: string, theme: SpaceThe
 		.select('id, name, icon')
 		.eq('id', spaceId)
 		.single();
-	if (fetchError) throw fetchError;
-	if (!data) throw new Error('space-not-found');
+
+	if (fetchError || !data) throw new Error('space-not-found');
 
 	// Add the space id and theme to the user's space_members
 	const { error: memberError } = await supabase.from('space_members').insert([
@@ -26,5 +26,5 @@ export async function joinSpace(userId: string, spaceId: string, theme: SpaceThe
 			theme
 		}
 	]);
-	if (memberError) throw memberError;
+	if (memberError) throw new Error('already-joined-space');
 }

@@ -10,6 +10,7 @@
 	import { cn } from '$lib/utils';
 	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from 'lucide-svelte';
 	import Loader2 from 'lucide-svelte/icons/loader-circle';
+	import { onMount } from 'svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';
 
@@ -20,6 +21,14 @@
 
 	let openDialog = $state(false);
 	let activeTab: 'create' | 'join' = $state('create');
+
+	onMount(() => {
+		const inviteSpaceId = localStorage.getItem('invite-join-space-id');
+		if (inviteSpaceId) {
+			activeTab = 'join';
+			openDialog = true;
+		}
+	});
 </script>
 
 {#snippet tabList()}

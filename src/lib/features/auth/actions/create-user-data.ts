@@ -5,10 +5,10 @@ import { capitalize } from '$lib/utils';
 const ERROR_ALREADY_EXISTS = '23505'; // Unique constraint violation error code
 
 // Create the initial user document in Supabase upon signup
-export async function createUserData(userId: string): Promise<boolean> {
+export async function createUserData(userId: string): Promise<string> {
 	if (!supabase) {
 		console.log('Error: Supabase not available.');
-		return false;
+		throw new Error('Missing supabase');
 	}
 
 	// Generate a random user profile
@@ -53,5 +53,5 @@ export async function createUserData(userId: string): Promise<boolean> {
 	console.log(
 		`User data creation for userId ${userId} was ${success ? 'successful' : 'skipped (already exists)'}.`
 	);
-	return success;
+	return capitalize(randomIconName);
 }
