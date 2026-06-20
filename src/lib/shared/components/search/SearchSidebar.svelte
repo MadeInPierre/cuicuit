@@ -4,21 +4,21 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
 	import { Mic, SearchIcon, X } from 'lucide-svelte';
-	import IngredientSearch from '../../../routes/(app)/recipes/[id]/edit/QuickSearch.svelte';
+	import SearchResultsSidebar from './SearchResultsSidebar.svelte';
 
 	type Props = {
 		class?: string;
 	};
 	let { class: className }: Props = $props();
 
-	let searchInput = $state('');
+	let inputValue = $state('');
 	let searchLoading = $state(false);
 	let searchRef: HTMLElement | null = $state(null);
 
 	const space = getActiveSpaceState();
 </script>
 
-<IngredientSearch
+<SearchResultsSidebar
 	onSelect={(ingredient, index) => {
 		if (!ingredient) return;
 		const quantity = ingredient.parsed.quantity?.amount ?? null;
@@ -34,9 +34,9 @@
 
 		// Clear the search input and refocus
 		searchRef?.focus();
-		searchInput = '';
+		inputValue = '';
 	}}
-	bind:value={searchInput}
+	bind:inputValue
 	bind:loading={searchLoading}
 	displayRows={2}
 	allowCustom
@@ -55,14 +55,14 @@
 				<InputGroup.Addon>
 					<SearchIcon />
 				</InputGroup.Addon>
-				{#if searchInput}
+				{#if inputValue}
 					<InputGroup.Addon align="inline-end">
 						<InputGroup.Button
 							aria-label="Clear search"
 							title="Clear search"
 							size="icon-xs"
 							onclick={() => {
-								searchInput = '';
+								inputValue = '';
 								searchRef?.focus();
 							}}
 							tabindex={-1}
@@ -77,7 +77,7 @@
 							title="Clear search"
 							size="icon-xs"
 							onclick={() => {
-								searchInput = '';
+								inputValue = '';
 								searchRef?.focus();
 							}}
 							tabindex={-1}
@@ -87,14 +87,6 @@
 					</InputGroup.Addon>
 				{/if}
 			</InputGroup.Root>
-
-			<!-- <Button variant="default" size="icon" class="h-8" tabindex={-1} title="Toggle meal details">
-				{#if searchLoading}
-					<LoaderCircle class="size-4 animate-spin" />
-				{:else}
-					<Camera class="size-4" />
-				{/if}
-			</Button> -->
 		</div>
 	{/snippet}
-</IngredientSearch>
+</SearchResultsSidebar>

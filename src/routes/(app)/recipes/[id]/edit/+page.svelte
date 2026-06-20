@@ -53,7 +53,7 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import IngredientEditItem from './IngredientEditItem.svelte';
-	import QuickSearch from './QuickSearch.svelte';
+	import SearchResultsSidebar from '$lib/shared/components/search/SearchResultsSidebar.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id as string;
@@ -573,7 +573,7 @@
 							<Card.Content class="grid gap-3">
 								<Label>Type to add:</Label>
 
-								<QuickSearch
+								<SearchResultsSidebar
 									onSelect={onAddIngredient}
 									class="mb-3"
 									displayColumns={5}

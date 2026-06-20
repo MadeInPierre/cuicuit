@@ -1,5 +1,4 @@
 <script lang="ts">
-	import SearchShoppingItemBar from '$lib/shared/components/SearchShoppingItemBar.svelte';
 	import PlanList from '../../../lib/features/plans/components/PlanList.svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 </script>
@@ -12,7 +11,7 @@
 		</div>
 	</div>
 
-	<!-- <SearchShoppingItemBar class="md:hidden" /> -->
+	<!-- <SearchSidebar class="md:hidden" /> -->
 
 	<SeparatorZigZag />
 
