@@ -25,7 +25,7 @@
 		</Button>
 	{/snippet}
 
-	{@render button('familiar', 'w-20')}
-	{@render button('mixed', 'w-20 hidden xl:flex')}
-	{@render button('discover', 'w-20')}
+	{@render button('familiar', 'w-1/3')}
+	{@render button('mixed', 'w-1/3 hidden xl:flex')}
+	{@render button('discover', 'w-1/3')}
 </div>
