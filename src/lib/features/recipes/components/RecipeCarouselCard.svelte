@@ -12,6 +12,7 @@
 		SignalLow,
 		SignalMedium
 	} from 'lucide-svelte';
+	import { onMount } from 'svelte';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 	import RecipeImage from './RecipeImage.svelte';
 
@@ -22,6 +23,12 @@
 		showAddToPlanButton?: boolean; // Optional prop to control visibility of Add to Plan button
 		class?: string;
 	}
+
+	let isTouchscreen = $state(false);
+	onMount(() => {
+		isTouchscreen =
+			typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+	});
 
 	let bookmarked: boolean | undefined = $state(false); // TODO
 
@@ -93,8 +100,6 @@
 							<Bookmark class="size-4" fill="orange" color="orange" />
 						{:else if bookmarked === false}
 							<Bookmark class="size-4" fill="none" color="black" />
-						{:else}
-							<LoaderCircle class="size-4 animate-spin text-primary" />
 						{/if}
 					</Button> -->
 
@@ -102,7 +107,10 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+							class={cn(
+								'size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm',
+								!isTouchscreen && 'opacity-0 group-hover:opacity-100 transition-opacity'
+							)}
 							aria-label="Add to plan"
 							title="Add to plan"
 							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}

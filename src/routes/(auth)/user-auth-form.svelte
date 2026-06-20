@@ -247,7 +247,7 @@
 		</div>
 	</form>
 
-	{#if logMethod == LogMethod.SIGNUP}
+	<!-- {#if logMethod == LogMethod.SIGNUP}
 		<AlertDialog.Root>
 			<AlertDialog.Trigger>
 				<Button variant="ghost" size="sm" class="w-full font-normal" disabled={isLoading}>
@@ -275,7 +275,7 @@
 				</AlertDialog.Footer>
 			</AlertDialog.Content>
 		</AlertDialog.Root>
-	{/if}
+	{/if} -->
 </div>
 
 <AlertDialog.Root open={showExistingAccountDialog}>

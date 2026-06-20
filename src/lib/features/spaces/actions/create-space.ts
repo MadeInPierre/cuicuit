@@ -23,23 +23,22 @@ export async function createSpace(
 		.from('space_members')
 		.select('space_id, spaces(name)')
 		.eq('user_id', userId);
+
 	if (fetchError) throw fetchError;
 	if (existingSpaces && existingSpaces.some((sm) => sm.spaces?.name === name)) {
 		throw new Error('space-already-exists');
 	}
 
 	// Insert into spaces table
-	const locale =
-		typeof navigator !== 'undefined' ? navigator.language || navigator.languages[0] : 'fr-FR';
 	const { data: spaceInsert, error: spaceError } = await supabase
 		.from('spaces')
 		.insert([
 			{
 				name,
 				icon,
-				locale,
 				initial_theme: theme,
 				author_id: userId
+				// TODO add language preference?
 			}
 		])
 		.select('id')
@@ -58,5 +57,6 @@ export async function createSpace(
 	]);
 	if (memberError) throw memberError;
 
+	console.log(`Space created with ID: ${spaceId} for user: ${userId}`);
 	return spaceId;
 }

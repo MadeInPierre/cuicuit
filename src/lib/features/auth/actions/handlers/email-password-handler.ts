@@ -3,9 +3,11 @@ import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../../models/auth-method';
 import { LogMethod } from '../../models/log-method';
 import {
-    assertEmailPasswordInputs, AUTH_CONTEXT, failHandled,
-    getAuthErrorMessage,
-    isSupabaseErrorCode
+	assertEmailPasswordInputs,
+	AUTH_CONTEXT,
+	failHandled,
+	getAuthErrorMessage,
+	isSupabaseErrorCode
 } from '../auth-error-utils';
 import { onAuthSuccess } from '../on-auth-success';
 
@@ -83,15 +85,17 @@ export async function handleEmailPasswordAuth({
 		);
 	}
 
+	// If the user is new, they will receive a confirmation email. The session will be null until they confirm their email.
 	const emailSent = !data.session;
 
-	if (data.session) {
-		await onAuthSuccess(logMethod, authMethod, data.user);
-	} else {
+	if (emailSent) {
 		toast.success('Verification email sent!', {
 			description: 'Please click on the link inside the email before logging in.'
 		});
+
+		return { emailSent: true };
 	}
 
-	return { emailSent };
+	await onAuthSuccess(logMethod, authMethod, data.user);
+	return { emailSent: false };
 }

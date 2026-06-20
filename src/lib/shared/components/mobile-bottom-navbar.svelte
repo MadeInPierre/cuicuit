@@ -16,6 +16,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import { Button } from './ui/button';
 	import Input from './ui/input/input.svelte';
+	import SearchShoppingItemBar from './SearchShoppingItemBar.svelte';
 
 	let style = $state<'classic' | 'float' | 'ai'>('float');
 
@@ -59,7 +60,8 @@
 	<div
 		class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent md:hidden"
 	></div>
-	<!-- <div class="z-50 sticky bottom-28 mx-12 md:hidden">
+
+	<!-- <div class="z-50 sticky bottom-28 mx-auto px-6 md:hidden">
 		<div
 			class="w-full border border-border/60 rounded-full drop-shadow-md/5 bg-white/80 dark:bg-background/80 backdrop-blur-md flex items-center gap-3 py-3 px-4"
 		>
@@ -71,6 +73,7 @@
 			/>
 		</div>
 	</div> -->
+
 	<div class="z-50 min-h-18 sticky bottom-6 mx-auto px-6 flex gap-3 max-w-lg md:hidden">
 		{#if !openChat}
 			<nav
@@ -92,13 +95,14 @@
 			class={cn(
 				'w-18 min-h-18 border border-border/60 flex justify-center items-center rounded-[36px] drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md ml-auto transition-all',
 				openChat && 'w-full'
-				// !!inputValue && 'rounded-2xl'
 			)}
 		>
 			{#if openChat}
 				<div class="w-full grid">
 					{#if inputValue}
-						<span class="p-6 mb-30" transition:slide={{ duration: 150 }}></span>
+						<span class="p-6 h-40" transition:slide={{ duration: 150 }}>
+							Results for "{inputValue}"
+						</span>
 					{/if}
 
 					<div class="h-18 flex items-center gap-4 px-4">
@@ -112,6 +116,8 @@
 						</Button>
 
 						<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
+							<SearchShoppingItemBar />
+
 							<Input
 								bind:ref={inputRef}
 								bind:value={inputValue}
@@ -130,7 +136,6 @@
 									}
 								}}
 							/>
-							<!-- <Button variant="secondary" size="sm" class='h-6 p-2'>Demo</Button> -->
 
 							<Button
 								variant={inputValue ? 'default' : 'ghost'}
