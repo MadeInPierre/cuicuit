@@ -1,13 +1,10 @@
 import { goto } from '$app/navigation';
-import { createSpace } from '$lib/features/spaces/actions/create-space';
-import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
 import { supabase } from '$lib/shared/db/supabase-client';
 import type { User } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
 import { userState } from '../state/user-state.svelte';
-import { createUserData } from './create-user-data';
 import { resendConfirmationEmail } from './send-signup-confirmation-email';
 
 /**
@@ -63,26 +60,6 @@ export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod
 
 	// On signup, create initial user data in Supabase
 	if (logMethod === LogMethod.SIGNUP) {
-		// Create a new user doc if they're a new user
-		const dataSuccess = await createUserData(user.id);
-
-		// TODO Join space if they have a join intent in local storage
-		// Create a new space for the user
-		const spaceId = await createSpace(
-			user.id,
-			'Home',
-			'yellow' as SpaceThemeKey,
-			'house' as SpaceIconKey
-		);
-
-		if (!dataSuccess || !spaceId) {
-			console.error('Failed to create user data or space for new user.');
-			toast.error('Could not create your account.', {
-				description: 'Something went wrong, please try again later.'
-			});
-			return;
-		}
-
 		console.log('New user, going to welcome page.');
 		await userState.refresh(); // Refresh the user state to get the new data
 		goto('/welcome'); // If the user is new, go to the welcome page
@@ -91,6 +68,7 @@ export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod
 	// Valid user with verified email, welcome them if they're new or go to the app
 	else if (logMethod === LogMethod.LOGIN) {
 		console.log('Existing user, going to app.');
+		await userState.refresh(); // Refresh the user state to get the new data
 		goto('/recipes'); // If the user is not new, go to the app
 	}
 

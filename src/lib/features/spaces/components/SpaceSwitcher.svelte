@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { Button } from '$lib/shared/components/ui/button';
-	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
-	import Loader2 from 'lucide-svelte/icons/loader-circle';
-	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from 'lucide-svelte';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { cn } from '$lib/utils';
-	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
+	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import CreateSpaceForm from '$lib/features/spaces/components/CreateSpaceForm.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
+	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
+	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
+	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
+	import { cn } from '$lib/utils';
+	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from 'lucide-svelte';
+	import Loader2 from 'lucide-svelte/icons/loader-circle';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';
-	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
 
 	const activeSpace = getActiveSpaceState();
 	const ActiveTeamIcon = $derived(

@@ -59,12 +59,10 @@ function createUserState() {
 			if (!userState?.id) return;
 
 			// Refresh user profile
-			const profile = await getUserPublicProfile(userState.id);
-			userPublicProfile = profile;
+			userPublicProfile = await getUserPublicProfile(userState.id);;
 
 			// Refresh user preferences
-			const preferences = await getUserPreferences(userState.id);
-			userPreferences = preferences;
+			userPreferences = await getUserPreferences(userState.id);
 		}
 	};
 }

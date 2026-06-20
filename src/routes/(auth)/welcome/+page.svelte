@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { createUserData } from '$lib/features/auth/actions/create-user-data';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { createSpace } from '$lib/features/spaces/actions/create-space';
+	import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client';
@@ -20,16 +24,41 @@
 
 	// Forbid this zone if the user already finished his onboarding
 	$effect(() => {
-		if (
-			browser &&
-			userState.user?.id &&
-			userState.preferences &&
-			userState.preferences.onboarding_status === 'finished'
-		) {
-			console.log('User is already onboarded, going to app.');
-			goto('/recipes');
+		if (browser && userState.user?.id) {
+			if (userState.preferences === null) {
+				// Freshly signed up user without initial data yet, create it
+				initializeUserData(userState.user.id);
+			} else if (userState.preferences?.onboarding_status === 'finished') {
+				console.log('User is already onboarded, going to app.');
+				goto('/recipes');
+			}
 		}
 	});
+
+	const activeSpace = getActiveSpaceState();
+
+	async function initializeUserData(userId: string) {
+		// Create a new user doc if they're a new user
+		const dataSuccess = await createUserData(userId);
+
+		// TODO Join space if they have a join intent in local storage
+		// Create a new space for the user
+		const spaceId = await createSpace(
+			userId,
+			'Home',
+			'yellow' as SpaceThemeKey,
+			'house' as SpaceIconKey
+		);
+
+		if (!dataSuccess || !spaceId) {
+			console.error('Failed to create user data or space for new user.');
+			toast.error('Could not create your initial data.', {
+				description: 'Something went wrong, please try again later.'
+			});
+		}
+
+		await userState.refresh();
+	}
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(profileFormSchema)), {
@@ -91,7 +120,9 @@
 {#if userState.preferences?.onboarding_status === 'finished'}
 	<div class="flex flex-col space-y-2 text-center">
 		<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>
-		<p class="text-sm text-muted-foreground">You've already finished the welcome step.</p>
+		<p class="text-sm text-muted-foreground">
+			Looks like you've already finished the welcome step, redirecting you to your homepage...
+		</p>
 	</div>
 {:else}
 	<div class="flex flex-col space-y-2 text-center">
@@ -153,7 +184,13 @@
 
 		<!-- <ImagePicker /> -->
 
-		<Form.Button class="w-full">Let's go!</Form.Button>
+		<Form.Button class="w-full" disabled={!userState.preferences}>
+			{#if userState.preferences}
+				Let's go!
+			{:else}
+				Getting ready...
+			{/if}
+		</Form.Button>
 	</form>
 
 	<!-- <p class="px-8 text-center text-sm text-muted-foreground"></p> -->
