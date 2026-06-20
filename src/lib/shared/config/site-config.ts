@@ -7,7 +7,7 @@ export const siteConfig = {
 		github: 'https://github.com/MadeInPierre/cuicuit2'
 	},
 	keywords: 'cuicuit,Cuicuit,kitchen,assistant,food,cuisine',
-	inviteUrlBase: 'https://cuicuit.app/join/'
+	inviteUrlBase: 'https://cuicuit2.laclau.dev/join/'
 };
 
 export type SiteConfig = typeof siteConfig;

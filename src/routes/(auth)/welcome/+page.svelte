@@ -5,8 +5,8 @@
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { userState } from '$lib/features/auth/state/user-state.svelte';
 	import { createSpace } from '$lib/features/spaces/actions/create-space';
+	import { joinSpace } from '$lib/features/spaces/actions/join-space';
 	import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client';
@@ -35,28 +35,38 @@
 		}
 	});
 
-	const activeSpace = getActiveSpaceState();
-
 	async function initializeUserData(userId: string) {
 		// Create a new user doc if they're a new user
-		const dataSuccess = await createUserData(userId);
+		const firstName = await createUserData(userId);
 
-		// TODO Join space if they have a join intent in local storage
-		// Create a new space for the user
-		const spaceId = await createSpace(
-			userId,
-			'Home',
-			'yellow' as SpaceThemeKey,
-			'house' as SpaceIconKey
-		);
-
-		if (!dataSuccess || !spaceId) {
-			console.error('Failed to create user data or space for new user.');
-			toast.error('Could not create your initial data.', {
-				description: 'Something went wrong, please try again later.'
-			});
+		// Join space if they have a join intent in local storage
+		const inviteSpaceId = localStorage.getItem('invite-join-space-id');
+		if (inviteSpaceId) {
+			try {
+				await joinSpace(userId, inviteSpaceId, 'yellow');
+				localStorage.removeItem('invite-join-space-id');
+			} catch {
+				// Fallback by creating a private space
+				await createSpace(
+					userId,
+					firstName + "'s Home",
+					'yellow' as SpaceThemeKey,
+					'house' as SpaceIconKey
+				);
+			}
 		}
 
+		// Create a new space for the user
+		else {
+			await createSpace(
+				userId,
+				firstName + "'s Home",
+				'yellow' as SpaceThemeKey,
+				'house' as SpaceIconKey
+			);
+		}
+
+		// Refresh profile & preferences to populate the form
 		await userState.refresh();
 	}
 

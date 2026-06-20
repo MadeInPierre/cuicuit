@@ -15,13 +15,12 @@
 
 <div class="relative h-screen lg:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
 	<div class="absolute right-6 top-6 z-20 md:right-9 md:top-9">
-		<TopRightComponent />
+		{#if TopRightComponent}
+			<TopRightComponent />
+		{/if}
 	</div>
 
-	<a
-		href="/"
-		class="absolute flex gap-2 left-6 top-6 z-20 md:left-9 md:top-9 lg:text-white"
-	>
+	<a href="/" class="absolute flex gap-2 left-6 top-6 z-20 md:left-9 md:top-9 lg:text-white">
 		<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-10" />
 		<h1 class="pt-2 text-lg font-medium">Cuicuit</h1>
 	</a>

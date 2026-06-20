@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { siteConfig } from '$lib/shared/config/site-config';
@@ -6,14 +7,14 @@
 	import { copyText } from 'svelte-copy';
 	import { toast } from 'svelte-sonner';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
-	import ButtonThemed from './ButtonThemed.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
 
 	let copied = $state(false);
 
 	const activeSpace = getActiveSpaceState();
 
-	const inviteUrl = $derived(siteConfig.inviteUrlBase + activeSpace.id);
+	const inviteUrl = $derived(
+		siteConfig.inviteUrlBase + activeSpace.id
+	);
 
 	function copyLink() {
 		copyText(

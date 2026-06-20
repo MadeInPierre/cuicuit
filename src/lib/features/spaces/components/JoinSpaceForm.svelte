@@ -6,6 +6,7 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import { cn } from '$lib/utils';
 	import { Loader2 } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
@@ -18,18 +19,21 @@
 
 	const activeSpace = getActiveSpaceState();
 
-	// Refine the form schema to validate the invite link, should contain a code of 20 alphanumeric characters, for example:
-	// - https://cuicu.it/k1wEDOXRmPdJk6eTulQE
-	// - cuicuit.app/k1wEDOXRmPdJk6eTulQE
-	// - https://cuicuit.app/join/k1wEDOXRmPdJk6eTulQE
-	// - cuicuit.app/join/k1wEDOXRmPdJk6eTulQE
-	// - k1wEDOXRmPdJk6eTulQE
+	// Refine the form schema to validate the invite link, should contain a UUIDv4, for example:
+	// - https://cuicu.it/<uuid>
+	// - cuicuit.app/<uuid>
+	// - https://cuicuit.app/join/<uuid>
+	// - cuicuit.app/join/<uuid>
+	// - <uuid>
 	const schema = joinSpaceFormSchema.refine(
-		(v) => /^((https?:\/\/)?(cuicu\.it|cuicuit\.app\/join)\/)?[a-zA-Z0-9]{20}$/.test(v.url),
+		(v) =>
+			/^((https?:\/\/)?(cuicu\.it|cuicuit\.app\/join)\/)?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$/.test(
+				v.url
+			),
 		{
 			path: ['url'],
 			message:
-				'The invite link should contain a code of 20 alphanumeric characters, for example: "k1wEDOXRmPdJk6eTulQE".'
+				'The invite link should contain a UUIDv4, for example: "123e4567-e89b-12d3-a456-426614174000".'
 		}
 	);
 
@@ -56,11 +60,13 @@
 		}
 
 		// Extract the space ID from the invite link
-		const spaceId = $formData.url.match(/[a-zA-Z0-9]{20}$/)?.[0];
+		const spaceId = $formData.url.match(
+			/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/
+		)?.[0];
 
 		if (!spaceId) {
 			return toast.error('The invite link is invalid.', {
-				description: 'Please make sure it contains a code of 20 alphanumeric characters.'
+				description: 'Please make sure it contains a code of 32 alphanumeric characters.'
 			});
 		}
 
@@ -68,21 +74,37 @@
 		joinSpace(userState.user.id, spaceId, $formData.theme as SpaceThemeKey)
 			.then(() => {
 				activeSpace.id = spaceId; // Change the active space to the newly joined one
+				localStorage.removeItem('invite-join-space-id');
 				openDialog = false;
 				loading = false;
 			})
 			.catch((error: Error) => {
-				if (error.message === 'space-not-found')
+				console.log('CATCH');
+				if (error.message === 'space-not-found') {
 					toast.error('Space not found.', {
 						description: 'Please make sure the invite link is correct.'
 					});
-				else {
+				} else if (error.message === 'already-joined-space') {
+					toast.error('Space already joined.', {
+						description: 'The grass is already green :)'
+					});
+					activeSpace.id = spaceId;
+					localStorage.removeItem('invite-join-space-id');
+					openDialog = false;
+					loading = false;
+				} else {
 					toast.error('Something went wrong.', { description: 'Please try again later.' });
 					console.error(error);
+					localStorage.removeItem('invite-join-space-id');
 				}
 				loading = false;
 			});
 	}
+
+	onMount(() => {
+		const inviteSpaceId = localStorage.getItem('invite-join-space-id');
+		if (inviteSpaceId) $formData.url = inviteSpaceId;
+	});
 </script>
 
 <form method="POST" use:enhance class="w-full space-y-4">
