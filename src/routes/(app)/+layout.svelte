@@ -23,7 +23,10 @@
 			}
 
 			// Forbid this zone if the user has not finished his onboarding
-			else if (userState.preferences && userState.preferences.onboarding_status !== 'finished') {
+			else if (
+				userState.preferences === null ||
+				userState.preferences?.onboarding_status !== 'finished'
+			) {
 				console.warn('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');
 			}
