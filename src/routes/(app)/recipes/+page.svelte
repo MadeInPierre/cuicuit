@@ -21,12 +21,14 @@
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
+	import * as Sheet from '$lib/shared/components/ui/sheet';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { RotateCcw } from '@lucide/svelte';
 	import { ArrowRight, Bookmark, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
+	import DiscoverDial from './DiscoverDial.svelte';
 	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
@@ -470,6 +472,26 @@
 		<FilterButton text="My Recipes" />
 		<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
 		<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
-		<FilterButton icon={FunnelPlus} primary />
+
+		<Sheet.Root>
+			<Sheet.Trigger>
+				<FilterButton icon={FunnelPlus} primary />
+			</Sheet.Trigger>
+			<Sheet.Content side="right" class="flex flex-col h-full justify-start">
+				<Sheet.Header>
+					<Sheet.Title>Search filters</Sheet.Title>
+					<Sheet.Description>Find your ideal recipe.</Sheet.Description>
+				</Sheet.Header>
+
+				<div class="p-4 grid space-y-6">
+					<DiscoverDial />
+				</div>
+
+				<Sheet.Footer class="mt-auto">
+					<Button type="submit" class="w-full">See 42 results</Button>
+					<!-- <Sheet.Close class={buttonVariants({ variant: 'outline' })}>Close</Sheet.Close> -->
+				</Sheet.Footer>
+			</Sheet.Content>
+		</Sheet.Root>
 	</div>
 {/snippet}
