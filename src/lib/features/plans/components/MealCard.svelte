@@ -147,6 +147,8 @@
 	let optionalIngredients = $derived(
 		sortedIngredients.filter((ing) => ing.priority === 'optional')
 	);
+
+	let clickStart: { x: number; y: number } | null = $state(null);
 </script>
 
 {#if meal}
@@ -192,9 +194,18 @@
 				hovered && !selected && 'border-ring ring-ring/50 ring-[3px]',
 				className
 			)}
-			onclick={() => {
-				if (!expandable) return;
-				openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;
+			onclick={(e: MouseEvent) => {
+				const clickEnd = { x: e.x, y: e.y };
+
+				// Don't expand if we're swiping the card (see MealList.svelte)
+				if (expandable && clickStart?.x === clickEnd.x && clickStart?.y === clickEnd.y) {
+					openMealCardId.value = openMealCardId.value === meal.id ? null : meal.id;
+				}
+
+				clickStart = null;
+			}}
+			onmousedown={(e: MouseEvent) => {
+				clickStart = { x: e.x, y: e.y };
 			}}
 			endSnippet={cardEndSnippet || (selected || hovered || expanded ? defaultEndSnippet : null)}
 		/>
