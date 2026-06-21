@@ -451,15 +451,18 @@
 								None
 							</div> -->
 
-							<div class="flex items-center gap-1">
+							<!-- <div class="flex items-center gap-1">
 								<Calendar class="size-3 inline-block" />
 								{formatCombinedItemQuantity(item) || 'Any'}
-							</div>
+							</div> -->
 
 							{#if item.meals.length > 0}
 								<div class="flex items-center gap-1">
 									<ChefHat class="size-3 inline-block" />
-									{item.meals.length}
+									{item.meals
+										.slice(0, 3)
+										.map((m) => m.recipe.title.split(' ')?.[0] || '')
+										.join(', ')}
 								</div>
 							{/if}
 

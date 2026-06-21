@@ -202,7 +202,8 @@
 
 		<div class="grid space-y-0.5 ml-4">
 			<span class={cn('text-md line-clamp-1', checked && 'line-through text-muted-foreground')}>
-				{displayName || description || ''}
+				<span class="font-medium"> {description || ''} </span>
+				{displayName || ''}
 			</span>
 
 			{@render children?.()}

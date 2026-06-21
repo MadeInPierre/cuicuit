@@ -120,8 +120,11 @@
 						<div animate:flip={{ duration: disableAnimations ? 0 : 200 }}>
 							<ShoppingItemCard
 								layout={filterOnIngredientId ? 'list' : 'grid'}
-								ingredient={item.ingredient!}
-								description={item.priority === 'optional' ? ` (opt)` : ''}
+								ingredient={item.ingredient}
+								description={item.quantity
+									? item.quantity + ' ' + item.unit?.replace('whole', '')
+									: ''}
+								plural={item.quantity ? item.quantity > 1 : false}
 								size="sm"
 								deletable
 								onDelete={async () => {
