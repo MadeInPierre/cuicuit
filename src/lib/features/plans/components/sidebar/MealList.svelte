@@ -117,7 +117,9 @@
 
 				{#if direction === 'left'}
 					<div
-						class="absolute text-red-600 bg-red-600/10 w-full h-full rounded-lg z-10 flex items-center gap-2 justify-end pr-6 text-sm"
+						class="absolute text-red-600 bg-red-600/10 w-full rounded-lg z-0 flex items-center gap-2 justify-end pr-6 text-sm"
+						class:h-19={cardSize === 'lg'}
+						class:h-15={cardSize === 'md'}
 						style:right="var(--swipe-distance-x)"
 					>
 						Delete
@@ -125,7 +127,10 @@
 					</div>
 				{:else if direction === 'right'}
 					<div
-						class="absolute text-emerald-600 bg-emerald-600/10 w-full h-full rounded-lg z-10 flex items-center gap-2 pl-6 text-sm"
+						class="absolute text-emerald-600 bg-emerald-600/10 w-full h-19 rounded-lg z-0 flex items-center gap-2 pl-6 text-sm"
+						class:h-19={cardSize === 'lg'}
+						class:h-15={cardSize === 'md'}
+
 						style:right="var(--swipe-distance-x)"
 					>
 						<Check class="size-4" />
