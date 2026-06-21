@@ -1,6 +1,8 @@
+import { goto } from '$app/navigation';
 import { type ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
 import type { TablesInsert } from '$lib/shared/db/supabase.types';
+import { toast } from 'svelte-sonner';
 
 export async function addRecipeToActivePlan(
 	space: ActiveSpaceState,
@@ -71,6 +73,14 @@ export async function addRecipeToActivePlan(
 		console.error('Error adding ingredients to shopping list:', shoppingListError);
 		return;
 	}
+
+	toast.success('Added to plan', {
+		description: 'Go to the Plan tab for more',
+		action: {
+			label: 'View',
+			onClick: () => goto('/plan')
+		}
+	});
 
 	// Refresh the active plan meals after adding
 	await space.refreshActivePlanMeals();

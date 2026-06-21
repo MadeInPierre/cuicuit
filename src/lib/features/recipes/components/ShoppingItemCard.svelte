@@ -6,6 +6,12 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
+	import {
+		swipeable,
+		type SwipeEndEventDetail,
+		type SwipeSingleDirection,
+		type SwipeStartEventDetail
+	} from '@svelte-put/swipeable';
 	import { Circle, CircleCheckBig, PanelLeft, PanelLeftClose, Trash } from 'lucide-svelte';
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import IngredientImage from './IngredientImage.svelte';
@@ -76,13 +82,26 @@
 	const isTouchPointerEvent = (event: MouseEvent | PointerEvent) => {
 		return 'pointerType' in event && event.pointerType === 'touch';
 	};
+
+	let direction: SwipeSingleDirection | null = $state(null);
+	function swipestart(e: CustomEvent<SwipeStartEventDetail>) {
+		direction = e.detail.direction;
+	}
+
+	async function swipeend(e: CustomEvent<SwipeEndEventDetail>) {
+		const { passThreshold, direction } = e.detail;
+		if (passThreshold) {
+			onDelete?.();
+			// TODO if (direction === 'left') {} else {}
+		}
+	}
 </script>
 
 <button
 	type={layout === 'list' ? 'button' : undefined}
 	class={cn(
 		// Base
-		'relative group w-full select-none border-none rounded-lg shadow-2xs text-sm',
+		'z-50 relative group w-full select-none border-none rounded-lg shadow-2xs text-sm',
 		'p-2 bg-white hover:bg-white dark:bg-muted dark:hover:bg-muted transition-[color,box-shadow]',
 
 		// Layout base
@@ -119,8 +138,18 @@
 		// Right click or long press to select the ingredient for detailed view in sidebar
 		e.preventDefault();
 		selectedMealIngredient.value =
-		selectedMealIngredient.value?.id === ingredient?.id ? null : ingredient;
+			selectedMealIngredient.value?.id === ingredient?.id ? null : ingredient;
 	}}
+	use:swipeable={{
+		enabled: layout === 'list',
+		direction: 'x',
+		disableTouchEvents: false,
+		followThrough: { container: 'body' }
+	}}
+	style:left="var(--swipe-distance-x)"
+	style="touch-action: pan-y;"
+	onswipestart={swipestart}
+	onswipeend={swipeend}
 >
 	{#if layout === 'grid'}
 		{@render bonusButtons('absolute top-1 left-1 grid space-y-0')}
