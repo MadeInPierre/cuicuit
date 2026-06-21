@@ -70,11 +70,15 @@
 		direction = e.detail.direction;
 	}
 
-	function swipeend(e: CustomEvent<SwipeEndEventDetail>, mealId: string) {
+	async function swipeend(e: CustomEvent<SwipeEndEventDetail>, mealId: string) {
 		const { passThreshold, direction } = e.detail;
 		if (passThreshold) {
-			if (direction === 'left') deleteMeal(space, mealId);
-			else toast.info('TODO Marked as cooked', { description: 'Bon appétit !' });
+			if (direction === 'left') await deleteMeal(space, mealId);
+			else {
+				// TODO implement marked as cooked
+				await deleteMeal(space, mealId);
+				toast.success('Marked as cooked', { description: 'Bon appétit ! TODO NOT IMPLEMENTED' });
+			}
 		}
 	}
 </script>
@@ -93,8 +97,13 @@
 	{#each meals as meal (meal.id)}
 		<div animate:flip={{ duration: 200 }}>
 			<div
-				use:swipeable={{ direction: 'x' }}
+				use:swipeable={{
+					direction: 'x',
+					disableTouchEvents: false,
+					followThrough: { container: 'body' }
+				}}
 				style:left="var(--swipe-distance-x)"
+				style="touch-action: pan-y;"
 				onswipestart={swipestart}
 				onswipeend={(e) => swipeend(e, meal.id)}
 				class="flex relative group"
