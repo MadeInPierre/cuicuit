@@ -1,5 +1,6 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client';
+import { toast } from 'svelte-sonner';
 import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 
 export async function updateMealServings(
@@ -67,7 +68,7 @@ export async function updateMealPosition(
 export async function deleteMeal(
 	activeSpace: ActiveSpaceState,
 	mealId: string,
-	options?: { skipRefresh?: boolean }
+	options?: { skipRefresh?: boolean; undo?: boolean }
 ) {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
@@ -75,16 +76,15 @@ export async function deleteMeal(
 	if (!mealId) throw new Error('Meal ID not provided');
 
 	// Optimistically delete the meal in the local state
-	// activeSpace.activePlanMeals.filter((meal) => meal.id !== mealId);
+	if (!options?.undo) activeSpace.activePlanMeals.filter((meal) => meal.id !== mealId);
 
 	// Soft delete related shopping list items first
 	const now = new Date().toISOString();
 	const { error: shoppingListError } = await supabase
 		.from('space_items')
-		.update({ deleted_at: now })
+		.update({ deleted_at: options?.undo ? null : now })
 		.eq('meal_id', mealId)
-		.eq('type', 'meal')
-		.is('deleted_at', null);
+		.eq('type', 'meal');
 
 	// TODO update meal positions as they may not go from 1 to N anymore
 
@@ -95,10 +95,21 @@ export async function deleteMeal(
 	// Now set the deleted_at timestamp for the meal
 	const { error } = await supabase
 		.from('space_meals')
-		.update({ deleted_at: now })
-		.eq('id', mealId)
-		.is('deleted_at', null);
+		.update({ deleted_at: options?.undo ? null : now })
+		.eq('id', mealId);
 	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
+
+	if (options?.undo) {
+		toast.info('Meal restored', { description: 'We got it back!' });
+	} else {
+		toast.info('Meal deleted', {
+			description: 'It looked yummy though',
+			action: {
+				label: 'Undo',
+				onClick: () => deleteMeal(activeSpace, mealId, { skipRefresh: false, undo: true })
+			}
+		});
+	}
 
 	if (options?.skipRefresh) return;
 	await activeSpace.refreshActivePlanMeals({ refreshShoppingList: false });
