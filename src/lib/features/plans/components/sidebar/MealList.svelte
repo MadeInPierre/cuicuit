@@ -7,7 +7,7 @@
 		type SwipeSingleDirection,
 		type SwipeStartEventDetail
 	} from '@svelte-put/swipeable';
-	import { GripVertical } from 'lucide-svelte';
+	import { Check, GripVertical, Trash2 } from 'lucide-svelte';
 	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
@@ -73,8 +73,8 @@
 	function swipeend(e: CustomEvent<SwipeEndEventDetail>, mealId: string) {
 		const { passThreshold, direction } = e.detail;
 		if (passThreshold) {
-			console.log('End swipe', passThreshold, direction);
-			deleteMeal(space, mealId);
+			if (direction === 'left') deleteMeal(space, mealId);
+			else toast.info('TODO Marked as cooked', { description: 'Bon appétit !' });
 		}
 	}
 </script>
@@ -97,7 +97,7 @@
 				style:left="var(--swipe-distance-x)"
 				onswipestart={swipestart}
 				onswipeend={(e) => swipeend(e, meal.id)}
-				class="flex gap-0.5 relative group"
+				class="flex relative group"
 				transition:slide={{ duration: slideDurationMs }}
 			>
 				<div class="mt-5" use:dragHandle>
@@ -105,6 +105,24 @@
 						class="absolute -left-2 -translate-x-1.5 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
 					/>
 				</div>
+
+				{#if direction === 'left'}
+					<div
+						class="absolute text-red-600 bg-red-600/10 w-full h-full rounded-lg z-10 flex items-center gap-2 justify-end pr-6 text-sm"
+						style:right="var(--swipe-distance-x)"
+					>
+						Delete
+						<Trash2 class="size-4" />
+					</div>
+				{:else if direction === 'right'}
+					<div
+						class="absolute text-emerald-600 bg-emerald-600/10 w-full h-full rounded-lg z-10 flex items-center gap-2 pl-6 text-sm"
+						style:right="var(--swipe-distance-x)"
+					>
+						<Check class="size-4" />
+						Cooked
+					</div>
+				{/if}
 
 				<MealCard {meal} showExpandedButtons size={cardSize} {expandOnSelected} />
 			</div>
