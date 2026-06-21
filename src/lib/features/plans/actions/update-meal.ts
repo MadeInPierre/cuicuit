@@ -74,9 +74,11 @@ export async function deleteMeal(
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 
-	const now = new Date().toISOString();
+	// Optimistically delete the meal in the local state
+	// activeSpace.activePlanMeals.filter((meal) => meal.id !== mealId);
 
 	// Soft delete related shopping list items first
+	const now = new Date().toISOString();
 	const { error: shoppingListError } = await supabase
 		.from('space_items')
 		.update({ deleted_at: now })
