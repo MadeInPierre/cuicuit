@@ -100,9 +100,9 @@ export async function deleteMeal(
 	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
 
 	if (options?.undo) {
-		toast.info('Meal restored', { description: 'We got it back!' });
+		toast.success('Meal restored', { description: 'We got it back!' });
 	} else {
-		toast.info('Meal deleted', {
+		toast.success('Meal deleted', {
 			description: 'It looked yummy though',
 			action: {
 				label: 'Undo',
