@@ -223,7 +223,9 @@ export default defineConfig({
 							expiration: { maxEntries: 20 }
 						}
 					}
-				]
+				],
+				// Cache up to 4MB
+				maximumFileSizeToCacheInBytes: 4000000
 			},
 			includeAssets: ['favicon.png'],
 			devOptions: {
