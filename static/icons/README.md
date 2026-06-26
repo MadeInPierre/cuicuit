@@ -1,0 +1,1 @@
+Generated using `cd src && npx pwa-icons`
