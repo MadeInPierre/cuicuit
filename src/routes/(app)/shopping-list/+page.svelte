@@ -462,7 +462,7 @@
 									{item.meals
 										.slice(0, 3)
 										.map((m) => m.recipe.title.split(' ')?.[0] || '')
-										.join(', ')}
+										.join(', ') + (item.meals.length > 3 ? ` +${item.meals.length - 3}` : '')}
 								</div>
 							{/if}
 

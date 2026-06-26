@@ -142,7 +142,7 @@
 	}}
 	use:swipeable={{
 		enabled: layout === 'list',
-		direction: 'x',
+		direction: 'left',
 		disableTouchEvents: false,
 		followThrough: { container: 'body' }
 	}}
