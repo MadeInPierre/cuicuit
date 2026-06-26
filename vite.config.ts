@@ -32,6 +32,40 @@ export default defineConfig({
 				background_color: '#faf9f5',
 				theme_color: '#faf9f5',
 				categories: ['food', 'health', 'shopping'],
+				edge_side_panel: {
+					preferred_width: 400
+				},
+				file_handlers: [],
+				protocol_handlers: [],
+				prefer_related_applications: false,
+				related_applications: [],
+				share_target: {
+					action: '/shared-content-receiver/',
+					method: 'GET',
+					params: {
+						url: 'link'
+					}
+				},
+				iarc_rating_id: '',
+				// @ts-ignore Defined in pwabuilder.com
+				widgets: [],
+				shortcuts: [
+					{
+						name: 'Recipes',
+						url: '/recipes',
+						description: 'Find recipes'
+					},
+					{
+						name: 'Plan',
+						url: '/plan',
+						description: 'Managed your meal plan'
+					},
+					{
+						name: 'Shopping List',
+						url: '/shopping-list',
+						description: 'Jump to your groceries'
+					}
+				],
 				screenshots: [
 					{
 						src: '/screenshots/recipes_wide_1280x720.png',
