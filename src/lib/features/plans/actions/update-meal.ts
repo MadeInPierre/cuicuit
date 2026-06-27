@@ -68,7 +68,7 @@ export async function updateMealPosition(
 export async function deleteMeal(
 	activeSpace: ActiveSpaceState,
 	mealId: string,
-	options?: { skipRefresh?: boolean; undo?: boolean }
+	options?: { skipRefresh?: boolean; undo?: boolean; toastId?: string | number }
 ) {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
@@ -76,7 +76,9 @@ export async function deleteMeal(
 	if (!mealId) throw new Error('Meal ID not provided');
 
 	// Optimistically delete the meal in the local state
-	if (!options?.undo) activeSpace.activePlanMeals.filter((meal) => meal.id !== mealId);
+	if (!options?.undo) {
+		activeSpace.activePlanMeals = activeSpace.activePlanMeals.filter((meal) => meal.id !== mealId);
+	}
 
 	// Soft delete related shopping list items first
 	const now = new Date().toISOString();
@@ -100,13 +102,14 @@ export async function deleteMeal(
 	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
 
 	if (options?.undo) {
-		toast.success('Meal restored', { description: 'We got it back!' });
+		toast.success('Meal restored', { description: 'We got it back!', id: options?.toastId });
 	} else {
-		toast.success('Meal deleted', {
+		const id = toast.success('Meal deleted', {
 			description: 'It looked yummy though',
 			action: {
 				label: 'Undo',
-				onClick: () => deleteMeal(activeSpace, mealId, { skipRefresh: false, undo: true })
+				onClick: () =>
+					deleteMeal(activeSpace, mealId, { skipRefresh: false, undo: true, toastId: id })
 			}
 		});
 	}

@@ -29,7 +29,8 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
 				)
 			)`
 		)
-		.eq('ingredients.ingredient.translations.language_id', languageId); // Only get translations in the user language
+		.eq('ingredients.ingredient.translations.language_id', languageId) // Only get translations in the user language
+		.is('deleted_at', null);
 	// .eq('author_id', userState.user?.id || ''); // TODO per-user recipe visibility
 
 	if (searchText) {
