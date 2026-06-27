@@ -249,6 +249,7 @@ export type Database = {
           courses: Database["public"]["Enums"]["course"][]
           created_at: string
           cuisines: Database["public"]["Enums"]["cuisine"][]
+          deleted_at: string | null
           description: string | null
           effort_level: Database["public"]["Enums"]["effort_level"]
           id: string
@@ -279,6 +280,7 @@ export type Database = {
           courses: Database["public"]["Enums"]["course"][]
           created_at?: string
           cuisines: Database["public"]["Enums"]["cuisine"][]
+          deleted_at?: string | null
           description?: string | null
           effort_level: Database["public"]["Enums"]["effort_level"]
           id?: string
@@ -309,6 +311,7 @@ export type Database = {
           courses?: Database["public"]["Enums"]["course"][]
           created_at?: string
           cuisines?: Database["public"]["Enums"]["cuisine"][]
+          deleted_at?: string | null
           description?: string | null
           effort_level?: Database["public"]["Enums"]["effort_level"]
           id?: string
