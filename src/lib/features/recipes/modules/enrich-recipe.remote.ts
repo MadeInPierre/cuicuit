@@ -6,12 +6,11 @@ import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import z from 'zod';
 import { parsedSearchInputSchema } from './parse-ingredients/parse';
 
-const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe developer.
-The user will provide you with a draft or incomplete recipe.
+const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe parser. The user will provide you with a draft or incomplete recipe.
 
 Your task is to enrich the recipe by inferring missing details (null/incomplete values) and correcting any inconsistencies:
 - Restructure, remove, or add steps for clarity. Only improve where necessary, preserving good steps.
-	- Steps must strictly reference only ingredients from the provided list.
+	- Steps must strictly reference only ingredients from the ingredient list.
 - Infer cooking times, temperatures, filters, enums, and serving suggestions if missing or incorrect.
 - Replace vague, ambiguous, or inconsistent information with precise, accurate details (enums, filters, times, description, steps).
 - Update description to match the recipe if vague, unclear, or inconsistent.
@@ -22,7 +21,7 @@ Your task is to enrich the recipe by inferring missing details (null/incomplete 
 - ALL filters must have at least one value and be correct.
 
 Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description).
-If an ingredient string is actually multiple ingredients combined, split it into multiple ingredients with correct details.
+If an ingredient string is actually describing multiple ingredients, split it into multiple ingredients with correct details.
 Do not add ingredients or details not in the original recipe.
 
 Requirements:
@@ -34,7 +33,10 @@ Requirements:
 
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({
-	title: publicRecipesRowSchema.shape.title,
+	title: publicRecipesRowSchema.shape.title.describe(
+		'Shortest possible title for this recipe in 1-2 words, e.g. title "Quiche aux courgettes" becomes "Quiche".'
+	),
+	shortTitle: publicRecipesRowSchema.shape.short_title,
 	description: publicRecipesRowSchema.shape.description,
 	servings: publicRecipesRowSchema.shape.servings,
 	time_prep_minutes: publicRecipesRowSchema.shape.time_prep_minutes,
@@ -58,9 +60,7 @@ const outputSchema = z.object({
 	),
 	ingredients: z
 		.array(parsedSearchInputSchema)
-		.describe(
-			'The list of ingredients used in the recipe, cleaned and enriched with inferred details.'
-		)
+		.describe('The list of ingredients, cleaned and enriched with inferred details.')
 });
 
 export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
@@ -77,7 +77,7 @@ export const enrichRecipe = query(
 		recipe: publicRecipesRowSchema.describe('The main recipe object to enrich.'),
 		ingredients: z
 			.array(z.string())
-			.describe('The list of ingredient strings used in the recipe, as raw parsed from the source.')
+			.describe('The list of ingredient strings, as raw parsed from the source.')
 	}),
 	async (input) => {
 		// Extract only the relevant fields using the schema

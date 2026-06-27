@@ -49,7 +49,7 @@ export const parsedSearchInputSchema = z.object({
 	preparation: z
 		.string()
 		.nullable()
-		.describe('Any short preparation notes for the ingredient (e.g., "sifted", "chopped").'),
+		.describe('Any short preparation notes for the ingredient (e.g., "sifted, chopped").'),
 	isOptional: z
 		.boolean()
 		.describe(

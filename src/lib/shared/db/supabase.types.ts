@@ -257,6 +257,7 @@ export type Database = {
           notes: string | null
           search_term: string | null
           servings: number
+          short_title: string
           skill_level: Database["public"]["Enums"]["skill_level"]
           slug: string
           source_type: Database["public"]["Enums"]["recipe_source_type"]
@@ -286,6 +287,7 @@ export type Database = {
           notes?: string | null
           search_term?: string | null
           servings: number
+          short_title: string
           skill_level: Database["public"]["Enums"]["skill_level"]
           slug: string
           source_type: Database["public"]["Enums"]["recipe_source_type"]
@@ -315,6 +317,7 @@ export type Database = {
           notes?: string | null
           search_term?: string | null
           servings?: number
+          short_title?: string
           skill_level?: Database["public"]["Enums"]["skill_level"]
           slug?: string
           source_type?: Database["public"]["Enums"]["recipe_source_type"]

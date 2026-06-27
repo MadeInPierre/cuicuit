@@ -71,6 +71,7 @@ export async function importRecipeFromUrl(
 		source_type: 'website',
 		source_url: data.source.url,
 		title: capitalize(data.title?.trim()),
+		short_title: capitalize(data.title?.trim())?.split(' ')?.[0] || '?',
 		description: capitalize(data.description?.trim() || ''),
 		time_prep_minutes: parseInt(data.time.prep) || null,
 		time_cook_minutes: parseInt(data.time.cook) || null,
@@ -134,6 +135,7 @@ export async function importRecipeFromUrl(
 			.update({
 				// Don't overwrite database IDs and automatic fields, only the user-editable fields
 				title: enrichedRecipe.recipe.title,
+				short_title: enrichedRecipe.recipe.shortTitle,
 				description: enrichedRecipe.recipe.description,
 				servings: enrichedRecipe.recipe.servings,
 				time_prep_minutes: enrichedRecipe.recipe.time_prep_minutes,

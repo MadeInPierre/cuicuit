@@ -9,6 +9,7 @@ export const createRecipeFormSchema = z
 			.string()
 			.min(3, 'Name must be at least 3 characters long.')
 			.max(50, 'Name must be at most 50 characters long.'),
+		short_title: z.string().min(1).max(40),
 		description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
 		// Images

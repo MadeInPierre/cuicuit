@@ -105,6 +105,7 @@
 						// General info
 						f.language = (recipeData.language.lang as LanguageKey) || 'fr-FR';
 						f.title = recipeData.title || 'New recipe';
+						f.short_title = recipeData.short_title || 'New';
 						f.description = recipeData.description || 'Delicious new recipe';
 
 						// Images
@@ -242,6 +243,7 @@
 
 				// General info
 				title: data.title,
+				short_title: data.short_title,
 				description: data.description,
 				notes: '',
 				author_id: userState.user.id,

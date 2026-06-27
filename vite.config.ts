@@ -43,7 +43,10 @@ export default defineConfig({
 					action: '/shared-content-receiver/',
 					method: 'GET',
 					params: {
-						url: 'link'
+						url: 'url',
+						text: 'text',
+						title: 'title'
+						// files:
 					}
 				},
 				iarc_rating_id: '',
