@@ -13,6 +13,7 @@
 	let { recipe = null, class: className = '' }: Props = $props();
 
 	let error = $state(false);
+	let triedFallbackUrl = $state(false);
 </script>
 
 {#if error}
@@ -33,9 +34,11 @@
 			else goto(`/recipes/${recipe.id}`);
 		}}
 		onerror={(e) => {
-			if (!error && recipe.image_ids && recipe.image_ids[0]) {
+			if (!triedFallbackUrl && recipe.image_ids && recipe.image_ids[0]) {
 				(e.currentTarget as HTMLImageElement).src =
 					`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`;
+				triedFallbackUrl = true;
+			} else {
 				error = true;
 			}
 		}}

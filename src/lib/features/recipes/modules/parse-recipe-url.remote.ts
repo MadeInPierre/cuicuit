@@ -1,10 +1,12 @@
+import { query } from '$app/server';
 import { PUBLIC_CUICUIT_SCRAPER_URL } from '$env/static/public';
+import { importRecipeUrlSchema } from '../models/schemas';
 
 const SCRAPER_API_URL = `${PUBLIC_CUICUIT_SCRAPER_URL}/scrape-recipe`;
 
 // See the scraper source code for the expected response format.
 // Don't forget to update this type if the scraper response changes.
-export type ScraperResponse = {
+export type RecipeParsed = {
 	source: {
 		name: string;
 		domain: string;
@@ -28,17 +30,8 @@ export type ScraperResponse = {
 	language: string;
 };
 
-/**
- * POST /api/recipes/import-from-url
- * Receives a JSON body with a "url" field and returns the scraped recipe data.
- * 
- * This is just a proxy to the Cuicuit scraper API to avoid CORS issues.
- */
-export async function POST({ request }) {
-	const body = (await request.json()) as { url: string };
-	const url: string = body.url;
-
-	if (!url || typeof url !== 'string') {
+export const parseRecipeUrl = query(importRecipeUrlSchema, async (input) => {
+	if (!input.url) {
 		return new Response(JSON.stringify({ error: 'Invalid input URL parameter' }), { status: 400 });
 	}
 
@@ -47,10 +40,10 @@ export async function POST({ request }) {
 		headers: {
 			'Content-Type': 'application/json'
 		},
-		body: JSON.stringify({ url })
+		body: JSON.stringify({ url: input.url })
 	});
 
-	const data = (await response.json()) as ScraperResponse;
+	const data = (await response.json()) as RecipeParsed;
 	console.log('Fetched recipe object:', data);
-	return new Response(JSON.stringify(data), { status: 200 });
-}
+	return data as RecipeParsed;
+});

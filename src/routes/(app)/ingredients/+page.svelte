@@ -2,6 +2,7 @@
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
+	import { capitalize } from '$lib/utils';
 	import { onMount } from 'svelte';
 
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
@@ -29,6 +30,8 @@
 	let ingredients: Ingredients = [];
 	let error: string | null = null;
 
+	const freqOrder = { daily: 0, common: 1, occasionally: 2, rare: 3, never: 4 };
+
 	onMount(async () => {
 		ingredients = await fetchIngredients({
 			start: 0,
@@ -43,31 +46,35 @@
 	<p>No ingredients found.</p>
 {:else}
 	{#each Object.entries(supermarketAisleSectionHeaders) as [aisleKey, aisleHeader] (aisleKey)}
-		<div class="mb-12">
-			<strong class="text-4xl mb-4 font-bold text-center w-full">{aisleHeader.title}</strong>
+		{@const aisleIngredients = ingredients.filter((ingredient) => ingredient.aisle === aisleKey)}
 
-			{#if ingredients.filter((ingredient) => ingredient.aisle === aisleKey).length > 0}
-				<div
-					style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.4rem; margin-top: 1rem;"
-				>
-					{#each ingredients
-						.filter((ingredient) => ingredient.aisle === aisleKey)
-						.sort((a, b) => {
-							// Sort by commonly_used first
-							const order = { daily: 0, common: 1, occasionally: 2, rare: 3, never: 4 };
-							const aRank = order[a.translations?.[0]?.commonly_used ?? ''] ?? 999;
-							const bRank = order[b.translations?.[0]?.commonly_used ?? ''] ?? 999;
-							if (aRank !== bRank) return aRank - bRank;
+		<div class="mb-12 grid space-y-6">
+			<strong class="text-4xl font-bold">{aisleHeader.title}</strong>
 
-							// Then sort alphabetically
-							const aName = a.translations?.[0]?.name_singular ?? '';
-							const bName = b.translations?.[0]?.name_singular ?? '';
-							return aName.localeCompare(bName);
-						}) as ingredient}
-						<ShoppingItemCard {ingredient} size="sm" />
-					{/each}
-				</div>
-			{/if}
+			{#each Object.keys(freqOrder) as freq}
+				{@const freqIngredients = aisleIngredients.filter(
+					(ing) => ing.translations[0]?.commonly_used === freq
+				)}
+
+				{#if freqIngredients.length > 0}
+					<div class="grid">
+						<h2 class="font-medium">{capitalize(freq)}</h2>
+
+						<div
+							style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.4rem; margin-top: 1rem;"
+						>
+							{#each freqIngredients.sort((a, b) => {
+								// Sort alphabetically
+								const aName = a.slug_general ?? '';
+								const bName = b.slug_general ?? '';
+								return aName.localeCompare(bName);
+							}) as ingredient}
+								<ShoppingItemCard {ingredient} size="sm" description={ingredient.slug_general} />
+							{/each}
+						</div>
+					</div>
+				{/if}
+			{/each}
 		</div>
 	{/each}
 {/if}

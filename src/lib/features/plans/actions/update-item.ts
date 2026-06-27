@@ -22,7 +22,7 @@ export async function updatePlanItemChecked(
 		.eq('id', itemId);
 	if (error) throw new Error('Error updating plan item: ' + error.message);
 
-	const undoFn = async () => {
+	const undoFn = async (toastId?: string | number) => {
 		const { error: undoError } = await supabase
 			.from('space_items')
 			.update({
@@ -33,18 +33,23 @@ export async function updatePlanItemChecked(
 		if (undoError) {
 			toast.error('Error undoing check: ' + undoError.message);
 		} else {
+			toast.success('Restored item', {
+				description: 'We got it back!',
+				id: toastId,
+				duration: 5000
+			});
 			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 			await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 		}
 	};
 
 	if (options?.showToast) {
-		toast.success(checked ? 'Item checked' : 'Item unchecked', {
+		const tid = toast.success(checked ? 'Item checked' : 'Item unchecked', {
 			duration: 5000,
 			action: {
 				label: 'Undo',
 				actionButtonStyle: 'outline',
-				onClick: undoFn
+				onClick: () => undoFn(tid)
 			}
 		});
 	}
@@ -61,7 +66,7 @@ export async function updatePlanItemDeleted(
 	activeSpace: ActiveSpaceState,
 	itemId: string,
 	deleted: boolean = true,
-	options?: { skipRefresh?: boolean; showToast?: boolean }
+	options?: { skipRefresh?: boolean; hideToast?: boolean }
 ): Promise<() => Promise<void>> {
 	if (!supabase) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanItems)
@@ -79,7 +84,7 @@ export async function updatePlanItemDeleted(
 
 	if (error) throw new Error('Error deleting plan item: ' + error.message);
 
-	const undoFn = async () => {
+	const undoFn = async (toastId?: string | number) => {
 		const { error: undoError } = await supabase
 			.from('space_items')
 			.update({ deleted_at: deleted ? null : now })
@@ -89,18 +94,23 @@ export async function updatePlanItemDeleted(
 		if (undoError) {
 			toast.error('Error undoing delete: ' + undoError.message);
 		} else {
+			toast.success('Restored item', {
+				description: 'We got it back!',
+				id: toastId,
+				duration: 5000
+			});
 			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
 			await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 		}
 	};
 
-	if (options?.showToast) {
-		toast.success('Item deleted', {
+	if (!options?.hideToast) {
+		const tid = toast.success('Item deleted', {
 			duration: 5000,
 			action: {
 				label: 'Undo',
 				actionButtonStyle: 'outline',
-				onClick: undoFn
+				onClick: () => undoFn(tid)
 			}
 		});
 	}

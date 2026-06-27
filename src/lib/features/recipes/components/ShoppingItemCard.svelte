@@ -101,7 +101,7 @@
 	type={layout === 'list' ? 'button' : undefined}
 	class={cn(
 		// Base
-		'z-50 relative group w-full select-none border-none rounded-lg shadow-2xs text-sm',
+		'z-0 relative group w-full select-none border-none rounded-lg shadow-2xs text-sm',
 		'p-2 bg-white hover:bg-white dark:bg-muted dark:hover:bg-muted transition-[color,box-shadow]',
 
 		// Layout base
