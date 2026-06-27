@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
@@ -52,7 +53,14 @@
 		inputRef?.focus();
 		inputValue = '';
 		searchResults = null;
-		goto('/plan');
+
+		// Go to show the result
+		if (
+			!page.route.id?.startsWith('/(app)/plan') &&
+			!page.route.id?.startsWith('/(app)/shopping-list')
+		) {
+			goto('/plan');
+		}
 	}
 
 	async function onSelectRecipe(recipe: Recipe) {
@@ -61,7 +69,14 @@
 		// Reset the search input and matches
 		inputValue = '';
 		searchResults = null;
-		goto('/plan');
+
+		// Go to show the result
+		if (
+			!page.route.id?.startsWith('/(app)/plan') &&
+			!page.route.id?.startsWith('/(app)/shopping-list')
+		) {
+			goto('/plan');
+		}
 	}
 </script>
 

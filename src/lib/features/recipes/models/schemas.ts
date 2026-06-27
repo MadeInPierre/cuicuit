@@ -1,4 +1,5 @@
 import { languageKeys } from '$lib/features/user-settings/consts';
+import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
 import { z } from 'zod';
 
 export const createRecipeFormSchema = z
@@ -11,6 +12,10 @@ export const createRecipeFormSchema = z
 			.max(50, 'Name must be at most 50 characters long.'),
 		short_title: z.string().min(1).max(40),
 		description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
+
+		// Source
+		source_type: publicRecipeSourceTypeSchema,
+		source_url: z.string().url("Please enter a valid URL, like https://...").nullable().or(z.literal('')),
 
 		// Images
 		imageIds: z
