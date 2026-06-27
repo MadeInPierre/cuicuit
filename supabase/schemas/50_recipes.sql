@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS "public"."recipes" (
     "id" "uuid" DEFAULT "gen_random_uuid" () NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now" () NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now" () NOT NULL,
+    "deleted_at" timestamp with time zone DEFAULT NULL,
     "title" character varying(100) NOT NULL,
     "short_title" character varying(40) NOT NULL,
     "description" "text",

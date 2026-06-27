@@ -10,6 +10,7 @@
 	import { Bird, Search } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import { slide } from 'svelte/transition';
+	import { Input } from '../ui/input';
 	import SearchLogic, { type SearchResults } from './SearchLogic.svelte';
 
 	type Props = {
@@ -136,6 +137,29 @@
 				}
 			}
 		})}
+	{:else}
+		<Input
+			type="text"
+			placeholder="3 tomatoes, chopped"
+			class="w-full"
+			bind:value={inputValue}
+			onfocus={() => (isSearchFocused = true)}
+			onblur={() => {
+				isSearchFocused = false;
+				hasTypedThisFocus = false;
+			}}
+			onkeydown={(e) => {
+				if (e.key === 'Enter' && searchResults?.processedIngredient?.matches) {
+					e.preventDefault(); // Avoid submitting the form
+					onSelectIngredient(0);
+				}
+				if (e.key === 'Escape') {
+					console.log('Escape pressed, closing search results');
+					inputValue = '';
+					searchResults = null;
+				}
+			}}
+		/>
 	{/if}
 
 	{#if openSearchResults && searchResults}
