@@ -65,6 +65,8 @@ const outputSchema = z.object({
 
 export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
 
+/* ------------- PUBLIC --------------- */
+
 /**
  * Takes a draft or incomplete recipe and enriches it to infer missing details, filters, optional ingredients, etc.
  * Uses a remote LLM.
@@ -72,7 +74,7 @@ export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
  * @param recipe - The incomplete recipe to enrich.
  * @returns A promise that resolves to the enriched recipe.
  */
-export const enrichRecipe = query(
+export const enrichParsedRecipe = query(
 	z.object({
 		recipe: publicRecipesRowSchema.describe('The main recipe object to enrich.'),
 		ingredients: z
@@ -86,48 +88,71 @@ export const enrichRecipe = query(
 			ingredients: input.ingredients
 		};
 
-		// Call the LLM to enrich the recipe
-		try {
-			const response = await generateText({
-				model: modelMistral,
-				output: Output.object({
-					schema: outputSchema,
-					description: 'The same recipe as received, but enriched and/or corrected.'
-				}),
-				providerOptions: {
-					mistral: {} satisfies MistralLanguageModelOptions
-				},
-				messages: [
-					{
-						role: 'system',
-						content: RECIPE_ENRICHMENT_SYSTEM_PROMPT
-					},
-					{
-						role: 'user',
-						content: JSON.stringify(relevantInput, null, 2)
-					}
-				],
-				temperature: 0
-			});
-
-			console.log('Response from Mistral model:', response);
-			return response.output satisfies EnrichedRecipeOutput;
-		} catch (error) {
-			if (error instanceof NoObjectGeneratedError) {
-				console.error('No object generated error, malformed LLM output:', error.text);
-
-				// Attempt to repair the malformed JSON
-				if (!error.text) throw error;
-				const repaired = repairLlmOutput(error.text);
-				if (repaired) return repaired;
-			} else {
-				console.error('Unexpected error during recipe enrichment:', error);
-			}
-
-			throw error;
-		}
+		return enrichRecipeLlm(relevantInput);
 	}
 );
+
+/**
+ * Takes a free-form recipe text as input and enriches it into a structure DB object.
+ * Infers missing details, filters, optional ingredients, etc.
+ * Uses a remote LLM.
+ *
+ * @param text - ny free-form text that should include title, ingredients and steps.
+ * @returns A promise that resolves to the enriched recipe.
+ */
+export const enrichTextRecipe = query(
+	z.object({
+		text: z.string().min(3)
+	}),
+	async (input) => {
+		return enrichRecipeLlm(input);
+	}
+);
+
+/* ------------- PRIVATE --------------- */
+
+async function enrichRecipeLlm(recipeInput: object) {
+	// Call the LLM to enrich the recipe
+	try {
+		const response = await generateText({
+			model: modelMistral,
+			output: Output.object({
+				schema: outputSchema,
+				description: 'The same recipe as received, but enriched and/or corrected.'
+			}),
+			providerOptions: {
+				mistral: {} satisfies MistralLanguageModelOptions
+			},
+			messages: [
+				{
+					role: 'system',
+					content: RECIPE_ENRICHMENT_SYSTEM_PROMPT
+				},
+				{
+					role: 'user',
+					content: JSON.stringify(recipeInput, null, 2)
+				}
+			],
+			temperature: 0
+		});
+
+		console.log('Response from Mistral model:', response);
+		return response.output satisfies EnrichedRecipeOutput;
+	} catch (error) {
+		if (error instanceof NoObjectGeneratedError) {
+			console.error('No object generated error, malformed LLM output:', error.text);
+
+			// Attempt to repair the malformed JSON
+			if (!error.text) throw error;
+			const repaired = repairLlmOutput(error.text);
+			if (repaired) return repaired;
+		} else {
+			console.error('Unexpected error during recipe enrichment:', error);
+		}
+
+		throw error;
+	}
+}
 
 // LLM-generated
 function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {

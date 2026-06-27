@@ -12,11 +12,11 @@
  * - "sugar" (no quantity)
  */
 import {
-    unitSchema,
-    volumeAliases,
-    weightAliases,
-    wholeAliases,
-    type Unit
+	unitSchema,
+	volumeAliases,
+	weightAliases,
+	wholeAliases,
+	type Unit
 } from '$lib/shared/utils/quantity';
 import { z } from 'zod';
 
@@ -34,26 +34,24 @@ export const parsedSearchInputSchema = z.object({
 		.nullable(),
 	linkWord: z
 		.string()
-		.describe(
-			'The linking word used between the quantity and ingredient (e.g., "of", "de", "d\'").'
-		),
+		.describe('The linking word used between the quantity and ingredient, e.g. "of", "de", "d\'".'),
 	ingredientText: z
 		.string()
 		.describe(
-			'The name or description of the ingredient. Must be edible and easy to find in a database of common ingredients.'
+			'Name of the ingredient. Must be edible and easy to find in a database of common ingredients.'
 		),
 	description: z
 		.string()
 		.nullable()
-		.describe('Short attitional description or ingredient variant/subitem (e.g., "large").'),
+		.describe('Short attitional description or ingredient variant/subitem, e.g. "large".'),
 	preparation: z
 		.string()
 		.nullable()
-		.describe('Any short preparation notes for the ingredient (e.g., "sifted, chopped").'),
+		.describe('Any short preparation notes for the ingredient, e.g. "sifted, chopped".'),
 	isOptional: z
 		.boolean()
 		.describe(
-			'True if the recipe can be made without this ingredient and retain its essential character.'
+			'True if the recipe can still be made without this ingredient and retain its essential character.'
 		)
 });
 

@@ -122,11 +122,17 @@ export const importRecipeUrlSchema = z.object({
 
 export type ImportRecipeUrlSchema = typeof importRecipeUrlSchema;
 
+export const importRecipeTextSchema = z.object({
+	text: z.string().min(100, 'Text must be at least 100 characters long.')
+});
+
+export type ImportRecipeTextSchema = typeof importRecipeTextSchema;
+
 export const createRecipeManualSchema = z.object({
 	title: z
 		.string()
-		.min(3, 'Name must be at least 3 characters long.')
-		.max(50, 'Name must be at most 50 characters long.')
+		.min(3, 'Title must be at least 3 characters long.')
+		.max(50, 'Title must be at most 50 characters long.')
 });
 
 export type CreateRecipeManualSchema = typeof createRecipeManualSchema;

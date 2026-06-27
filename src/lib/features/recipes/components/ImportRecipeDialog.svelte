@@ -5,6 +5,7 @@
 	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 	import CreateRecipeManualForm from './CreateRecipeManualForm.svelte';
+	import ImportRecipeFromTextForm from './ImportRecipeFromTextForm.svelte';
 	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 
 	type Props = {
@@ -18,22 +19,22 @@
 </script>
 
 {#snippet tabList()}
-	<Tabs.List class="grid w-full grid-cols-4 mt-6 mb-4">
+	<Tabs.List class="grid w-full grid-cols-3 mt-6 mb-4">
 		<Tabs.Trigger value="url">
 			<Globe class="mr-2 size-4" />
 			Web
 		</Tabs.Trigger>
-		<Tabs.Trigger value="manual">
-			<Pencil class="mr-2 size-4" />
-			Manual
-		</Tabs.Trigger>
-		<Tabs.Trigger value="image">
-			<FileImage class="mr-2 size-4" />
-			Image
-		</Tabs.Trigger>
 		<Tabs.Trigger value="text">
 			<FileText class="mr-2 size-4" />
 			Text
+		</Tabs.Trigger>
+		<!-- <Tabs.Trigger value="image">
+			<FileImage class="mr-2 size-4" />
+			Image
+			</Tabs.Trigger> -->
+		<Tabs.Trigger value="manual">
+			<Pencil class="mr-2 size-4" />
+			Manual
 		</Tabs.Trigger>
 	</Tabs.List>
 {/snippet}
@@ -155,7 +156,7 @@
 
 				{@render tabList()}
 
-				TODO
+				<ImportRecipeFromTextForm bind:openDialog />
 			</Tabs.Content>
 
 			<Tabs.Content value="manual" class="">
