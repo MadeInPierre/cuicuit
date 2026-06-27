@@ -209,19 +209,19 @@
 			{@render children?.()}
 		</div>
 
-		{@render bonusButtons('flex items-center gap-2 ml-auto flex-row-reverse')}
+		{@render bonusButtons('absolute right-12 p-2 rounded-full flex items-center gap-2 flex-row-reverse bg-white dark:bg-muted')}
 
 		{#if deletable}
 			<Button
 				size="icon"
 				variant="ghost"
-				class="mr-1 size-10 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+				class="ml-auto mr-1 size-10 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
 				onclick={() => onDelete?.()}
 			>
 				<Trash class="size-4" />
 			</Button>
 		{:else if checkable}
-			<div class="mr-3">
+			<div class="ml-auto mr-3">
 				{#if checked}
 					<CircleCheckBig class="size-5 text-muted-foreground" />
 				{:else}
@@ -237,14 +237,15 @@
 		class={cn(
 			'opacity-0 transition-opacity duration-75 group-hover:opacity-100',
 			selected && 'md:opacity-100',
-			className
+			className,
+			checked && 'bg-transparent',
 		)}
 	>
 		{#if selectable && ingredient}
 			<Button
 				size="icon"
 				variant="ghost"
-				class={cn('size-8 rounded-full text-muted hover:bg-primary/10 hover:text-primary')}
+				class={cn('size-8 rounded-full text-muted-foreground/30 hover:bg-primary/10 hover:text-primary')}
 				onclick={(e) => {
 					if (isTouchPointerEvent(e)) return;
 					e.preventDefault();
@@ -266,7 +267,7 @@
 			<Button
 				size="icon"
 				variant="ghost"
-				class="size-8 rounded-full text-muted hover:bg-primary/10 hover:text-primary"
+				class="size-8 rounded-full text-muted-foreground/30 hover:bg-primary/10 hover:text-primary"
 				onclick={async (e) => {
 					if (isTouchPointerEvent(e)) return;
 					e.preventDefault();

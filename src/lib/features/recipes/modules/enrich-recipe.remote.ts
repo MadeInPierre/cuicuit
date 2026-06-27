@@ -34,7 +34,7 @@ Requirements:
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({
 	title: publicRecipesRowSchema.shape.title.describe(
-		'Shortest possible title for this recipe in 1-2 words, e.g. title "Quiche aux courgettes" becomes "Quiche".'
+		'Shortest possible title for this recipe in 1 word, e.g. title "Quiche aux courgettes" becomes "Quiche".'
 	),
 	shortTitle: publicRecipesRowSchema.shape.short_title,
 	description: publicRecipesRowSchema.shape.description,
