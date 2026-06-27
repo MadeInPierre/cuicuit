@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS "public"."recipes" (
     "created_at" timestamp with time zone DEFAULT "now" () NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now" () NOT NULL,
     "title" character varying(100) NOT NULL,
+    "short_title" character varying(40) NOT NULL,
     "description" "text",
     "notes" "text",
     "image_ids" "text" [],
@@ -283,11 +284,12 @@ $$;
 ALTER FUNCTION "public"."generate_recipe_search_term" () OWNER TO "postgres";
 
 -- 3. Triggers
-CREATE OR REPLACE TRIGGER "recipe_search_term_insert_trigger" BEFORE INSERT ON "public"."recipes" FOR EACH ROW
+CREATE OR REPLACE TRIGGER "recipe_search_term_insert_trigger"
+BEFORE INSERT ON "public"."recipes" FOR EACH ROW
 EXECUTE FUNCTION "public"."generate_recipe_search_term" ();
 
-CREATE OR REPLACE TRIGGER "recipe_search_term_update_trigger" BEFORE
-UPDATE ON "public"."recipes" FOR EACH ROW WHEN (
+CREATE OR REPLACE TRIGGER "recipe_search_term_update_trigger"
+BEFORE UPDATE ON "public"."recipes" FOR EACH ROW WHEN (
     (
         (
             ("old"."title")::"text" IS DISTINCT FROM ("new"."title")::"text"
@@ -336,7 +338,8 @@ $$;
 ALTER FUNCTION "public"."set_unique_slug_from_name" () OWNER TO "postgres";
 
 -- 3. Triggers
-CREATE OR REPLACE TRIGGER "recipes_insert_slug" BEFORE INSERT ON "public"."recipes" FOR EACH ROW WHEN (
+CREATE OR REPLACE TRIGGER "recipes_insert_slug"
+BEFORE INSERT ON "public"."recipes" FOR EACH ROW WHEN (
     (
         ("new"."title" IS NOT NULL)
         AND (
@@ -347,8 +350,8 @@ CREATE OR REPLACE TRIGGER "recipes_insert_slug" BEFORE INSERT ON "public"."recip
 )
 EXECUTE FUNCTION "public"."set_unique_slug_from_name" ();
 
-CREATE OR REPLACE TRIGGER "update_recipes_updated_at" BEFORE
-UPDATE ON "public"."recipes" FOR EACH ROW
+CREATE OR REPLACE TRIGGER "update_recipes_updated_at"
+BEFORE UPDATE ON "public"."recipes" FOR EACH ROW
 EXECUTE FUNCTION "public"."update_updated_at_column" ();
 
 -- 4. Grants

@@ -32,6 +32,7 @@ export async function createDraftRecipe(
 
 				// General info
 				title: title || 'New Recipe',
+				short_title: (title || 'Unknown').split(' ')?.[0] || 'Unknown',
 				description: '',
 				notes: '',
 				author_id: userState.user.id,

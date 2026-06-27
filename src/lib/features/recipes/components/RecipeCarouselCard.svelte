@@ -57,14 +57,6 @@
 					<RecipeImage {recipe} class="absolute inset-0 w-full h-full object-cover" />
 				</a>
 
-				{#if recipe.source_type === 'website'}
-					<div
-						class="absolute top-2 right-2 text-xs rounded-full bg-black/60 text-white py-0.5 px-1.5"
-					>
-						{recipe.source_type}
-					</div>
-				{/if}
-
 				<div class="absolute top-2 right-2 grid space-y-2 z-10">
 					<!-- <Button
 						variant="ghost"
