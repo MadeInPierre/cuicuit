@@ -29,6 +29,7 @@
 		CalendarPlus,
 		Camera,
 		Equal,
+		ExternalLink,
 		Globe,
 		Grid3x3,
 		HandCoins,
@@ -386,6 +387,17 @@
 								Edit
 							</Button>
 						</div>
+
+						<div
+							class="p-3 bg-sidebar rounded-lg text-sm text-muted-foreground text-center text-balance grid gap-2"
+						>
+							Want nutrition facts, custom filters, tags, recipe variants, and more?
+
+							<Button variant="link" size="sm" class="w-full flex gap-2 items-center">
+								Vote for features
+								<ExternalLink />
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -418,9 +430,13 @@
 				checkable={false}
 			>
 				{#if view === 'list'}
-					<span class="text-xs text-muted-foreground/80 flex gap-3">
+					<!-- <span class="text-xs text-muted-foreground/80 flex gap-3">
 						{displayAmount + ' ' + ing.unit?.replace('whole', '')}
-					</span>
+					</span> -->
+
+					{#if ing.is_optional}
+						<span class="text-xs text-muted-foreground/80"> Optional </span>
+					{/if}
 				{/if}
 			</ShoppingItemCard>
 		{/each}

@@ -121,6 +121,7 @@
 							<ShoppingItemCard
 								layout={filterOnIngredientId ? 'list' : 'grid'}
 								ingredient={item.ingredient}
+								name={item.name}
 								description={item.quantity
 									? item.quantity + ' ' + item.unit?.replace('whole', '')
 									: ''}

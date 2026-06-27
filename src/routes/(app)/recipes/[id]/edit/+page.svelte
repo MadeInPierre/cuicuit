@@ -22,6 +22,7 @@
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+	import SearchResultsSidebar from '$lib/shared/components/search/SearchResultsSidebar.svelte';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
@@ -37,6 +38,7 @@
 	import {
 		ChevronDown,
 		ChevronUp,
+		ExternalLink,
 		LoaderCircle,
 		Minus,
 		Plus,
@@ -48,12 +50,12 @@
 	import CirclePlus from 'lucide-svelte/icons/circle-plus';
 	import Heart from 'lucide-svelte/icons/heart';
 	import { toast } from 'svelte-sonner';
+	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import IngredientEditItem from './IngredientEditItem.svelte';
-	import SearchResultsSidebar from '$lib/shared/components/search/SearchResultsSidebar.svelte';
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id as string;
@@ -67,7 +69,12 @@
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(createRecipeFormSchema)), {
 		SPA: true,
-		validators: zod(createRecipeFormSchema),
+		validators: zod(
+			createRecipeFormSchema.refine(
+				(s) => !(s.source_type === 'website' && !s.source_url),
+				'Recipes from websites must have a URL.'
+			)
+		),
 		resetForm: false,
 		taintedMessage: null,
 		async onUpdate({ form }) {
@@ -107,6 +114,10 @@
 						f.title = recipeData.title || 'New recipe';
 						f.short_title = recipeData.short_title || 'New';
 						f.description = recipeData.description || 'Delicious new recipe';
+
+						// Source
+						f.source_type = recipeData.source_type;
+						f.source_url = recipeData.source_url;
 
 						// Images
 						f.imageIds = recipeData.image_ids || [];
@@ -239,7 +250,8 @@
 				id: isNewRecipe ? undefined : pageRecipeId,
 
 				// Source
-				source_type: 'user-manual',
+				source_type: data.source_type,
+				source_url: data.source_type === 'user-manual' ? null : data.source_url,
 
 				// General info
 				title: data.title,
@@ -433,6 +445,10 @@
 					</div>
 				</div>
 
+				{#each $errors._errors as e (e)}
+					<Label class="text-red-600 ml-auto">{e}</Label>
+				{/each}
+
 				{#if banner == 'import-incomplete' && openBanner}
 					<div class="w-full bg-yellow-50 flex gap-8 p-4 items-start text-yellow-800" out:slide>
 						<div class="rounded-md text-sm">
@@ -487,7 +503,7 @@
 														name="language"
 														bind:value={$formData.language}
 													>
-														<Select.Trigger class="w-20">
+														<Select.Trigger class="w-20 h-9">
 															{languages[$formData.language]?.emoji || '?'}
 														</Select.Trigger>
 														<Select.Content>
@@ -527,6 +543,57 @@
 										</Form.Control>
 										<Form.FieldErrors />
 									</Form.Field>
+
+									<div class="flex gap-4">
+										<Form.Field {form} name="language" class="grid">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Source</Form.Label>
+
+													<Select.Root
+														{...props}
+														type="single"
+														name="source_type"
+														bind:value={$formData.source_type}
+													>
+														<Select.Trigger class="w-34 h-9">
+															{capitalize($formData.source_type).replaceAll('-', ' ') || '?'}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Group>
+																<Select.GroupHeading>Source type</Select.GroupHeading>
+																{#each ['website', 'user-manual'] as value (value)}
+																	<Select.Item
+																		{value}
+																		label={capitalize(value).replaceAll('-', ' ') || '?'}
+																		class="flex gap-2 items-center"
+																	>
+																		<span>{capitalize(value).replaceAll('-', ' ') || '?'}</span>
+																	</Select.Item>
+																{/each}
+															</Select.Group>
+														</Select.Content>
+													</Select.Root>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+
+										<Form.Field {form} name="source_url" class="w-full grid">
+											<Form.Control>
+												{#snippet children({ props })}
+													<Form.Label>Source URL</Form.Label>
+													<Input
+														disabled={loading || $formData.source_type !== 'website'}
+														{...props}
+														bind:value={$formData.source_url}
+														placeholder="(optional) https://..."
+													/>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+									</div>
 								</div>
 							</Card.Content>
 						</Card.Root>
@@ -632,81 +699,84 @@
 								</Card.Description>
 							</Card.Header>
 							<Card.Content class="grid gap-6">
-								{#each $formData.stepDescriptions as desc, i}
-									<Form.Field {form} name="stepDescriptions" class="grid">
-										<Form.Control>
-											{#snippet children({ props })}
-												<div class="grid gap-1.5">
-													<div class="flex items-center">
-														<Form.Label
-															class={cn(
-																'mr-auto',
-																$errors.stepDescriptions?.[i] && 'text-destructive'
-															)}>Step {i + 1}</Form.Label
-														>
-														{#if i > 0}
-															<Button
-																variant="ghost"
-																size="icon"
-																class="size-6"
-																onclick={() => {
-																	const temp = $formData.stepDescriptions[i];
-																	$formData.stepDescriptions[i] = $formData.stepDescriptions[i - 1];
-																	$formData.stepDescriptions[i - 1] = temp;
-																}}
+								{#each $formData.stepDescriptions as desc, i (desc)}
+									<div animate:flip={{ duration: 200 }}>
+										<Form.Field {form} name="stepDescriptions" class="grid">
+											<Form.Control>
+												{#snippet children({ props })}
+													<div class="grid gap-1.5">
+														<div class="flex items-center">
+															<Form.Label
+																class={cn(
+																	'mr-auto',
+																	$errors.stepDescriptions?.[i] && 'text-destructive'
+																)}>Step {i + 1}</Form.Label
 															>
-																<ChevronUp class="size-4" />
-																<span class="sr-only">Move up</span>
-															</Button>
-														{/if}
-														{#if i < $formData.stepDescriptions.length - 1}
-															<Button
-																variant="ghost"
-																size="icon"
-																class="size-6 ml-2"
-																onclick={() => {
-																	const temp = $formData.stepDescriptions[i];
-																	$formData.stepDescriptions[i] = $formData.stepDescriptions[i + 1];
-																	$formData.stepDescriptions[i + 1] = temp;
-																}}
-															>
-																<ChevronDown class="size-4" />
-																<span class="sr-only">Move down</span>
-															</Button>
-														{/if}
-														{#if $formData.stepDescriptions.length > 1}
-															<Button
-																variant="ghost"
-																size="icon"
-																class="size-6 ml-2"
-																onclick={() =>
-																	($formData.stepDescriptions = $formData.stepDescriptions.filter(
-																		(_, j) => j !== i
-																	))}
-															>
-																<X class="size-4" />
-																<span class="sr-only">Delete</span>
-															</Button>
-														{/if}
-													</div>
+															{#if i > 0}
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	class="size-6"
+																	onclick={() => {
+																		const temp = $formData.stepDescriptions[i];
+																		$formData.stepDescriptions[i] =
+																			$formData.stepDescriptions[i - 1];
+																		$formData.stepDescriptions[i - 1] = temp;
+																	}}
+																>
+																	<ChevronUp class="size-4" />
+																	<span class="sr-only">Move up</span>
+																</Button>
+															{/if}
+															{#if i < $formData.stepDescriptions.length - 1}
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	class="size-6 ml-2"
+																	onclick={() => {
+																		const temp = $formData.stepDescriptions[i];
+																		$formData.stepDescriptions[i] =
+																			$formData.stepDescriptions[i + 1];
+																		$formData.stepDescriptions[i + 1] = temp;
+																	}}
+																>
+																	<ChevronDown class="size-4" />
+																	<span class="sr-only">Move down</span>
+																</Button>
+															{/if}
+															{#if $formData.stepDescriptions.length > 1}
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	class="size-6 ml-2"
+																	onclick={() =>
+																		($formData.stepDescriptions = $formData.stepDescriptions.filter(
+																			(_, j) => j !== i
+																		))}
+																>
+																	<X class="size-4" />
+																	<span class="sr-only">Delete</span>
+																</Button>
+															{/if}
+														</div>
 
-													<div class="flex gap-2 min-h-20">
-														<Textarea
-															{...props}
-															id="description"
-															placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
-															class="min-h-20 max-h-52"
-															bind:value={$formData.stepDescriptions[i]}
-														/>
+														<div class="flex gap-2 min-h-20">
+															<Textarea
+																{...props}
+																id="description"
+																placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
+																class="min-h-20 max-h-52"
+																bind:value={$formData.stepDescriptions[i]}
+															/>
 
-														<!-- <label
+															<!-- <label
 															class="h-24 aspect-square rounded-md border border-dashed cursor-pointer bg-muted flex items-center justify-center"
 														>
 															<Camera class="text-muted-foreground size-4" />
 														</label> -->
-													</div>
+														</div>
 
-													<!-- <div class="w-full grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+														<!-- <div class="w-full grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
 														<div class="bg-muted w-full aspect-square rounded-md"></div>
 														<div
 															class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
@@ -715,16 +785,17 @@
 														</div>
 													</div> -->
 
-													{#if $errors.stepDescriptions?.[i]}
-														<p class="text-destructive text-sm font-medium">
-															{$errors.stepDescriptions[i]}
-														</p>
-													{/if}
-												</div>
-											{/snippet}
-										</Form.Control>
-										<Form.FieldErrors />
-									</Form.Field>
+														{#if $errors.stepDescriptions?.[i]}
+															<p class="text-destructive text-sm font-medium">
+																{$errors.stepDescriptions[i]}
+															</p>
+														{/if}
+													</div>
+												{/snippet}
+											</Form.Control>
+											<Form.FieldErrors />
+										</Form.Field>
+									</div>
 								{/each}
 							</Card.Content>
 							<!-- <Card.Footer class="grid gap-3 border-t p-6">
@@ -1078,7 +1149,19 @@
 								</div>
 							</Card.Content>
 						</Card.Root>
-						<Card.Root>
+
+						<div
+							class="p-3 bg-sidebar rounded-lg text-sm text-muted-foreground text-center text-balance grid gap-2"
+						>
+							Want nutrition facts, custom filters, tags, recipe variants, and more?
+
+							<Button variant="link" size="sm" class="w-full flex gap-2 items-center">
+								Vote for features
+								<ExternalLink />
+							</Button>
+						</div>
+
+						<!-- <Card.Root>
 							<Card.Header>
 								<Card.Title>Detected information</Card.Title>
 								<Card.Description>Based on ingredients</Card.Description>
@@ -1100,12 +1183,11 @@
 									</div>
 								</div>
 							</Card.Content>
-						</Card.Root>
+						</Card.Root> -->
 
-						<div class="flex-1 gap-2 text-center text-xs text-muted-foreground">
+						<!-- <div class="flex-1 gap-2 text-center text-xs text-muted-foreground">
 							<p>Recipe id: {pageRecipeId}</p>
-							<!-- <p>Status: {recipeDocState.data?.status}</p> -->
-						</div>
+						</div> -->
 					</div>
 				</div>
 

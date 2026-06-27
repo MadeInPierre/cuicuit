@@ -19,7 +19,7 @@
 	type Props = {
 		// Ingredient
 		ingredient?: RecipeIngredientWithTranslations | null;
-		name?: string;
+		name?: string | null;
 		description?: string | null;
 		plural?: boolean;
 		// Appearance
@@ -238,7 +238,7 @@
 			'opacity-0 transition-opacity duration-75 group-hover:opacity-100',
 			selected && 'md:opacity-100',
 			className,
-			checked && 'bg-transparent',
+			checked && 'bg-background',
 		)}
 	>
 		{#if selectable && ingredient}
