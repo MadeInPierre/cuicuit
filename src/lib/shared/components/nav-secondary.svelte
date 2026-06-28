@@ -1,8 +1,8 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
 	import type { ComponentProps } from 'svelte';
 	import ThemeButton from './ThemeButton.svelte';
-	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
 
 	let {
 		ref = $bindable(null),
@@ -50,7 +50,7 @@
 					</Sidebar.MenuButton>
 
 					{#if item.badge}
-						<Sidebar.MenuBadge class="bg-red-500 rounded-full text-white text-xs">
+						<Sidebar.MenuBadge class="bg-red-500 w-4 h-4 min-w-0 rounded-full text-white text-xs">
 							{item.badge}
 						</Sidebar.MenuBadge>
 					{/if}

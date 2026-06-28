@@ -1,4 +1,5 @@
 <script lang="ts">
+	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import PlanList from '../../../lib/features/plans/components/PlanList.svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 </script>
@@ -9,6 +10,11 @@
 			<h2 class="text-2xl font-bold tracking-tight">Meal Plan</h2>
 			<p class="text-muted-foreground">Here's your plan. Add meals to get started.</p>
 		</div>
+
+		<VoteForFeatures
+			class="ml-auto pb-2 w-full max-w-xs hidden sm:block"
+			title="Want a calendar view and more?"
+		/>
 	</div>
 
 	<!-- <SearchSidebar class="md:hidden" /> -->

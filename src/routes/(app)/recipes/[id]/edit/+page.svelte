@@ -32,13 +32,13 @@
 	import { Label } from '$lib/shared/components/ui/label/index.js';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
+	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { capitalize, cn } from '$lib/utils';
 	import {
 		ChevronDown,
 		ChevronUp,
-		ExternalLink,
 		LoaderCircle,
 		Minus,
 		Plus,
@@ -504,7 +504,7 @@
 														bind:value={$formData.language}
 													>
 														<Select.Trigger class="w-20 h-9">
-															{languages[$formData.language]?.emoji || '?'}
+															{languages[$formData.language as LanguageKey]?.emoji || '?'}
 														</Select.Trigger>
 														<Select.Content>
 															<Select.Group>
@@ -1150,16 +1150,9 @@
 							</Card.Content>
 						</Card.Root>
 
-						<div
-							class="p-3 bg-sidebar rounded-lg text-sm text-muted-foreground text-center text-balance grid gap-2"
-						>
-							Want nutrition facts, custom filters, tags, recipe variants, and more?
-
-							<Button variant="link" size="sm" class="w-full flex gap-2 items-center">
-								Vote for features
-								<ExternalLink />
-							</Button>
-						</div>
+						<VoteForFeatures
+							title="Want nutrition facts, custom filters, tags, nested recipes, and more?"
+						/>
 
 						<!-- <Card.Root>
 							<Card.Header>
