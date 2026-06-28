@@ -1,12 +1,6 @@
 <script lang="ts">
-	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
-	import ArrowUpRight from 'lucide-svelte/icons/arrow-up-right';
-	import Ellipsis from 'lucide-svelte/icons/ellipsis';
-	import Link from 'lucide-svelte/icons/link';
-	import StarOff from 'lucide-svelte/icons/star-off';
-	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import { useMedia } from '../hooks/use-media.svelte';
 
 	let { favorites }: { favorites: { name: string; url: string; emoji: string }[] } = $props();
@@ -32,7 +26,7 @@
 						<span>{item.name}</span>
 					{/snippet}
 				</Sidebar.MenuButton>
-				<DropdownMenu.Root>
+				<!-- <DropdownMenu.Root>
 					<DropdownMenu.Trigger>
 						{#snippet child({ props })}
 							<Sidebar.MenuAction showOnHover {...props}>
@@ -65,14 +59,15 @@
 							<span>Delete</span>
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>
-				</DropdownMenu.Root>
+				</DropdownMenu.Root> -->
 			</Sidebar.MenuItem>
 		{/each}
-		<Sidebar.MenuItem>
+
+		<!-- <Sidebar.MenuItem>
 			<Sidebar.MenuButton class="text-sidebar-foreground/70">
 				<Ellipsis />
 				<span>More</span>
 			</Sidebar.MenuButton>
-		</Sidebar.MenuItem>
+		</Sidebar.MenuItem> -->
 	</Sidebar.Menu>
 </Sidebar.Group>

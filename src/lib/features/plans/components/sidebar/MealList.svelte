@@ -111,7 +111,7 @@
 			>
 				<div class="mt-5" use:dragHandle>
 					<GripVertical
-						class="absolute -left-2 -translate-x-1.5 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
+						class="absolute -left-2.5 -translate-x-1.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
 					/>
 				</div>
 

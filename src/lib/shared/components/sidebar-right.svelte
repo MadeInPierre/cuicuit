@@ -62,7 +62,11 @@
 		<PlanList displayMode="sidebar" filterOnIngredientId={selectedMealIngredient.value?.id} />
 	</Sidebar.Content>
 
-	<Sidebar.Footer>
+	<Sidebar.Footer class="relative">
+		<div
+			class="pointer-events-none absolute inset-x-0 -top-4 z-50 h-4 bg-gradient-to-t from-sidebar to-transparent"
+		></div>
+
 		<Sidebar.Menu>
 			{#if !page.url.pathname.startsWith('/shopping-list')}
 				<Sidebar.MenuItem class="text-muted-foreground">

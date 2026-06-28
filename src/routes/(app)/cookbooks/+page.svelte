@@ -14,6 +14,7 @@
 		Salad,
 		UsersRound
 	} from 'lucide-svelte';
+	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 
 	const space = getActiveSpaceState();
 </script>
@@ -26,9 +27,9 @@
 		</div>
 	</div>
 
-	<Separator class="my-6" />
+	<SeparatorZigZag class="my-6" />
 
-	<div class="absolute inset-0 z-10 flex flex-col gap-3 items-center justify-center px-20">
+	<div class="my-20 flex flex-col gap-3 items-center justify-center px-20">
 		<div class="text-center space-y-2">
 			<p class="text-xl font-semibold">Interested in cookbooks?</p>
 			<p class="text-muted-foreground max-w-90">

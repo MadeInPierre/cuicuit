@@ -20,6 +20,7 @@
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
+	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
 	import {
@@ -29,7 +30,6 @@
 		CalendarPlus,
 		Camera,
 		Equal,
-		ExternalLink,
 		Globe,
 		Grid3x3,
 		HandCoins,
@@ -388,16 +388,9 @@
 							</Button>
 						</div>
 
-						<div
-							class="p-3 bg-sidebar rounded-lg text-sm text-muted-foreground text-center text-balance grid gap-2"
-						>
-							Want nutrition facts, custom filters, tags, recipe variants, and more?
-
-							<Button variant="link" size="sm" class="w-full flex gap-2 items-center">
-								Vote for features
-								<ExternalLink />
-							</Button>
-						</div>
+						<VoteForFeatures
+							title="Want nutrition facts, custom filters, tags, recipe variants, and more?"
+						/>
 					</div>
 				</div>
 			</div>
