@@ -1,19 +1,22 @@
 {
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
     "packages": {
         ".": {
-            "bootstrap-sha": "080114edf7ecaef335684659a2bd0433e1b84c22",
-            "release-as": "0.0.1",
-            "bump-minor-pre-major": true,
-            "bump-patch-for-minor-pre-major": true,
+            "component": "cuicuit-web",
+            "release-type": "node",
+            "changelog": "CHANGELOG.md",
             "plugins": [
                 "sentence-case"
             ],
-            "release-type": "node",
             "exclude-paths": [
                 "scraper"
             ],
             "draft": true,
-            "include-commit-authors": true
+            "include-commit-authors": true,
+
+            "prerelease": true,
+            "bump-minor-pre-major": true,
+            "bump-patch-for-minor-pre-major": true
         }
     }
 }
