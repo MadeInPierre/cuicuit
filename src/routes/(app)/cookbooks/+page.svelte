@@ -3,7 +3,6 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import {
 		Candy,
 		EllipsisVertical,
@@ -37,7 +36,7 @@
 			</p>
 		</div>
 
-		<Button href="https://github.com/MadeInPierre/cuicuit2/discussions" target="_blank">
+		<Button href="https://github.com/MadeInPierre/cuicuit/discussions" target="_blank">
 			Vote for this feature
 			<ExternalLink class="size-4" />
 		</Button>

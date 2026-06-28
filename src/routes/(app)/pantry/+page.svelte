@@ -1,7 +1,6 @@
 <script lang="ts">
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Separator } from '$lib/shared/components/ui/separator';
 	import { ExternalLink } from 'lucide-svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 
@@ -33,7 +32,7 @@
 			</p>
 		</div>
 
-		<Button href="https://github.com/MadeInPierre/cuicuit2/discussions" target="_blank">
+		<Button href="https://github.com/MadeInPierre/cuicuit/discussions" target="_blank">
 			Vote for this feature
 			<ExternalLink class="size-4" />
 		</Button>
