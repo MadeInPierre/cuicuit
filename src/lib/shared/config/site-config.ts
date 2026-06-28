@@ -1,13 +1,13 @@
 export const siteConfig = {
 	name: 'Cuicuit',
-	url: 'https://cuicuit2.laclau.dev',
-	ogImage: 'https://cuicuit2.laclau.dev/signup-bg.jpg',
+	url: 'https://cuicuit.laclau.dev',
+	ogImage: 'https://cuicuit.laclau.dev/signup-bg.jpg',
 	description: 'Your favorite kitchen companion!',
 	links: {
-		github: 'https://github.com/MadeInPierre/cuicuit2'
+		github: 'https://github.com/MadeInPierre/cuicuit'
 	},
 	keywords: 'cuicuit,Cuicuit,kitchen,assistant,food,cuisine',
-	inviteUrlBase: 'https://cuicuit2.laclau.dev/join/'
+	inviteUrlBase: 'https://cuicuit.laclau.dev/join/'
 };
 
 export type SiteConfig = typeof siteConfig;

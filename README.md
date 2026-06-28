@@ -4,6 +4,15 @@
   </a>
   <br>Cuicuit<br>
 </h1>
+<h3 align="center">Your favorite kitchen companion!</h3>
+
+
+# Screenshots
+
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+  <img src="./static/screenshots/recipes_wide_1280x720.png" alt="Screenshot" style="max-height: 400px; width: auto;">
+  <img src="./static/screenshots/shoppinglist_mobile_487x911.png" alt="Screenshot" style="max-height: 400px; width: auto;">
+</div>
 
 # Features:
 
