@@ -1,4 +1,5 @@
 import { query } from '$app/server';
+import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
 import { modelMistral } from '$lib/shared/llm/mistral';
 import type { MistralLanguageModelOptions } from '@ai-sdk/mistral';
@@ -55,6 +56,7 @@ const relevantRecipeFieldsSchema = z.object({
 }) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
 
 const outputSchema = z.object({
+	lang: languageKeySchema.describe("The input recipe's written language."),
 	recipe: relevantRecipeFieldsSchema.describe(
 		'The main enriched recipe object with inferred details.'
 	),
