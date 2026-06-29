@@ -1,5 +1,5 @@
 {
-	"$schema": "https://next.shadcn-svelte.com/schema.json",
+	"$schema": "https://shadcn-svelte.com/schema.json",
 	"tailwind": {
 		"css": "src/app.css",
 		"baseColor": "slate"

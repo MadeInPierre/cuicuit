@@ -1,18 +1,16 @@
 <h1 align="center">
   <a href="https://github.com/MadeInPierre/cuicuit">
-    <img src="./static/cuicuit_logo_transparent.png" width="200" />
+    <img src="./static/cuicuit_logo_transparent.png" width="160" />
   </a>
   <br>Cuicuit<br>
 </h1>
 <h3 align="center">Your favorite kitchen companion!</h3>
 
+![Hero](./static/hero/hero_wide.png)
 
-# Screenshots
+> [!WARNING]
+> ⚠️ **Cuicuit just hatched!** Expact alpha-software quality with many bugs and rough edges. Feedback is greatly appreciated!
 
-<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-  <img src="./static/screenshots/recipes_wide_1280x720.png" alt="Screenshot" style="max-height: 400px; width: auto;">
-  <img src="./static/screenshots/shoppinglist_mobile_487x911.png" alt="Screenshot" style="max-height: 400px; width: auto;">
-</div>
 
 # Features:
 
