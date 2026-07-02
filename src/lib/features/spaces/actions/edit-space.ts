@@ -1,5 +1,5 @@
 import type { LanguageKey } from '$lib/features/user-settings/consts';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
 import type { ActiveSpaceState } from '../state/active-space.svelte';
 
@@ -11,13 +11,13 @@ export async function editSpace(
 	icon: SpaceIconKey,
 	lang: LanguageKey
 ) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!userId) throw new Error('User ID not provided');
 	if (!space.activeSpace?.id) throw new Error('Space ID not provided');
 	if (!name || !theme || !icon || !lang) throw new Error('Missing required parameters');
 
 	// Fetch the language id corresponding to the provided language key
-	const { data: languageData, error: languageError } = await supabase
+	const { data: languageData, error: languageError } = await supabase.client
 		.from('languages')
 		.select('id')
 		.eq('lang', lang)
@@ -27,7 +27,7 @@ export async function editSpace(
 	const languageId = languageData.id;
 
 	// Forbid to user a name already in use by another space owned by the user
-	const { data: userSpaces, error: fetchError } = await supabase
+	const { data: userSpaces, error: fetchError } = await supabase.client
 		.from('spaces')
 		.select('id, name')
 		.eq('author_id', userId);
@@ -39,14 +39,14 @@ export async function editSpace(
 	if (hasSpaceWithSameName) throw new Error('space-already-exists');
 
 	// Update the space's name & icon in the spaces table
-	const { error: updateError } = await supabase
+	const { error: updateError } = await supabase.client
 		.from('spaces')
 		.update({ name, icon, language_id: languageId })
 		.eq('id', space.activeSpace?.id);
 	if (updateError) throw updateError;
 
 	// Update the user's theme in the space_members table
-	const { error: memberError } = await supabase
+	const { error: memberError } = await supabase.client
 		.from('space_members')
 		.update({ theme })
 		.eq('space_id', space.activeSpace?.id)

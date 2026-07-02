@@ -1,5 +1,5 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 
@@ -9,20 +9,20 @@ export async function updateMealServings(
 	servings: number,
 	options?: { skipRefresh?: boolean }
 ) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (servings < 1) throw new Error('Servings must be at least 1');
 
 	// Update the meal servings in Supabase
-	const { error } = await supabase.from('space_meals').update({ servings }).eq('id', meal.id);
+	const { error } = await supabase.client.from('space_meals').update({ servings }).eq('id', meal.id);
 	if (error) throw new Error('Error updating meal servings: ' + error.message);
 
 	// Update every shopping list item related to this meal to reflect the new amounts
 	for (const ing of meal.recipe.recipe_ingredients) {
 		const newAmount = ((ing.quantity ?? 1) * servings) / meal.recipe.servings;
 
-		const { error: itemError } = await supabase
+		const { error: itemError } = await supabase.client
 			.from('space_items')
 			.update({ quantity: newAmount })
 			.eq('space_id', activeSpace.activeSpace.id)
@@ -49,14 +49,14 @@ export async function updateMealPosition(
 	position: number,
 	options?: { skipRefresh?: boolean }
 ) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 	if (position < 0) throw new Error('Position must be a non-negative integer');
 
 	// Update the meal position in Supabase
-	const { error } = await supabase.from('space_meals').update({ position }).eq('id', mealId);
+	const { error } = await supabase.client.from('space_meals').update({ position }).eq('id', mealId);
 	if (error) throw new Error('Error updating meal position: ' + error.message);
 
 	// Refresh the active plan meals after updating
@@ -70,7 +70,7 @@ export async function deleteMeal(
 	mealId: string,
 	options?: { skipRefresh?: boolean; undo?: boolean; toastId?: string | number }
 ) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
@@ -82,7 +82,7 @@ export async function deleteMeal(
 
 	// Soft delete related shopping list items first
 	const now = new Date().toISOString();
-	const { error: shoppingListError } = await supabase
+	const { error: shoppingListError } = await supabase.client
 		.from('space_items')
 		.update({ deleted_at: options?.undo ? null : now })
 		.eq('meal_id', mealId)
@@ -95,7 +95,7 @@ export async function deleteMeal(
 	}
 
 	// Now set the deleted_at timestamp for the meal
-	const { error } = await supabase
+	const { error } = await supabase.client
 		.from('space_meals')
 		.update({ deleted_at: options?.undo ? null : now })
 		.eq('id', mealId);

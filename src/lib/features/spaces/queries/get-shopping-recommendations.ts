@@ -1,5 +1,5 @@
 import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 const MAX_RECOMMENDATIONS = 600;
 const PER_AISLE_LIMIT = Math.floor(
@@ -7,9 +7,10 @@ const PER_AISLE_LIMIT = Math.floor(
 );
 
 export async function getShoppingRecommendations(spaceId: string, lang: string) {
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!spaceId) return [];
 
-	const { data, error } = await supabase.rpc('get_shopping_recommendations', {
+	const { data, error } = await supabase.client.rpc('get_shopping_recommendations', {
 		space_id: spaceId,
 		per_aisle_limit: PER_AISLE_LIMIT,
 		limit: MAX_RECOMMENDATIONS,

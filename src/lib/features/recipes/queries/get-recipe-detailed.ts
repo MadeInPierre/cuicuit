@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 /**
  * Fetches detailed information about recipes, including their language, ingredients,
@@ -7,6 +7,8 @@ import { supabase } from '$lib/shared/db/supabase-client';
  * @returns A promise that resolves to the recipe data with detailed information.
  */
 export function getRecipesDetailed(languageId: number, searchText?: string) {
+	if(!supabase.client) throw new Error("No supabase client");
+	
 	// substitutes:ingredient_substitutions!ingredient_substitutions_original_ingredient_id_fkey(
 	// 	*,
 	// 	original_ingredient:ingredients!ingredient_substitutions_original_ingredient_id_fkey(*,
@@ -16,7 +18,7 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
 	// 		translations:ingredient_translations(*, language:languages!inner(*))
 	// 	)
 	// )
-	let query = supabase
+	let query = supabase.client
 		.from('recipes')
 		.select(
 			`*,
@@ -56,7 +58,7 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
  * @throws Will throw an error if the recipe ID is not provided or if the query fails.
  */
 export async function getRecipeDetailed(recipeId: string, languageId: number) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!recipeId) throw new Error('Recipe ID not provided');
 
 	// Get the recipe
@@ -67,7 +69,7 @@ export async function getRecipeDetailed(recipeId: string, languageId: number) {
 	}
 
 	// Add the author's public profile
-	const { data: authorProfile, error: profileError } = await supabase
+	const { data: authorProfile, error: profileError } = await supabase.client
 		.from('user_public_profiles')
 		.select('*')
 		.eq('user_id', data.author_id)

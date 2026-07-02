@@ -1,8 +1,8 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { SpaceThemeKey } from '../consts';
 
 export async function joinSpace(userId: string, spaceId: string, theme: SpaceThemeKey) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!userId) throw new Error('User ID not provided');
 	if (!spaceId) throw new Error('Space ID not provided');
 	if (!theme) throw new Error('Theme not provided');
@@ -10,7 +10,7 @@ export async function joinSpace(userId: string, spaceId: string, theme: SpaceThe
 	console.log('Joining space:', spaceId, theme);
 
 	// Check if the space exists and get its row
-	const { data, error: fetchError } = await supabase
+	const { data, error: fetchError } = await supabase.client
 		.from('spaces')
 		.select('id, name, icon')
 		.eq('id', spaceId)
@@ -19,7 +19,7 @@ export async function joinSpace(userId: string, spaceId: string, theme: SpaceThe
 	if (fetchError || !data) throw new Error('space-not-found');
 
 	// Add the space id and theme to the user's space_members
-	const { error: memberError } = await supabase.from('space_members').insert([
+	const { error: memberError } = await supabase.client.from('space_members').insert([
 		{
 			space_id: spaceId,
 			user_id: userId,

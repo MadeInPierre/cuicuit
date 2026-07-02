@@ -1,11 +1,11 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 export function getPlanMeals(spaceId: string, languageId: number) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!spaceId) throw new Error('Space ID not provided');
 
 	return (
-		supabase
+		supabase.client
 			.from('space_meals')
 			.select(
 				`*, 

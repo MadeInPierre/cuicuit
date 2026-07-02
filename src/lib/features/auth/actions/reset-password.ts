@@ -1,8 +1,8 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 
 export async function resetPassword(email: string) {
-	if (!supabase.auth) {
+	if (!supabase.client?.auth) {
 		console.error('Error: Auth not found.');
 		return;
 	}
@@ -16,7 +16,7 @@ export async function resetPassword(email: string) {
 
 	const toastId = toast.loading('Sending email...');
 
-	const { error } = await supabase.auth.resetPasswordForEmail(email);
+	const { error } = await supabase.client.auth.resetPasswordForEmail(email);
 
 	if (!error) {
 		toast.success('Email sent!', {

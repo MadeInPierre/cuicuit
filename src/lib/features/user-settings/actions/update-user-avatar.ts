@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 /**
  * Update the user's avatar in the Supabase database.
@@ -12,14 +12,14 @@ export async function updateUserAvatar(
 	iconName: string | undefined = undefined,
 	imgUrl: string | null = null
 ) {
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!userId) throw new Error('No user to upload the file for');
-	if (!supabase) throw new Error('Supabase client not available');
 	console.log('Updating user avatar:', iconName, imgUrl);
 
 	// If imgUrl is null, we are delete the image from storage
 	if (imgUrl === null) {
 		// Delete the image from Supabase storage
-		const { error: deleteError } = await supabase.storage
+		const { error: deleteError } = await supabase.client.storage
 			.from('users')
 			.remove([`public/${userId}/avatar.png`]);
 
@@ -30,7 +30,7 @@ export async function updateUserAvatar(
 	}
 
 	// Update the user's avatar in the Supabase database
-	const { error } = await supabase
+	const { error } = await supabase.client
 		.from('user_public_profiles')
 		.update({
 			...(iconName ? { icon: iconName } : {}), // Always have an icon, even if it's the same

@@ -41,6 +41,7 @@ export default defineConfig({
 				related_applications: [],
 				share_target: {
 					action: '/shared-content-receiver/',
+					enctype: 'application/x-www-form-urlencoded',
 					method: 'GET',
 					params: {
 						url: 'url',

@@ -1,5 +1,5 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 
 export async function updatePlanItemChecked(
@@ -8,13 +8,13 @@ export async function updatePlanItemChecked(
 	checked: boolean,
 	options?: { skipRefresh?: boolean; showToast?: boolean }
 ): Promise<() => Promise<void>> {
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanItems)
 		throw new Error('No active space or active plan found');
 	if (!itemId) throw new Error('Item ID not provided');
 
 	// Update the plan item in Supabase
-	const { error } = await supabase
+	const { error } = await supabase.client
 		.from('space_items')
 		.update({
 			checked_at: checked ? new Date().toISOString() : null
@@ -23,7 +23,9 @@ export async function updatePlanItemChecked(
 	if (error) throw new Error('Error updating plan item: ' + error.message);
 
 	const undoFn = async (toastId?: string | number) => {
-		const { error: undoError } = await supabase
+		if (!supabase.client) throw new Error('No supabase client');
+
+		const { error: undoError } = await supabase.client
 			.from('space_items')
 			.update({
 				checked_at: checked ? null : new Date().toISOString()
@@ -68,7 +70,7 @@ export async function updatePlanItemDeleted(
 	deleted: boolean = true,
 	options?: { skipRefresh?: boolean; hideToast?: boolean }
 ): Promise<() => Promise<void>> {
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanItems)
 		throw new Error('No active space or active plan found');
 	if (!itemId) throw new Error('Item ID not provided');
@@ -76,7 +78,7 @@ export async function updatePlanItemDeleted(
 	const now = new Date().toISOString();
 
 	// Soft delete the plan item
-	const { error } = await supabase
+	const { error } = await supabase.client
 		.from('space_items')
 		.update({ deleted_at: deleted ? now : null })
 		.eq('space_id', activeSpace.activeSpace.id)
@@ -85,7 +87,9 @@ export async function updatePlanItemDeleted(
 	if (error) throw new Error('Error deleting plan item: ' + error.message);
 
 	const undoFn = async (toastId?: string | number) => {
-		const { error: undoError } = await supabase
+		if (!supabase.client) throw new Error('No supabase client');
+
+		const { error: undoError } = await supabase.client
 			.from('space_items')
 			.update({ deleted_at: deleted ? null : now })
 			.eq('id', itemId)

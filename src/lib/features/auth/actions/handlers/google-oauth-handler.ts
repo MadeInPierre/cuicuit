@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { AUTH_CONTEXT, failHandled, getAuthErrorMessage } from '../auth-error-utils';
 
 interface GoogleOAuthArgs {
@@ -12,7 +12,9 @@ interface GoogleOAuthArgs {
  * when the app returns from the OAuth callback (not in this function).
  */
 export async function handleGoogleOAuth({ redirectTo }: GoogleOAuthArgs): Promise<void> {
-	const { error } = await supabase.auth.signInWithOAuth({
+	if(!supabase.client) throw new Error("No supabase client");
+	
+	const { error } = await supabase.client.auth.signInWithOAuth({
 		provider: 'google',
 		options: {
 			redirectTo

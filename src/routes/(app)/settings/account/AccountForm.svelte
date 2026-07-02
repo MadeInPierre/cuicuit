@@ -11,7 +11,7 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { capitalize } from '$lib/utils';
 	import type { Provider, User } from '@supabase/supabase-js';
 	import { Check, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-svelte';
@@ -46,14 +46,14 @@
 	let showConfirmDeleteAccountDialog = $state(false);
 
 	async function linkProvider(providerId: string) {
-		if (!supabase || !userState.user) {
+		if (!supabase.client || !userState.user) {
 			console.error('Error: Auth problem.');
 			return;
 		}
 
 		console.log('Linking provider:', providerId, 'for user:', userState.user.id);
 
-		const { data, error } = await supabase.auth.linkIdentity({
+		const { data, error } = await supabase.client.auth.linkIdentity({
 			provider: providerId as Provider,
 			options: {
 				redirectTo: window.location.origin + '/settings/account'

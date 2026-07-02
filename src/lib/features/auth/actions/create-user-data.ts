@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { nature_icons } from '$lib/shared/icons/nature-icons';
 import { capitalize } from '$lib/utils';
 
@@ -6,7 +6,7 @@ const ERROR_ALREADY_EXISTS = '23505'; // Unique constraint violation error code
 
 // Create the initial user document in Supabase upon signup
 export async function createUserData(userId: string): Promise<string> {
-	if (!supabase) {
+	if (!supabase.client) {
 		console.log('Error: Supabase not available.');
 		throw new Error('Missing supabase');
 	}
@@ -17,7 +17,7 @@ export async function createUserData(userId: string): Promise<string> {
 	const userName = randomIconName + Math.floor(Math.random() * 10000);
 
 	// Create the preferences row (skip if it exists)
-	const { error: prefError } = await supabase.from('user_preferences').insert([
+	const { error: prefError } = await supabase.client.from('user_preferences').insert([
 		{
 			user_id: userId,
 			first_name: capitalize(randomIconName),
@@ -33,7 +33,7 @@ export async function createUserData(userId: string): Promise<string> {
 	}
 
 	// Create the profile row (skip if it exists)
-	const { error: profileError } = await supabase.from('user_public_profiles').insert([
+	const { error: profileError } = await supabase.client.from('user_public_profiles').insert([
 		{
 			user_id: userId,
 			icon: randomIconName,

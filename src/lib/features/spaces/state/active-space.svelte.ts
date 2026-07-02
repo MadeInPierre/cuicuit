@@ -109,7 +109,7 @@ class ActiveSpaceState {
 
 			// Fetch the profile and preferences for each member in all spaces
 			const memberIds = spaces.flatMap((space) => space.members.map((m) => m.user_id));
-			const profiles = await getUserPublicProfiles(memberIds);
+			const { profiles } = await getUserPublicProfiles(memberIds);
 			this.friendProfiles = profiles.filter((profile) => profile !== null);
 		} catch (error) {
 			console.error('Error refreshing spaces:', error);

@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 import { updateUserAvatar } from './update-user-avatar';
 
@@ -6,11 +6,11 @@ import { updateUserAvatar } from './update-user-avatar';
  * Remove the picture from the storage and update the userDoc avatar
  */
 export async function deleteUserPicture(userId: string) {
+	if(!supabase.client) throw new Error("No supabase client"); 
 	if (!userId) throw new Error('No user to delete the picture for');
-	if (!supabase) throw new Error('Supabase client not available');
 
 	// Delete the image from Supabase storage
-	const { error: deleteError } = await supabase.storage
+	const { error: deleteError } = await supabase.client.storage
 		.from('users')
 		.remove([`public/${userId}/avatar.png`]);
 

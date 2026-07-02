@@ -9,8 +9,9 @@
 	import { Toaster } from '$lib/shared/components/ui/sonner';
 	import { ModeWatcher } from 'mode-watcher';
 
+	const { data, children } = $props();
+
 	// Initialize the active space state, this will create a persistent state
-	// that will be used to store the active space and its related data
 	createActiveSpaceState(userState);
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
@@ -33,16 +34,15 @@
 		}
 	});
 
-	const { children } = $props();
-
 	// Disable right click context menu globally to prevent issues with the app's interactions
 	// Used to prevent mobile & tablet users from triggering the context menu when long pressing,
 	// which is used instead for drag and drop, long press to show item details in sidebar, etc.
-	window.oncontextmenu = function (event) {
-		event.preventDefault();
-		event.stopPropagation();
-		return false;
-	};
+	if (browser)
+		window.oncontextmenu = function (event) {
+			event.preventDefault();
+			event.stopPropagation();
+			return false;
+		};
 
 	let openChat = $state(false);
 </script>
