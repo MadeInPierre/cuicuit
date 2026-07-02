@@ -5,13 +5,15 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import DropdownResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { jsonStringify } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import SyncStatus from './SyncStatus.svelte';
 
 	onMount(async () => {
-		const { data, error } = await supabase.auth.getClaims();
+		if(!supabase.client) throw new Error("No supabase client");
+		
+		const { data, error } = await supabase.client.auth.getClaims();
 		if (data) console.log('Claims:', data);
 		if (error) console.error('Error fetching claims:', error);
 	});

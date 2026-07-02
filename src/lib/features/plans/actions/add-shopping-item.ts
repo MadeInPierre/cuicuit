@@ -1,5 +1,5 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { capitalize } from '$lib/utils';
 
 export async function addShoppingItem(
@@ -9,8 +9,10 @@ export async function addShoppingItem(
 	quantity: number | null = null,
 	unit: string | null = null
 ) {
+	if (!supabase.client) throw new Error('No supabase client');
 	if (!space.id || !space.activeMember?.user_id) return;
-	await supabase.from('space_items').insert({
+
+	await supabase.client.from('space_items').insert({
 		space_id: space.id,
 		created_by: space.activeMember.user_id,
 		type: 'independent',

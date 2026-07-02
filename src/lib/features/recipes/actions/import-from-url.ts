@@ -1,6 +1,6 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import { capitalize } from '$lib/utils';
 import type { Database } from 'lucide-svelte';
@@ -66,11 +66,13 @@ async function saveEnrichedRecipe(
 	recipeId: string,
 	enrichedRecipe: EnrichedRecipeOutput
 ): Promise<void> {
+	if (!supabase.client) throw new Error('No supabase client');
+
 	// Get the recipe's language database ID
 	const langId =
 		Object.entries(languages).find(([key, _]) => key === enrichedRecipe.lang)?.[1].id || 1;
 
-	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase
+	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase.client
 		.from('recipes')
 		.update({
 			language_id: langId,
@@ -110,6 +112,8 @@ async function insertRecipeIngredients(
 	recipeId: string,
 	processedIngredients: IngredientProcessed[]
 ): Promise<void> {
+	if (!supabase.client) throw new Error('No supabase client');
+
 	if (!processedIngredients || processedIngredients.length === 0) {
 		console.warn('No ingredients matched during import.');
 		return;
@@ -124,7 +128,7 @@ async function insertRecipeIngredients(
 			continue;
 		}
 
-		const { data: ingredientInsertData, error: ingredientInsertError } = await supabase
+		const { data: ingredientInsertData, error: ingredientInsertError } = await supabase.client
 			.from('recipe_ingredients')
 			.insert([
 				{
@@ -165,6 +169,8 @@ export async function importRecipeFromUrl(
 	url: string,
 	userId: string
 ): Promise<{ id: string; isComplete: boolean }> {
+	if(!supabase.client) throw new Error("No supabase client");
+	
 	const language = validateLanguage(space);
 	console.log('Importing URL:', url);
 
@@ -191,7 +197,7 @@ export async function importRecipeFromUrl(
 	}
 
 	// Insert the imported data into the database
-	const { data: insertData, error: insertError } = await supabase
+	const { data: insertData, error: insertError } = await supabase.client
 		.from('recipes')
 		.update({
 			author_id: userId,

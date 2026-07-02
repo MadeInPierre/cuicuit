@@ -1,5 +1,5 @@
 import { userState } from '$lib/features/auth/state/user-state.svelte';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { toast } from 'svelte-sonner';
 
@@ -8,7 +8,7 @@ export async function createDraftRecipe(
 	languageId: number,
 	title: string = ''
 ): Promise<Database['public']['Tables']['recipes']['Row']['id'] | undefined> {
-	if (!supabase) {
+	if (!supabase.client) {
 		console.error('Supabase client not available');
 		return;
 	}
@@ -19,7 +19,7 @@ export async function createDraftRecipe(
 	}
 
 	// Create an empty recipe
-	const { data: recipeIdData, error: recipeIdError } = await supabase
+	const { data: recipeIdData, error: recipeIdError } = await supabase.client
 		.from('recipes')
 		.insert([
 			{

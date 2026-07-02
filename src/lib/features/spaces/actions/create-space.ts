@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
 
 /** * Creates a new space for the user.
@@ -14,12 +14,12 @@ export async function createSpace(
 	theme: SpaceThemeKey,
 	icon: SpaceIconKey
 ) {
-	if (!supabase) throw new Error('Supabase client not available');
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!userId) throw new Error('User ID not provided');
 	if (!name || !theme || !icon) throw new Error('Missing required parameters');
 
 	// Check if the user already has a space with the same name
-	const { data: existingSpaces, error: fetchError } = await supabase
+	const { data: existingSpaces, error: fetchError } = await supabase.client
 		.from('space_members')
 		.select('space_id, spaces(name)')
 		.eq('user_id', userId);
@@ -30,7 +30,7 @@ export async function createSpace(
 	}
 
 	// Insert into spaces table
-	const { data: spaceInsert, error: spaceError } = await supabase
+	const { data: spaceInsert, error: spaceError } = await supabase.client
 		.from('spaces')
 		.insert([
 			{
@@ -48,7 +48,7 @@ export async function createSpace(
 	if (!spaceId) throw new Error('Failed to create space');
 
 	// Insert into space_members table
-	const { error: memberError } = await supabase.from('space_members').insert([
+	const { error: memberError } = await supabase.client.from('space_members').insert([
 		{
 			space_id: spaceId,
 			user_id: userId,

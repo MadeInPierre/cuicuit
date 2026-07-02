@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { capitalize } from '$lib/utils';
 	import { onMount } from 'svelte';
 
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
+		if(!supabase.client) throw new Error("No supabase client");
+		
 		try {
-			const { data, error } = await supabase
+			const { data, error } = await supabase.client
 				.from('ingredients')
 				.select('*, translations:ingredient_translations(*, language:languages!inner(*))')
 				.range(start, end);

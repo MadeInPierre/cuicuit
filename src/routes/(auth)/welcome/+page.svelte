@@ -9,7 +9,7 @@
 	import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
@@ -77,13 +77,17 @@
 		resetForm: false,
 		async onUpdate({ form }) {
 			if (form.valid) {
+				if (!supabase.client) {
+					console.error('No supabase');
+					return;
+				}
 				if (!userState.user?.id) {
 					console.error('User is not logged in, cannot update profile.');
 					return;
 				}
 
 				// Update the user profile in the database
-				const { error: profileError } = await supabase
+				const { error: profileError } = await supabase.client
 					.from('user_public_profiles')
 					.update({
 						user_name: $formData.userName
@@ -91,7 +95,7 @@
 					.eq('user_id', userState.user.id);
 
 				// Update the user preferences in the database
-				const { error: prefError } = await supabase
+				const { error: prefError } = await supabase.client
 					.from('user_preferences')
 					.update({
 						first_name: $formData.firstName,

@@ -13,7 +13,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { Icons } from '$lib/shared/icons';
 	import { cn } from '$lib/utils';
 	import { Check, Eye, EyeOff, ShieldQuestion } from 'lucide-svelte';
@@ -58,7 +58,7 @@
 	 * @param authMethod The authentication method selected by the user (email/password, google, etc)
 	 */
 	async function onSubmit(authMethod: AuthMethod) {
-		if (!supabase.auth) {
+		if (!supabase.client?.auth) {
 			console.error('Error: Auth not found.');
 			return;
 		}

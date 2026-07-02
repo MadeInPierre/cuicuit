@@ -1,5 +1,5 @@
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Tables } from '$lib/shared/db/supabase.types';
 
 export type MatchIngredientsResponse = {
@@ -17,9 +17,7 @@ export async function matchIngredients(
 	data: MatchIngredientsResponse;
 	error: Error | null;
 }> {
-	if (!supabase) {
-		throw new Error('Supabase client not available');
-	}
+	if(!supabase.client) throw new Error("No supabase client");
 
 	// Step 1: Call the edge function to get initial matches
 	type FunctionResponse = {
@@ -30,7 +28,7 @@ export async function matchIngredients(
 		}[];
 	} | null;
 
-	const response = await supabase.functions.invoke<FunctionResponse>('match-ingredients', {
+	const response = await supabase.client.functions.invoke<FunctionResponse>('match-ingredients', {
 		body: { ingredients: ingredientStrings, lang: lang }
 	});
 
@@ -56,7 +54,7 @@ export async function matchIngredients(
 		};
 	}
 
-	const { data: enriched, error: enrichedError } = await supabase
+	const { data: enriched, error: enrichedError } = await supabase.client
 		.from('ingredients')
 		.select(
 			`*,

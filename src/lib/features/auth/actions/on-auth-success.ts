@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { User } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
@@ -33,8 +33,8 @@ export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod
 		}
 
 		// Forbid the user to sign-in without verified email, sign them out
-		if (supabase.auth) {
-			await supabase.auth.signOut();
+		if (supabase.client?.auth) {
+			await supabase.client.auth.signOut();
 			toast.error('Please verify your email first.', {
 				duration: 60000,
 				description:

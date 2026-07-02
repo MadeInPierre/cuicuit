@@ -33,7 +33,7 @@
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
-	import { supabase } from '$lib/shared/db/supabase-client';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import { capitalize, cn } from '$lib/utils';
 	import {
@@ -226,6 +226,8 @@
 	let loading = $state(false);
 
 	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
+		if(!supabase.client) throw new Error("No supabase client");
+
 		loading = true;
 		const { data: langData, error: langError } = await getLanguageId(data.language);
 
@@ -243,7 +245,7 @@
 		}
 
 		// Create the recipe
-		const { data: recipeIdData, error: recipeIdError } = await supabase
+		const { data: recipeIdData, error: recipeIdError } = await supabase.client
 			.from('recipes')
 			.upsert({
 				// ID if we are updating an existing recipe
@@ -298,7 +300,7 @@
 
 		// If it's an existing recipe, we need to delete the old ingredients first
 		if (!isNewRecipe) {
-			const { error: deleteError } = await supabase
+			const { error: deleteError } = await supabase.client
 				.from('recipe_ingredients')
 				.delete()
 				.eq('recipe_id', pageRecipeId);
@@ -312,7 +314,7 @@
 		}
 
 		// Add the ingredients to the recipe_ingredients table
-		const { error: ingredientsError } = await supabase
+		const { error: ingredientsError } = await supabase.client
 			.from('recipe_ingredients')
 			.insert(
 				data.ingredientIds.map(

@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
 import {
@@ -28,7 +28,7 @@ export async function signupOrLogin(
 	email: string,
 	password: string
 ): Promise<{ emailSent: boolean }> {
-	if (!supabase.auth) {
+	if (!supabase.client?.auth) {
 		console.error(`${AUTH_CONTEXT} Supabase auth client is not available.`);
 		throw new Error('Auth not found.');
 	}

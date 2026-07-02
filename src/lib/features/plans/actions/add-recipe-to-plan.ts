@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation';
 import { type ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { TablesInsert } from '$lib/shared/db/supabase.types';
 import { toast } from 'svelte-sonner';
 
@@ -13,7 +13,7 @@ export async function addRecipeToActivePlan(
 		console.error('No active space or active plan found');
 		return;
 	}
-	if (!supabase) {
+	if (!supabase.client) {
 		console.error('No Supabase client found');
 		return;
 	}
@@ -21,7 +21,7 @@ export async function addRecipeToActivePlan(
 	const activeSpaceId = space.activeSpace.id;
 
 	// Add the recipe to the active plan in Supabase and get the generated meal id
-	const { data, error } = await supabase
+	const { data, error } = await supabase.client
 		.from('space_meals')
 		.insert({
 			space_id: activeSpaceId,
@@ -41,7 +41,7 @@ export async function addRecipeToActivePlan(
 	const mealId = data?.id;
 
 	// Add the recipe's ingredients to the active plan's shopping list
-	const { data: recipeIngredients, error: ingredientsError } = await supabase
+	const { data: recipeIngredients, error: ingredientsError } = await supabase.client
 		.from('recipe_ingredients')
 		.select('*')
 		.eq('recipe_id', recipeId);
@@ -67,7 +67,7 @@ export async function addRecipeToActivePlan(
 			}) satisfies TablesInsert<'space_items'>
 	);
 
-	const { error: shoppingListError } = await supabase.from('space_items').insert(shoppingListItems);
+	const { error: shoppingListError } = await supabase.client.from('space_items').insert(shoppingListItems);
 
 	if (shoppingListError) {
 		console.error('Error adding ingredients to shopping list:', shoppingListError);

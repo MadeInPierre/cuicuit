@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 
 /**
@@ -9,6 +9,7 @@ export async function deleteRecipe(
 	recipeId: string,
 	options?: { undo?: boolean; toastId?: string | number }
 ) {
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!recipeId) {
 		throw new Error('No recipe to delete');
 	}
@@ -16,7 +17,7 @@ export async function deleteRecipe(
 	const now = new Date().toISOString();
 
 	// Soft delete the recipe
-	const { error } = await supabase
+	const { error } = await supabase.client
 		.from('recipes')
 		.update({ deleted_at: options?.undo ? null : now })
 		.eq('id', recipeId);

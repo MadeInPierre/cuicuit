@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../../models/auth-method';
 import { LogMethod } from '../../models/log-method';
@@ -19,7 +19,9 @@ interface EmailPasswordArgs {
 }
 
 async function loginWithEmailPassword(email: string, password: string) {
-	const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+	if (!supabase.client) throw new Error('No supabase client');
+
+	const { data, error } = await supabase.client.auth.signInWithPassword({ email, password });
 
 	if (error) {
 		console.error(`${AUTH_CONTEXT} Login failed.`, error);
@@ -37,7 +39,15 @@ async function loginWithEmailPassword(email: string, password: string) {
 }
 
 async function signupWithEmailPassword(email: string, password: string) {
-	const { data, error } = await supabase.auth.signUp({ email, password });
+	if (!supabase.client) throw new Error('No supabase client');
+
+	const { data, error } = await supabase.client.auth.signUp({
+		email,
+		password,
+		options: {
+			emailRedirectTo: '/welcome'
+		}
+	});
 
 	if (error) {
 		// If the user already exists, we can try to log them in instead of failing the signup

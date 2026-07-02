@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 import { updateUserAvatar } from './update-user-avatar';
 
@@ -6,9 +6,9 @@ import { updateUserAvatar } from './update-user-avatar';
  * Upload the profile picture to the storage and update the userDoc avatar
  */
 export async function uploadProfilePicture(userId: string, file: File): Promise<string> {
-	if (!file) throw new Error('No file to upload');
+	if(!supabase.client) throw new Error("No supabase client");
 	if (!userId) throw new Error('No user to upload the file for');
-	if (!supabase) throw new Error('Supabase client not available');
+	if (!file) throw new Error('No file to upload');
 
 	// Validate file type
 	if (!file.type.startsWith('image/')) {
@@ -23,7 +23,7 @@ export async function uploadProfilePicture(userId: string, file: File): Promise<
 	}
 
 	// Upload the file to Supabase storage
-	const { data, error } = await supabase.storage
+	const { data, error } = await supabase.client.storage
 		.from('users')
 		.upload(`public/${userId}/avatar.png`, file, {
 			contentType: file.type,
@@ -37,7 +37,7 @@ export async function uploadProfilePicture(userId: string, file: File): Promise<
 	}
 
 	// Get the public URL of the uploaded file
-	const { data: publicURL } = await supabase.storage
+	const { data: publicURL } = await supabase.client.storage
 		.from('users')
 		.getPublicUrl(`public/${userId}/avatar.png`);
 

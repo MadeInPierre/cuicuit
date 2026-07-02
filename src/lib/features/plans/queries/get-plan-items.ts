@@ -1,8 +1,10 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 export function getShoppingListItems(spaceId: string, languageId: number) {
+	if (!supabase.client) throw new Error('No supabase client');
+
 	return (
-		supabase
+		supabase.client
 			.from('space_items')
 			.select(
 				`*, 

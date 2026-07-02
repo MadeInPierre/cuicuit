@@ -1,4 +1,4 @@
-import { supabase } from '$lib/shared/db/supabase-client';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { AuthMethod } from '../models/auth-method';
 import type { LogMethod } from '../models/log-method';
 import { AUTH_CONTEXT, failHandled, getAuthErrorMessage } from './auth-error-utils';
@@ -10,12 +10,12 @@ export async function convertAnonToUser(
 	email: string,
 	password: string
 ) {
-	if (!supabase.auth) throw new Error('Auth not found.');
+	if (!supabase.client?.auth) throw new Error('Auth not found.');
 
 	const {
 		data: { user: currentUser },
 		error: currentUserError
-	} = await supabase.auth.getUser();
+	} = await supabase.client.auth.getUser();
 
 	if (currentUserError || !currentUser) {
 		failHandled(
@@ -41,7 +41,7 @@ export async function convertAnonToUser(
 					);
 				}
 
-				const { data, error } = await supabase.auth.updateUser({ email, password });
+				const { data, error } = await supabase.client.auth.updateUser({ email, password });
 
 				if (error) {
 					console.error(`${AUTH_CONTEXT} Anonymous conversion to email/password failed.`, error);
