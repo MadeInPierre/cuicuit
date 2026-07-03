@@ -57,7 +57,8 @@
 		'list'
 	);
 
-	let shoppingListFilter = $state<'all' | 'meals' | 'independent'>('all');
+	type ShoppingListFilterKey = 'all' | 'meals' | 'independent';
+	let shoppingListFilter = $state<ShoppingListFilterKey>('all');
 
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
@@ -123,7 +124,12 @@
 				<SelectResponsive
 					title="Filter shopping items"
 					description="Choose which items are displayed in the list"
-					bind:value={shoppingListFilter}
+					values={[shoppingListFilter]}
+					onChange={(newValues) => {
+						console.log(newValues);
+						shoppingListFilter = newValues?.[newValues.length - 1] as ShoppingListFilterKey;
+						console.log(shoppingListFilter);
+					}}
 					options={[
 						{
 							value: 'all',
@@ -144,6 +150,7 @@
 							icon: ClipboardList
 						}
 					]}
+					closeOnSelect
 				/>
 
 				{#if shoppingListFilter !== 'all'}
