@@ -33,7 +33,7 @@
 					I love and rely on open source software every day. I want to give back to the community by
 					making the best OSS everything-kitchen app! However, maintaining and improving on Cuicuit takes a lot of
 					effort, so I will be exploring different ways to support its development. Maybe
-					a cheap hosted version? A patreon?
+					a cheap hosted version? Sponsors?
 				</span>
 				<span>
 					If you found a bug or have ideas, I would love to hear from you! Feel free to reach out
@@ -45,7 +45,7 @@
 					<Heart class="size-4 text-red-600 -mt-1" fill="currentColor" />
 					<span>by </span>
 					<a
-						href="https://github.com/MadeInPierre"
+						href="https://github.com/sponsors/MadeInPierre"
 						target="_blank"
 						class="underline decoration-dotted"
 					>

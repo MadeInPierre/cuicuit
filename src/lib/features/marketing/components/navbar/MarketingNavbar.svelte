@@ -4,8 +4,12 @@
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { siteConfig } from '$lib/shared/config/site-config';
 	import { Icons } from '$lib/shared/icons';
-	// import UserFullSignedIn from '$lib/stores/user-full-signed-in.svelte';
-	// import UserFullSignedOut from '$lib/stores/user-full-signed-out.svelte';
+	import { ArrowRight } from '@lucide/svelte';
+
+	type Props = {
+		isLoggedIn: boolean;
+	};
+	const { isLoggedIn }: Props = $props();
 </script>
 
 <div class="container flex max-w-(--breakpoint-2xl) items-center px-6">
@@ -14,7 +18,7 @@
 	<NavMobile />
 
 	<!-- Right side (icons and login/signup buttons) -->
-	<div class="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+	<div class="flex flex-1 items-center justify-between space-x-4 md:justify-end">
 		<div class="w-full flex-1 md:w-auto md:flex-none">
 			<!-- <CommandMenu /> -->
 		</div>
@@ -28,12 +32,14 @@
 			</a>
 		</nav>
 
-		<!-- <UserFullSignedIn> -->
-		<!-- <Button href="/recipes" size="sm">Go to dashboard</Button> -->
-		<!-- </UserFullSignedIn> -->
-		<!-- <UserFullSignedOut> -->
-		<Button href="/login" size="sm" variant="link">Log in</Button>
-		<Button href="/signup" size="sm">Get started</Button>
-		<!-- </UserFullSignedOut> -->
+		{#if isLoggedIn}
+			<Button href="/recipes" size="sm">
+				Go to your home
+				<ArrowRight />
+			</Button>
+		{:else}
+			<Button href="/login" size="sm" variant="link">Log in</Button>
+			<Button href="/signup" size="sm">Get started</Button>
+		{/if}
 	</div>
 </div>

@@ -6,6 +6,8 @@
 	import { cn } from '$lib/utils';
 	import { CheckCircle, Hourglass, Notebook } from 'lucide-svelte';
 
+	const { data } = $props();
+
 	const gradientColors: Record<string, string> = {
 		emerald: 'from-emerald-500 to-yellow-400 darkfrom-emerald-400 dark:to-yellow-300',
 		orange: 'from-orange-400 to-yellow-300',
@@ -52,14 +54,13 @@
 		</PageHeader.Description>
 
 		<div class="z-10 flex w-full items-center justify-center space-x-4 py-4 md:pb-10">
-			<Button href="/signup">Get started</Button>
+			{#if data.claims?.sub}
+				<Button href="/signup">Go to app</Button>
+			{:else}
+				<Button href="/signup">Get started</Button>
 
-			<Button href="/login" variant="link">Log in</Button>
-
-			<!-- <Button target="_blank" rel="noreferrer" href="/" variant="outline">
-				<Icons.gitHub class="mr-2 h-4 w-4" />
-				GitHub
-			</Button> -->
+				<Button href="/login" variant="link">Log in</Button>
+			{/if}
 		</div>
 	</PageHeader.Root>
 </div>
