@@ -1,17 +1,13 @@
 <script lang="ts">
-	import { Button } from '$lib/shared/components/ui/button';
-	import { cn } from '$lib/utils';
-	import * as Command from '$lib/shared/components/ui/command/index.js';
-	import * as Popover from '$lib/shared/components/ui/popover/index.js';
-	import { Check, ChevronDown } from 'lucide-svelte';
-	import FilterButton from './FilterButton.svelte';
-	import { Label } from '$lib/shared/components/ui/label';
+	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 
 	type Props = {
 		title: string;
-		icon?: any;
+		description?: string;
 		values?: string[];
-		defaultValue: string[];
+		emptyLabel?: string;
+		// contentWidth?: number;
+		// icon?: any;
 		onChange?: (values: string[]) => void;
 		options?: {
 			value: string;
@@ -21,43 +17,32 @@
 			color?: string;
 			bg?: string;
 		}[];
-		contentWidth?: number;
 	};
 
 	let {
 		title,
+		description = '',
 		values = $bindable([]),
-		defaultValue = [],
-		contentWidth = 200,
-		icon = Check,
+		emptyLabel = '',
+		// contentWidth = 200,
+		// icon = Check,
 		options = [],
 		onChange = () => {}
 	}: Props = $props();
-
-	function formatFilterText(
-		keys: string[],
-		options: { value: string; label: string; labelShort?: string }[]
-	): string {
-		function getLabel(key: string) {
-			const opt = options.find((o) => o.value === key);
-			return opt?.labelShort ?? opt?.label ?? key;
-		}
-		switch (keys.length) {
-			case 0:
-				return getLabel(defaultValue[0]) ?? 'Select';
-			case 1:
-				return getLabel(keys[0]) ?? 'Select';
-			case 2: {
-				const combined = `${getLabel(keys[0])} & ${getLabel(keys[1])}`;
-				return combined.length > 20 ? `${getLabel(keys[0])} +${keys.length - 1}` : combined;
-			}
-			default:
-				return `${getLabel(keys[0])} +${keys.length - 1}`;
-		}
-	}
 </script>
 
-<div class="flex">
+<SelectResponsive
+	{title}
+	{description}
+	bind:values
+	{options}
+	{emptyLabel}
+	{onChange}
+	displayColumns={2}
+	showReset={values?.length > 0}
+/>
+
+<!-- <div class="flex">
 	<Popover.Root>
 		<Popover.Trigger>
 			{#snippet child({ props })}
@@ -89,7 +74,6 @@
 		</Popover.Trigger>
 		<Popover.Content class={`w-[${contentWidth || 200}px] p-0`} align="end">
 			<Command.Root>
-				<!-- <Command.Input placeholder="Hello" /> -->
 				<Command.List class="max-h-[400px]">
 					<Label class="pl-2">Filter by {title}</Label>
 					<Command.Empty>No results found.</Command.Empty>
@@ -126,33 +110,8 @@
 							</Command.Item>
 						{/each}
 					</Command.Group>
-
-					<!-- <Command.Separator />
-				{#if values.length > 0}
-					<Command.Group>
-						<Command.Item
-							onSelect={() => {
-								values = [];
-							}}
-							class="justify-center text-center"
-						>
-							Clear filters
-						</Command.Item>
-					</Command.Group>
-				{:else if values.length === 0}
-					<Command.Group>
-						<Command.Item
-							onSelect={() => {
-								values = Array.from(items.map((item) => item.value));
-							}}
-							class="justify-center text-center"
-						>
-							Select all
-						</Command.Item>
-					</Command.Group>
-				{/if} -->
 				</Command.List>
 			</Command.Root>
 		</Popover.Content>
 	</Popover.Root>
-</div>
+</div> -->

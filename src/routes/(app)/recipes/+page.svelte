@@ -21,15 +21,12 @@
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import * as Sheet from '$lib/shared/components/ui/sheet';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { RotateCcw } from '@lucide/svelte';
-	import { ArrowRight, Bookmark, ChefHat, FunnelPlus, Plus } from 'lucide-svelte';
+	import { FunnelPlus, RotateCcw } from '@lucide/svelte';
+	import { ArrowRight, Bookmark, ChefHat, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
-	import DiscoverDial from './DiscoverDial.svelte';
-	import FilterButton from './FilterButton.svelte';
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
 	import SearchBar from './SearchBar.svelte';
@@ -285,8 +282,13 @@
 					<SelectResponsive
 						title="Group recipes by..."
 						description="Organize your recipes in different ways"
-						value={parameters.groupBy}
-						onChange={(value) => setParameters({ ...parameters, groupBy: value as GroupByKey })}
+						values={[parameters.groupBy]}
+						onChange={(newValues) =>
+							setParameters({
+								...parameters,
+								groupBy: newValues?.[newValues.length - 1] as GroupByKey
+							})}
+						closeOnSelect
 					/>
 					<!-- <Button size="sm" class="h-7 ml-1">
 						<Save class="size-4" />
@@ -323,7 +325,7 @@
 					</ImportRecipeDialog>
 				</div>
 
-				{@render filters('justify-end')}
+				{@render filters('end')}
 			</div>
 		</div>
 
@@ -333,7 +335,7 @@
 			<div
 				class="overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 			>
-				{@render filters('flex-row-reverse justify-end')}
+				{@render filters()}
 			</div>
 
 			<div
@@ -422,35 +424,26 @@
 	{/if}
 </div>
 
-{#snippet filters(className: string = '')}
-	<div class={cn('flex gap-2', className)}>
-		{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
-			<Button
-				variant="ghost"
-				class="size-7 px-2 text-muted-foreground"
-				onclick={() => {
-					searchInput = '';
-					setParameters({
-						...parameters,
-						filters: {
-							timeOfDay: [],
-							course: [],
-							cuisine: []
-						}
-					});
-				}}
-			>
-				<RotateCcw class="size-4" />
-			</Button>
+{#snippet filters(align: 'start' | 'end' = 'start')}
+	<div class={cn('flex gap-2', align === 'end' && 'justify-end')}>
+		<Button size="icon-sm" class="size-7 rounded-md sm:hidden">
+			<FunnelPlus />
+		</Button>
+
+		{#if align === 'end'}
+			{@render resetFiltersButton()}
 		{/if}
 
 		<FilterButtonMulti
-			title="course"
-			options={Object.entries(recipeCourses).map(([value, label]) => ({
-				value,
-				label
+			title="Filter by Course"
+			emptyLabel="Course"
+			description="What are we feeling today?"
+			options={Object.entries(recipeCoursesSectionHeaders).map(([key, item]) => ({
+				value: key,
+				label: item.title,
+				// description: item.subtitle,
+				icon: item.icon
 			}))}
-			defaultValue={['main']}
 			values={parameters.filters.course}
 			onChange={(values) => {
 				setParameters({ ...parameters, filters: { ...parameters.filters, course: values } });
@@ -458,24 +451,51 @@
 		/>
 
 		<FilterButtonMulti
-			title="cuisine"
-			options={Object.entries(recipeCuisines).map(([value, label]) => ({
-				value,
-				label
+			title="Filter by Cuisine"
+			emptyLabel="Cuisine"
+			description="Where are we travelling to?"
+			options={Object.entries(recipeCuisineSectionHeaders).map(([key, item]) => ({
+				value: key,
+				label: item.title,
+				// description: item.subtitle,
+				icon: item.icon
 			}))}
-			defaultValue={['french']}
 			values={parameters.filters.cuisine}
 			onChange={(values) => {
 				setParameters({ ...parameters, filters: { ...parameters.filters, cuisine: values } });
 			}}
 		/>
 
+		<FilterButtonMulti
+			title="Filter by Time of Day"
+			emptyLabel="Time"
+			description="What are we planning for?"
+			options={Object.entries(recipeTimesOfDaySectionHeaders).map(([key, item]) => ({
+				value: key,
+				label: item.title,
+				// description: item.subtitle,
+				icon: item.icon
+			}))}
+			values={parameters.filters.timeOfDay}
+			onChange={(values) => {
+				setParameters({ ...parameters, filters: { ...parameters.filters, timeOfDay: values } });
+			}}
+		/>
+
 		<!-- <FilterButton text="Cookable" /> -->
-		<FilterButton text="My Recipes" />
+		<!-- <FilterButton text="My Recipes" /> -->
 		<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
 		<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
 
-		<Sheet.Root>
+		{#if align === 'start'}
+			{@render resetFiltersButton()}
+		{/if}
+
+		<Button size="icon-sm" class="size-7 rounded-md hidden sm:flex">
+			<FunnelPlus />
+		</Button>
+
+		<!-- <Sheet.Root>
 			<Sheet.Trigger>
 				<FilterButton icon={FunnelPlus} primary />
 			</Sheet.Trigger>
@@ -491,9 +511,31 @@
 
 				<Sheet.Footer class="mt-auto">
 					<Button type="submit" class="w-full">See 42 results</Button>
-					<!-- <Sheet.Close class={buttonVariants({ variant: 'outline' })}>Close</Sheet.Close> -->
+					<Sheet.Close class={buttonVariants({ variant: 'outline' })}>Close</Sheet.Close>
 				</Sheet.Footer>
 			</Sheet.Content>
-		</Sheet.Root>
+		</Sheet.Root> -->
 	</div>
+{/snippet}
+
+{#snippet resetFiltersButton()}
+	{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
+		<Button
+			variant="ghost"
+			class="size-7 px-2 text-muted-foreground"
+			onclick={() => {
+				searchInput = '';
+				setParameters({
+					...parameters,
+					filters: {
+						timeOfDay: [],
+						course: [],
+						cuisine: []
+					}
+				});
+			}}
+		>
+			<RotateCcw class="size-4" />
+		</Button>
+	{/if}
 {/snippet}
