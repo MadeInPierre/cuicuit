@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import {
 		recipeCourses,
@@ -56,6 +56,8 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import IngredientEditItem from './IngredientEditItem.svelte';
+
+	const userState = getUserState();
 
 	// Load the recipe document
 	const pageRecipeId = page.params.id as string;

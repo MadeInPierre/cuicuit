@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { signOut } from '$lib/features/auth/actions/sign-out';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import ButtonThemed from '$lib/features/spaces/components/ButtonThemed.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import DropdownResponsive from '$lib/shared/components/SelectResponsive.svelte';
@@ -10,9 +10,11 @@
 	import { onMount } from 'svelte';
 	import SyncStatus from './SyncStatus.svelte';
 
+	const userState = getUserState();
+
 	onMount(async () => {
-		if(!supabase.client) throw new Error("No supabase client");
-		
+		if (!supabase.client) throw new Error('No supabase client');
+
 		const { data, error } = await supabase.client.auth.getClaims();
 		if (data) console.log('Claims:', data);
 		if (error) console.error('Error fetching claims:', error);
@@ -31,7 +33,7 @@
 
 	<Separator class="my-6" />
 
-	<DropdownResponsive />
+	<DropdownResponsive title="Hello" />
 
 	<div class="flex gap-2 items-center m-2">
 		<ButtonThemed onclick={signOut}>Sign out</ButtonThemed>

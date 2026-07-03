@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import {
 		recipeCoursesSectionHeaders,
 		recipeCuisineSectionHeaders,
@@ -33,6 +33,8 @@
 	import FilterButtonMulti from './FilterButtonMulti.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
 	import SearchBar from './SearchBar.svelte';
+
+	const userState = getUserState();
 
 	type RecipeSearchFilters = {
 		timeOfDay: string[];

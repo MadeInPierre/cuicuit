@@ -1,71 +1,88 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
-import type { User } from '@supabase/supabase-js';
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { getUserPreferences, type UserPreferences } from '../queries/get-user-preferences';
 import { getUserPublicProfile, type UserPublicProfile } from '../queries/get-user-public-profile';
 
-function createUserState() {
-	if (!supabase.client) throw new Error('Supabase client not available');
-	if (!supabase.client.auth) throw new Error('Supabase auth not initialized');
+class UserState {
+	#userState = $state<User | undefined | null>(undefined);
+	#userPublicProfile = $state<UserPublicProfile | undefined | null>(undefined);
+	#userPreferences = $state<UserPreferences | undefined | null>(undefined);
 
-	let userState = $state<User | undefined | null>(undefined);
-	let userPublicProfile = $state<UserPublicProfile | undefined | null>(undefined);
-	let userPreferences = $state<UserPreferences | undefined | null>(undefined);
+	#unsub: any;
 
-	const { data } = supabase.client.auth.onAuthStateChange((event, session) => {
-		// console.log('Supabase auth state changed:', event, session);
+	constructor(supabaseClient: SupabaseClient<Database> | undefined) {
+		if (!supabaseClient?.auth) throw new Error('Supabase auth not initialized');
 
-		if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-			userState = session?.user || null;
+		const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+			// console.log('Supabase auth state changed:', event, session);
 
-			// If the user is signed in, fetch their public profile and preferences
-			if (session?.user?.id) {
-				// Fetch user profile
-				getUserPublicProfile(session.user.id).then((result) => {
-					userPublicProfile = result.profile;
-				});
+			if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+				this.#userState = session?.user || null;
 
-				// Fetch user preferences
-				getUserPreferences(session.user.id).then((result) => {
-					userPreferences = result.preferences;
-				});
+				// If the user is signed in, fetch their public profile and preferences
+				if (session?.user?.id) {
+					// Fetch user profile
+					getUserPublicProfile(session.user.id).then((result) => {
+						this.#userPublicProfile = result.profile;
+					});
+
+					// Fetch user preferences
+					getUserPreferences(session.user.id).then((result) => {
+						this.#userPreferences = result.preferences;
+					});
+				}
+			} else if (event === 'SIGNED_OUT') {
+				this.#userState = null;
 			}
-		} else if (event === 'SIGNED_OUT') {
-			userState = null;
-		}
-	});
+		});
 
-	return {
-		get user() {
-			return userState;
-		},
-		get profile() {
-			return userPublicProfile;
-		},
-		get preferences() {
-			return userPreferences;
-		},
-		get isLoading() {
-			return (
-				userState === undefined || userPublicProfile === undefined || userPreferences === undefined
-			);
-		},
-		get isComplete() {
-			return userState && userPublicProfile && userPreferences; // Neither null nor undefined
-		},
-		stopListening: () => {
-			data.subscription.unsubscribe();
-		},
-		refresh: async () => {
-			if (!userState?.id) return;
+		this.#unsub = data;
+	}
 
-			// Refresh user profile
-			userPublicProfile = (await getUserPublicProfile(userState.id)).profile;
+	get user() {
+		return this.#userState;
+	}
 
-			// Refresh user preferences
-			userPreferences = (await getUserPreferences(userState.id)).preferences;
-		}
-	};
+	get profile() {
+		return this.#userPublicProfile;
+	}
+
+	get preferences() {
+		return this.#userPreferences;
+	}
+
+	get isLoading() {
+		return (
+			this.#userState === undefined ||
+			this.#userPublicProfile === undefined ||
+			this.#userPreferences === undefined
+		);
+	}
+
+	get isComplete() {
+		return this.#userState && this.#userPublicProfile && this.#userPreferences; // Neither null nor undefined
+	}
+
+	stopListening() {
+		this.#unsub.subscription.unsubscribe();
+	}
+
+	async refresh() {
+		if (!this.#userState?.id) return;
+
+		// Refresh user profile
+		this.#userPublicProfile = (await getUserPublicProfile(this.#userState.id)).profile;
+
+		// Refresh user preferences
+		this.#userPreferences = (await getUserPreferences(this.#userState.id)).preferences;
+	}
 }
 
-export const userState = createUserState();
-export type UserState = ReturnType<typeof createUserState>;
+const currentUserState = $derived(new UserState(supabase.client));
+
+export function getUserState() {
+	return currentUserState;
+}
+
+// export type UserState = ReturnType<typeof createUserState>;

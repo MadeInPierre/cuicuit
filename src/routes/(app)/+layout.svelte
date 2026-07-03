@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
-	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte.js';
 	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import MobileBottomNavbar from '$lib/shared/components/mobile-bottom-navbar.svelte';
 	import SidebarPage from '$lib/shared/components/sidebar-page.svelte';
@@ -12,6 +12,7 @@
 	const { data, children } = $props();
 
 	// Initialize the active space state, this will create a persistent state
+	const userState = getUserState();
 	createActiveSpaceState(userState);
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)

@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { createUserData } from '$lib/features/auth/actions/create-user-data';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { createSpace } from '$lib/features/spaces/actions/create-space';
 	import { joinSpace } from '$lib/features/spaces/actions/join-space';
 	import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
@@ -13,6 +13,8 @@
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
+
+	const userState = getUserState();
 
 	// Require the user to be signed in to get here
 	$effect(() => {

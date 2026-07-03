@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import CreateSpaceForm from '$lib/features/spaces/components/CreateSpaceForm.svelte';
 	import JoinSpaceForm from '$lib/features/spaces/components/JoinSpaceForm.svelte';
 	import {
@@ -18,7 +18,9 @@
 	import { fade } from 'svelte/transition';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 
+	const userState = getUserState();
 	const activeSpace = getActiveSpaceState();
+
 	const ActiveTeamIcon = $derived(
 		spaceIcons[activeSpace.activeSpace?.icon as SpaceIconKey] || Loader2
 	);

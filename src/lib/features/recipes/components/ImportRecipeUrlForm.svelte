@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
@@ -11,6 +11,8 @@
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
+
+	const userState = getUserState();
 
 	type Props = {
 		openDialog?: boolean;
@@ -77,7 +79,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-red-600"/>
+			<Form.FieldErrors class="text-red-600" />
 		</Form.Field>
 	</div>
 

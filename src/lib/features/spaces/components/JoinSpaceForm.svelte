@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
@@ -14,6 +14,8 @@
 	import { themeButtonClasses, type SpaceThemeKey } from '../consts';
 	import { joinSpaceFormSchema } from '../models/schemas';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
+
+	const userState = getUserState();
 
 	let { openDialog = $bindable() } = $props();
 

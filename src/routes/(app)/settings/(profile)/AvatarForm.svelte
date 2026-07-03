@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { deleteUserPicture } from '$lib/features/user-settings/actions/delete-user-picture';
 	import { updateUserAvatar } from '$lib/features/user-settings/actions/update-user-avatar';
 	import { uploadProfilePicture } from '$lib/features/user-settings/actions/upload-profile-picture';
@@ -10,6 +10,8 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { ImageUp, LoaderCircle, Trash2 } from 'lucide-svelte';
 	import IconPicker from './IconPicker.svelte';
+
+	const userState = getUserState();
 
 	let file: any = $state(undefined);
 	let loadingUpload = $state(false);
