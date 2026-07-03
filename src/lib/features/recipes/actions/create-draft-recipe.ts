@@ -1,4 +1,4 @@
-import { userState } from '$lib/features/auth/state/user-state.svelte';
+import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { toast } from 'svelte-sonner';
@@ -12,6 +12,9 @@ export async function createDraftRecipe(
 		console.error('Supabase client not available');
 		return;
 	}
+
+	const userState = getUserState();
+
 	if (!userState.user) {
 		console.error('User not authenticated');
 		toast.error('You must be logged in to create a recipe.');

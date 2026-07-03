@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
 	import NavFavorites from '$lib/shared/components/nav-favorites.svelte';
 	import NavMain from '$lib/shared/components/nav-main.svelte';
@@ -11,6 +11,8 @@
 	import type { ComponentProps } from 'svelte';
 	import type { TAILWIND_BREAKPOINTS } from '../hooks/use-media.svelte';
 	import NavUser from './nav-user.svelte';
+
+	const userState = getUserState();
 
 	// This is sample data.
 	const data: {

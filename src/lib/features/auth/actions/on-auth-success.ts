@@ -4,7 +4,7 @@ import type { User } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
-import { userState } from '../state/user-state.svelte';
+import { getUserState } from '../state/user-state.svelte';
 import { resendConfirmationEmail } from './send-signup-confirmation-email';
 
 /**
@@ -15,6 +15,8 @@ import { resendConfirmationEmail } from './send-signup-confirmation-email';
  * @returns
  */
 export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod, user: User) {
+	const userState = getUserState();
+	
 	// Make sure a non-anonymous user has a verified email
 	if (authMethod !== AuthMethod.ANONYMOUS && !user.email_confirmed_at) {
 		// Show a reminder if the user still didn't verify their email on login

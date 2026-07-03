@@ -2,8 +2,10 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import UserAuthForm from '../user-auth-form.svelte';
+
+	const userState = getUserState();
 
 	// Redirect the user to dashboard if already logged in (or welcome if not done yet)
 	$effect(() => {

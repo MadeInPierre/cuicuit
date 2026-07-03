@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { profileFormSchema, type ProfileFormSchema } from '$lib/features/auth/models/schemas';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { updateUserPreferences } from '$lib/features/user-settings/actions/update-user-preferences';
 	import { updateUserProfile } from '$lib/features/user-settings/actions/update-user-profile';
 	import * as Form from '$lib/shared/components/ui/form';
@@ -11,6 +11,8 @@
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import ImagePicker from './AvatarForm.svelte';
+
+	const userState = getUserState();
 
 	// Show a status icon to the user in real-time
 	enum UpdateStatus {

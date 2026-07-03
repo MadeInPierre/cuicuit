@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
@@ -14,6 +14,7 @@
 	import { createSpaceFormSchema } from '../models/schemas';
 	import { getActiveSpaceState } from '../state/active-space.svelte';
 
+	const userState = getUserState();
 	const activeSpace = getActiveSpaceState();
 
 	// Refine the form schema to make sure the name is not already taken by other spaces,

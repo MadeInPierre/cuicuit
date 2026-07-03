@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { signOut } from '$lib/features/auth/actions/sign-out';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
 	import { Settings } from 'lucide-svelte';
-	import BadgeCheck from 'lucide-svelte/icons/badge-check';
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
 	import LogOut from 'lucide-svelte/icons/log-out';
-	import Sparkles from 'lucide-svelte/icons/sparkles';
+
+	const userState = getUserState();
 
 	let { user }: { user: { name: string; email: string; avatar: string } } = $props();
 

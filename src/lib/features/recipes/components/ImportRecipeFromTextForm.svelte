@@ -1,17 +1,18 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { goto } from '$app/navigation';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
-
-	import { goto } from '$app/navigation';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { importRecipeFromText } from '../actions/import-from-url';
 	import { importRecipeTextSchema, type ImportRecipeTextSchema } from '../models/schemas';
+
+	const userState = getUserState();
 
 	type Props = {
 		openDialog?: boolean;

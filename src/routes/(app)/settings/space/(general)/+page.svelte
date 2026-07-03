@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { leaveSpace } from '$lib/features/spaces/actions/leave-space';
 	import EditSpaceForm from '$lib/features/spaces/components/EditSpaceForm.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
@@ -10,6 +10,7 @@
 	import { LogOut } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
+	const userState = getUserState();
 	const spaceState = getActiveSpaceState();
 
 	let showConfirmLeaveSpaceDialog = $state(false);

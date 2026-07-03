@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import CreateSpaceForm from '$lib/features/spaces/components/CreateSpaceForm.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -13,6 +13,8 @@
 	import { onMount } from 'svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';
+
+	const userState = getUserState();
 
 	const activeSpace = getActiveSpaceState();
 	const ActiveTeamIcon = $derived(

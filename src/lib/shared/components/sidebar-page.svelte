@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import CommandMenu from '$lib/features/command/CommandMenu.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
@@ -9,6 +9,8 @@
 	import HelloDialog from './HelloDialog.svelte';
 	import ThemeButton from './ThemeButton.svelte';
 	import { Button } from './ui/button';
+
+	const userState = getUserState();
 
 	interface Props {
 		children?: import('svelte').Snippet;

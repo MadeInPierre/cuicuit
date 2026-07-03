@@ -2,7 +2,7 @@
 	import { signOut } from '$lib/features/auth/actions/sign-out';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
 	import { passwordFormSchema } from '$lib/features/auth/models/schemas';
-	import { userState } from '$lib/features/auth/state/user-state.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import * as Avatar from '$lib/shared/components/ui/avatar';
 	import { Badge } from '$lib/shared/components/ui/badge';
@@ -20,6 +20,8 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import UserAuthForm from '../../../(auth)/user-auth-form.svelte';
 	import AddProvider from './AddProvider.svelte';
+
+	const userState = getUserState();
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(passwordFormSchema)), {

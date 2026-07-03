@@ -1,7 +1,7 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 export async function getUserPreferences(userId: string) {
-	if (!supabase.client) throw new Error('Supabase client not available');
+	if (!supabase.client) return { preferences: null, error: null };
 	if (!userId) throw new Error('User ID not provided');
 
 	const { data: preferences, error } = await supabase.client
