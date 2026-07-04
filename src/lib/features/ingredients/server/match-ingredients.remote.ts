@@ -1,6 +1,7 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js';
-import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { corsHeaders } from '../_shared/cors.ts';
+import { query } from '$app/server';
+import { languageKeySchema } from '$lib/features/user-settings/consts';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import z from 'zod';
 
 // We only remove numbers, fractions, units, and action verbs.
 // We DO NOT remove adjectives (rouge, frais, gros) because they differentiate ingredients.
@@ -32,31 +33,22 @@ function preprocessIngredient(text: string): string {
 	return cleaned.replace(/[,\.\-\s]+/g, ' ').trim();
 }
 
-Deno.serve(async (req) => {
-	throw new Error('DEPRECATED, KEPT FOR REFERENCE IF FUTURE EDGE FUNCTIONS ARE NEEDED');
+export const matchIngredientsRPC = query(
+	z.object({
+		ingredientStrings: z.array(z.string()).min(1),
+		lang: languageKeySchema
+	}),
+	async ({ ingredientStrings, lang }) => {
+		const matchPromises = ingredientStrings.map(async (originalText: string) => {
+			if (!supabase.client) throw new Error('No supabase client');
 
-	if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-
-	try {
-		const { ingredients, lang } = await req.json();
-		if (!ingredients || !Array.isArray(ingredients)) {
-			throw new Error('Missing "ingredients" array.');
-		}
-
-		const supabaseClient = createClient(
-			Deno.env.get('SUPABASE_URL') ?? '',
-			Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-			{ global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-		);
-
-		const matchPromises = ingredients.map(async (originalText: string) => {
 			const cleanedText = preprocessIngredient(originalText);
 
 			if (!cleanedText) {
-				return { original: originalText, bestMatches: [], message: 'Empty after cleaning.' };
+				return { originalText, bestMatches: [], message: 'Empty after cleaning.' };
 			}
 
-			const { data, error } = await supabaseClient.rpc('match_ingredient', {
+			const { data, error } = await supabase.client.rpc('match_ingredient', {
 				query_text: cleanedText, // Renamed to avoid SQL reserved word conflicts
 				lang_code: lang || 'fr-FR',
 				n_matches: 10
@@ -65,22 +57,14 @@ Deno.serve(async (req) => {
 			if (error) throw error;
 
 			return {
-				original: originalText,
+				originalText,
 				cleaned: cleanedText, // Good for debugging in your frontend
-				bestMatches: data || []
+				bestMatches: data || [],
+                message: ''
 			};
 		});
 
 		const matches = await Promise.all(matchPromises);
-
-		return new Response(JSON.stringify({ matches }), {
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-			status: 200
-		});
-	} catch (error) {
-		return new Response(JSON.stringify({ error: error.message }), {
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-			status: 400
-		});
+		return { matches };
 	}
-});
+);
