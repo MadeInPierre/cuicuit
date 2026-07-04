@@ -228,10 +228,10 @@
 	let loading = $state(false);
 
 	async function onSubmit(data: Infer<CreateRecipeFormSchema>) {
-		if(!supabase.client) throw new Error("No supabase client");
+		if (!supabase.client) throw new Error('No supabase client');
 
 		loading = true;
-		const { data: langData, error: langError } = await getLanguageId(data.language);
+		const { data: langData, error: langError } = await getLanguageId(data.language as LanguageKey);
 
 		if (!userState.user) {
 			toast.error('You must be logged in to create a recipe.');

@@ -1,11 +1,11 @@
-import { languageKeys } from '$lib/features/user-settings/consts';
+import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
 import { z } from 'zod';
 
 export const createRecipeFormSchema = z
 	.object({
 		// General info
-		language: z.enum(languageKeys).default('fr-FR'),
+		language: languageKeySchema.default('fr-FR'),
 		title: z
 			.string()
 			.min(3, 'Name must be at least 3 characters long.')
@@ -15,7 +15,11 @@ export const createRecipeFormSchema = z
 
 		// Source
 		source_type: publicRecipeSourceTypeSchema,
-		source_url: z.string().url("Please enter a valid URL, like https://...").nullable().or(z.literal('')),
+		source_url: z
+			.string()
+			.url('Please enter a valid URL, like https://...')
+			.nullable()
+			.or(z.literal('')),
 
 		// Images
 		imageIds: z

@@ -256,6 +256,7 @@ DECLARE
     clean_query TEXT;
     alt_query TEXT; -- plural/singular companion form
     prefix_query tsquery;
+    fts_query TEXT; -- New variable for sanitized FTS input
 BEGIN
     -- 1. Setup Language
     SELECT id INTO target_lang_id FROM public.languages WHERE lang = lang_code;
@@ -288,7 +289,16 @@ BEGIN
 
     -- 4. Prepare FTS Prefix Query (e.g., 'oeuf:*' or 'creme:* & fraiche:*')
     -- This solves the "jumping around" issue by matching partial words as you type.
-    prefix_query := to_tsquery('simple', nullif(regexp_replace(clean_query, '\s+', ':* & ', 'g'), '') || ':*');
+    
+    -- Strip all non-alphanumeric characters (except spaces) to prevent to_tsquery syntax errors
+    fts_query := regexp_replace(clean_query, '[^a-z0-9\s]', ' ', 'g');
+    fts_query := regexp_replace(fts_query, '\s+', ' ', 'g');
+    fts_query := trim(fts_query);
+
+    prefix_query := NULL;
+    IF fts_query <> '' THEN
+        prefix_query := to_tsquery('simple', regexp_replace(fts_query, '\s+', ':* & ', 'g') || ':*');
+    END IF;
 
     RETURN QUERY
     WITH scored_matches AS (

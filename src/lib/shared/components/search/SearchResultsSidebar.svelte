@@ -47,7 +47,8 @@
 		class: className,
 		displayRows = 1,
 		displayColumns = 3,
-		allowCustom = false
+		allowCustom = false,
+		display = 'both'
 	}: Props = $props();
 
 	const space = getActiveSpaceState();
@@ -101,7 +102,7 @@
 	});
 </script>
 
-<SearchLogic bind:inputRef bind:inputValue bind:searchResults />
+<SearchLogic bind:inputRef bind:inputValue bind:searchResults {display} />
 
 <div
 	class={cn(
