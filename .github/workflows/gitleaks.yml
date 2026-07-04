@@ -4,11 +4,15 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    - cron: "0 4 1/7 * *"
+    - cron: '0 4 1/7 * *'
 jobs:
   scan:
     name: gitleaks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      discussions: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6
         with:
