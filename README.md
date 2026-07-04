@@ -9,8 +9,165 @@
 ![Hero](./static/hero/hero_wide.png)
 
 > [!WARNING]
-> ⚠️ **Cuicuit just hatched!** Expact alpha-software quality with many bugs and rough edges. Feedback is greatly appreciated!
+> 🐣 **Cuicuit just hatched!** Expect alpha-quality with many bugs and rough edges. Feedback is greatly appreciated!
 
+Cuicuit aims to be your all-round kitchen assistant that helps you decide what to cook, what to buy, and how to improve your diet. It is a personal assistant that helps you plan meals, get automatic shopping lists, and get meal recommendations based on your pantry and habits. The app is designed to be a local-first, privacy-respecting, and open-source app that you can self-host or use via a crowd-funded hosted version. 
+
+Cuicuit is built and maintained in my free time. I’d love to keep improving it and make it useful for more people. If you like the project and want to help it grow, [your support](https://github.com/sponsors/MadeInPierre) makes a real difference ❤️
+
+🥁 P.S. French wordplay of the day: *cui-cui* is how we write the sound of a bird (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit*! 
+
+
+
+## 🗺️ Roadmap
+
+This roadmap presents my rough evolution plan of Cuicuit. Your feedback is very welcome, I hope to make Cuicuit useful to everyone! [Vote for features](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas) to help adjust the roadmap and prioritize the most important features. Items marked with 🚧 are currently in progress.
+
+
+<details><summary><strong>🥚 Step 0: Open source & Project foundations 🚧</strong></summary>
+
+*Focus: Establish an open-source, documented foundation for Cuicuit with a hosted offering and self-hosting guides.*
+
+* [ ] **🚧 Hosted version**
+  * [x] Publicly hosted version for testing and feedback
+  * [x] User authentication and account management
+  * [x] Basic multi-user support with isolated spaces
+  * [ ] Security and privacy enforcements
+  * [ ] Shared crowd-funded moneypot for LLM and hosting costs
+* [ ] **Self-hosting**
+  * [ ] Dockerized deployment & documentation for easy self-hosting
+  * [ ] Environment variable configuration for customization
+  * [ ] Database setup and migration scripts
+* [ ] **Open-source readiness**
+  * [ ] Public GitHub repository with clear contribution guidelines
+  * [ ] Code of Conduct and License (MIT)
+* [ ] **Documentation**
+  * [ ] README with project overview and setup instructions
+  * [ ] Contribution guidelines for developers
+* [ ] **Offline support**
+  * [ ] Local-first architecture with a sync engine (PowerSync/Zero/SQLite, TBD)
+</details>
+
+<details><summary><strong>🐣 Step 1: Import recipes, plan meals, get shopping lists 🚧</strong></summary>
+
+*Focus: Import recipes from anywhere. Organize them, then add them to a meal plan to get a nice shopping list.*
+
+* [x] **Shared households**
+  * [x] Create one or more isolated "home" spaces (e.g., Home, Parents' house)
+  * [x] Share spaces with other users to collaborate
+  * [x] Invite users to your spaces
+  * [ ] Real-time UI feel using a sync engine
+* [ ] **The recipe engine**
+  * [x] Import recipes from easy-to-import websites or create your own
+  * [ ] Understand and convert ingredient quantities and units
+  * [ ] Organize recipes in shareable cookbooks
+  * [ ] Robust recipe import from web pages, social media, photos, and text
+  * [ ] Interact with recipes: Like, rate, categorize, and clone/customize existing ones
+  * [ ] Discover recipes from the community (random roll, search by name, filter by category)
+* [x] **Basic meal planning**
+  * [x] Add recipes to a simple dateless meal plan
+  * [ ] Add additional ingredients & custom items
+* [ ] **Shopping list generation**
+  * [x] Automatically generate a shopping list
+  * [x] Suggest items based on past purchases
+  * [ ] Sort & group items by aisle, meal, or cart status
+</details>
+
+<details><summary><strong>🐥 Step 2: Meal recommendations from your pantry</strong></summary>
+
+*Focus: Linking the pantry to meal planning and dynamically generating the primary shopping flows.*
+
+* [ ] **Pantry management**
+  * [ ] Add pantry items with categories, quantities, expiration dates, and storage locations
+  * [ ] Import pantry items from receipts, supermarket APIs, or smart scales
+  * [ ] Quantity tracking with automatic unit conversions
+  * [ ] Storage locations (Fridge, freezer, pantry shelf)
+  * [ ] Expiration dates estimation and reminders
+* [ ] **Closing the loop: Pantry-Meal-Grocery Reservation Engine**
+  * [ ] Connect pantry directly to planned meals and automatically reserve items for each meal
+  * [ ] Adapt the grocery list based on pantry availability and reserved items
+  * [ ] Top-to-bottom "cookability" state for each meal
+  * [ ] Suggest substitutions for missing ingredients
+  * [ ] Clear notifications alerting users to missing items for scheduled meals
+* [ ] **Dynamic Shopping List Generation**
+  * [ ] Auto-generate lists directly from the meal plan requirements
+  * [ ] Quick-action cart status toggles (In cart vs. Needed)
+  * [ ] Manual override: Add custom items (including general household goods)
+</details>
+
+The next steps are more long-term and subject to change from your feedback:
+
+<details><summary>🐓 Step 3: Intelligent Context & Prediction</summary>
+
+*Focus: Turning the app into a proactive companion using rules-based automation and consumption behaviors.*
+
+* [ ] **Contextual & Predictive Pantry Rules**
+  * [ ] Set "Minimum Quantities" per item to auto-trigger shopping list additions regardless of meal plan
+  * [ ] Consumption habits and pantry probabilities (e.g. assume 100g of cereal daily for breakfast)
+* [ ] **Smart Recipe Recommendations**
+  * [ ] Quick-scale party filters (e.g., "Ideas for `(-)` 2 `(+)` people")
+  * [ ] Contextual badges for recipe matches: *Ready to Cook*, *Change of Plans*, or *Groceries Needed*
+  * [ ] Reason-based suggestion badges (e.g., *"Uses up items about to expire"*)
+  * [ ] Top-of-page interactive assistant recommending tailored search filters
+* [ ] **Pantry Chronology & Simulation**
+  * [ ] Step through your planned timeline to view calculated future pantry states
+  * [ ] Hover states over specific meals to preview exactly what remains in the fridge afterwards
+  * [ ] "Time travel" mechanics: Override and set a simulated future pantry state as the active current state
+  * [ ] Feed future simulation states directly into the recommendation engine to easily pivot dinner plans
+</details>
+
+<details><summary>🦅 Step 4: Passive Automation & Advanced Inputs</summary>
+
+*Focus: Drastically reducing user manual updates via smart interfaces, probabilistic modeling, and commercial integrations.*
+
+* [ ] **Streamlined Inventory Inputs**
+  * [ ] Manual slider adjustments
+  * [ ] Hardware integrations (Smart scale data feeds)
+  * [ ] Text & image-based input processing (Groceries receipt scanning / OCR parsing)
+  * [ ] Direct supermarket API inventory loading
+  * [ ] Explicit "Mark recipe as cooked" triggers to batch-decrement inventory
+* [ ] **Supermarket & Drive Modes**
+  * [ ] Live grocery cart verification
+  * [ ] Barcode scanning for immediate cart loading and localized nutrition insights
+  * [ ] **Drive Mode:** Programmatic checkout and automated online order purchasing via Supermarket APIs
+* [ ] **Probabilistic Inventory Tracking**
+  * [ ] Support quantity variance ranges (e.g., tracking "1-2 onions" instead of exact grams)
+  * [ ] Habit-based predictive quantity engine derived from historical data
+  * [ ] Periodic low-friction micro-checkins asking users to quickly verify true quantities
+* [ ] **The Autonomous Kitchen Wizard**
+  * [ ] Continuous, algorithmic meal plan pre-filling based on learned user profiles
+  * [ ] Soft-ui states: Display suggestions as half-faded layouts for swift confirm/switch/remove interactions
+  * [ ] Profile toggles: Familiar vs. Discover balancing, Flexitarian settings, and Mood adjustments
+  * [ ] Kill-switch toggle to fully disable auto-filling behaviors
+</details>
+
+<details><summary>🪐 Step 5: The Extended Ecosystem (Long-Term Vision)</summary>
+
+*Focus: Deep history, advanced AI, hyper-local networks, and environmental footprint tracking.*
+
+* [ ] **Generative AI Enhancements**
+  * [ ] Fully generative recipe drafting utilizing chaotic or highly specific left-over ingredient bundles
+  * [ ] **Mood Radio:** Natural language interface accepting prompts (e.g., *"Comfort food for a rainy Sunday"*) to spin up targeted meal flows
+* [ ] **History, Audits, & Micro-Reminders**
+  * [ ] Complete chronological tracking of pantry states, meal plans, and old receipts
+  * [ ] Universal "Undo" capability for accidental pantry edits or incorrect cooking logs
+  * [ ] Contextual surface of historic ratings and personal notes directly into main recipe cards and search engines
+  * [ ] High-signal household messaging (e.g., *"Pinging home group: I'm at the store, need anything?"*)
+* [ ] **Sustainability, Wellness, & Local Supply Chains**
+  * [ ] Comprehensive nutritional scoring, analytics, and target adjustments
+  * [ ] Carbon footprint ($CO_2$) and direct water usage approximations per ingredient choice
+  * [ ] Food waste tracking metrics and cost-loss summaries
+  * [ ] Dietitian Portal: let certified nutritionists securely analyze your stats or curate your meal plan
+  * [ ] Local producer aggregation: Automatically suggest sourcing options from nearby independent farms alongside standard supermarket delivery loops
+</details>
+
+Feel free to suggest other features!
+
+
+### Deprecated
+
+<details>
+<summary>Deprecated</summary>
 
 # Features:
 
@@ -80,8 +237,6 @@
 - Super long term: Nutrition insights, C02 and water footprint, waste tracking, spending tracking, etc.
   - Nutritionists can help you generate a meal plan based on your goals (they add recipes to your meal plan or share custom-made cookbooks)
   - Search for local producers to buy from them, also auto recommended in the shopping list page alongside the supermarket drive mode
-
-
 
 # File structure
 
@@ -153,45 +308,4 @@ At the root of the `src/` folder, we have:
     - `server/` for the server-side logic of the feature
 - `shared/` for shared files used globally in the app. This folder uses the same structure as the `features/` folder.
 
-# Trello
-
-See https://trello.com/b/r6u53Si0/cuicuit-v2 for the Trello board.
-
-# create-svelte
-
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+</details>
