@@ -14,7 +14,7 @@
             "draft": true,
             "include-commit-authors": true,
             "pull-request-header": "🐥 New version of Cuicuit released!",
-            "pull-request-footer": "If you enjoy using Cuicuit, [your support](https://github.com/sponsors/MadeInPierre) means a lot to continue improving the app! Thank you!",
+            "pull-request-footer": "If you enjoy using Cuicuit, [your support](https://github.com/sponsors/MadeInPierre) means a lot to continue improving the app! Thank you! :heart:",
             "prerelease-type": "alpha",
             "prerelease": true,
             "bump-minor-pre-major": true,
