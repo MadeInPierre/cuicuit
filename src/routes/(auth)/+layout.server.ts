@@ -11,15 +11,20 @@ export const load: LayoutServerLoad = async ({ url, locals: { supabase } }) => {
 
 		const { preferences, error: prefError } = await getUserPreferences(userId);
 		if (prefError) console.error(prefError);
+		console.log('Server check at /(auth):', url.pathname, data.claims, preferences);
 
 		// If the user is already logged and has its account created, go to app
 		if (preferences?.onboarding_status === 'finished') redirect(303, '/recipes');
 		// Logged in but no data yet, make the user setup their account
 		else if (!url.pathname.startsWith('/welcome')) redirect(303, '/welcome');
-	} else {
-		// Not logged in, redirect to login if on /welcome
-		if (url.pathname.startsWith('/welcome')) redirect(303, '/login');
 	}
 
-	return { url: url.origin, claims: data?.claims };
+	// Not logged in at /welcome, redirect to login
+	else if (url.pathname.startsWith('/welcome')) {
+		console.log('At /welcome but not logged in, going to /login');
+		redirect(303, '/login');
+	}
+
+	// Not logged in, all good
+	return { url: url.origin };
 };
