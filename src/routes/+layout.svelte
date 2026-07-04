@@ -42,6 +42,7 @@
 	onMount(() => {
 		const { data } = sb.auth.onAuthStateChange((event, _session) => {
 			if (_session?.expires_at !== claims?.exp) {
+				console.log('Supabase session token expired, refreshing.');
 				invalidate('supabase:auth');
 			}
 		});
