@@ -18,8 +18,8 @@ const noiseRegex = new RegExp(
 function preprocessIngredient(text: string): string {
 	if (!text) return '';
 
-	// Convert to lowercase and take primary ingredient before comma
-	let cleaned = text.toLowerCase().split(',')[0];
+	// Convert to lowercase and take primary ingredient before comma/parentheses
+	let cleaned = text.toLowerCase().split(',')[0].split('(')[0];
 
 	// Strip mathematical/action noise
 	cleaned = cleaned.replace(noiseRegex, ' ');
@@ -49,18 +49,20 @@ export const matchIngredientsRPC = query(
 			}
 
 			const { data, error } = await supabase.client.rpc('match_ingredient', {
-				query_text: cleanedText, // Renamed to avoid SQL reserved word conflicts
+				query_text: cleanedText,
 				lang_code: lang || 'fr-FR',
 				n_matches: 10
 			});
 
-			if (error) throw error;
+			if (error) {
+				return { originalText, bestMatches: [], message: 'An error occured during RPC matching.' };
+			}
 
 			return {
 				originalText,
-				cleaned: cleanedText, // Good for debugging in your frontend
+				cleaned: cleanedText,
 				bestMatches: data || [],
-                message: ''
+				message: ''
 			};
 		});
 

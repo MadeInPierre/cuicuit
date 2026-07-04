@@ -11,7 +11,7 @@ export const load: LayoutServerLoad = async ({ url, locals: { supabase } }) => {
 
 		const { preferences, error: prefError } = await getUserPreferences(userId);
 		if (prefError) console.error(prefError);
-		console.log('Server check at /(auth):', url.pathname, data.claims, preferences);
+		// console.log('Server check at /(auth):', url.pathname, data.claims, preferences);
 
 		// If the user is already logged and has its account created, go to app
 		if (preferences?.onboarding_status === 'finished') redirect(303, '/recipes');

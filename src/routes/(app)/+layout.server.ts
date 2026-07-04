@@ -11,7 +11,7 @@ export const load: LayoutServerLoad = async ({ url, locals: { supabase } }) => {
 
 		const { preferences, error: prefError } = await getUserPreferences(userId);
 		if (prefError) console.error(prefError);
-		console.log('Server check at /(app):', url.pathname, data.claims, preferences);
+		// console.log('Server check at /(app):', url.pathname, data.claims, preferences);
 
 		// Logged in but doesn't have user data, onboard them
 		if (preferences?.onboarding_status !== 'finished') {
