@@ -19,20 +19,23 @@
 	// Require the user to be signed in to get here
 	$effect(() => {
 		if (browser && userState.user === null) {
-			console.warn('User is not logged in, redirect to signup');
-			goto('/signup');
+			console.warn('User is not logged in, redirect to /login');
+			goto('/login');
 		}
 	});
 
 	// Forbid this zone if the user already finished his onboarding
 	$effect(() => {
+		userState.preferences; // Force rerun if preferences change
+		console.log('User updated:', userState.user, userState.profile, userState.preferences);
+
 		if (browser && userState.user?.id) {
 			if (userState.preferences === null) {
 				// Freshly signed up user without initial data yet, create it
 				initializeUserData(userState.user.id);
 			} else if (userState.preferences?.onboarding_status === 'finished') {
-				console.log('User is already onboarded, going to app.');
-				goto('/recipes');
+				console.log('User is already onboarded, going /recipes.');
+				window.location.href = '/recipes';
 			}
 		}
 	});
@@ -113,7 +116,7 @@
 				}
 
 				// Done, go to app!
-				window.location.href = '/recipes';
+				goto('/recipes');
 			}
 		}
 	});
@@ -122,7 +125,10 @@
 
 	// Refresh the user's data once logged in
 	$effect(() => {
-		if (userState.user) userState.refresh();
+		if (userState.user) {
+			console.log('Refreshing user state');
+			userState.refresh();
+		}
 	});
 
 	// Get the current values in supabase to set the input values & placeholders
