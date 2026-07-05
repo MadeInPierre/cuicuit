@@ -3,8 +3,10 @@
 	import * as PageHeader from '$lib/features/marketing/components/page-title';
 	import { Button } from '$lib/shared/components/ui/button/index';
 	import { Separator } from '$lib/shared/components/ui/separator';
+	import GithubIcon from '$lib/shared/icons/github.svelte';
 	import { cn } from '$lib/utils';
-	import { CheckCircle, Hourglass, Notebook } from 'lucide-svelte';
+	import { ExternalLink } from '@lucide/svelte';
+	import { ArrowRight, CheckCircle, Hourglass, Notebook } from 'lucide-svelte';
 
 	const { data } = $props();
 
@@ -47,23 +49,30 @@
 		</PageHeader.Heading>
 
 		<PageHeader.Description class="z-10 text-muted-foreground">
-			Cuicuit can do it all! Track what's in your kitchen, plan your future meals, get help
-			selecting healthy products, and
-			<!-- automatically buy your groceries in your nearest drive store. -->
-			automate your groceries.
+			Cuicuit thinks for you! Import recipes from anywhere, drag them to your plan, and go shopping.
+			More to come!
 		</PageHeader.Description>
 
 		<div class="z-10 flex w-full items-center justify-center space-x-4 py-4 md:pb-10">
 			{#if data.claims?.sub}
-				<Button href="/signup">Go to app</Button>
+				<Button href="/signup">
+					Go to your home
+					<ArrowRight />
+				</Button>
 			{:else}
 				<Button href="/signup">Get started</Button>
-
-				<Button href="/login" variant="link">Log in</Button>
 			{/if}
+
+			<Button href="https://github.com/MadeInPierre/cuicuit" variant="outline">
+				<GithubIcon />
+				View on GitHub
+				<ExternalLink />
+			</Button>
 		</div>
 	</PageHeader.Root>
 </div>
+
+<img src="/hero/hero_wide.png" alt="Cuicuit" class="w-full container mx-auto" />
 
 <div class="container mx-auto mb-40 text-center md:max-w-lg">
 	<!-- svelte-ignore a11y_click_events_have_key_events -->

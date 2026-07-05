@@ -4,12 +4,21 @@
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { siteConfig } from '$lib/shared/config/site-config';
 	import { Icons } from '$lib/shared/icons';
-	import { ArrowRight } from '@lucide/svelte';
+	import { ArrowRight, Star } from '@lucide/svelte';
+	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import { getRepoStars } from '../../server/get-repo-stars.remote';
 
 	type Props = {
 		isLoggedIn: boolean;
 	};
 	const { isLoggedIn }: Props = $props();
+
+	let repoStars: number | undefined = $state(undefined);
+
+	onMount(async () => {
+		repoStars = await getRepoStars() || undefined;
+	});
 </script>
 
 <div class="container flex max-w-(--breakpoint-2xl) items-center px-6">
@@ -24,12 +33,23 @@
 		</div>
 
 		<nav class="flex items-center">
-			<a href={siteConfig.links.github} target="_blank" rel="noopener noreferrer">
-				<Button class="w-9 px-0" size="sm" variant="ghost">
-					<Icons.gitHub class="h-4 w-4" />
-					<span class="sr-only">GitHub</span>
-				</Button>
-			</a>
+			{#if repoStars}
+				<div in:fade>
+					<Button
+						class="gap-1"
+						size="sm"
+						variant="ghost"
+						href={siteConfig.links.github}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Icons.gitHub class="size-4 mr-1.5" />
+						<span class="sr-only">GitHub</span>
+						{repoStars}
+						<Star class="size-3" fill="#000000" />
+					</Button>
+				</div>
+			{/if}
 		</nav>
 
 		{#if isLoggedIn}
