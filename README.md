@@ -46,17 +46,18 @@ Click to expand. Items marked with 🚧 are currently in progress:
 <details><summary><strong>🥚 Step 0: Open source & Project foundations 🚧</strong></summary>
 
 * [ ] **LAUNCH BLOCKERS**
-  * [ ] ⛔ Copyright-free images and recipes
-  * [ ] ⛔ Privacy policy and terms of service
+  * [x] ⛔ RLS Security and privacy enforcements
+  * [ ] ⛔ Copyright-free images and recipes (remove marmiton references)
   * [ ] ⛔ Homepage, marketing, blog
 * [ ] **🚧 Hosted version**
   * [x] Publicly hosted version for testing and feedback
   * [x] Basic multi-user support with isolated spaces
-  * [ ] Security and privacy enforcements
+  * [ ] ToS, Privacy, Cookies banners, and GDPR compliance
   * [ ] Crowd-funded moneypot to share LLM and hosting costs
 * [ ] **Self-hosted version**
   * [ ] Dockerized deployment & documentation
   * [ ] Automated database migrations on startup
+  * [ ] Embed & update ingredient images in docker
   * [ ] Automated backup and restore of database and media files
 * [ ] **Documentation**
   * [ ] Usage documentation for end-users
@@ -76,7 +77,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
   * [x] Share spaces with other users to collaborate
   * [x] Invite users to your spaces
 * [ ] **Recipe engine**
-  * [x] Import recipes from websites or create your own
+  * [x] Import recipes from common websites or create your own
   * [ ] Convert ingredient quantities and units
   * [ ] Organize recipes in shareable cookbooks
   * [ ] Robust recipe import from social media, photos, text, and other apps.
