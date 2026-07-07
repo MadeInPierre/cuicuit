@@ -5,8 +5,8 @@
 	let { children, data } = $props();
 </script>
 
-<SiteHeader>
+<!-- <SiteHeader>
 	<NavContent isLoggedIn={!!data.claims?.sub} />
-</SiteHeader>
+</SiteHeader> -->
 
 {@render children()}

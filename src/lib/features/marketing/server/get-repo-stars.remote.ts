@@ -10,13 +10,11 @@ let repoStars: RepoStars = { stars: undefined, lastRefresh: undefined };
 export const getRepoStars = query(async () => {
 	// Cache hit
 	if (repoStars.stars && Date.now() - (repoStars.lastRefresh || 0) < 3600 * 1000) {
-		console.log('Cache hit');
 		return repoStars.stars;
 	}
 
 	// Cache miss
-	console.log('Cache miss');
-	const response = await fetch('https://api.github.com/repos/madeinpierre/cuicuit', {
+	const response = await fetch('https://api.github.com/repos/madeinpierre/finalynx', {
 		headers: {
 			Accept: 'application/vnd.github.v3.star+json'
 		}

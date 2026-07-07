@@ -22,7 +22,7 @@
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton>
-					<ThemeButton />
+					<ThemeButton class="block w-full" />
 
 					{#snippet tooltipContent()}
 						<span>Toggle theme</span>

@@ -55,7 +55,7 @@
 </svelte:head>
 
 <Metadata />
-<ModeWatcher />
+<ModeWatcher defaultMode="light" />
 <Toaster />
 
 <Tooltip.Provider>
