@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Inter:wght@400;500;600;700&family=Schoolbell&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -61,6 +62,13 @@
 	--spacing: 0.25rem;
 }
 
+@theme {
+	/* Adding custom fonts */
+	--font-display: 'Fraunces', ui-serif, Georgia, serif;
+	--font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+	--font-hand: 'Caveat', 'Segoe Script', cursive;
+}
+
 .dark {
 	--background: oklch(0.2679 0.0036 106.6427);
 	--foreground: oklch(0.8074 0.0142 93.0137);
@@ -115,6 +123,11 @@
 	--shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
 	--shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
 	--shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+	/* Adding custom fonts */
+	--font-display: 'Fraunces', ui-serif, Georgia, serif;
+	--font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+	--font-hand: 'Caveat', 'Segoe Script', cursive;
 }
 
 @theme inline {

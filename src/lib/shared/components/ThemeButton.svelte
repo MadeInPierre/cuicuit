@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '$lib/shared/components/ui/button';
-	import { cn } from '$lib/utils';
 	import { setMode, userPrefersMode } from 'mode-watcher';
 	import { toast } from 'svelte-sonner';
 
@@ -27,8 +26,8 @@
 <Button
 	onclick={() => setMode($userPrefersMode === 'dark' ? 'light' : 'dark')}
 	variant="ghost"
-	size="icon"
-	class={cn('inline-block', className)}
+	size="icon-sm"
+	class={className}
 >
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
