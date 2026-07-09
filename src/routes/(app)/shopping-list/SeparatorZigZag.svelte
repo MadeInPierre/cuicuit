@@ -9,6 +9,7 @@
 		strokeWidth?: number;
 		color?: string;
 		opacity?: number;
+		direction?: 'horizontal' | 'vertical';
 	}
 
 	let {
@@ -17,21 +18,40 @@
 		amplitude = 4,
 		strokeWidth = 1,
 		color = 'currentColor',
-		opacity = 0.3
+		opacity = 0.3,
+		direction = 'horizontal'
 	}: Props = $props();
 
 	const patternId = `zigzag-${Math.random().toString(36).slice(2)}`;
 
-	const height = $derived(amplitude + strokeWidth);
+	const thickness = $derived(amplitude + strokeWidth);
+	const cycleLength = $derived(pitch * 2);
+
+	const svgWidth = $derived(direction === 'horizontal' ? '100%' : thickness);
+	const svgHeight = $derived(direction === 'vertical' ? '100%' : thickness);
+
+	const patternWidth = $derived(direction === 'horizontal' ? cycleLength : thickness);
+	const patternHeight = $derived(direction === 'horizontal' ? thickness : cycleLength);
+
+	const pathD = $derived(
+		direction === 'horizontal'
+			? `M 0 0 L ${pitch} ${amplitude} L ${pitch * 2} 0`
+			: `M 0 0 L ${amplitude} ${pitch} L 0 ${pitch * 2}`
+	);
 </script>
 
-<div class={cn('w-full', className)}>
-	<svg class="separator" width="100%" {height} aria-hidden="true">
+<div class={cn(direction === 'horizontal' ? 'w-full' : 'h-full', className)}>
+	<svg class="separator" width={svgWidth} height={svgHeight} aria-hidden="true">
 		<defs>
 			<!-- userSpaceOnUse => pitch stays in CSS px -->
-			<pattern id={patternId} width={pitch * 2} {height} patternUnits="userSpaceOnUse">
+			<pattern
+				id={patternId}
+				width={patternWidth}
+				height={patternHeight}
+				patternUnits="userSpaceOnUse"
+			>
 				<path
-					d={`M 0 0 L ${pitch} ${amplitude} L ${pitch * 2} 0`}
+					d={pathD}
 					fill="none"
 					stroke={color}
 					stroke-width={strokeWidth}

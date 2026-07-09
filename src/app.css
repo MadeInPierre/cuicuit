@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Inter:wght@400;500;600;700&family=Schoolbell&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Schoolbell:wght@500;600;700&family=Caveat:wght@500;600;700&family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -66,7 +66,10 @@
 	/* Adding custom fonts */
 	--font-display: 'Fraunces', ui-serif, Georgia, serif;
 	--font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-	--font-hand: 'Caveat', 'Segoe Script', cursive;
+	--font-hand: 'Schoolbell', 'Caveat', 'Segoe Script', cursive;
+
+	--shadow-soft: 0 1px 2px oklch(0.3 0.06 35 / 0.06), 0 8px 24px oklch(0.3 0.06 35 / 0.08);
+	--shadow-lift: 0 20px 60px -20px oklch(0.4 0.11 35 / 0.28);
 }
 
 .dark {
