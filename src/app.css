@@ -356,7 +356,7 @@
 }
 
 @utility no-scrollbar {
-	@apply [scrollbar-none] [&::-webkit-scrollbar]:hidden;
+	@apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }
 
 // Prevent pull-to-refresh on mobile
