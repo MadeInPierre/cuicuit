@@ -4,7 +4,6 @@
 		ArrowRight,
 		BookOpen,
 		CalendarDays,
-		Egg,
 		Github,
 		Heart,
 		Server,
@@ -25,13 +24,13 @@
 		{
 			icon: CalendarDays,
 			step: '02',
-			title: 'Drop it in your week',
+			title: 'Drop it in your plan',
 			body: 'Drag meals into a flexible plan. Scale servings, tweak, or swap easily.'
 		},
 		{
 			icon: ShoppingBasket,
 			step: '03',
-			title: 'Shop without thinking',
+			title: 'Just go shopping!',
 			body: 'An aisle-aware list appears — check things off as you cruise the store.'
 		}
 	];
@@ -39,15 +38,15 @@
 	const faqs = [
 		{
 			q: 'What is Cuicuit?',
-			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. It's free to self-host and offers a free hosted version."
+			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version."
 		},
 		{
 			q: 'Is Cuicuit really free?',
-			a: 'Yes. The full source code is on GitHub under a permissive license and you can self-host it forever at no cost. Our hosted cloud version also has a free plan, funded by a community moneypot.'
+			a: "Yes, and I hope forever! The full source code is on GitHub under a permissive license and you can self-host it forever at no cost. Our hosted cloud version also has an unlimited free plan, funded by a community moneypot. This free plan is an experiment, I hope to see enough supporters to keep the app free for everyone. If the free version freezes too often, I might have to go back to a regular 'freemium' model — self-host your own instance if needed."
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe.'
+			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. It then uses AI to add filters, ingredient substitutions, and more!'
 		},
 		{
 			q: 'Can I self-host Cuicuit with Docker?',
@@ -55,7 +54,7 @@
 		},
 		{
 			q: 'Does Cuicuit work offline as a mobile app?',
-			a: "Cuicuit is a Progressive Web App (PWA). Install it from your phone's browser and take your shopping list to the store — no app store required."
+			a: "Cuicuit is a Progressive Web App (PWA). Install it from your phone's browser and take your shopping list to the store — no app store required. Offline support coming soon."
 		},
 		{
 			q: 'Can my family or roommates share a meal plan with me?',
@@ -169,13 +168,16 @@
 					alpha
 				</span> -->
 
-				<span class="px-2 text-xl text-primary font-hand font-normal"> alpha </span>
+				<!-- <span class="px-2 text-xl text-primary font-hand font-normal"> alpha </span> -->
+
+				<span class="px-2 text-xl text-[#fab030] font-hand"> alpha </span>
 			</a>
 			<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
 				<a href="#features" class="hover:text-foreground transition-colors">Features</a>
 				<a href="#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
 				<a href="#pricing" class="hover:text-foreground transition-colors">Pricing</a>
 				<a href="#faq" class="hover:text-foreground transition-colors">FAQ</a>
+				<a href="#story" class="hover:text-foreground transition-colors">Story</a>
 				<a
 					href="https://github.com/MadeInPierre/cuicuit"
 					target="_blank"
@@ -197,11 +199,11 @@
 	<section id="top" class="relative overflow-hidden bg-[var(--gradient-warm)]">
 		<div
 			aria-hidden={true}
-			class="pointer-events-none absolute -top-40 -right-40 h-[720px] w-[720px] rounded-full bg-primary/15 blur-[120px]"
+			class="pointer-events-none absolute -top-40 -right-40 h-[720px] w-[720px] rounded-full bg-primary/5 sm:bg-primary/10 md:bg-primary/15 blur-[120px]"
 		></div>
 		<div
 			aria-hidden={true}
-			class="pointer-events-none absolute top-60 -left-56 h-[640px] w-[640px] rounded-full bg-primary/10 blur-[130px]"
+			class="pointer-events-none absolute top-60 -left-56 h-[640px] w-[640px] rounded-full bg-primary/5 sm:bg-primary/10 blur-[130px]"
 		></div>
 		<div
 			aria-hidden={true}
@@ -246,7 +248,7 @@
 					href="#pricing"
 					class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-lift)] hover:-translate-y-0.5 transition"
 				>
-					Start cooking smarter <ArrowRight class="h-4 w-4" />
+					Get Started <ArrowRight class="h-4 w-4" />
 				</a>
 				<a
 					href="https://github.com/MadeInPierre/cuicuit"
@@ -314,7 +316,7 @@
 			{#each howToSteps as { icon: Icon, step, title, body }, i (step)}
 				<div class="relative">
 					<div
-						class="relative rounded-3xl border border-border bg-card p-7 shadow-[var(--shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] transition group"
+						class="relative rounded-2xl bg-sidebar p-7 hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] transition group"
 					>
 						<div
 							class="grid place-items-center h-14 w-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
@@ -372,7 +374,7 @@
 		<div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 			{#each features as { icon: Icon, title, body } (title)}
 				<article
-					class="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] transition"
+					class="group rounded-xl bg-card p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 transition"
 				>
 					<div
 						class="grid place-items-center h-11 w-11 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition"
@@ -392,8 +394,8 @@
 			<h2 class="mt-1 font-display text-4xl md:text-6xl font-semibold tracking-tight">
 				From egg to <span class="italic text-primary">full-grown</span>
 			</h2>
-			<p class="mt-4 text-muted-foreground text-lg">
-				Cuicuit grows in stages. Here's where we're headed — and you can vote on what matters most.
+			<p class="mt-4 text-muted-foreground text-lg text-balance">
+				Cuicuit has a plan. Here's where we're headed, and you can vote to change the direction.
 			</p>
 		</div>
 
@@ -478,7 +480,7 @@
 
 		<div class="mt-12 grid gap-6 md:grid-cols-3">
 			<div
-				class="rounded-3xl bg-neutral-950 text-neutral-100 p-8 shadow-[var(--shadow-lift)] border border-neutral-900"
+				class="rounded-3xl bg-neutral-950 text-neutral-100 p-8 shadow-[var(--shadow-soft)] border border-neutral-900"
 			>
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2 text-sm font-semibold text-white">
@@ -494,9 +496,10 @@
 					Open-source, privacy-first, and yours to run. Dockerized deployment is on the way.
 				</p>
 				<pre
-					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-auto">
-<span class="text-neutral-500"># clone &amp; run</span>
-<span class="text-primary">$</span> git clone github.com/MadeInPierre/cuicuit
+					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-hidden">
+<span class="text-neutral-500"># available soon</span>
+<span class="text-primary">$</span> curl -fsSL https://get.cuicuit.app | sudo bash
+<span class="text-primary">$</span> chmod +x install.sh && ./install.sh
 <span class="text-primary">$</span> docker compose up -d
 <span class="text-emerald-400">✓</span> <span class="text-neutral-400"
 						>serving on localhost:3000</span
@@ -505,27 +508,28 @@
 					href="https://github.com/MadeInPierre/cuicuit"
 					target="_blank"
 					rel="noreferrer"
-					class="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
+					class="mt-13 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
 				>
 					<Github class="h-4 w-4" /> View on GitHub
 				</a>
 			</div>
 
 			<div
-				class="relative rounded-3xl border-2 border-pink-500 bg-card p-8 drop-shadow-md md:-translate-y-3"
+				class="relative rounded-3xl border-2 border-pink-500 bg-card p-8 shadow-[var(--shadow-lift)] md:-translate-y-3"
 			>
 				<span
 					class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
 				>
-					GIVE CUICUIT WINGS
+					SUPPORT THE PROJECT
 				</span>
 				<div class="flex items-center gap-2 text-sm font-semibold text-pink-500">
-					<Heart class="h-4 w-4" /> Supporter
+					<Heart class="h-4 w-4" />
+					Supporter
 				</div>
 				<div class="mt-4 font-display text-4xl font-semibold">Any amount</div>
 				<p class="mt-1 text-sm text-muted-foreground">Crowd-funded moneypot. Fuel the flock.</p>
 				<ul class="mt-6 space-y-3 text-sm">
-					{#each ['Everything in Hosted plus:', 'Priority moneypot usage', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
+					{#each ['Everything in Hosted plus:', 'Unused amount goes to free users', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
 						<li class="flex items-start gap-2">
 							<Check class="h-4 w-4 mt-0.5 text-pink-500 shrink-0" />
 							{t}
@@ -535,7 +539,7 @@
 				<a
 					href="https://github.com/sponsors/MadeInPierre"
 					target="_blank"
-					class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition"
+					class="mt-13 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition"
 				>
 					Join the moneypot <Heart class="h-4 w-4" fill="#ffffff" />
 				</a>
@@ -552,7 +556,7 @@
 						<span class="sr-only">bird</span>
 					</span>
 				</div>
-				<p class="mt-1 text-sm text-muted-foreground">Start in one click. No credit card.</p>
+				<p class="mt-1 text-sm text-muted-foreground">No credit card. Start in one click.</p>
 				<ul class="mt-6 space-y-3 text-sm">
 					{#each ['Shared household spaces', 'Recipe imports from the web', 'Auto-generated shopping lists'] as t (t)}
 						<li class="flex items-start gap-2">
@@ -570,10 +574,109 @@
 					href="/signup"
 					class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
 				>
-					Start cooking <ArrowRight class="h-4 w-4" />
+					Start cooking on Hosted <ArrowRight class="h-4 w-4" />
 				</a>
 			</div>
 		</div>
+
+		<!-- <div class="mt-12 flex flex-row gap-6">
+			<div
+				class="basis-1/3 rounded-2xl bg-neutral-950 text-neutral-100 p-8 drop-shadow-md border border-neutral-900"
+			>
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2 text-sm font-semibold text-white">
+						<Terminal class="h-4 w-4" /> Self-hosted
+					</div>
+					<span
+						class="rounded-full bg-neutral-800 text-neutral-200 px-2.5 py-1 text-[10px] font-semibold"
+					>
+						Free forever
+					</span>
+				</div>
+				<p class="mt-4 text-sm text-neutral-400 leading-relaxed">
+					Open-source, privacy-first, and yours to run. Dockerized deployment is on the way.
+				</p>
+				<pre
+					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-hidden">
+<span class="text-neutral-500"># clone &amp; run</span>
+<span class="text-primary">$</span> curl -fsSL https://get.cuicuit.app | sudo bash
+<span class="text-primary">$</span> chmod +x install.sh && ./install.sh
+<span class="text-primary">$</span> docker compose up -d
+<span class="text-emerald-400">✓</span> <span class="text-neutral-400"
+						>serving on localhost:3000</span
+					></pre>
+				<a
+					href="https://github.com/MadeInPierre/cuicuit"
+					target="_blank"
+					rel="noreferrer"
+					class="mt-11 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
+				>
+					<Github class="h-4 w-4" /> View on GitHub
+				</a>
+			</div>
+
+			<div class="basis-2/3 rounded-2xl border border-border bg-card p-8 drop-shadow-md flex gap-4">
+				<div class="basis-1/2">
+					<div class="flex items-center gap-2 text-sm font-semibold">
+						<Sparkles class="h-4 w-4" /> Hosted · Free
+					</div>
+					<div class="mt-4 font-display text-4xl font-semibold">
+						Free
+						<span class="text-base font-normal text-muted-foreground">
+							as a 🐤
+							<span class="sr-only">bird</span>
+						</span>
+					</div>
+					<p class="mt-1 text-sm text-muted-foreground">No credit card. Start in one click.</p>
+					<ul class="mt-6 space-y-3 text-sm">
+						{#each ['Shared household spaces', 'Recipe imports from the web', 'Auto-generated shopping lists'] as t (t)}
+							<li class="flex items-start gap-2">
+								<Check class="h-4 w-4 mt-0.5 shrink-0" />
+								{t}
+							</li>
+						{/each}
+
+						<li class="flex items-start gap-2 text-amber-600">
+							<TriangleAlert class="h-4 w-4 mt-0.5 text-amber-500 shrink-0" />
+							Some features pause if not enough supporters fill the moneypot
+						</li>
+					</ul>
+
+					<a
+						href="/signup"
+						class="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
+					>
+						Start free <ArrowRight class="h-4 w-4" />
+					</a>
+				</div>
+
+				<SeparatorZigZag direction="vertical" color="#f6339a" />
+
+				<div class="basis-1/2">
+					<div class="flex items-center gap-2 text-sm font-semibold text-pink-500">
+						<Heart class="h-4 w-4" />
+						Supporter
+					</div>
+					<div class="mt-4 font-display text-4xl font-semibold">Any amount</div>
+					<p class="mt-1 text-sm text-muted-foreground">Crowd-funded moneypot. Fuel the flock.</p>
+					<ul class="mt-6 space-y-3 text-sm">
+						{#each ['Everything in Hosted plus:', 'Unused amount goes to free users', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
+							<li class="flex items-start gap-2">
+								<Check class="h-4 w-4 mt-0.5 text-pink-500 shrink-0" />
+								{t}
+							</li>
+						{/each}
+					</ul>
+					<a
+						href="https://github.com/sponsors/MadeInPierre"
+						target="_blank"
+						class="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition"
+					>
+						Join the moneypot <Heart class="h-4 w-4" fill="#ffffff" />
+					</a>
+				</div>
+			</div>
+		</div> -->
 	</section>
 
 	<section id="faq" class="mx-auto max-w-4xl px-6 mt-32 scroll-mt-24">
@@ -605,6 +708,138 @@
 					<p class="mt-3 text-sm text-muted-foreground leading-relaxed">{f.a}</p>
 				</details>
 			{/each}
+		</div>
+	</section>
+
+	<section id="story" class="mx-auto max-w-6xl px-6 mt-32 scroll-mt-24">
+		<div class="relative p-8 md:p-14">
+			<div class="text-center max-w-4xl mx-auto">
+				<span class="font-hand text-2xl text-primary">the story behind Cuicuit</span>
+				<h2 class="mt-2 font-display text-4xl md:text-5xl font-semibold tracking-tight">
+					A simple <span class="relative inline-block italic text-primary">
+						passion project
+						<svg
+							aria-hidden={true}
+							viewBox="0 0 200 20"
+							preserveAspectRatio="none"
+							class="absolute -bottom-1 left-0 w-full h-3 text-primary/80"
+						>
+							<path
+								d="M4 12 Q 50 4, 100 10 T 196 8"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="3"
+								stroke-linecap="round"
+							/>
+						</svg>
+					</span>
+				</h2>
+
+				<!-- <div aria-hidden={true} class="hidden lg:block absolute left-8 top-12 rotate-[-6deg]">
+					<span class="font-hand text-xl text-primary/80">← the real reason</span>
+					<svg viewBox="0 0 100 60" class="w-20 h-12 text-primary/70 ml-12 -mt-1">
+						<path
+							d="M96 8 Q 60 12, 40 40 T 12 54"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+						/>
+						<path
+							d="M20 46 L 12 54 L 24 56"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</div> -->
+
+				<div class="mt-10 text-left md:text-lg text-foreground/90 leading-relaxed space-y-5">
+					<p>
+						Hi! I’m Pierre, the human behind this little egg 😊. Cuicuit started as a selfish
+						project: I love cooking, but I hate the 6pm panic of <em
+							>“what’s for dinner, and what do we even have in the fridge?”</em
+						>
+					</p>
+					<p>
+						I wanted a kitchen companion that felt <span
+							class="relative inline-block font-semibold text-primary"
+						>
+							warm and helpful
+							<svg
+								aria-hidden={true}
+								viewBox="0 0 180 20"
+								preserveAspectRatio="none"
+								class="absolute -bottom-1 left-0 w-full h-3 text-primary/70"
+							>
+								<path
+									d="M4 10 Q 50 18, 100 10 T 176 12"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="3"
+									stroke-linecap="round"
+								/>
+							</svg>
+						</span> — not like another chore app yelling at me from a spreadsheet. So I started building
+						Cuicuit in the open, one recipe at a time.
+					</p>
+					<p>
+						To me, the best tools are made
+						<span class="font-semibold"> with people, not in secret. </span>
+						That’s why Cuicuit is open-source, why the roadmap is public with voting, and why the hosted
+						version is free — supported by a community moneypot instead of ads or data selling.
+					</p>
+					<p>
+						If you find it useful, a star on GitHub, a bug report, or a small contribution to the
+						moneypot keeps the project growing. Every bit of support means more time I can spend
+						making Cuicuit the happiest little kitchen app on the internet.
+					</p>
+				</div>
+
+				<div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+					<a
+						href="https://github.com/MadeInPierre/cuicuit"
+						target="_blank"
+						rel="noreferrer"
+						class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-lift)] hover:-translate-y-0.5 transition"
+					>
+						<Github class="h-4 w-4" /> Star on GitHub
+					</a>
+					<a
+						href="#pricing"
+						class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold hover:bg-secondary transition"
+					>
+						Support the moneypot <Heart class="h-4 w-4 text-primary" />
+					</a>
+				</div>
+
+				<p class="mt-6 text-sm text-muted-foreground italic">
+					Thank you for being here. 🐣 — Pierre
+				</p>
+			</div>
+
+			<!-- <div aria-hidden={true} class="hidden lg:block absolute right-10 bottom-16 rotate-[10deg]">
+				<span class="font-hand text-xl text-primary/80">made with love (and hunger)</span>
+				<svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 -mt-2 ml-2">
+					<path
+						d="M4 8 Q 50 4, 90 30 T 116 52"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+					/>
+					<path
+						d="M108 44 L 116 52 L 104 54"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</div> -->
 		</div>
 	</section>
 
@@ -647,13 +882,9 @@
 		<div
 			class="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-border pt-8 text-sm text-foreground/70"
 		>
-			<div class="flex items-center gap-2 font-display font-semibold text-foreground">
-				<span
-					class="grid place-items-center h-6 w-6 rounded-full bg-primary text-primary-foreground"
-				>
-					<Egg class="h-3.5 w-3.5" />
-				</span>
-				Cuicuit
+			<div class="flex items-center justify-center gap-2 font-medium">
+				<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-6" />
+				<span>Cuicuit</span>
 			</div>
 			<p>
 				Made with <Heart class="inline h-3.5 w-3.5 text-primary" /> and a lot of eggs. Open source under
