@@ -151,7 +151,7 @@
 		<div class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
 			<a href="#top" class="flex items-center gap-1 text-xl font-semibold tracking-tight">
 				<!-- <span
-					class="grid place-items-center h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+					class="grid place-items-center h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-(--shadow-soft)"
 				>
 					<Egg class="h-4 w-4" />
 				</span>
@@ -189,30 +189,30 @@
 			</nav>
 			<a
 				href="#pricing"
-				class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-soft)] hover:opacity-90 transition"
+				class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
 			>
 				Get Started <ArrowRight class="h-3.5 w-3.5" />
 			</a>
 		</div>
 	</header>
 
-	<section id="top" class="relative overflow-hidden bg-[var(--gradient-warm)]">
+	<section id="top" class="relative overflow-hidden bg-(--gradient-warm)">
 		<div
 			aria-hidden={true}
-			class="pointer-events-none absolute -top-40 -right-40 h-[720px] w-[720px] rounded-full bg-primary/5 sm:bg-primary/10 md:bg-primary/15 blur-[120px]"
+			class="pointer-events-none absolute -top-40 -right-40 h-180 w-180 rounded-full bg-primary/5 sm:bg-primary/10 md:bg-primary/15 blur-[120px]"
 		></div>
 		<div
 			aria-hidden={true}
-			class="pointer-events-none absolute top-60 -left-56 h-[640px] w-[640px] rounded-full bg-primary/5 sm:bg-primary/10 blur-[130px]"
+			class="pointer-events-none absolute top-60 -left-56 h-160 w-160 rounded-full bg-primary/5 sm:bg-primary/10 blur-[130px]"
 		></div>
 		<div
 			aria-hidden={true}
-			class="pointer-events-none absolute -bottom-40 left-1/3 h-[520px] w-[520px] rounded-full bg-[var(--clay)]/15 blur-[110px]"
+			class="pointer-events-none absolute -bottom-40 left-1/3 h-130 w-130 rounded-full bg-(--clay)/15 blur-[110px]"
 		></div>
 
 		<div class="relative mx-auto max-w-6xl px-6 pt-20 pb-8 text-center">
 			<span
-				class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-[var(--shadow-soft)]"
+				class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-(--shadow-soft)"
 			>
 				🐣 alpha — expect rough edges &amp; bugs
 			</span>
@@ -227,7 +227,7 @@
 						aria-hidden={true}
 						viewBox="0 0 600 24"
 						preserveAspectRatio="none"
-						class="absolute -bottom-3 left-0 w-full h-3 text-primary/80"
+						class="absolute -bottom-3 left-0 w-full h-3 text-primary/60"
 					>
 						<path
 							d="M4 14 Q 80 4, 160 12 T 320 12 T 480 12 T 596 10"
@@ -246,7 +246,7 @@
 			<div class="mt-8 flex flex-wrap justify-center gap-3">
 				<a
 					href="#pricing"
-					class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-lift)] hover:-translate-y-0.5 transition"
+					class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-(--shadow-lift) hover:-translate-y-0.5 transition"
 				>
 					Get Started <ArrowRight class="h-4 w-4" />
 				</a>
@@ -268,7 +268,7 @@
 					aria-hidden={true}
 					class="hidden md:block absolute -left-6 -top-16 rotate-[-8deg] z-10"
 				>
-					<span class="font-hand text-2xl text-primary/80">sneak peek</span>
+					<span class="font-hand text-2xl text-primary/60">sneak peek</span>
 					<svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 ml-16 -mt-1">
 						<path
 							d="M4 8 Q 50 4, 90 30 T 116 52"
@@ -291,9 +291,7 @@
 					aria-hidden={true}
 					class="absolute inset-x-10 -bottom-6 h-16 rounded-full bg-primary/25 blur-2xl"
 				></div>
-				<div
-					class="relative rounded-2xl border border-border bg-card p-2 shadow-[var(--shadow-lift)]"
-				>
+				<div class="relative rounded-2xl border border-border bg-card p-2 shadow-(--shadow-lift)">
 					<img
 						src="/hero/hero_wide.png"
 						alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
@@ -316,7 +314,7 @@
 			{#each howToSteps as { icon: Icon, step, title, body }, i (step)}
 				<div class="relative">
 					<div
-						class="relative rounded-2xl bg-sidebar p-7 hover:-translate-y-1 hover:shadow-[var(--shadow-soft)] transition group"
+						class="relative rounded-2xl bg-sidebar p-7 hover:-translate-y-1 hover:shadow-(--shadow-soft) transition group"
 					>
 						<div
 							class="grid place-items-center h-14 w-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
@@ -360,7 +358,7 @@
 		<div class="max-w-2xl relative">
 			<span class="font-hand text-2xl text-primary">features</span>
 
-			<div aria-hidden={true} class="hidden lg:block absolute -right-8 -top-6 rotate-[6deg]">
+			<div aria-hidden={true} class="hidden lg:block absolute -right-8 -top-6 rotate-6">
 				<span class="font-hand text-xl text-primary/70">← our favorites</span>
 			</div>
 			<h2 class="mt-2 font-display text-4xl md:text-5xl font-semibold tracking-tight">
@@ -374,7 +372,7 @@
 		<div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 			{#each features as { icon: Icon, title, body } (title)}
 				<article
-					class="group rounded-xl bg-card p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 transition"
+					class="group rounded-xl bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
 				>
 					<div
 						class="grid place-items-center h-11 w-11 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition"
@@ -402,7 +400,7 @@
 		<ol class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
 			{#each roadmap as r, i (r.label)}
 				<li
-					class="relative rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-lift)] hover:-translate-y-1 transition"
+					class="relative rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
 				>
 					<span
 						class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
@@ -439,7 +437,7 @@
 				href="https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas"
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-[var(--shadow-soft)] hover:bg-secondary transition"
+				class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
 			>
 				📦 Vote for features on GitHub <ArrowRight class="h-4 w-4" />
 			</a>
@@ -450,7 +448,7 @@
 		<div class="text-center max-w-2xl mx-auto">
 			<span class="font-hand text-2xl text-primary">pricing</span>
 			<h2 class="mt-1 font-display text-4xl md:text-5xl font-semibold tracking-tight">
-				Pick your <span class="italic">nest</span>.
+				Pick your <span class="italic">nest</span> 🪺
 			</h2>
 			<p class="mt-4 text-muted-foreground">
 				Free forever if you self-host. A crowd-funded hosted version if you'd rather it just works.
@@ -480,7 +478,7 @@
 
 		<div class="mt-12 grid gap-6 md:grid-cols-3">
 			<div
-				class="rounded-3xl bg-neutral-950 text-neutral-100 p-8 shadow-[var(--shadow-soft)] border border-neutral-900"
+				class="rounded-3xl bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900"
 			>
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2 text-sm font-semibold text-white">
@@ -515,7 +513,7 @@
 			</div>
 
 			<div
-				class="relative rounded-3xl border-2 border-pink-500 bg-card p-8 shadow-[var(--shadow-lift)] md:-translate-y-3"
+				class="relative rounded-3xl border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3"
 			>
 				<span
 					class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
@@ -545,7 +543,7 @@
 				</a>
 			</div>
 
-			<div class="rounded-3xl border border-border bg-card p-8 shadow-[var(--shadow-soft)]">
+			<div class="rounded-3xl border border-border bg-card p-8 shadow-(--shadow-soft)">
 				<div class="flex items-center gap-2 text-sm font-semibold">
 					<Sparkles class="h-4 w-4" /> Hosted · Free
 				</div>
@@ -677,6 +675,120 @@
 				</div>
 			</div>
 		</div> -->
+
+		<div class="relative mt-8 max-w-5xl mx-auto">
+			<div aria-hidden={true} class="hidden md:flex flex-col items-center -mt-2">
+				<svg viewBox="0 0 40 72" class="w-6 h-14 text-primary/70">
+					<path
+						d="M20 4 L 20 56"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-dasharray="4 4"
+					/>
+					<path
+						d="M12 48 L 20 58 L 28 48"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+				<span class="font-hand text-2xl text-primary">where your money goes</span>
+			</div>
+
+			<div class="p-6 md:p-8">
+				<div
+					class="h-10 md:h-12 w-full rounded-full overflow-hidden flex drop-shadow-md border-4 border-white"
+				>
+					<div
+						class="basis-3/10 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-blue-300"
+					>
+						<div class="flex flex-col items-center">
+							<span class="font-semibold">30%</span>
+							<span>Yours</span>
+						</div>
+					</div>
+					<div
+						class="basis-2/10 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-pink-300"
+					>
+						<div class="flex flex-col items-center">
+							<span class="font-semibold">20%</span>
+							<span>Shared</span>
+						</div>
+					</div>
+					<div
+						class="basis-1/10 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-(--sage)"
+					>
+						<div class="flex flex-col items-center">
+							<span class="font-semibold">10%</span>
+							<span>Development</span>
+						</div>
+					</div>
+					<div
+						class="basis-1/10 flex items-center justify-center text-[10px] md:text-xs text-foreground bg-gray-200 border-r-2 border-gray-300 border-dashed"
+					>
+						<div class="flex flex-col items-center">
+							<span class="font-semibold">10%</span>
+							<span>Fees</span>
+						</div>
+					</div>
+					<div
+						class="basis-3/10 flex items-center justify-center text-[10px] md:text-xs text-foreground bg-gray-200"
+					>
+						<div class="flex flex-col items-center">
+							<span class="font-semibold">30%</span>
+							<span>Taxes</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="mt-6 grid gap-4 sm:grid-cols-4 text-sm">
+					<div class="flex gap-3">
+						<span class="mt-1 h-3 w-3 rounded-full bg-blue-300 shrink-0"></span>
+						<div>
+							<p class="font-semibold">Personal Pocket</p>
+							<p class="text-muted-foreground text-xs leading-relaxed">
+								Reserved for you to shield you from empty moneypot moments. Kept for 1 year then
+								shared if unused.
+							</p>
+						</div>
+					</div>
+					<div class="flex gap-3 pr-3">
+						<span class="mt-1 h-3 w-3 rounded-full bg-pink-300 shrink-0"></span>
+						<div>
+							<p class="font-semibold">Community Moneypot</p>
+							<p class="text-muted-foreground text-xs leading-relaxed">
+								Used by free users with fair-usage limits. If very healthy, may be used to fuel
+								development.
+							</p>
+						</div>
+					</div>
+					<div class="flex gap-3">
+						<span class="mt-1 h-3 w-3 rounded-full bg-(--sage) shrink-0"></span>
+						<div>
+							<p class="font-semibold">Servers &amp; Salary</p>
+							<p class="text-muted-foreground text-xs leading-relaxed">
+								Fixed server bills and paid tools. Anything left becomes my salary to keep improving
+								Cuicuit.
+							</p>
+						</div>
+					</div>
+					<div class="flex gap-3">
+						<span class="mt-1 h-3 w-3 rounded-full bg-gray-300 shrink-0"></span>
+						<div>
+							<p class="font-semibold">Taxes & Fees</p>
+							<p class="text-muted-foreground text-xs leading-relaxed">
+								Cuicuit is seen as a regular software product by your & my countries. Stripe fees
+								add up on top.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</section>
 
 	<section id="faq" class="mx-auto max-w-4xl px-6 mt-32 scroll-mt-24">
@@ -693,7 +805,7 @@
 		<div class="mt-10 grid gap-3">
 			{#each faqs as f (f.q)}
 				<details
-					class="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] open:shadow-[var(--shadow-lift)] transition"
+					class="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
 				>
 					<summary
 						class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-semibold"
@@ -722,7 +834,7 @@
 							aria-hidden={true}
 							viewBox="0 0 200 20"
 							preserveAspectRatio="none"
-							class="absolute -bottom-1 left-0 w-full h-3 text-primary/80"
+							class="absolute -bottom-1 left-0 w-full h-3 text-primary/60"
 						>
 							<path
 								d="M4 12 Q 50 4, 100 10 T 196 8"
@@ -732,11 +844,12 @@
 								stroke-linecap="round"
 							/>
 						</svg>
+						🪶
 					</span>
 				</h2>
 
 				<!-- <div aria-hidden={true} class="hidden lg:block absolute left-8 top-12 rotate-[-6deg]">
-					<span class="font-hand text-xl text-primary/80">← the real reason</span>
+					<span class="font-hand text-xl text-primary/60">← the real reason</span>
 					<svg viewBox="0 0 100 60" class="w-20 h-12 text-primary/70 ml-12 -mt-1">
 						<path
 							d="M96 8 Q 60 12, 40 40 T 12 54"
@@ -803,7 +916,7 @@
 						href="https://github.com/MadeInPierre/cuicuit"
 						target="_blank"
 						rel="noreferrer"
-						class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-lift)] hover:-translate-y-0.5 transition"
+						class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-(--shadow-lift) hover:-translate-y-0.5 transition"
 					>
 						<Github class="h-4 w-4" /> Star on GitHub
 					</a>
@@ -821,7 +934,7 @@
 			</div>
 
 			<!-- <div aria-hidden={true} class="hidden lg:block absolute right-10 bottom-16 rotate-[10deg]">
-				<span class="font-hand text-xl text-primary/80">made with love (and hunger)</span>
+				<span class="font-hand text-xl text-primary/60">made with love (and hunger)</span>
 				<svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 -mt-2 ml-2">
 					<path
 						d="M4 8 Q 50 4, 90 30 T 116 52"
@@ -845,7 +958,7 @@
 
 	<section class="mx-auto max-w-6xl px-6 mt-32">
 		<div
-			class="relative overflow-hidden rounded-3xl bg-primary p-12 md:p-16 text-center shadow-[var(--shadow-lift)]"
+			class="relative overflow-hidden rounded-3xl bg-primary p-12 md:p-16 text-center shadow-(--shadow-lift)"
 		>
 			<div
 				aria-hidden={true}

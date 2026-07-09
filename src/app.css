@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Schoolbell:wght@500;600;700&family=Caveat:wght@500;600;700&family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -60,13 +60,20 @@
 	--shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 	--tracking-normal: 0em;
 	--spacing: 0.25rem;
+
+	--yolk: oklch(0.86 0.13 75); /* warm amber */
+	--tomato: oklch(0.62 0.18 30);
+	--peach: oklch(0.9 0.06 45);
+	--clay: oklch(0.72 0.11 40);
+	--sage: oklch(0.78 0.08 145); /* warm sage green */
 }
 
 @theme {
 	/* Adding custom fonts */
 	--font-display: 'Fraunces', ui-serif, Georgia, serif;
 	--font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-	--font-hand: 'Schoolbell', 'Caveat', 'Segoe Script', cursive;
+	--font-hand: 'Caveat', 'Segoe Script', cursive;
+	/* --font-hand: 'Schoolbell', 'Caveat', 'Segoe Script', cursive; */
 
 	--shadow-soft: 0 1px 2px oklch(0.3 0.06 35 / 0.06), 0 8px 24px oklch(0.3 0.06 35 / 0.08);
 	--shadow-lift: 0 20px 60px -20px oklch(0.4 0.11 35 / 0.28);
@@ -349,7 +356,7 @@
 }
 
 @utility no-scrollbar {
-	@apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+	@apply [scrollbar-none] [&::-webkit-scrollbar]:hidden;
 }
 
 // Prevent pull-to-refresh on mobile
