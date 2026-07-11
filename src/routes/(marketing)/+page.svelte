@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Check, TriangleAlert } from '@lucide/svelte';
+	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import { Camera, Check, ExternalLink, Globe, TriangleAlert } from '@lucide/svelte';
 	import {
 		ArrowRight,
 		BookOpen,
@@ -35,33 +36,6 @@
 		}
 	];
 
-	const faqs = [
-		{
-			q: 'What is Cuicuit?',
-			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version."
-		},
-		{
-			q: 'Is Cuicuit really free?',
-			a: "Yes, and I hope forever! The full source code is on GitHub under a permissive license and you can self-host it forever at no cost. Our hosted cloud version also has an unlimited free plan, funded by a community moneypot. This free plan is an experiment, I hope to see enough supporters to keep the app free for everyone. If the free version freezes too often, I might have to go back to a regular 'freemium' model — self-host your own instance if needed."
-		},
-		{
-			q: 'How does recipe import work?',
-			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. It then uses AI to add filters, ingredient substitutions, and more!'
-		},
-		{
-			q: 'Can I self-host Cuicuit with Docker?',
-			a: "Yes. Cuicuit ships with a docker-compose setup. Clone the repo, run 'docker compose up -d', and you'll have your own instance running in minutes. Your recipes and data stay on your hardware."
-		},
-		{
-			q: 'Does Cuicuit work offline as a mobile app?',
-			a: "Cuicuit is a Progressive Web App (PWA). Install it from your phone's browser and take your shopping list to the store — no app store required. Offline support coming soon."
-		},
-		{
-			q: 'Can my family or roommates share a meal plan with me?',
-			a: 'Absolutely. Shared households let multiple people cook, plan, and shop together in the same synced space.'
-		}
-	];
-
 	const features = [
 		{
 			icon: BookOpen,
@@ -85,8 +59,8 @@
 		},
 		{
 			icon: Smartphone,
-			title: 'Pocket-ready PWA',
-			body: 'Install Cuicuit on your phone and take your list to the store — no app store detour.'
+			title: 'Mobile-friendly',
+			body: 'Install Cuicuit on your phone as a PWA and take your list to the store. No app store detour.'
 		},
 		{
 			icon: Server,
@@ -144,34 +118,50 @@
 			tone: 'soon'
 		}
 	];
+
+	const faqs = [
+		{
+			q: 'What is Cuicuit?',
+			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version."
+		},
+		{
+			q: 'Is Cuicuit really free?',
+			a: "Yes, and I hope forever! The full source code is on GitHub under a permissive license and you can self-host it forever at no cost. The hosted cloud version also has an unlimited free plan, funded by a community moneypot. This free plan is an experiment, I hope to see enough supporters to keep the app free for everyone. If the free version freezes too often, I might have to go back to a regular 'freemium' model — self-host your own instance or support the project if needed."
+		},
+		{
+			q: 'How does recipe import work?',
+			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. It then uses AI to add filters, ingredient substitutions, and more!'
+		},
+		{
+			q: 'Can I self-host Cuicuit with Docker?',
+			a: "Yes. Cuicuit ships with a docker-compose setup. Clone the repo, run 'docker compose up -d', and you'll have your own instance running in minutes. Your recipes and data stay on your hardware."
+		},
+		{
+			q: 'Does Cuicuit work offline as a mobile app?',
+			a: "Cuicuit is a Progressive Web App (PWA). Install it from your phone's browser and take your shopping list to the store — no app store required. Offline support coming soon-ish. Mobile app to be planned once Cuicuit grows enough."
+		},
+		{
+			q: 'Can my family or roommates share a meal plan with me?',
+			a: 'Absolutely. Shared households let multiple people cook, plan, and shop together in the same synced space.'
+		}
+	];
 </script>
 
 <div class="min-h-screen bg-background text-foreground font-sans antialiased" id="landing-root">
 	<header class="sticky top-0 z-30 backdrop-blur-md bg-background/70 border-b border-border/60">
 		<div class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
-			<a href="#top" class="flex items-center gap-1 text-xl font-semibold tracking-tight">
-				<!-- <span
-					class="grid place-items-center h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-(--shadow-soft)"
-				>
-					<Egg class="h-4 w-4" />
-				</span>
-				Cuicuit -->
-
-				<div class="mx-auto flex items-center justify-center gap-2">
+			<a
+				href="#top"
+				class="w-60 flex items-center justify-start gap-1 text-xl font-semibold tracking-tight"
+			>
+				<div class="flex items-center justify-center gap-2">
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-8" />
 					<h1>Cuicuit</h1>
 				</div>
 
-				<!-- <span
-					class="ml-1 rounded-full bg-[var(--yolk)]/40 px-2 py-0.5 text-[10px] font-sans font-semibold uppercase tracking-wider text-foreground/70"
-				>
-					alpha
-				</span> -->
-
-				<!-- <span class="px-2 text-xl text-primary font-hand font-normal"> alpha </span> -->
-
 				<span class="px-2 text-xl text-[#fab030] font-hand"> alpha </span>
 			</a>
+
 			<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
 				<a href="#features" class="hover:text-foreground transition-colors">Features</a>
 				<a href="#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
@@ -187,12 +177,16 @@
 					<Github class="h-4 w-4" /> GitHub
 				</a>
 			</nav>
-			<a
-				href="#pricing"
-				class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
-			>
-				Get Started <ArrowRight class="h-3.5 w-3.5" />
-			</a>
+
+			<div class="w-60 flex items-center justify-end gap-2">
+				<Button href="/login" variant="link" size="sm">Log in</Button>
+				<a
+					href="#pricing"
+					class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
+				>
+					Get Started <ArrowRight class="h-3.5 w-3.5" />
+				</a>
+			</div>
 		</div>
 	</header>
 
@@ -291,15 +285,170 @@
 					aria-hidden={true}
 					class="absolute inset-x-10 -bottom-6 h-16 rounded-full bg-primary/25 blur-2xl"
 				></div>
-				<div class="relative rounded-2xl border border-border bg-card p-2 shadow-(--shadow-lift)">
+				<div
+					class="relative rounded-2xl border border-border bg-card p-1.5 sm:p-2 shadow-(--shadow-lift)"
+				>
 					<img
 						src="/hero/hero_wide.png"
 						alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
-						class="w-full rounded-xl"
+						class="w-full rounded-xl hidden sm:block"
+						loading="eager"
+					/>
+					<img
+						src="/hero/hero_narrow.png"
+						alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
+						class="w-full rounded-xl sm:hidden"
 						loading="eager"
 					/>
 				</div>
 			</div>
+		</div>
+	</section>
+
+	<section class="relative">
+		<div class="mx-auto max-w-6xl px-6 py-10 md:py-14">
+			<div aria-hidden={true} class="relative -mt-8 md:-mt-10 mb-2">
+				<svg
+					viewBox="0 0 520 140"
+					class="mx-auto h-full w-60 text-muted-foreground/50"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="4"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<!-- <path d="M60 128 Q 140 128, 220 40" /> -->
+					<path d="M140 128 Q 210 100, 220 40" />
+					<path d="M208 46 L 220 36 L 228 50" />
+
+					<path d="M260 128 L 260 40" />
+					<path d="M248 50 L 260 36 L 272 50" />
+
+					<path d="M380 128 Q 310 100, 300 40" />
+					<path d="M292 50 L 300 36 L 312 46" />
+				</svg>
+			</div>
+
+			<div class="text-center">
+				<span class="font-hand text-2xl text-muted-foreground/80">import from anywhere*</span>
+				<!-- <h3 class="mt-1 font-display text-2xl md:text-3xl font-semibold tracking-tight">
+					Import from anywhere
+				</h3> -->
+			</div>
+
+			<div
+				class="mt-4 flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 mx-4 md:mx-10 text-xs text-muted-foreground/80"
+			>
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg
+						viewBox="0 0 24 24"
+						class="h-5 w-5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<rect x="2" y="2" width="20" height="20" rx="5" />
+						<path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+						<line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+					</svg>
+
+					Instagram
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+						<path
+							d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"
+						/>
+					</svg>
+
+					TikTok
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+						<path
+							d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 0 0 .5 6.19 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14c1.88.55 9.38.55 9.38.55s7.5 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.81zM9.55 15.5V8.5l6.27 3.5-6.27 3.5z"
+						/>
+					</svg>
+
+					YouTube
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+						<path
+							d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"
+						/>
+					</svg>
+
+					Facebook
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+						<path
+							d="M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.3 9.3-.1-.8-.2-2 0-2.8.2-.7 1.3-4.7 1.3-4.7s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.8 0 1.2.6 1.2 1.4 0 .8-.5 2.1-.8 3.2-.2 1 .5 1.8 1.5 1.8 1.8 0 3.2-1.9 3.2-4.6 0-2.4-1.7-4.1-4.2-4.1-2.9 0-4.6 2.1-4.6 4.4 0 .9.3 1.8.7 2.3.1.1.1.2.1.3l-.3 1c0 .2-.1.2-.3.1-1.1-.5-1.8-2.1-1.8-3.4 0-2.8 2-5.3 5.8-5.3 3 0 5.4 2.2 5.4 5.1 0 3-1.9 5.4-4.5 5.4-.9 0-1.7-.5-2-1l-.5 2.1c-.2.7-.7 1.6-1 2.1.7.2 1.5.4 2.3.4 5.5 0 10-4.5 10-10S17.5 2 12 2z"
+						/>
+					</svg>
+
+					Pinterest
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor">
+						<path
+							d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+						/>
+					</svg>
+
+					Twitter / X
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<Camera class="h-5 w-5" />
+
+					Photos
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<Globe class="h-5 w-5" />
+
+					Websites
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<BookOpen class="h-5 w-5" />
+
+					Cookbooks
+				</div>
+
+				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+					<svg
+						viewBox="0 0 24 24"
+						class="h-5 w-5"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="12" cy="12" r="10" />
+						<circle cx="12" cy="12" r="4" />
+						<path d="M12 8a4 4 0 0 1 3.5 2h5.5" />
+						<path d="M8 14a4 4 0 0 1 0-4L4.5 6" />
+						<path d="M15 14.5a4 4 0 0 1-6 0l-2.5 4.5" />
+					</svg>
+
+					Chrome
+				</div>
+			</div>
+
+			<p class="mt-4 italic text-center text-xs text-muted-foreground/60">
+				* Most websites supported. Social media coming soon, Cuicuit is young!
+			</p>
 		</div>
 	</section>
 
@@ -314,18 +463,27 @@
 			{#each howToSteps as { icon: Icon, step, title, body }, i (step)}
 				<div class="relative">
 					<div
-						class="relative rounded-2xl bg-sidebar p-7 hover:-translate-y-1 hover:shadow-(--shadow-soft) transition group"
+						class="relative rounded-xl md:rounded-2xl bg-sidebar p-4 md:p-7 hover:-translate-y-1 hover:shadow-(--shadow-soft) transition group"
 					>
 						<div
-							class="grid place-items-center h-14 w-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
+							class="hidden md:grid mb-6 place-items-center h-14 w-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
 						>
 							<Icon class="h-6 w-6" />
 						</div>
-						<div class="mt-6 font-hand text-3xl text-primary/70 leading-none">{step}</div>
-						<h3 class="mt-1 font-display text-xl font-semibold">{title}</h3>
+
+						<div class="flex items-center space-x-4 md:grid">
+							<div class="font-hand text-3xl text-primary/70 leading-none">{step}</div>
+							<h3 class="mt-1 font-display text-xl font-semibold">{title}</h3>
+							<div
+								class="md:hidden ml-auto grid place-items-center size-10 md:size-14 rounded-lg bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
+							>
+								<Icon class="h-6 w-6" />
+							</div>
+						</div>
 						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
 					</div>
 					{#if i < 2}
+						<!-- Desktop -->
 						<svg
 							aria-hidden={true}
 							viewBox="0 0 80 40"
@@ -340,10 +498,34 @@
 								stroke-dasharray="1 5"
 							/>
 							<path
-								d="M66 14 L 74 22 L 64 28"
+								d="M66 14 L74 22 L64 28"
 								fill="none"
 								stroke="currentColor"
 								stroke-width="3"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+
+						<!-- Mobile -->
+						<svg
+							aria-hidden={true}
+							viewBox="0 0 40 80"
+							class="md:hidden absolute right-3 -bottom-8 w-10 h-12 text-primary/60 z-10"
+						>
+							<path
+								d="M20 4 Q36 30 20 60 T20 74"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="4"
+								stroke-linecap="round"
+								stroke-dasharray="1 5"
+							/>
+							<path
+								d="M14 66 L20 74 L26 66"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="4"
 								stroke-linecap="round"
 								stroke-linejoin="round"
 							/>
@@ -358,8 +540,8 @@
 		<div class="max-w-2xl relative">
 			<span class="font-hand text-2xl text-primary">features</span>
 
-			<div aria-hidden={true} class="hidden lg:block absolute -right-8 -top-6 rotate-6">
-				<span class="font-hand text-xl text-primary/70">← our favorites</span>
+			<div aria-hidden={true} class="hidden lg:block absolute -right-100 bottom-0 rotate-6">
+				<span class="font-hand text-xl text-primary/70">our favorite features</span>
 			</div>
 			<h2 class="mt-2 font-display text-4xl md:text-5xl font-semibold tracking-tight">
 				Small app, <span class="italic">big appetite</span>.
@@ -439,7 +621,7 @@
 				rel="noreferrer"
 				class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
 			>
-				📦 Vote for features on GitHub <ArrowRight class="h-4 w-4" />
+				🙌 Vote for features on GitHub <ArrowRight class="h-4 w-4" />
 			</a>
 		</div>
 	</section>
@@ -494,9 +676,9 @@
 					Open-source, privacy-first, and yours to run. Dockerized deployment is on the way.
 				</p>
 				<pre
-					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-hidden">
+					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-clip">
 <span class="text-neutral-500"># available soon</span>
-<span class="text-primary">$</span> curl -fsSL https://get.cuicuit.app | sudo bash
+<span class="text-primary">$</span> wget https://get.cuicuit.app
 <span class="text-primary">$</span> chmod +x install.sh && ./install.sh
 <span class="text-primary">$</span> docker compose up -d
 <span class="text-emerald-400">✓</span> <span class="text-neutral-400"
@@ -508,7 +690,7 @@
 					rel="noreferrer"
 					class="mt-13 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
 				>
-					<Github class="h-4 w-4" /> View on GitHub
+					<Github class="h-4 w-4" /> Read the docs <ExternalLink class="size-4" />
 				</a>
 			</div>
 
@@ -516,7 +698,7 @@
 				class="relative rounded-3xl border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3"
 			>
 				<span
-					class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
+					class="absolute w-max -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
 				>
 					SUPPORT THE PROJECT
 				</span>
@@ -570,114 +752,15 @@
 				</ul>
 				<a
 					href="/signup"
-					class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
+					class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-primary text-white px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
 				>
-					Start cooking on Hosted <ArrowRight class="h-4 w-4" />
+					Sign Up on Hosted <ArrowRight class="h-4 w-4" />
 				</a>
 			</div>
 		</div>
 
-		<!-- <div class="mt-12 flex flex-row gap-6">
-			<div
-				class="basis-1/3 rounded-2xl bg-neutral-950 text-neutral-100 p-8 drop-shadow-md border border-neutral-900"
-			>
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2 text-sm font-semibold text-white">
-						<Terminal class="h-4 w-4" /> Self-hosted
-					</div>
-					<span
-						class="rounded-full bg-neutral-800 text-neutral-200 px-2.5 py-1 text-[10px] font-semibold"
-					>
-						Free forever
-					</span>
-				</div>
-				<p class="mt-4 text-sm text-neutral-400 leading-relaxed">
-					Open-source, privacy-first, and yours to run. Dockerized deployment is on the way.
-				</p>
-				<pre
-					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-hidden">
-<span class="text-neutral-500"># clone &amp; run</span>
-<span class="text-primary">$</span> curl -fsSL https://get.cuicuit.app | sudo bash
-<span class="text-primary">$</span> chmod +x install.sh && ./install.sh
-<span class="text-primary">$</span> docker compose up -d
-<span class="text-emerald-400">✓</span> <span class="text-neutral-400"
-						>serving on localhost:3000</span
-					></pre>
-				<a
-					href="https://github.com/MadeInPierre/cuicuit"
-					target="_blank"
-					rel="noreferrer"
-					class="mt-11 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
-				>
-					<Github class="h-4 w-4" /> View on GitHub
-				</a>
-			</div>
-
-			<div class="basis-2/3 rounded-2xl border border-border bg-card p-8 drop-shadow-md flex gap-4">
-				<div class="basis-1/2">
-					<div class="flex items-center gap-2 text-sm font-semibold">
-						<Sparkles class="h-4 w-4" /> Hosted · Free
-					</div>
-					<div class="mt-4 font-display text-4xl font-semibold">
-						Free
-						<span class="text-base font-normal text-muted-foreground">
-							as a 🐤
-							<span class="sr-only">bird</span>
-						</span>
-					</div>
-					<p class="mt-1 text-sm text-muted-foreground">No credit card. Start in one click.</p>
-					<ul class="mt-6 space-y-3 text-sm">
-						{#each ['Shared household spaces', 'Recipe imports from the web', 'Auto-generated shopping lists'] as t (t)}
-							<li class="flex items-start gap-2">
-								<Check class="h-4 w-4 mt-0.5 shrink-0" />
-								{t}
-							</li>
-						{/each}
-
-						<li class="flex items-start gap-2 text-amber-600">
-							<TriangleAlert class="h-4 w-4 mt-0.5 text-amber-500 shrink-0" />
-							Some features pause if not enough supporters fill the moneypot
-						</li>
-					</ul>
-
-					<a
-						href="/signup"
-						class="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
-					>
-						Start free <ArrowRight class="h-4 w-4" />
-					</a>
-				</div>
-
-				<SeparatorZigZag direction="vertical" color="#f6339a" />
-
-				<div class="basis-1/2">
-					<div class="flex items-center gap-2 text-sm font-semibold text-pink-500">
-						<Heart class="h-4 w-4" />
-						Supporter
-					</div>
-					<div class="mt-4 font-display text-4xl font-semibold">Any amount</div>
-					<p class="mt-1 text-sm text-muted-foreground">Crowd-funded moneypot. Fuel the flock.</p>
-					<ul class="mt-6 space-y-3 text-sm">
-						{#each ['Everything in Hosted plus:', 'Unused amount goes to free users', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
-							<li class="flex items-start gap-2">
-								<Check class="h-4 w-4 mt-0.5 text-pink-500 shrink-0" />
-								{t}
-							</li>
-						{/each}
-					</ul>
-					<a
-						href="https://github.com/sponsors/MadeInPierre"
-						target="_blank"
-						class="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition"
-					>
-						Join the moneypot <Heart class="h-4 w-4" fill="#ffffff" />
-					</a>
-				</div>
-			</div>
-		</div> -->
-
-		<div class="relative mt-8 max-w-5xl mx-auto">
-			<div aria-hidden={true} class="hidden md:flex flex-col items-center -mt-2">
+		<div class="relative mt-6 max-w-5xl mx-auto">
+			<div aria-hidden={true} class="hidden md:flex flex-col items-center">
 				<svg viewBox="0 0 40 72" class="w-6 h-14 text-primary/70">
 					<path
 						d="M20 4 L 20 56"
@@ -699,7 +782,10 @@
 				<span class="font-hand text-2xl text-primary">where your money goes</span>
 			</div>
 
-			<div class="p-6 md:p-8">
+			<div class="grid p-6 md:p-8 pt-2 md:pt-2">
+				<span class="text-right pr-2 mb-2 text-muted-foreground/60 text-md font-hand">
+					After VAT deducted
+				</span>
 				<div
 					class="h-10 md:h-12 w-full rounded-full overflow-hidden flex drop-shadow-md border-4 border-white"
 				>
@@ -761,7 +847,7 @@
 						<div>
 							<p class="font-semibold">Community Moneypot</p>
 							<p class="text-muted-foreground text-xs leading-relaxed">
-								Used by free users with fair-usage limits. If very healthy, may be used to fuel
+								Used by free users &amp; supporters with fair limits. If very healthy, used to fuel
 								development.
 							</p>
 						</div>
@@ -795,7 +881,7 @@
 		<div class="text-center max-w-2xl mx-auto">
 			<span class="font-hand text-2xl text-primary">faq</span>
 			<h2 class="mt-1 font-display text-4xl md:text-5xl font-semibold tracking-tight">
-				Questions, <span class="italic text-primary">answered</span>.
+				Questions & <span class="italic text-primary">Answers</span>
 			</h2>
 			<p class="mt-4 text-muted-foreground">
 				Everything you might wonder before you crack the first egg.
