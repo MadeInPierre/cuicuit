@@ -780,6 +780,13 @@ export const publicGetShoppingRecommendationsReturnsSchema = z.array(
   }),
 );
 
+export const publicIsSpaceMemberArgsSchema = z.object({
+  _space_id: z.string(),
+  _user_id: z.string(),
+});
+
+export const publicIsSpaceMemberReturnsSchema = z.boolean();
+
 export const publicMatchIngredientArgsSchema = z.object({
   is_raw_import: z.boolean().optional(),
   lang_code: z.string(),
@@ -824,6 +831,13 @@ export const publicUnaccentArgsSchema = z.object({
 });
 
 export const publicUnaccentReturnsSchema = z.string();
+
+export const publicUsersShareCommonSpaceArgsSchema = z.object({
+  _user_a: z.string(),
+  _user_b: z.string(),
+});
+
+export const publicUsersShareCommonSpaceReturnsSchema = z.boolean();
 
 export type PublicCleanupLevel = z.infer<typeof publicCleanupLevelSchema>;
 export type PublicCommonlyUsedLevel = z.infer<
@@ -968,6 +982,12 @@ export type PublicGetShoppingRecommendationsArgs = z.infer<
 export type PublicGetShoppingRecommendationsReturns = z.infer<
   typeof publicGetShoppingRecommendationsReturnsSchema
 >;
+export type PublicIsSpaceMemberArgs = z.infer<
+  typeof publicIsSpaceMemberArgsSchema
+>;
+export type PublicIsSpaceMemberReturns = z.infer<
+  typeof publicIsSpaceMemberReturnsSchema
+>;
 export type PublicMatchIngredientArgs = z.infer<
   typeof publicMatchIngredientArgsSchema
 >;
@@ -984,3 +1004,9 @@ export type PublicSlugifyArgs = z.infer<typeof publicSlugifyArgsSchema>;
 export type PublicSlugifyReturns = z.infer<typeof publicSlugifyReturnsSchema>;
 export type PublicUnaccentArgs = z.infer<typeof publicUnaccentArgsSchema>;
 export type PublicUnaccentReturns = z.infer<typeof publicUnaccentReturnsSchema>;
+export type PublicUsersShareCommonSpaceArgs = z.infer<
+  typeof publicUsersShareCommonSpaceArgsSchema
+>;
+export type PublicUsersShareCommonSpaceReturns = z.infer<
+  typeof publicUsersShareCommonSpaceReturnsSchema
+>;

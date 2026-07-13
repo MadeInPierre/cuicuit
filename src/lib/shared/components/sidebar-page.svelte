@@ -65,7 +65,7 @@
 				</a>
 
 				<HelloDialog>
-					<Button variant="link" class="px-2 text-lg text-[#fab030] schoolbell-regular cursor-help">
+					<Button variant="link" class="px-2 text-xl text-[#fab030] font-hand cursor-help">
 						alpha
 					</Button>
 				</HelloDialog>

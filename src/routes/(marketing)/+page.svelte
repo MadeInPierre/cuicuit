@@ -1,6 +1,13 @@
 <script lang="ts">
 	import Button from '$lib/shared/components/ui/button/button.svelte';
-	import { Camera, Check, ExternalLink, Globe, TriangleAlert } from '@lucide/svelte';
+	import {
+		Camera,
+		Check,
+		CircleQuestionMark,
+		ExternalLink,
+		Globe,
+		TriangleAlert
+	} from '@lucide/svelte';
 	import {
 		ArrowRight,
 		BookOpen,
@@ -14,6 +21,9 @@
 		Terminal,
 		Users
 	} from 'lucide-svelte';
+	import SupportDialog from './SupportDialog.svelte';
+
+	const { data } = $props();
 
 	const howToSteps = [
 		{
@@ -122,7 +132,8 @@
 	const faqs = [
 		{
 			q: 'What is Cuicuit?',
-			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version."
+			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version.",
+			id: 'experiment'
 		},
 		{
 			q: 'Is Cuicuit really free?',
@@ -179,13 +190,22 @@
 			</nav>
 
 			<div class="w-60 flex items-center justify-end gap-2">
-				<Button href="/login" variant="link" size="sm">Log in</Button>
-				<a
-					href="#pricing"
-					class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
-				>
-					Get Started <ArrowRight class="h-3.5 w-3.5" />
-				</a>
+				{#if data.claims}
+					<a
+						href="#pricing"
+						class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
+					>
+						Back to the app <ArrowRight class="h-3.5 w-3.5" />
+					</a>
+				{:else}
+					<Button href="/login" variant="link" size="sm">Log in</Button>
+					<a
+						href="#pricing"
+						class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
+					>
+						Get Started <ArrowRight class="h-3.5 w-3.5" />
+					</a>
+				{/if}
 			</div>
 		</div>
 	</header>
@@ -422,7 +442,7 @@
 				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
 					<BookOpen class="h-5 w-5" />
 
-					Cookbooks
+					Any Text
 				</div>
 
 				<div class="flex items-center justify-center gap-1.5 sm:gap-2">
@@ -447,7 +467,7 @@
 			</div>
 
 			<p class="mt-4 italic text-center text-xs text-muted-foreground/60">
-				* Most websites supported. Social media coming soon, Cuicuit is young!
+				* Social media coming soon, Cuicuit is young! Most websites supported.
 			</p>
 		</div>
 	</section>
@@ -621,7 +641,8 @@
 				rel="noreferrer"
 				class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
 			>
-				🙌 Vote for features on GitHub <ArrowRight class="h-4 w-4" />
+				<span class="mr-1">🙌</span>
+				Vote for features on GitHub <ArrowRight class="h-4 w-4" />
 			</a>
 		</div>
 	</section>
@@ -667,7 +688,7 @@
 						<Terminal class="h-4 w-4" /> Self-hosted
 					</div>
 					<span
-						class="rounded-full bg-neutral-800 text-neutral-200 px-2.5 py-1 text-[10px] font-semibold"
+						class="rounded-full bg-green-950 text-green-500 px-2.5 py-1 text-[10px] font-semibold"
 					>
 						Free forever
 					</span>
@@ -679,7 +700,8 @@
 					class="mt-5 rounded-xl bg-neutral-900/70 border border-neutral-800 p-4 text-[12.5px] leading-relaxed font-mono text-neutral-200 overflow-x-clip">
 <span class="text-neutral-500"># available soon</span>
 <span class="text-primary">$</span> wget https://get.cuicuit.app
-<span class="text-primary">$</span> chmod +x install.sh && ./install.sh
+<span class="text-primary">$</span> chmod +x install.sh
+<span class="text-primary">$</span> ./install.sh
 <span class="text-primary">$</span> docker compose up -d
 <span class="text-emerald-400">✓</span> <span class="text-neutral-400"
 						>serving on localhost:3000</span
@@ -688,7 +710,7 @@
 					href="https://github.com/MadeInPierre/cuicuit"
 					target="_blank"
 					rel="noreferrer"
-					class="mt-13 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
+					class="mt-9 inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
 				>
 					<Github class="h-4 w-4" /> Read the docs <ExternalLink class="size-4" />
 				</a>
@@ -707,27 +729,35 @@
 					Supporter
 				</div>
 				<div class="mt-4 font-display text-4xl font-semibold">Any amount</div>
-				<p class="mt-1 text-sm text-muted-foreground">Crowd-funded moneypot. Fuel the flock.</p>
+				<p class="mt-1 text-sm text-muted-foreground">10 € = 100 seeds 🌱 ≈ 20 recipe imports.</p>
 				<ul class="mt-6 space-y-3 text-sm">
-					{#each ['Everything in Hosted plus:', 'Unused amount goes to free users', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
+					{#each ['Hosted with guaranteed features', 'Unused seeds go to free users', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
 						<li class="flex items-start gap-2">
 							<Check class="h-4 w-4 mt-0.5 text-pink-500 shrink-0" />
 							{t}
 						</li>
 					{/each}
 				</ul>
-				<a
-					href="https://github.com/sponsors/MadeInPierre"
-					target="_blank"
-					class="mt-13 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition"
-				>
-					Join the moneypot <Heart class="h-4 w-4" fill="#ffffff" />
-				</a>
+				<SupportDialog email={data.claims?.email || null}>
+					<button
+						class="mt-13 inline-flex w-full items-center justify-center gap-2 rounded-full bg-pink-500 px-5 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition"
+					>
+						Join the moneypot <Heart class="h-4 w-4" fill="#ffffff" />
+					</button>
+				</SupportDialog>
 			</div>
 
 			<div class="rounded-3xl border border-border bg-card p-8 shadow-(--shadow-soft)">
-				<div class="flex items-center gap-2 text-sm font-semibold">
-					<Sparkles class="h-4 w-4" /> Hosted · Free
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2 text-sm font-semibold">
+						<Sparkles class="h-4 w-4" /> Hosted
+					</div>
+					<a
+						href="#experiment"
+						class="rounded-full flex items-center gap-1 shrink-0 bg-muted/40 text-muted-foreground px-2.5 py-1 text-[10px] font-semibold"
+					>
+						Experiment <CircleQuestionMark class="size-2.5" />
+					</a>
 				</div>
 				<div class="mt-4 font-display text-4xl font-semibold">
 					Free
@@ -738,7 +768,7 @@
 				</div>
 				<p class="mt-1 text-sm text-muted-foreground">No credit card. Start in one click.</p>
 				<ul class="mt-6 space-y-3 text-sm">
-					{#each ['Shared household spaces', 'Recipe imports from the web', 'Auto-generated shopping lists'] as t (t)}
+					{#each ['All features included!', "Use the shared moneypot's seeds 🌱 for heavy features"] as t (t)}
 						<li class="flex items-start gap-2">
 							<Check class="h-4 w-4 mt-0.5 shrink-0" />
 							{t}
@@ -752,7 +782,7 @@
 				</ul>
 				<a
 					href="/signup"
-					class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-primary text-white px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
+					class="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent text-accent-foreground px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
 				>
 					Sign Up on Hosted <ArrowRight class="h-4 w-4" />
 				</a>
@@ -760,7 +790,7 @@
 		</div>
 
 		<div class="relative mt-6 max-w-5xl mx-auto">
-			<div aria-hidden={true} class="hidden md:flex flex-col items-center">
+			<div aria-hidden={true} class="flex flex-col items-center">
 				<svg viewBox="0 0 40 72" class="w-6 h-14 text-primary/70">
 					<path
 						d="M20 4 L 20 56"
@@ -783,14 +813,14 @@
 			</div>
 
 			<div class="grid p-6 md:p-8 pt-2 md:pt-2">
-				<span class="text-right pr-2 mb-2 text-muted-foreground/60 text-md font-hand">
-					After VAT deducted
+				<span class="text-right pr-2 mb-2 text-muted-foreground/60 text-sm sm:text-md font-hand">
+					+ Your country's VAT
 				</span>
 				<div
 					class="h-10 md:h-12 w-full rounded-full overflow-hidden flex drop-shadow-md border-4 border-white"
 				>
 					<div
-						class="basis-3/10 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-blue-300"
+						class="basis-30/100 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-blue-300"
 					>
 						<div class="flex flex-col items-center">
 							<span class="font-semibold">30%</span>
@@ -798,19 +828,20 @@
 						</div>
 					</div>
 					<div
-						class="basis-2/10 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-pink-300"
+						class="basis-15/100 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-pink-300"
 					>
 						<div class="flex flex-col items-center">
-							<span class="font-semibold">20%</span>
+							<span class="font-semibold">15%</span>
 							<span>Shared</span>
 						</div>
 					</div>
 					<div
-						class="basis-1/10 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-(--sage)"
+						class="basis-15/100 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-lime-300"
 					>
 						<div class="flex flex-col items-center">
-							<span class="font-semibold">10%</span>
-							<span>Development</span>
+							<span class="font-semibold">15%</span>
+							<span class="hidden sm:inline-block">Development</span>
+							<span class="inline-block sm:hidden">Dev.</span>
 						</div>
 					</div>
 					<div
@@ -826,7 +857,7 @@
 					>
 						<div class="flex flex-col items-center">
 							<span class="font-semibold">30%</span>
-							<span>Taxes</span>
+							<span>Gov. Taxes</span>
 						</div>
 					</div>
 				</div>
@@ -837,8 +868,8 @@
 						<div>
 							<p class="font-semibold">Personal Pocket</p>
 							<p class="text-muted-foreground text-xs leading-relaxed">
-								Reserved for you to shield you from empty moneypot moments. Kept for 1 year then
-								shared if unused.
+								Reserved for you to shield you from empty moneypot moments. Shared <br /> if unused,
+								see details.
 							</p>
 						</div>
 					</div>
@@ -853,11 +884,11 @@
 						</div>
 					</div>
 					<div class="flex gap-3">
-						<span class="mt-1 h-3 w-3 rounded-full bg-(--sage) shrink-0"></span>
+						<span class="mt-1 h-3 w-3 rounded-full bg-lime-300 shrink-0"></span>
 						<div>
 							<p class="font-semibold">Servers &amp; Salary</p>
 							<p class="text-muted-foreground text-xs leading-relaxed">
-								Fixed server bills and paid tools. Anything left becomes my salary to keep improving
+								Fixed server bills and paid tools. Anything left becomes my salary <br /> to keep improving
 								Cuicuit.
 							</p>
 						</div>
@@ -867,7 +898,7 @@
 						<div>
 							<p class="font-semibold">Taxes & Fees</p>
 							<p class="text-muted-foreground text-xs leading-relaxed">
-								Cuicuit is seen as a regular software product by your & my countries. Stripe fees
+								Cuicuit is seen as a regular software product by your & my countries. Payment fees
 								add up on top.
 							</p>
 						</div>
@@ -891,6 +922,7 @@
 		<div class="mt-10 grid gap-3">
 			{#each faqs as f (f.q)}
 				<details
+					id={f.id}
 					class="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
 				>
 					<summary

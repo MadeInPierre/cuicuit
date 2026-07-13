@@ -77,7 +77,7 @@ async function saveEnrichedRecipe(
 		.update({
 			language_id: langId,
 			title: enrichedRecipe.recipe.title,
-			short_title: enrichedRecipe.recipe.shortTitle,
+			short_title: enrichedRecipe.recipe.short_title,
 			description: enrichedRecipe.recipe.description,
 			servings: enrichedRecipe.recipe.servings,
 			time_prep_minutes: enrichedRecipe.recipe.time_prep_minutes,

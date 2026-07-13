@@ -636,6 +636,10 @@ export type Database = {
           slug_general: string
         }[]
       }
+      is_space_member: {
+        Args: { _space_id: string; _user_id: string }
+        Returns: boolean
+      }
       match_ingredient: {
         Args: {
           is_raw_import?: boolean
@@ -666,6 +670,10 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { max_length?: number; value: string }; Returns: string }
       unaccent: { Args: { "": string }; Returns: string }
+      users_share_common_space: {
+        Args: { _user_a: string; _user_b: string }
+        Returns: boolean
+      }
     }
     Enums: {
       cleanup_level: "none" | "low" | "medium" | "high"

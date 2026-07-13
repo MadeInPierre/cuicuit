@@ -26,4 +26,6 @@ export const getRepoStars = query(async () => {
 		stars: parseInt(data['stargazers_count']) ?? undefined,
 		lastRefresh: Date.now()
 	};
+
+	return repoStars.stars;
 });

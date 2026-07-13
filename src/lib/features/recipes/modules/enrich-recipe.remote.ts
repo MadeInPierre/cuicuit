@@ -29,7 +29,7 @@ Requirements:
 - Return enriched/corrected recipe in JSON format, strictly following the schema.
 - Only improve what needs improvement; preserve good existing information.
 - Maintain the same language as input for all text fields.
-- NO FIELD SHALL BE NULL OR EMPTY; infer reasonable defaults if needed.
+- NO FIELD SHALL BE NULL OR EMPTY; infer or guess reasonable values.
 - RESPOND ONLY WITH RAW JSON. STRICTLY FOLLOW THE SCHEMA. NO EXTRA TEXT.`;
 
 // Define the relevant recipe fields for enrichment once
@@ -37,7 +37,7 @@ const relevantRecipeFieldsSchema = z.object({
 	title: publicRecipesRowSchema.shape.title.describe(
 		'Shortest possible title for this recipe in 1 word, e.g. title "Quiche aux courgettes" becomes "Quiche".'
 	),
-	shortTitle: publicRecipesRowSchema.shape.short_title,
+	short_title: publicRecipesRowSchema.shape.short_title,
 	description: publicRecipesRowSchema.shape.description,
 	servings: publicRecipesRowSchema.shape.servings,
 	time_prep_minutes: publicRecipesRowSchema.shape.time_prep_minutes,
@@ -78,7 +78,7 @@ export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
  */
 export const enrichParsedRecipe = query(
 	z.object({
-		recipe: publicRecipesRowSchema.describe('The main recipe object to enrich.'),
+		recipe: relevantRecipeFieldsSchema.describe('The main recipe object to enrich.'),
 		ingredients: z
 			.array(z.string())
 			.describe('The list of ingredient strings, as raw parsed from the source.')
@@ -104,7 +104,7 @@ export const enrichParsedRecipe = query(
  */
 export const enrichTextRecipe = query(
 	z.object({
-		text: z.string().min(3)
+		text: z.string().min(3).max(20_000, 'Recipe input text too long, refusing to call enrich LLM.')
 	}),
 	async (input) => {
 		return enrichRecipeLlm(input);

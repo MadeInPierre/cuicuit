@@ -34,7 +34,8 @@ export const parsedSearchInputSchema = z.object({
 		.nullable(),
 	linkWord: z
 		.string()
-		.describe('The linking word used between the quantity and ingredient, e.g. "of", "de", "d\'".'),
+		.describe('The linking word used between the quantity and ingredient, e.g. "of", "de", "d\'".')
+		.nullable(),
 	ingredientText: z
 		.string()
 		.describe(
