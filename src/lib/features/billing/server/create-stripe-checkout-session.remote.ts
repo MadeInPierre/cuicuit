@@ -3,8 +3,8 @@ import { STRIPE_SECRET_KEY } from '$env/static/private';
 import Stripe from 'stripe';
 import z from 'zod';
 
-const MINIMUM_PER_PAYMENT_AMOUNT = 2;
-const STRIPE_CUICUIT_PRODUCT_ID = 'prod_Us4cfPGPtzu7nF'; // 'prod_Us4Gy2Fism9M4E';
+const MINIMUM_PER_PAYMENT_AMOUNT = 3;
+const STRIPE_CUICUIT_PRODUCT_ID = 'prod_Us4cfPGPtzu7nF'; // LIVE 'prod_Us4Gy2Fism9M4E';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2026-06-24.dahlia' });
 
@@ -25,7 +25,7 @@ export const createStripeCheckoutSession = query(
 		const { data: userData, error: userError } = await event.locals.supabase.auth.getUser();
 
 		if (userError || userData.user?.role !== 'authenticated') {
-			throw new Error('Unauthorized');
+			throw new Error('Not authenticated or Unauthorized');
 		}
 
 		const { id: userId, email, confirmed_at, is_anonymous } = userData.user;
@@ -64,8 +64,8 @@ export const createStripeCheckoutSession = query(
 						quantity: 1
 					}
 				],
-				success_url: `${event.url.origin}/support/success?session_id={CHECKOUT_SESSION_ID}`,
-				cancel_url: `${event.url.origin}/support`
+				success_url: `${event.url.origin}/supporter/success?session_id={CHECKOUT_SESSION_ID}`,
+				cancel_url: `${event.url.origin}/supporter`
 			};
 
 			// If you capture the stripe customer id via the mapping table on previous lookups,
