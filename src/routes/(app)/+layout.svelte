@@ -32,6 +32,12 @@
 				console.warn('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');
 			}
+
+			// If the user wanted to see the support page, bring them there
+			const navigateIntent = localStorage.getItem('navigate-intent');
+			if (navigateIntent === 'supporter-page') {
+				goto('/supporter');
+			}
 		}
 	});
 

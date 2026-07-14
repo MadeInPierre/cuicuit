@@ -44,7 +44,7 @@ async function processAndMatchIngredients(
 		enrichedIngredients
 			.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
 			.map((p) => p.ingredientText || 'Unknown'),
-		lang
+		lang || 'fr-FR'
 	);
 
 	if (matchError) throw matchError;
@@ -169,8 +169,8 @@ export async function importRecipeFromUrl(
 	url: string,
 	userId: string
 ): Promise<{ id: string; isComplete: boolean }> {
-	if(!supabase.client) throw new Error("No supabase client");
-	
+	if (!supabase.client) throw new Error('No supabase client');
+
 	const language = validateLanguage(space);
 	console.log('Importing URL:', url);
 
@@ -232,13 +232,13 @@ export async function importRecipeFromUrl(
 			ingredients: parsedRecipe.ingredients.flatMap((group) => group.ingredients) // TODO support ingredient groups
 		});
 
+		await saveEnrichedRecipe(recipeId, enrichedRecipe);
+
 		processedIngredients = await processAndMatchIngredients(
 			enrichedRecipe.ingredients,
-			enrichedRecipe.lang as LanguageKey
+			(enrichedRecipe.lang as LanguageKey) || space.language?.lang || 'fr-FR'
 		);
 		console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
-
-		await saveEnrichedRecipe(recipeId, enrichedRecipe);
 	} catch (error) {
 		console.warn('Failed to enrich imported recipe data, proceeding with raw data:', error);
 
@@ -278,7 +278,7 @@ export async function importRecipeFromText(
 
 		processedIngredients = await processAndMatchIngredients(
 			enrichedRecipe.ingredients,
-			enrichedRecipe.lang as LanguageKey
+			(enrichedRecipe.lang as LanguageKey) || space.language?.lang || 'fr-FR'
 		);
 		console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
@@ -185,7 +186,7 @@
 
 	<div class="relative mx-auto max-w-6xl px-6 pt-20 pb-8 text-center">
 		<span
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-(--shadow-soft)"
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-popover/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-(--shadow-soft)"
 		>
 			🐣 alpha — expect rough edges &amp; bugs
 		</span>
@@ -227,7 +228,7 @@
 				href="https://github.com/MadeInPierre/cuicuit"
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition"
+				class="inline-flex items-center gap-2 rounded-full border border-border bg-popover px-6 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition"
 			>
 				<Github class="h-4 w-4" /> Self-host for free
 			</a>
@@ -262,7 +263,7 @@
 				class="absolute inset-x-10 -bottom-6 h-16 rounded-full bg-primary/25 blur-2xl"
 			></div>
 			<div
-				class="relative rounded-2xl border border-border bg-card p-1.5 sm:p-2 shadow-(--shadow-lift)"
+				class="relative rounded-2xl border border-border bg-popover p-1.5 sm:p-2 shadow-(--shadow-lift)"
 			>
 				<img
 					src="/hero/hero_wide.png"
@@ -530,7 +531,7 @@
 	<div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 		{#each features as { icon: Icon, title, body } (title)}
 			<article
-				class="group rounded-xl bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
+				class="group rounded-xl bg-popover p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
 			>
 				<div
 					class="grid place-items-center h-11 w-11 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition"
@@ -558,7 +559,7 @@
 	<ol class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
 		{#each roadmap as r, i (r.label)}
 			<li
-				class="relative rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
+				class="relative rounded-2xl border border-border bg-popover p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
 			>
 				<span
 					class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
@@ -595,7 +596,7 @@
 			href="https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas"
 			target="_blank"
 			rel="noreferrer"
-			class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
+			class="inline-flex items-center gap-2 rounded-full border border-border bg-popover px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
 		>
 			<span class="mr-1">🙌</span>
 			Vote for features on GitHub <ArrowRight class="h-4 w-4" />
@@ -673,7 +674,7 @@
 		</div>
 
 		<div
-			class="relative rounded-3xl border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3 h-100 flex flex-col"
+			class="relative rounded-3xl border-2 border-pink-500 bg-popover p-8 shadow-(--shadow-lift) md:-translate-y-3 h-100 flex flex-col"
 		>
 			<span
 				class="absolute w-max -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
@@ -703,7 +704,7 @@
 		</div>
 
 		<div
-			class="rounded-3xl border border-border bg-card p-8 shadow-(--shadow-soft) h-100 flex flex-col"
+			class="rounded-3xl border border-border bg-popover p-8 shadow-(--shadow-soft) h-100 flex flex-col"
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 text-sm font-semibold">
@@ -725,7 +726,7 @@
 			</div>
 			<p class="mt-1 text-sm text-muted-foreground">No credit card. Start in one click.</p>
 			<ul class="mt-6 space-y-3 text-sm">
-				{#each ['All features free with fair usage limits', "Use the shared garden's seeds 🌱 from supporters for costly features"] as t (t)}
+				{#each ['All features free with fair usage limits', "Use the shared garden's seeds 🌱 gifted by supporters"] as t (t)}
 					<li class="flex items-start gap-2">
 						<Check class="h-4 w-4 mt-0.5 shrink-0" />
 						{t}
@@ -741,7 +742,7 @@
 				href="/signup"
 				class="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent text-accent-foreground px-5 py-3 text-sm font-semibold hover:bg-secondary transition"
 			>
-				Sign Up on Hosted <ArrowRight class="h-4 w-4" />
+				Sign up on Hosted <ArrowRight class="h-4 w-4" />
 			</a>
 		</div>
 	</div>
@@ -771,7 +772,7 @@
 				What are seeds? 🌱
 			</h3>
 
-			<p class="mt-2 mx-4 text-balance text-sm text-muted-foreground max-w-xl text-center">
+			<p class="mt-2 mx-4 text-balance text-sm text-muted-foreground max-w-2xl text-center">
 				Cuicuit believes in a fair open concept — all features are free except costly ones to host.
 				<br class="hidden sm:block" />
 				By supporting Cuicuit, you get your own seeds to use and give some to all users.
@@ -798,10 +799,10 @@
 				+ Your country's VAT
 			</span>
 			<div
-				class="h-10 md:h-12 w-full rounded-full overflow-hidden flex drop-shadow-md border-4 border-white"
+				class="h-10 md:h-12 w-full rounded-full overflow-hidden flex drop-shadow-md border-4 border-white dark:border-primary"
 			>
 				<div
-					class="basis-30/100 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-blue-300"
+					class="basis-30/100 flex items-center justify-center text-[10px] md:text-xs text-foreground dark:text-muted bg-blue-300"
 				>
 					<div class="flex flex-col items-center">
 						<span class="font-semibold">30%</span>
@@ -809,7 +810,7 @@
 					</div>
 				</div>
 				<div
-					class="basis-15/100 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-pink-300"
+					class="basis-15/100 flex items-center justify-center text-[10px] md:text-xs text-foreground dark:text-muted bg-pink-300"
 				>
 					<div class="flex flex-col items-center">
 						<span class="font-semibold">15%</span>
@@ -817,7 +818,7 @@
 					</div>
 				</div>
 				<div
-					class="basis-15/100 flex items-center justify-center text-[10px] md:text-xs ftext-foreground bg-lime-300"
+					class="basis-15/100 flex items-center justify-center text-[10px] md:text-xs text-foreground dark:text-muted bg-lime-300"
 				>
 					<div class="flex flex-col items-center">
 						<span class="font-semibold">15%</span>
@@ -826,7 +827,7 @@
 					</div>
 				</div>
 				<div
-					class="basis-1/10 flex items-center justify-center text-[10px] md:text-xs text-foreground bg-gray-200 border-r-2 border-gray-300 border-dashed"
+					class="basis-1/10 flex items-center justify-center text-[10px] md:text-xs text-foreground dark:text-muted bg-gray-200 border-r-2 border-gray-300 border-dashed"
 				>
 					<div class="flex flex-col items-center">
 						<span class="font-semibold">10%</span>
@@ -834,7 +835,7 @@
 					</div>
 				</div>
 				<div
-					class="basis-3/10 flex items-center justify-center text-[10px] md:text-xs text-foreground bg-gray-200"
+					class="basis-3/10 flex items-center justify-center text-[10px] md:text-xs text-foreground dark:text-muted bg-gray-200"
 				>
 					<div class="flex flex-col items-center">
 						<span class="font-semibold">30%</span>
@@ -905,7 +906,7 @@
 		{#each faqs as f (f.q)}
 			<details
 				id={f.id}
-				class="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
+				class="group rounded-2xl border border-border bg-popover p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
 			>
 				<summary
 					class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-semibold"
@@ -1101,14 +1102,17 @@
 			Made with <Heart class="inline h-3.5 w-3.5 text-primary" /> and a lot of eggs. Open source under
 			a friendly roof.
 		</p>
-		<a
-			href="https://github.com/MadeInPierre/cuicuit"
-			target="_blank"
-			rel="noreferrer"
-			class="inline-flex items-center gap-1.5 hover:text-foreground"
-		>
-			<Github class="h-4 w-4" /> GitHub
-		</a>
+		<div class="flex items-genter gap-6">
+			<ThemeButton />
+			<a
+				href="https://github.com/MadeInPierre/cuicuit"
+				target="_blank"
+				rel="noreferrer"
+				class="inline-flex items-center gap-1.5 hover:text-foreground"
+			>
+				<Github class="h-4 w-4" /> GitHub
+			</a>
+		</div>
 	</div>
 </footer>
 
@@ -1117,7 +1121,6 @@
 		<SupportWall email={data.claims?.email || null} />
 	</Dialog.Content>
 </Dialog.Root>
-
 
 <style>
 	:global(html) {

@@ -1,11 +1,14 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { createStripeCheckoutSession } from '$lib/features/billing/server/create-stripe-checkout-session.remote';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { Slider } from '$lib/shared/components/ui/slider';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 	import { ArrowRight, Check, ExternalLink, Heart } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
 
 	type Props = {
 		email: string | null;
@@ -65,7 +68,6 @@
 	let frequency = $state<Frequency>('month');
 
 	const amountMonthly = $derived(frequency === 'month' ? amount : amount / 12);
-	const amountYearly = $derived(frequency === 'month' ? amount * 12 : amount);
 
 	const belowMin = $derived(amount < MIN_AMOUNT);
 	const yourSeeds = $derived(Math.round(amount * EUR_TO_PRIVATE_SEEDS));
@@ -86,6 +88,21 @@
 	};
 
 	async function onSubmit() {
+		if (!email) {
+			toast.error('Please login first', {
+				description: 'Login and come back, thanks!',
+				duration: 15000,
+				action: {
+					label: 'Login',
+					onClick: () => {
+						goto('/login');
+					}
+				}
+			});
+			localStorage.setItem('navigate-intent', 'supporter-page');
+			return;
+		}
+
 		const { url } = await createStripeCheckoutSession({
 			amountChosen: amount,
 			currency: currency.toLowerCase(),
@@ -94,6 +111,8 @@
 
 		if (url) window.location.href = url;
 	}
+
+	const media = useMedia();
 </script>
 
 <div class="relative pt-4 px-5 sm:px-6 lg:px-8">
@@ -148,7 +167,7 @@
 									'px-2.5 py-1.5 text-xs font-semibold transition',
 									currency === c
 										? 'bg-primary text-primary-foreground'
-										: 'bg-card text-muted-foreground hover:bg-secondary'
+										: 'bg-popover text-muted-foreground hover:bg-secondary'
 								)}
 							>
 								{c}
@@ -162,7 +181,7 @@
 						onchange={(e) => {
 							amount = Math.max(0, Number((e.target as HTMLInputElement)?.value || 0));
 						}}
-						class="w-16 bg-card rounded-full h-7 border-border"
+						class="w-16 bg-popover rounded-full h-7 border-border"
 					/>
 				</div>
 			</div>
@@ -279,7 +298,9 @@
 			</div>
 		</div>
 
-		<div class="p-4 sm:p-5 h-min bg-card rounded-xl rotate-2 mx-8 shadow-(--shadow-soft) my-auto">
+		<div
+			class="p-4 sm:p-5 h-min bg-popover rounded-xl rotate-2 mx-auto sm:mx-8 shadow-(--shadow-soft) my-auto max-w-md"
+		>
 			<div
 				class="text-pink-500 font-display text-sm sm:text-lg font-semibold leading-none text-center"
 			>
@@ -330,7 +351,9 @@
 		</div>
 	</div>
 
-	<div class="fixed bottom-0 left-0 right-0 py-4 px-8 bg-background">
+	<div class="h-30 sm:hidden"></div>
+
+	<div class={cn(!media.md && 'fixed bottom-0 left-0 right-0 py-4 px-8 bg-background')}>
 		<Button
 			onclick={onSubmit}
 			disabled={belowMin}
@@ -364,7 +387,9 @@
 				size="sm"
 				class="h-5 mt-2 w-full text-center text-xs"
 			>
-				Don't need seeds? Support development directly on GitHub Sponsors
+				Don't need seeds? Support
+				{#if media.md}development directly{/if}
+				on GitHub Sponsors
 				<ExternalLink class="size-2.5" />
 			</Button>
 		{/if}
