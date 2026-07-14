@@ -15,17 +15,17 @@ No more *What's for dinner?*, Cuicuit does the thinking for you! Import recipes 
 
 Cuicuit is open-source and self-hostable with simplicity and privacy in mind. If you prefer things to just work, a cloud version is also available, crowd-funded entirely by a collaborative moneypot.
 
-🥁 P.S. French wordplay of the day: *cui-cui* is how we write the sound of a bird (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit*! 
+🥁 P.S. *cui-cui* is how we write the sound of a bird in French (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit!*
 
 ## 🍀 Why use Cuicuit?
 
 Here is what Cuicuit aims to be once grown up:
 
-* **Intuitive**: Drag recipes into your plan and watch your shopping list build itself.
-* **Discreet**: The app minimizes the time you spend on it by guessing habits and automating things.
+* **Intuitive**: Drag recipes into your plan and watch your shopping list update.
+* **Discreet**: Minimizes clicks & steps by guessing habits and automating things.
 * **Complete**: Recipes, plans, lists, pantry, nutrition, product scanning, sharing, and more.
 * **Self-hostable**: Cuicuit is open-source. Use the hosted version if you prefer.
-* **Open**: Freely export your data & connect to services via APIs.
+* **Open**: Freely export your data & connect to services via APIs and an MCP server.
 
 ## ✨ Features
 
