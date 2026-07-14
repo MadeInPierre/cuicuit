@@ -1,19 +1,17 @@
 <script>
+	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { ArrowRight, Github } from 'lucide-svelte';
 
 	let { children, data } = $props();
 </script>
 
-<div
-	class="min-h-screen bg-background text-foreground font-sans antialiased"
-	id="landing-root"
->
+<div class="min-h-screen bg-background text-foreground font-sans antialiased" id="landing-root">
 	<header class="sticky top-0 z-30 backdrop-blur-md bg-background/70 border-b border-border/60">
 		<div class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
 			<a
-				href="#top"
-				class="w-60 flex items-center justify-start gap-1 text-xl font-semibold tracking-tight"
+				href="/"
+				class="w-70 flex items-center justify-start gap-1 text-xl font-semibold tracking-tight"
 			>
 				<div class="flex items-center justify-center gap-2">
 					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-8" />
@@ -39,10 +37,12 @@
 				</a>
 			</nav>
 
-			<div class="w-60 flex items-center justify-end gap-2">
+			<div class="w-70 flex items-center justify-end gap-2">
+				<ThemeButton class="hidden sm:flex" />
+
 				{#if data.claims}
 					<a
-						href="#pricing"
+						href="/recipes"
 						class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
 					>
 						Back to the app <ArrowRight class="h-3.5 w-3.5" />
@@ -53,7 +53,10 @@
 						href="#pricing"
 						class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
 					>
-						Get Started <ArrowRight class="h-3.5 w-3.5" />
+						<span class="inline-block sm:hidden">Start</span>
+						<span class="hidden sm:inline-block">Get Started</span>
+
+						<ArrowRight class="h-3.5 w-3.5" />
 					</a>
 				{/if}
 			</div>

@@ -13,7 +13,7 @@ export type MatchIngredientsResponse = {
 export async function matchIngredients(ingredientStrings: string[], lang: string) {
 	if (!supabase.client) throw new Error('No supabase client');
 
-	const { matches } = await matchIngredientsRPC({ ingredientStrings, lang });
+	const { matches } = await matchIngredientsRPC({ ingredientStrings, lang: lang || 'fr-FR' });
 
 	// Step 2: Get the unique ingredient IDs from the matches and fetch their full details from the database
 	const ingredientIds = Array.from(new Set(matches.flatMap((m) => m.bestMatches.map((i) => i.id))));
