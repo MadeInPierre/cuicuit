@@ -10,6 +10,7 @@
 		CircleQuestionMark,
 		ExternalLink,
 		Globe,
+		Share,
 		TriangleAlert
 	} from '@lucide/svelte';
 	import {
@@ -34,13 +35,14 @@
 			icon: BookOpen,
 			step: '01',
 			title: 'Paste a recipe link',
-			body: 'From any food blog. We handle the parsing — ingredients, steps, timings.'
+			body: 'From any food blog. We parse ingredients, steps, timings and guessed filters.',
+			image: '' // 'hero/howto_step1.png'
 		},
 		{
 			icon: CalendarDays,
 			step: '02',
 			title: 'Drop it in your plan',
-			body: 'Drag meals into a flexible plan. Scale servings, tweak, or swap easily.'
+			body: 'Drag meals into a flexible plan. Scale servings, tweak, or swap ingredients easily.'
 		},
 		{
 			icon: ShoppingBasket,
@@ -57,14 +59,14 @@
 			body: 'Paste a link from your food blog and Cuicuit pulls the recipe, ingredients, and timings.'
 		},
 		{
-			icon: CalendarDays,
-			title: 'Plan without the pain',
-			body: 'Drag recipes into a simple dateless plan. Scale servings, add extras — no rigid calendar grid.'
+			icon: ShoppingBasket,
+			title: 'Groceries derived from Plan',
+			body: 'Your plan turns into an aisle-aware grocery list, with smart suggestions from past purchases.'
 		},
 		{
-			icon: ShoppingBasket,
-			title: 'Shopping list that builds itself',
-			body: 'Your plan turns into an aisle-aware grocery list, with smart suggestions from past purchases.'
+			icon: Share,
+			title: 'Share, Export & Connect',
+			body: 'Cuicuit aims to provide easy-to-use a REST API, AI MCP, and easy exporting. All coming soon!'
 		},
 		{
 			icon: Users,
@@ -86,7 +88,7 @@
 	const roadmap = [
 		{
 			emoji: '🥚',
-			label: 'Open Source Foundations',
+			label: 'Open Foundations',
 			note: 'Project setup, hosted version, basic multi-user support.',
 			items: [
 				'Publicly hosted version',
@@ -116,11 +118,11 @@
 			note: "Track what's in your fridge and get smarter suggestions.",
 			items: [
 				'Pantry management',
-				'Expiration tracking',
 				'Recipe "cookability"',
+				'Expiration & Easy imports',
 				'Ingredient substitutions'
 			],
-			state: 'Coming soon',
+			state: 'Planned',
 			tone: 'soon'
 		},
 		{
@@ -128,7 +130,7 @@
 			label: 'Habits & Intelligence',
 			note: 'The app learns your patterns and saves you even more time.',
 			items: ['Consumption habits', 'Smart recommendations', 'Timeline & stats', 'LLM assistant'],
-			state: 'Coming soon',
+			state: 'Planned',
 			tone: 'soon'
 		}
 	];
@@ -186,7 +188,7 @@
 
 	<div class="relative mx-auto max-w-6xl px-6 pt-20 pb-8 text-center">
 		<span
-			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-popover/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-(--shadow-soft)"
+			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-(--shadow-soft)"
 		>
 			🐣 alpha — expect rough edges &amp; bugs
 		</span>
@@ -228,7 +230,7 @@
 				href="https://github.com/MadeInPierre/cuicuit"
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex items-center gap-2 rounded-full border border-border bg-popover px-6 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition"
+				class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition"
 			>
 				<Github class="h-4 w-4" /> Self-host for free
 			</a>
@@ -263,7 +265,7 @@
 				class="absolute inset-x-10 -bottom-6 h-16 rounded-full bg-primary/25 blur-2xl"
 			></div>
 			<div
-				class="relative rounded-2xl border border-border bg-popover p-1.5 sm:p-2 shadow-(--shadow-lift)"
+				class="relative rounded-2xl border border-border bg-card p-1.5 sm:p-2 shadow-(--shadow-lift)"
 			>
 				<img
 					src="/hero/hero_wide.png"
@@ -437,16 +439,20 @@
 		</h2>
 	</div>
 	<div class="relative mt-14 grid gap-6 md:grid-cols-3">
-		{#each howToSteps as { icon: Icon, step, title, body }, i (step)}
+		{#each howToSteps as { icon: Icon, step, title, body, image }, i (step)}
 			<div class="relative">
 				<div
 					class="relative rounded-xl md:rounded-2xl bg-sidebar p-4 md:p-7 hover:-translate-y-1 hover:shadow-(--shadow-soft) transition group"
 				>
-					<div
-						class="hidden md:grid mb-6 place-items-center h-14 w-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
-					>
-						<Icon class="h-6 w-6" />
-					</div>
+					{#if image}
+						<img src={image} class="aspect-square w-60 mx-auto" alt="Step 1" />
+					{:else}
+						<div
+							class="hidden md:grid mb-6 place-items-center h-14 w-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
+						>
+							<Icon class="h-6 w-6" />
+						</div>
+					{/if}
 
 					<div class="flex items-center space-x-4 md:grid">
 						<div class="font-hand text-3xl text-primary/70 leading-none">{step}</div>
@@ -457,7 +463,7 @@
 							<Icon class="h-6 w-6" />
 						</div>
 					</div>
-					<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
+					<p class="mt-2 mr-8 sm:mr-0 text-sm text-muted-foreground leading-relaxed">{body}</p>
 				</div>
 				{#if i < 2}
 					<!-- Desktop -->
@@ -531,7 +537,7 @@
 	<div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 		{#each features as { icon: Icon, title, body } (title)}
 			<article
-				class="group rounded-xl bg-popover p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
+				class="group rounded-xl bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
 			>
 				<div
 					class="grid place-items-center h-11 w-11 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition"
@@ -546,12 +552,12 @@
 </section>
 
 <section id="roadmap" class="mx-auto max-w-6xl px-6 mt-32 scroll-mt-24">
-	<div class="text-center max-w-2xl mx-auto">
+	<div class="text-center mx-auto">
 		<span class="font-hand text-2xl text-primary">🗺️ roadmap</span>
 		<h2 class="mt-1 font-display text-4xl md:text-6xl font-semibold tracking-tight">
 			From egg to <span class="italic text-primary">full-grown</span>
 		</h2>
-		<p class="mt-4 text-muted-foreground text-lg text-balance">
+		<p class="mt-4 mx-auto max-w-2xl text-muted-foreground text-lg text-balance">
 			Cuicuit has a plan. Here's where we're headed, and you can vote to change the direction.
 		</p>
 	</div>
@@ -559,7 +565,7 @@
 	<ol class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
 		{#each roadmap as r, i (r.label)}
 			<li
-				class="relative rounded-2xl border border-border bg-popover p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
+				class="relative rounded-2xl bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
 			>
 				<span
 					class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
@@ -596,7 +602,7 @@
 			href="https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas"
 			target="_blank"
 			rel="noreferrer"
-			class="inline-flex items-center gap-2 rounded-full border border-border bg-popover px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
+			class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
 		>
 			<span class="mr-1">🙌</span>
 			Vote for features on GitHub <ArrowRight class="h-4 w-4" />
@@ -638,7 +644,7 @@
 
 	<div class="mt-12 grid gap-6 md:grid-cols-3">
 		<div
-			class="rounded-3xl bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900 h-100 flex flex-col"
+			class="rounded-3xl order-2 md:order-1 bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900 h-100 flex flex-col"
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 text-sm font-semibold text-white">
@@ -674,7 +680,7 @@
 		</div>
 
 		<div
-			class="relative rounded-3xl border-2 border-pink-500 bg-popover p-8 shadow-(--shadow-lift) md:-translate-y-3 h-100 flex flex-col"
+			class="relative rounded-3xl order-3 md:order-2 border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3 h-100 flex flex-col"
 		>
 			<span
 				class="absolute w-max -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
@@ -704,7 +710,7 @@
 		</div>
 
 		<div
-			class="rounded-3xl border border-border bg-popover p-8 shadow-(--shadow-soft) h-100 flex flex-col"
+			class="rounded-3xl order-1 md:order-3 border border-border bg-card p-8 shadow-(--shadow-soft) h-100 flex flex-col"
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 text-sm font-semibold">
@@ -906,7 +912,7 @@
 		{#each faqs as f (f.q)}
 			<details
 				id={f.id}
-				class="group rounded-2xl border border-border bg-popover p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
+				class="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
 			>
 				<summary
 					class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-semibold"
@@ -925,7 +931,7 @@
 </section>
 
 <section id="story" class="mx-auto max-w-6xl px-6 mt-32 scroll-mt-24">
-	<div class="relative p-8 md:p-14">
+	<div class="relative p-4 sm:p-8 md:p-14">
 		<div class="text-center max-w-4xl mx-auto">
 			<span class="font-hand text-2xl text-primary">the story behind Cuicuit</span>
 			<h2 class="mt-2 font-display text-4xl md:text-5xl font-semibold tracking-tight">

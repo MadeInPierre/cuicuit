@@ -50,11 +50,11 @@
 				{:else}
 					<Button href="/login" variant="link" size="sm">Log in</Button>
 					<a
-						href="#pricing"
+						href="/signup"
 						class="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-(--shadow-soft) hover:opacity-90 transition"
 					>
 						<span class="inline-block sm:hidden">Start</span>
-						<span class="hidden sm:inline-block">Get Started</span>
+						<span class="hidden sm:inline-block">Sign up</span>
 
 						<ArrowRight class="h-3.5 w-3.5" />
 					</a>
