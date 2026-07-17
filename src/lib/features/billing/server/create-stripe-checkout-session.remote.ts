@@ -1,10 +1,11 @@
+import { dev } from '$app/env';
 import { getRequestEvent, query } from '$app/server';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import Stripe from 'stripe';
 import z from 'zod';
 
 const MINIMUM_PER_PAYMENT_AMOUNT = 3;
-const STRIPE_CUICUIT_PRODUCT_ID = 'prod_Us4cfPGPtzu7nF'; // LIVE 'prod_Us4Gy2Fism9M4E';
+const STRIPE_CUICUIT_PRODUCT_ID = dev ? 'prod_Us4cfPGPtzu7nF' : 'prod_Us4Gy2Fism9M4E'; // Test mode and LIVE stripe products
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2026-06-24.dahlia' });
 
