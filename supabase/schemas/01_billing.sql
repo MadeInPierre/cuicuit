@@ -421,6 +421,12 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- ====================================================================
+-- 9. INITIALIZATIONS
+-- ====================================================================
+
+INSERT INTO "public"."credit_balances" ("id", "user_id", "balance") VALUES ('00000000-0000-0000-0000-000000000000', null, 0) ON CONFLICT DO NOTHING;
+
 
 -- To fully automate this, configure a daily execution rule via pg_cron extension:
 -- select cron.schedule('0 2 * * *', 'select billing.process_expired_credits();');

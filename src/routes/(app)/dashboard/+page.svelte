@@ -17,7 +17,7 @@
 		if (!supabase.client) throw new Error('No supabase client');
 
 		const { data, error } = await supabase.client.auth.getClaims();
-		if (data) console.log('Claims:', data);
+		// if (data) console.log('Claims:', data);
 		if (error) console.error('Error fetching claims:', error);
 	});
 
@@ -75,4 +75,10 @@
 		class="w-200 text-xs overflow-hidden mb-8 rounded-md p-4 bg-muted">Active Space: {activeSpaceState.id} {jsonStringify(
 			activeSpaceState.activeSpace
 		)}</pre>
+
+	<pre
+		class="w-200 text-xs overflow-hidden mb-8 rounded-md p-4 bg-muted">Credits balance: {userState
+			.creditBalance?.balance} seeds updated at {userState.creditBalance?.updated_at}
+
+Logs: {jsonStringify(userState.creditLogs)}</pre>
 </div>

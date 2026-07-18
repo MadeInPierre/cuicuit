@@ -22,11 +22,11 @@
 			</a>
 
 			<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-				<a href="#features" class="hover:text-foreground transition-colors">Features</a>
-				<a href="#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
-				<a href="#pricing" class="hover:text-foreground transition-colors">Pricing</a>
-				<a href="#faq" class="hover:text-foreground transition-colors">FAQ</a>
-				<a href="#story" class="hover:text-foreground transition-colors">Story</a>
+				<a href="/#features" class="hover:text-foreground transition-colors">Features</a>
+				<a href="/#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
+				<a href="/#pricing" class="hover:text-foreground transition-colors">Pricing</a>
+				<a href="/#faq" class="hover:text-foreground transition-colors">FAQ</a>
+				<a href="/#story" class="hover:text-foreground transition-colors">Story</a>
 				<a
 					href="https://github.com/MadeInPierre/cuicuit"
 					target="_blank"
