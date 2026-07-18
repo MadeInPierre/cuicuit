@@ -1,6 +1,8 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { getUserCreditBalance, type UserCreditBalance } from '../queries/get-user-credit-balance';
+import { getUserCreditLogs, type UserCreditLogs } from '../queries/get-user-credit-logs';
 import { getUserPreferences, type UserPreferences } from '../queries/get-user-preferences';
 import { getUserPublicProfile, type UserPublicProfile } from '../queries/get-user-public-profile';
 
@@ -8,6 +10,8 @@ class UserState {
 	#userState = $state<User | undefined | null>(undefined);
 	#userPublicProfile = $state<UserPublicProfile | undefined | null>(undefined);
 	#userPreferences = $state<UserPreferences | undefined | null>(undefined);
+	#userCreditLogs = $state<UserCreditLogs | undefined | null>(undefined);
+	#userCreditBalance = $state<UserCreditBalance | undefined | null>(undefined);
 
 	#unsub: any;
 
@@ -31,6 +35,16 @@ class UserState {
 					getUserPreferences(session.user.id).then((result) => {
 						this.#userPreferences = result.preferences;
 					});
+
+					// Fetch credit logs
+					getUserCreditLogs(session.user.id).then((result) => {
+						this.#userCreditLogs = result.logs;
+					});
+
+					// Fetch credit balance
+					getUserCreditBalance(session.user.id).then((result) => {
+						this.#userCreditBalance = result.balance;
+					});
 				}
 			} else if (event === 'SIGNED_OUT') {
 				this.#userState = null;
@@ -52,16 +66,32 @@ class UserState {
 		return this.#userPreferences;
 	}
 
+	get creditLogs() {
+		return this.#userCreditLogs;
+	}
+
+	get creditBalance() {
+		return this.#userCreditBalance;
+	}
+
 	get isLoading() {
 		return (
 			this.#userState === undefined ||
 			this.#userPublicProfile === undefined ||
-			this.#userPreferences === undefined
+			this.#userPreferences === undefined ||
+			this.#userCreditLogs === undefined ||
+			this.#userCreditBalance === undefined
 		);
 	}
 
 	get isComplete() {
-		return this.#userState && this.#userPublicProfile && this.#userPreferences; // Neither null nor undefined
+		return (
+			this.#userState &&
+			this.#userPublicProfile &&
+			this.#userPreferences &&
+			this.#userCreditLogs &&
+			this.#userCreditBalance
+		); // Neither null nor undefined
 	}
 
 	stopListening() {
@@ -76,6 +106,12 @@ class UserState {
 
 		// Refresh user preferences
 		this.#userPreferences = (await getUserPreferences(this.#userState.id)).preferences;
+
+		// Refresh user credit logs
+		this.#userCreditLogs = (await getUserCreditLogs(this.#userState.id)).logs;
+
+		// Refresh user credit balance
+		this.#userCreditBalance = (await getUserCreditBalance(this.#userState.id)).balance;
 	}
 }
 

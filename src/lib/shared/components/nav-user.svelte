@@ -3,18 +3,31 @@
 	import { signOut } from '$lib/features/auth/actions/sign-out';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
+	import { ArrowRight } from '@lucide/svelte';
 	import { Settings } from 'lucide-svelte';
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
 	import LogOut from 'lucide-svelte/icons/log-out';
+
+	import SupportWall from '../../../routes/(marketing)/supporter/SupportWall.svelte';
+	import { useMedia } from '../hooks/use-media.svelte';
 
 	const userState = getUserState();
 
 	let { user }: { user: { name: string; email: string; avatar: string } } = $props();
 
 	const sidebar = useSidebar();
+
+	let openSupportDialog = $state(false);
+	let media = useMedia();
+
+	function openSupportWall() {
+		if (media.md) openSupportDialog = true;
+		else goto('/supporter');
+	}
 </script>
 
 <Sidebar.Menu>
@@ -37,7 +50,7 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg bg-primary-foreground -translate-y-2"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="start"
 				sideOffset={4}
@@ -52,14 +65,34 @@
 						</div>
 					</div>
 				</DropdownMenu.Label>
-				<!-- <DropdownMenu.Separator /> -->
-				<!-- <DropdownMenu.Group>
-					<DropdownMenu.Item>
-						<Sparkles />
-						Upgrade to Pro
+
+				{#if userState.creditBalance?.balance}
+					<DropdownMenu.Item
+						onclick={() => goto('/settings/seeds')}
+						class="bg-lime-50 hover:bg-lime-50 data-[highlighted]:bg-lime-100 data-[highlighted]:text-lime-600 text-lime-600"
+					>
+						<span class="">🌱</span>
+						You have {userState.creditBalance?.balance} seeds
+						<ArrowRight class="ml-auto mr-2 text-lime-600" />
 					</DropdownMenu.Item>
-				</DropdownMenu.Group> -->
+				{:else}
+					<DropdownMenu.Item
+						onclick={openSupportWall}
+						class="bg-lime-100 hover:bg-lime-50 data-[highlighted]:bg-lime-50 data-[highlighted]:text-lime-600"
+					>
+						<span class="ml-1">🌱</span>
+
+						<div class="grid">
+							<span class="text-lime-600 font-medium">Get your own seeds</span>
+							<span class="text-xs text-lime-600">and support Cuicuit!</span>
+						</div>
+
+						<!-- <Heart class="group-hover:hidden ml-auto mr-2 text-lime-600" /> -->
+						<ArrowRight class="ml-auto mr-2 text-lime-600" />
+					</DropdownMenu.Item>
+				{/if}
 				<DropdownMenu.Separator />
+
 				<DropdownMenu.Group>
 					<DropdownMenu.Item onclick={() => goto('/settings')}>
 						<Settings />
@@ -83,3 +116,9 @@
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>
 </Sidebar.Menu>
+
+<Dialog.Root bind:open={openSupportDialog}>
+	<Dialog.Content class="lg:min-w-250 overflow-hidden bg-background">
+		<SupportWall email={userState.user?.email || null} />
+	</Dialog.Content>
+</Dialog.Root>
