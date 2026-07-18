@@ -34,6 +34,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      credit_balances: {
+        Row: {
+          balance: number
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          balance?: number
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      credit_logs: {
+        Row: {
+          amount: number
+          created_at: string
+          credit_type: Database["public"]["Enums"]["credit_type"]
+          id: string
+          metadata: Json
+          source: Database["public"]["Enums"]["credit_source"]
+          stripe_charge_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credit_type: Database["public"]["Enums"]["credit_type"]
+          id?: string
+          metadata?: Json
+          source: Database["public"]["Enums"]["credit_source"]
+          stripe_charge_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credit_type?: Database["public"]["Enums"]["credit_type"]
+          id?: string
+          metadata?: Json
+          source?: Database["public"]["Enums"]["credit_source"]
+          stripe_charge_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ingredient_substitutions: {
         Row: {
           id: string
@@ -618,6 +672,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_pool_health: { Args: never; Returns: string }
       get_shopping_recommendations: {
         Args: {
           aisle_filter?: Database["public"]["Enums"]["supermarket_aisle"]
@@ -694,6 +749,12 @@ export type Database = {
         | "dessert"
         | "snack"
         | "drink"
+      credit_source:
+        | "stripe_charge"
+        | "consumed"
+        | "expired_consumed"
+        | "expired_to_public"
+      credit_type: "private" | "public"
       cuisine:
         | "italian"
         | "mexican"
@@ -901,6 +962,13 @@ export const Constants = {
         "snack",
         "drink",
       ],
+      credit_source: [
+        "stripe_charge",
+        "consumed",
+        "expired_consumed",
+        "expired_to_public",
+      ],
+      credit_type: ["private", "public"],
       cuisine: [
         "italian",
         "mexican",

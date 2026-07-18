@@ -40,6 +40,18 @@ export const publicCourseSchema = z.union([
   z.literal("drink"),
 ]);
 
+export const publicCreditSourceSchema = z.union([
+  z.literal("stripe_charge"),
+  z.literal("consumed"),
+  z.literal("expired_consumed"),
+  z.literal("expired_to_public"),
+]);
+
+export const publicCreditTypeSchema = z.union([
+  z.literal("private"),
+  z.literal("public"),
+]);
+
 export const publicCuisineSchema = z.union([
   z.literal("italian"),
   z.literal("mexican"),
@@ -160,6 +172,60 @@ export const graphqlPublicGraphqlArgsSchema = z.object({
 });
 
 export const graphqlPublicGraphqlReturnsSchema = jsonSchema;
+
+export const publicCreditBalancesRowSchema = z.object({
+  balance: z.number(),
+  id: z.string(),
+  updated_at: z.string(),
+  user_id: z.string().nullable(),
+});
+
+export const publicCreditBalancesInsertSchema = z.object({
+  balance: z.number().optional(),
+  id: z.string().optional(),
+  updated_at: z.string().optional(),
+  user_id: z.string().optional().nullable(),
+});
+
+export const publicCreditBalancesUpdateSchema = z.object({
+  balance: z.number().optional(),
+  id: z.string().optional(),
+  updated_at: z.string().optional(),
+  user_id: z.string().optional().nullable(),
+});
+
+export const publicCreditLogsRowSchema = z.object({
+  amount: z.number(),
+  created_at: z.string(),
+  credit_type: publicCreditTypeSchema,
+  id: z.string(),
+  metadata: jsonSchema,
+  source: publicCreditSourceSchema,
+  stripe_charge_id: z.string().nullable(),
+  user_id: z.string().nullable(),
+});
+
+export const publicCreditLogsInsertSchema = z.object({
+  amount: z.number(),
+  created_at: z.string().optional(),
+  credit_type: publicCreditTypeSchema,
+  id: z.string().optional(),
+  metadata: jsonSchema.optional(),
+  source: publicCreditSourceSchema,
+  stripe_charge_id: z.string().optional().nullable(),
+  user_id: z.string().optional().nullable(),
+});
+
+export const publicCreditLogsUpdateSchema = z.object({
+  amount: z.number().optional(),
+  created_at: z.string().optional(),
+  credit_type: publicCreditTypeSchema.optional(),
+  id: z.string().optional(),
+  metadata: jsonSchema.optional(),
+  source: publicCreditSourceSchema.optional(),
+  stripe_charge_id: z.string().optional().nullable(),
+  user_id: z.string().optional().nullable(),
+});
 
 export const publicIngredientSubstitutionsRowSchema = z.object({
   id: z.string(),
@@ -760,6 +826,10 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
   user_name: z.string().optional(),
 });
 
+export const publicGetPublicPoolHealthArgsSchema = z.never();
+
+export const publicGetPublicPoolHealthReturnsSchema = z.string();
+
 export const publicGetShoppingRecommendationsArgsSchema = z.object({
   aisle_filter: publicSupermarketAisleSchema.optional(),
   lang: z.string(),
@@ -845,6 +915,8 @@ export type PublicCommonlyUsedLevel = z.infer<
 >;
 export type PublicCostLevel = z.infer<typeof publicCostLevelSchema>;
 export type PublicCourse = z.infer<typeof publicCourseSchema>;
+export type PublicCreditSource = z.infer<typeof publicCreditSourceSchema>;
+export type PublicCreditType = z.infer<typeof publicCreditTypeSchema>;
 export type PublicCuisine = z.infer<typeof publicCuisineSchema>;
 export type PublicEffortLevel = z.infer<typeof publicEffortLevelSchema>;
 export type PublicIngredientBaseUnit = z.infer<
@@ -869,6 +941,22 @@ export type GraphqlPublicGraphqlArgs = z.infer<
 >;
 export type GraphqlPublicGraphqlReturns = z.infer<
   typeof graphqlPublicGraphqlReturnsSchema
+>;
+export type PublicCreditBalancesRow = z.infer<
+  typeof publicCreditBalancesRowSchema
+>;
+export type PublicCreditBalancesInsert = z.infer<
+  typeof publicCreditBalancesInsertSchema
+>;
+export type PublicCreditBalancesUpdate = z.infer<
+  typeof publicCreditBalancesUpdateSchema
+>;
+export type PublicCreditLogsRow = z.infer<typeof publicCreditLogsRowSchema>;
+export type PublicCreditLogsInsert = z.infer<
+  typeof publicCreditLogsInsertSchema
+>;
+export type PublicCreditLogsUpdate = z.infer<
+  typeof publicCreditLogsUpdateSchema
 >;
 export type PublicIngredientSubstitutionsRow = z.infer<
   typeof publicIngredientSubstitutionsRowSchema
@@ -975,6 +1063,12 @@ export type PublicUserPublicProfilesInsert = z.infer<
 >;
 export type PublicUserPublicProfilesUpdate = z.infer<
   typeof publicUserPublicProfilesUpdateSchema
+>;
+export type PublicGetPublicPoolHealthArgs = z.infer<
+  typeof publicGetPublicPoolHealthArgsSchema
+>;
+export type PublicGetPublicPoolHealthReturns = z.infer<
+  typeof publicGetPublicPoolHealthReturnsSchema
 >;
 export type PublicGetShoppingRecommendationsArgs = z.infer<
   typeof publicGetShoppingRecommendationsArgsSchema
