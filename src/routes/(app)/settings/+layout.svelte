@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { navLinksAppSettingsSidebar } from '$lib/features/marketing/consts/nav-links';
+	import SupportBanner from '$lib/shared/components/SupportBanner.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { ChevronLeft } from 'lucide-svelte';
-	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import SettingsSidebarNav from './SettingsSidebarNav.svelte';
 
@@ -34,6 +35,10 @@
 				Manage your account settings and set e-mail preferences.
 			</p>
 		</div>
+
+		<div class="sm:hidden ml-auto mr-2">
+			<SupportBanner />
+		</div>
 	</div>
 
 	<SeparatorZigZag class="my-6" />
@@ -49,10 +54,17 @@
 			</div>
 		</div>
 	{:else if showOptions && page.url.pathname === '/settings'}
-		
 		<SettingsSidebarNav
 			groups={navLinksAppSettingsSidebar}
-			onSelect={() => (showOptions = false)}
+			onSelect={async (l) => {
+				if (l.title === 'Sign out') {
+					console.log('User asked to sign out.');
+					await supabase.client?.auth.signOut();
+					window.location.href = '/login';
+				}
+
+				showOptions = false;
+			}}
 		/>
 	{:else}
 		<div class="flex flex-col space-y-8">

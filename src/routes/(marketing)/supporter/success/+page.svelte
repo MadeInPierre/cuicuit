@@ -211,7 +211,7 @@
 							{#if status === 'confirming'}
 								We're double-checking your checkout with Stripe. Just a moment.
 							{:else if status === 'success'}
-								Thank you for supporting Cuicuit and planting seeds in the shared garden. Your
+								Thank you for supporting Cuicuit and planting seeds in the community garden. Your
 								support helps keep Cuicuit open and delightful for everyone.
 							{:else if status === 'failure'}
 								Cuicuit couldn't confirm your payment right now. No worries, it is safely stored in

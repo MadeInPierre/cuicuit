@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { FEATURE_COSTS } from '$lib/features/billing/consts';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
+	import { cn } from '$lib/utils';
 	import { importRecipeFromText } from '../actions/import-from-url';
 	import { importRecipeTextSchema, type ImportRecipeTextSchema } from '../models/schemas';
 
@@ -34,6 +37,7 @@
 	let loading = $state(false);
 
 	const space = getActiveSpaceState();
+	const media = useMedia();
 
 	async function onSubmit(data: Infer<ImportRecipeTextSchema>) {
 		loading = true;
@@ -85,8 +89,14 @@
 	</div>
 
 	<div class="space-y-2">
-		<Dialog.Footer class="mt-4">
-			<Form.Button type="submit" disabled={loading || !$formData.text} class="w-full">
+		<Dialog.Footer class={cn('mt-4', !media.md && 'bg-transparent border-0')}>
+			<Form.Button type="submit" disabled={loading || !$formData.text} class="w-full relative">
+				<div
+					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
+				>
+					{FEATURE_COSTS.import_recipe_from_website.seeds} 🌱
+				</div>
+
 				{#if loading}
 					<div class="flex items-center gap-2">
 						<Loader2 class="size-4 animate-spin" />

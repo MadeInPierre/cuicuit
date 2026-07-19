@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import DialogResponsive from '$lib/shared/components/DialogResponsive.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
-	import { Download, FileImage, FileText, Globe, Pencil } from 'lucide-svelte';
+	import { FileImage, FileText, Globe, Pencil } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import CreateRecipeManualForm from './CreateRecipeManualForm.svelte';
 	import ImportRecipeFromTextForm from './ImportRecipeFromTextForm.svelte';
@@ -19,7 +19,7 @@
 </script>
 
 {#snippet tabList()}
-	<Tabs.List class="grid w-full grid-cols-3 mt-6 mb-4">
+	<Tabs.List class="grid w-full grid-cols-4 mt-6 mb-4">
 		<Tabs.Trigger value="url">
 			<Globe class="mr-2 size-4" />
 			Web
@@ -28,10 +28,10 @@
 			<FileText class="mr-2 size-4" />
 			Text
 		</Tabs.Trigger>
-		<!-- <Tabs.Trigger value="image">
+		<Tabs.Trigger value="image">
 			<FileImage class="mr-2 size-4" />
 			Image
-			</Tabs.Trigger> -->
+		</Tabs.Trigger>
 		<Tabs.Trigger value="manual">
 			<Pencil class="mr-2 size-4" />
 			Manual
@@ -39,79 +39,8 @@
 	</Tabs.List>
 {/snippet}
 
-<Dialog.Root bind:open={openDialog}>
-	<Dialog.Trigger>
-		{#snippet child({ props })}
-			{#if trigger}
-				{@render trigger({ props })}
-			{:else}
-				<Button {...props} class="ml-auto" size="sm">
-					<Download class="mx-2 h-4 w-4" />
-					<span>Import</span>
-				</Button>
-			{/if}
-		{/snippet}
-	</Dialog.Trigger>
-
-	<!-- <DropdownMenu.Root>
-		<DropdownMenu.Trigger>
-			{#snippet child({ props })}
-				{#if trigger}
-					{@render trigger({ props })}
-				{:else}
-					<Button {...props} class="ml-auto" size="sm">
-						<Download class="mx-2 h-4 w-4" />
-						<span>Import</span>
-					</Button>
-				{/if}
-			{/snippet}
-		</DropdownMenu.Trigger>
-		<DropdownMenu.Content class="w-[200px]" align={dropdownAlign}>
-			<DropdownMenu.Item
-				onclick={async () => {
-					if (!space.language) return;
-					const recipeId = await createDraftRecipe('user-manual', space.language.id);
-					if (!recipeId) {
-						toast.error('Failed to create a new recipe draft.');
-						return;
-					}
-					goto(`/recipes/${recipeId}/edit`);
-				}}
-			>
-				<Pencil class="mr-2 h-4 w-4" />
-				<span>Create new...</span>
-			</DropdownMenu.Item>
-			<DropdownMenu.Item
-				onclick={() => {
-					activeTab = 'url';
-					openDialog = true;
-				}}
-			>
-				<Globe class="mr-2 h-4 w-4" />
-				<span>From the web...</span>
-			</DropdownMenu.Item>
-			<DropdownMenu.Item
-				onclick={() => {
-					activeTab = 'image';
-					openDialog = true;
-				}}
-			>
-				<FileImage class="mr-2 h-4 w-4" />
-				<span>Photo or PDF...</span>
-			</DropdownMenu.Item>
-			<DropdownMenu.Item
-				onclick={() => {
-					activeTab = 'text';
-					openDialog = true;
-				}}
-			>
-				<FileText class="mr-2 h-4 w-4" />
-				<span>Text or document...</span>
-			</DropdownMenu.Item>
-		</DropdownMenu.Content>
-	</DropdownMenu.Root> -->
-
-	<Dialog.Content class="max-w-[425px]">
+<DialogResponsive {trigger} bind:open={openDialog}>
+	{#snippet content()}
 		<Tabs.Root bind:value={activeTab}>
 			<Tabs.Content value="url" class="">
 				<Dialog.Header class="w-min whitespace-nowrap">
@@ -140,7 +69,7 @@
 
 				{@render tabList()}
 
-				TODO
+				Coming soon!
 			</Tabs.Content>
 
 			<Tabs.Content value="text" class="">
@@ -175,5 +104,5 @@
 				<CreateRecipeManualForm bind:openDialog />
 			</Tabs.Content>
 		</Tabs.Root>
-	</Dialog.Content>
-</Dialog.Root>
+	{/snippet}
+</DialogResponsive>

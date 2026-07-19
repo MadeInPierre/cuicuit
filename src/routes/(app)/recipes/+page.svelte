@@ -23,7 +23,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { FunnelPlus, RotateCcw } from '@lucide/svelte';
-	import { ArrowRight, Bookmark, ChefHat, Plus } from 'lucide-svelte';
+	import { ArrowRight, ChefHat, Plus } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
 	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
@@ -297,10 +297,19 @@
 				</p>
 			</div>
 
-			<Button variant="secondary" class="ml-auto sm:hidden" href="/cookbooks">
+			<!-- <Button variant="secondary" class="ml-auto sm:hidden" href="/cookbooks">
 				<Bookmark class="size-4" />
 				Saved
-			</Button>
+			</Button> -->
+
+			<ImportRecipeDialog>
+				{#snippet trigger({ props })}
+					<Button {...props} class="ml-auto h-9 rounded-md sm:hidden">
+						<Plus class="size-4" />
+						Add
+					</Button>
+				{/snippet}
+			</ImportRecipeDialog>
 
 			<div class="hidden sm:grid ml-auto space-y-3">
 				<div class="flex gap-2 justify-end">

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import type { NavLink } from '$lib/features/marketing/consts/nav-links';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
-	import { Circle } from 'lucide-svelte';
+	import { ArrowRight, Circle } from 'lucide-svelte';
 	import { cubicInOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import SettingsMobileSpaceSwitcher from './SettingsMobileSpaceSwitcher.svelte';
@@ -19,6 +20,7 @@
 	let { class: className = undefined, groups, onSelect }: Props = $props();
 
 	const media = useMedia();
+	const userState = getUserState();
 
 	const [send, receive] = crossfade({
 		duration: 250,
@@ -27,6 +29,20 @@
 </script>
 
 <nav class={cn('flex flex-col space-x-2 space-y-3 lg:space-x-0 lg:space-y-1', className)}>
+	{#if !userState.creditBalance?.balance}
+		<Button
+			href="/supporter"
+			class="md:hidden max-w-lg mb-8 bg-lime-100 border border-lime-400 text-lime-600 p-8 rounded-xl flex items-center gap-4 mx-0"
+		>
+			<span class="text-lg">🌱</span>
+			<div class="grid">
+				<span class="text-lg font-medium leading-tight">Get your own seeds</span>
+				<span class="text-sm font-normal">and support Cuicuit!</span>
+			</div>
+			<ArrowRight class="size-5 ml-auto mr-2" />
+		</Button>
+	{/if}
+
 	{#each groups as group}
 		<p class="md:text-muted-foreground md:text-sm font-medium">{group.name}</p>
 
@@ -47,7 +63,7 @@
 					)}
 					data-sveltekit-noscroll
 					onclick={async () => {
-						await goto(link.href);
+						if (link.href) await goto(link.href);
 						onSelect?.(link);
 					}}
 				>

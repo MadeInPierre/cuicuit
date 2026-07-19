@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { FEATURE_COSTS } from '$lib/features/billing/consts';
 	import { createStripeCheckoutSession } from '$lib/features/billing/server/create-stripe-checkout-session.remote';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
@@ -32,18 +33,10 @@
 
 	const TIERS = [
 		{ at: 2, label: 'Help cover server costs', emoji: '🐣' },
-		{ at: 5, label: 'Cover your own usage', emoji: '🙌' },
-		{ at: 8, label: 'Buy a beer to the developer', emoji: '🍻' },
-		{ at: 10, label: "Accelerate Cuicuit's growth", emoji: '🕊' },
-		{ at: 20, label: 'Wow, thank you so much!', emoji: '🌟' }
-	];
-
-	const FEATURE_COSTS = [
-		{ name: 'Import a recipe from a link', seeds: 2 },
-		{ name: 'Scan recipes from photos', seeds: 3 },
-		{ name: 'Never gonna give you up, never', seeds: 4, comingSoon: true },
-		{ name: 'Gonna let you down, never', seeds: 2, comingSoon: true },
-		{ name: 'Gonna run around', seeds: 1, comingSoon: true }
+		{ at: 4, label: 'Cover your own usage', emoji: '🙌' },
+		{ at: 6, label: 'Buy a beer to the developer', emoji: '🍻' },
+		{ at: 8, label: "Accelerate Cuicuit's growth", emoji: '🕊' },
+		{ at: 15, label: 'Wow, thank you so much!', emoji: '🌟' }
 	];
 
 	// 1-20 step 1, then 25-100 step 5 → 36 total positions
@@ -131,7 +124,7 @@
 
 	<div class="gap-2 flex flex-col">
 		<div class="flex items-center gap-2 font-hand text-pink-500 text-lg lg:text-xl">
-			<Heart class="h-4 w-4 fill-pink-500" /> thank you!
+			<Heart class="h-4 w-4 fill-pink-500" /> thank you{(media.md && ' for your support') || ''}!
 		</div>
 		<h1 class="font-serif font-semibold text-2xl sm:text-3xl lg:text-4xl leading-tight">
 			Plant a few seeds in the community garden
@@ -243,7 +236,7 @@
 					</div>
 					<div class="mt-1 text-xs text-muted-foreground">
 						{(frequency === 'year' &&
-							`across the year — that's ${(yourSeeds / 12).toFixed(0)} / month`) ||
+							`yours for 1 year — avg. ${(yourSeeds / 12).toFixed(0)} / month`) ||
 							''}
 						{(frequency === 'month' && 'rolls over for 12 months') || ''}
 						{(frequency === 'once' && 'yours to spend for 1 year') || ''}
@@ -274,7 +267,7 @@
 						More features coming!
 					</div>
 
-					{#each FEATURE_COSTS as f (f.name)}
+					{#each Object.values(FEATURE_COSTS) as f (f.name)}
 						{@const canDo = Math.floor(yourSeeds / f.seeds)}
 
 						<li class={cn('flex items-center gap-2 py-1.5', f.comingSoon && 'opacity-60 blur-xs')}>
@@ -370,8 +363,8 @@
 					Plant {sym}{amount}
 					{freqLabel}
 					<ArrowRight class="size-4" />
-					get {yourSeeds.toLocaleString()} 🌱
-					<!-- &amp; gift {communitySeeds.toLocaleString()} 🌱 -->
+					Get {yourSeeds.toLocaleString()} 🌱
+					{(media.md && `and gift ${communitySeeds.toLocaleString()} 🌱`) || ''}
 				{/if}
 			</span>
 		</Button>

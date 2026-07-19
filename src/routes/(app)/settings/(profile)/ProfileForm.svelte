@@ -15,13 +15,8 @@
 	const userState = getUserState();
 
 	// Show a status icon to the user in real-time
-	enum UpdateStatus {
-		IDLE,
-		LOADING,
-		SUCCESS,
-		FAILED
-	}
-	let updateStatus: UpdateStatus = $state(UpdateStatus.IDLE);
+	type UpdateStatus = 'idle' | 'loading' | 'success' | 'failed';
+	let updateStatus: UpdateStatus = $state('idle');
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(profileFormSchema)), {
@@ -40,7 +35,7 @@
 			return;
 		}
 
-		updateStatus = UpdateStatus.LOADING;
+		updateStatus = 'loading';
 
 		try {
 			// Write the new user data to the database
@@ -48,13 +43,13 @@
 			await updateUserPreferences(userState.user.id, data);
 
 			// Notify success to the user
-			updateStatus = UpdateStatus.SUCCESS;
+			updateStatus = 'success';
 			toast.success('Profile updated 🎉', {
 				description: `All good, ${data.firstName}!`
 			});
 		} catch (error: any) {
 			// Notify the user of the error
-			updateStatus = UpdateStatus.FAILED;
+			updateStatus = 'failed';
 			console.error('Failed to update profile:', error);
 			if (error.message == 'Missing profile information') {
 				toast.error('Missing information', { description: 'Please fill in all the fields.' });
@@ -137,11 +132,11 @@
 	<div class="flex items-center gap-4">
 		<Form.Button disabled={buttonDisabled}>Update</Form.Button>
 
-		{#if updateStatus == UpdateStatus.LOADING}
+		{#if updateStatus == 'loading'}
 			<Loader2 class="animate-spin" />
-		{:else if updateStatus == UpdateStatus.SUCCESS}
+		{:else if updateStatus == 'success'}
 			<Check class="text-green-600" />
-		{:else if updateStatus == UpdateStatus.FAILED}
+		{:else if updateStatus == 'failed'}
 			<X class="text-red-600" />
 		{/if}
 	</div>
