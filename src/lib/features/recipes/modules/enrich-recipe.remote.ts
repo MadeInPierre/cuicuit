@@ -34,10 +34,10 @@ Requirements:
 
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({
-	title: publicRecipesRowSchema.shape.title.describe(
-		'Shortest possible title for this recipe in 1 word, e.g. title "Quiche aux courgettes" becomes "Quiche".'
+	title: publicRecipesRowSchema.shape.title.describe('Original or concise title.'),
+	short_title: publicRecipesRowSchema.shape.short_title.describe(
+		'Shortest possible title for this recipe in 1 word.'
 	),
-	short_title: publicRecipesRowSchema.shape.short_title,
 	description: publicRecipesRowSchema.shape.description,
 	servings: publicRecipesRowSchema.shape.servings,
 	time_prep_minutes: publicRecipesRowSchema.shape.time_prep_minutes,
@@ -139,6 +139,13 @@ async function enrichRecipeLlm(recipeInput: object) {
 		});
 
 		console.log('Response from Mistral model:', response);
+		console.log(
+			'LLM Mistral used',
+			response.usage.inputTokens,
+			'input and',
+			response.usage.outputTokens,
+			'output tokens.'
+		);
 		return response.output satisfies EnrichedRecipeOutput;
 	} catch (error) {
 		if (error instanceof NoObjectGeneratedError) {

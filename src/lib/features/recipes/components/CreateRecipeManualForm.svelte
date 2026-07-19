@@ -8,7 +8,7 @@
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
-	import { createDraftRecipe } from '../actions/create-draft-recipe';
+	import { createDraftRecipe } from '../actions/create-draft-recipe.remote';
 	import { createRecipeManualSchema, type CreateRecipeManualSchema } from '../models/schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';

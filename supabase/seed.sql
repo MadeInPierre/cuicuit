@@ -134934,7 +134934,34 @@ VALUES
 		'STANDARD'
 	);
 
+-- Billing
+insert into
+	public.credit_balances (user_id, balance)
+values
+	(null, 0) on conflict do nothing;
 
+INSERT INTO
+	"public"."credit_logs" (
+		"id",
+		"user_id",
+		"credit_type",
+		"amount",
+		"source",
+		"stripe_charge_id",
+		"metadata",
+		"created_at"
+	)
+VALUES
+	(
+		'027ae390-558f-4d2f-a90e-be45abd9b335',
+		'cc5f4f5b-02d5-467e-8f05-103c98b200b1',
+		'private',
+		60,
+		'stripe_charge',
+		'ch_3TuIKtPg56ihyGgJ06nqRqn3',
+		'{"currency": "eur", "stripe_amount": 300}',
+		'2026-07-19 14:45:13.651463+00'
+	);
 
 --
 -- Data for Name: s3_multipart_uploads; Type: TABLE DATA; Schema: storage; Owner: supabase_storage_admin

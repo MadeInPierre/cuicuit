@@ -661,7 +661,8 @@
 								{@render ingredientList(true)}
 							</Card.Content>
 						</Card.Root>
-						<Card.Root>
+
+						<!-- <Card.Root>
 							<Card.Header>
 								<Card.Title>Tools</Card.Title>
 								<Card.Description>
@@ -694,7 +695,8 @@
 									{/each}
 								</div>
 							</Card.Content>
-						</Card.Root>
+						</Card.Root> -->
+						
 						<Card.Root>
 							<Card.Header>
 								<Card.Title>Instructions</Card.Title>

@@ -293,6 +293,13 @@ export type Database = {
             referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes_randomized"
+            referencedColumns: ["id"]
+          },
         ]
       }
       recipes: {
@@ -532,6 +539,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "space_meals_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes_randomized"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "space_meals_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
@@ -669,9 +683,124 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      recipes_randomized: {
+        Row: {
+          author_id: string | null
+          cleanup_level: Database["public"]["Enums"]["cleanup_level"] | null
+          cost_level: Database["public"]["Enums"]["cost_level"] | null
+          courses: Database["public"]["Enums"]["course"][] | null
+          created_at: string | null
+          cuisines: Database["public"]["Enums"]["cuisine"][] | null
+          deleted_at: string | null
+          description: string | null
+          effort_level: Database["public"]["Enums"]["effort_level"] | null
+          id: string | null
+          image_ids: string[] | null
+          language_id: number | null
+          notes: string | null
+          search_term: string | null
+          servings: number | null
+          short_title: string | null
+          skill_level: Database["public"]["Enums"]["skill_level"] | null
+          slug: string | null
+          source_type: Database["public"]["Enums"]["recipe_source_type"] | null
+          source_url: string | null
+          steps: string[] | null
+          time_cook_minutes: number | null
+          time_prep_minutes: number | null
+          time_rest_minutes: number | null
+          time_total_minutes: number | null
+          times_of_day: Database["public"]["Enums"]["time_of_day"][] | null
+          title: string | null
+          tools: Database["public"]["Enums"]["recipe_tool"][] | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
+          cost_level?: Database["public"]["Enums"]["cost_level"] | null
+          courses?: Database["public"]["Enums"]["course"][] | null
+          created_at?: string | null
+          cuisines?: Database["public"]["Enums"]["cuisine"][] | null
+          deleted_at?: string | null
+          description?: string | null
+          effort_level?: Database["public"]["Enums"]["effort_level"] | null
+          id?: string | null
+          image_ids?: string[] | null
+          language_id?: number | null
+          notes?: string | null
+          search_term?: string | null
+          servings?: number | null
+          short_title?: string | null
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null
+          slug?: string | null
+          source_type?: Database["public"]["Enums"]["recipe_source_type"] | null
+          source_url?: string | null
+          steps?: string[] | null
+          time_cook_minutes?: number | null
+          time_prep_minutes?: number | null
+          time_rest_minutes?: number | null
+          time_total_minutes?: number | null
+          times_of_day?: Database["public"]["Enums"]["time_of_day"][] | null
+          title?: string | null
+          tools?: Database["public"]["Enums"]["recipe_tool"][] | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
+          cost_level?: Database["public"]["Enums"]["cost_level"] | null
+          courses?: Database["public"]["Enums"]["course"][] | null
+          created_at?: string | null
+          cuisines?: Database["public"]["Enums"]["cuisine"][] | null
+          deleted_at?: string | null
+          description?: string | null
+          effort_level?: Database["public"]["Enums"]["effort_level"] | null
+          id?: string | null
+          image_ids?: string[] | null
+          language_id?: number | null
+          notes?: string | null
+          search_term?: string | null
+          servings?: number | null
+          short_title?: string | null
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null
+          slug?: string | null
+          source_type?: Database["public"]["Enums"]["recipe_source_type"] | null
+          source_url?: string | null
+          steps?: string[] | null
+          time_cook_minutes?: number | null
+          time_prep_minutes?: number | null
+          time_rest_minutes?: number | null
+          time_total_minutes?: number | null
+          times_of_day?: Database["public"]["Enums"]["time_of_day"][] | null
+          title?: string | null
+          tools?: Database["public"]["Enums"]["recipe_tool"][] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      consume_credits: {
+        Args: {
+          p_amount_to_consume: number
+          p_metadata?: Json
+          p_source: string
+          p_user_id: string
+        }
+        Returns: {
+          private_credits_consumed: number
+          public_credits_consumed: number
+        }[]
+      }
       get_public_pool_health: { Args: never; Returns: string }
       get_shopping_recommendations: {
         Args: {

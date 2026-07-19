@@ -64,8 +64,8 @@
 		},
 		{
 			icon: Share,
-			title: 'Share, Export & Connect',
-			body: 'Cuicuit aims to provide easy-to-use a REST API, AI MCP, and easy exporting. All coming soon!'
+			title: 'Export, Share & Connect',
+			body: 'Cuicuit aims to provide open connectors like a REST API, AI MCP, and file exporting. Soon!'
 		},
 		{
 			icon: Users,

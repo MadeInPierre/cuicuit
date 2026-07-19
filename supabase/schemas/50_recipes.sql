@@ -218,6 +218,13 @@ CREATE INDEX "idx_recipes_tools" ON "public"."recipes" USING "gin" ("tools");
 CREATE INDEX "idx_recipes_total_time" ON "public"."recipes" USING "btree" ("time_total_minutes");
 
 -------------------
+-- Recipes with random order for UI
+-------------------
+CREATE OR REPLACE VIEW "public"."recipes_randomized" 
+WITH (security_invoker = on) AS 
+SELECT * FROM "public"."recipes" ORDER BY RANDOM();
+
+-------------------
 -- Recipe Ingredients (junction table between recipes and ingredients)
 -------------------
 -- 1. Definition

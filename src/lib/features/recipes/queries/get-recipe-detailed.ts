@@ -19,7 +19,7 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
 	// 	)
 	// )
 	let query = supabase.client
-		.from('recipes')
+		.from('recipes_randomized')
 		.select(
 			`*,
 			language:languages(*),

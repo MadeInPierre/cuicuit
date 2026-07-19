@@ -46,14 +46,16 @@
 			</Dialog.Content>
 		{:else}
 			<Drawer.Content class="max-h-[70%]">
-				<Drawer.Header class="text-start relative">
-					{#if title}
-						<Drawer.Title>{title}</Drawer.Title>
-					{/if}
-					{#if description}
-						<Drawer.Description>{description}</Drawer.Description>
-					{/if}
-				</Drawer.Header>
+				{#if title || description}
+					<Drawer.Header class="text-start relative">
+						{#if title}
+							<Drawer.Title>{title}</Drawer.Title>
+						{/if}
+						{#if description}
+							<Drawer.Description>{description}</Drawer.Description>
+						{/if}
+					</Drawer.Header>
+				{/if}
 
 				<div class="grid gap-3 px-6 mb-6">
 					{@render content?.()}

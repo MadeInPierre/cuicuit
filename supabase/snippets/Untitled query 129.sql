@@ -1,5 +1,5 @@
-select billing.consume_credits('eeade402-2584-4daa-80f1-3d48dd07d6c3', 5, 'test_consume', '{"comment": "Hello World"}');
+CREATE OR REPLACE VIEW recipes_randomized with (security_invoker = on) AS SELECT * FROM recipes ORDER BY RANDOM();
 
-INSERT INTO "public"."credit_logs" ("id", "user_id", "credit_type", "amount", "source", "stripe_charge_id", "metadata", "created_at") VALUES ('3a700119-91ef-4277-ae99-3cb8a4bc8251', null, 'public', 60, 'stripe_charge', 'fake_id', '{"currency": "eur", "sponsored_by": "cc5f4f5b-02d5-467e-8f05-103c98b200b1", "stripe_amount": 6000 }', '2026-07-18 15:51:10.828632+00');
+INSERT INTO "public"."credit_logs" ("id", "user_id", "credit_type", "amount", "source", "stripe_charge_id", "metadata", "created_at") VALUES ('6ff9f926-6a7b-4e25-9b71-e86ad7edcc50', null, 'public', -5, 'consumed', null, '{"comment": "Hello World", "consumed_by_user_id": "cc5f4f5b-02d5-467e-8f05-103c98b200b1", "billing_action_source": "test_consume"}', '2026-07-18 15:10:21+00');
 
-INSERT INTO "public"."credit_balances" ("id", "user_id", "balance") VALUES ('00000000-0000-0000-0000-000000000000', null, 0) ON conflict do nothing;
+INSERT INTO "public"."credit_logs" ("id", "user_id", "credit_type", "amount", "source", "stripe_charge_id", "metadata", "created_at") VALUES ('027ae390-558f-4d2f-a90e-be45abd9b335', 'cc5f4f5b-02d5-467e-8f05-103c98b200b1', 'private', 60, 'stripe_charge', 'ch_3TuIKtPg56ihyGgJ06nqRqn3', '{"currency": "eur", "stripe_amount": 300}', '2026-07-19 14:45:13.651463+00');

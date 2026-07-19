@@ -442,6 +442,13 @@ export const publicRecipeIngredientsRelationshipsSchema = z.tuple([
     referencedRelation: z.literal("recipes"),
     referencedColumns: z.tuple([z.literal("id")]),
   }),
+  z.object({
+    foreignKeyName: z.literal("recipe_ingredients_recipe_id_fkey"),
+    columns: z.tuple([z.literal("recipe_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("recipes_randomized"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
 ]);
 
 export const publicRecipesRowSchema = z.object({
@@ -687,6 +694,13 @@ export const publicSpaceMealsRelationshipsSchema = z.tuple([
     referencedColumns: z.tuple([z.literal("id")]),
   }),
   z.object({
+    foreignKeyName: z.literal("space_meals_recipe_id_fkey"),
+    columns: z.tuple([z.literal("recipe_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("recipes_randomized"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+  z.object({
     foreignKeyName: z.literal("space_meals_space_id_fkey"),
     columns: z.tuple([z.literal("space_id")]),
     isOneToOne: z.literal(false),
@@ -825,6 +839,126 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
   user_id: z.string().optional(),
   user_name: z.string().optional(),
 });
+
+export const publicRecipesRandomizedRowSchema = z.object({
+  author_id: z.string().nullable(),
+  cleanup_level: publicCleanupLevelSchema.nullable(),
+  cost_level: publicCostLevelSchema.nullable(),
+  courses: z.array(publicCourseSchema).nullable(),
+  created_at: z.string().nullable(),
+  cuisines: z.array(publicCuisineSchema).nullable(),
+  deleted_at: z.string().nullable(),
+  description: z.string().nullable(),
+  effort_level: publicEffortLevelSchema.nullable(),
+  id: z.string().nullable(),
+  image_ids: z.array(z.string()).nullable(),
+  language_id: z.number().nullable(),
+  notes: z.string().nullable(),
+  search_term: z.string().nullable(),
+  servings: z.number().nullable(),
+  short_title: z.string().nullable(),
+  skill_level: publicSkillLevelSchema.nullable(),
+  slug: z.string().nullable(),
+  source_type: publicRecipeSourceTypeSchema.nullable(),
+  source_url: z.string().nullable(),
+  steps: z.array(z.string()).nullable(),
+  time_cook_minutes: z.number().nullable(),
+  time_prep_minutes: z.number().nullable(),
+  time_rest_minutes: z.number().nullable(),
+  time_total_minutes: z.number().nullable(),
+  times_of_day: z.array(publicTimeOfDaySchema).nullable(),
+  title: z.string().nullable(),
+  tools: z.array(publicRecipeToolSchema).nullable(),
+  updated_at: z.string().nullable(),
+});
+
+export const publicRecipesRandomizedInsertSchema = z.object({
+  author_id: z.string().optional().nullable(),
+  cleanup_level: publicCleanupLevelSchema.optional().nullable(),
+  cost_level: publicCostLevelSchema.optional().nullable(),
+  courses: z.array(publicCourseSchema).optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  cuisines: z.array(publicCuisineSchema).optional().nullable(),
+  deleted_at: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  effort_level: publicEffortLevelSchema.optional().nullable(),
+  id: z.string().optional().nullable(),
+  image_ids: z.array(z.string()).optional().nullable(),
+  language_id: z.number().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  search_term: z.string().optional().nullable(),
+  servings: z.number().optional().nullable(),
+  short_title: z.string().optional().nullable(),
+  skill_level: publicSkillLevelSchema.optional().nullable(),
+  slug: z.string().optional().nullable(),
+  source_type: publicRecipeSourceTypeSchema.optional().nullable(),
+  source_url: z.string().optional().nullable(),
+  steps: z.array(z.string()).optional().nullable(),
+  time_cook_minutes: z.number().optional().nullable(),
+  time_prep_minutes: z.number().optional().nullable(),
+  time_rest_minutes: z.number().optional().nullable(),
+  time_total_minutes: z.number().optional().nullable(),
+  times_of_day: z.array(publicTimeOfDaySchema).optional().nullable(),
+  title: z.string().optional().nullable(),
+  tools: z.array(publicRecipeToolSchema).optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const publicRecipesRandomizedUpdateSchema = z.object({
+  author_id: z.string().optional().nullable(),
+  cleanup_level: publicCleanupLevelSchema.optional().nullable(),
+  cost_level: publicCostLevelSchema.optional().nullable(),
+  courses: z.array(publicCourseSchema).optional().nullable(),
+  created_at: z.string().optional().nullable(),
+  cuisines: z.array(publicCuisineSchema).optional().nullable(),
+  deleted_at: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  effort_level: publicEffortLevelSchema.optional().nullable(),
+  id: z.string().optional().nullable(),
+  image_ids: z.array(z.string()).optional().nullable(),
+  language_id: z.number().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  search_term: z.string().optional().nullable(),
+  servings: z.number().optional().nullable(),
+  short_title: z.string().optional().nullable(),
+  skill_level: publicSkillLevelSchema.optional().nullable(),
+  slug: z.string().optional().nullable(),
+  source_type: publicRecipeSourceTypeSchema.optional().nullable(),
+  source_url: z.string().optional().nullable(),
+  steps: z.array(z.string()).optional().nullable(),
+  time_cook_minutes: z.number().optional().nullable(),
+  time_prep_minutes: z.number().optional().nullable(),
+  time_rest_minutes: z.number().optional().nullable(),
+  time_total_minutes: z.number().optional().nullable(),
+  times_of_day: z.array(publicTimeOfDaySchema).optional().nullable(),
+  title: z.string().optional().nullable(),
+  tools: z.array(publicRecipeToolSchema).optional().nullable(),
+  updated_at: z.string().optional().nullable(),
+});
+
+export const publicRecipesRandomizedRelationshipsSchema = z.tuple([
+  z.object({
+    foreignKeyName: z.literal("recipes_language_id_fkey"),
+    columns: z.tuple([z.literal("language_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("languages"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+]);
+
+export const publicConsumeCreditsArgsSchema = z.object({
+  p_amount_to_consume: z.number(),
+  p_metadata: jsonSchema.optional(),
+  p_source: z.string(),
+  p_user_id: z.string(),
+});
+
+export const publicConsumeCreditsReturnsSchema = z.array(
+  z.object({
+    private_credits_consumed: z.number(),
+    public_credits_consumed: z.number(),
+  }),
+);
 
 export const publicGetPublicPoolHealthArgsSchema = z.never();
 
@@ -1063,6 +1197,24 @@ export type PublicUserPublicProfilesInsert = z.infer<
 >;
 export type PublicUserPublicProfilesUpdate = z.infer<
   typeof publicUserPublicProfilesUpdateSchema
+>;
+export type PublicRecipesRandomizedRow = z.infer<
+  typeof publicRecipesRandomizedRowSchema
+>;
+export type PublicRecipesRandomizedInsert = z.infer<
+  typeof publicRecipesRandomizedInsertSchema
+>;
+export type PublicRecipesRandomizedUpdate = z.infer<
+  typeof publicRecipesRandomizedUpdateSchema
+>;
+export type PublicRecipesRandomizedRelationships = z.infer<
+  typeof publicRecipesRandomizedRelationshipsSchema
+>;
+export type PublicConsumeCreditsArgs = z.infer<
+  typeof publicConsumeCreditsArgsSchema
+>;
+export type PublicConsumeCreditsReturns = z.infer<
+  typeof publicConsumeCreditsReturnsSchema
 >;
 export type PublicGetPublicPoolHealthArgs = z.infer<
   typeof publicGetPublicPoolHealthArgsSchema

@@ -1,10 +1,14 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export async function getUserCreditBalance(userId: string) {
-	if (!supabase.client) throw new Error('No supabase client');
+export async function getUserCreditBalance(
+	supabase: SupabaseClient<Database> | undefined,
+	userId: string
+) {
+	if (!supabase) throw new Error('No supabase client');
 	if (!userId) throw new Error('User ID not provided');
 
-	const { data: dataBalance, error } = await supabase.client
+	const { data: dataBalance, error } = await supabase
 		.from('credit_balances')
 		.select('*')
 		.eq('user_id', userId)
@@ -17,12 +21,11 @@ export async function getUserCreditBalance(userId: string) {
 		console.error('Error fetching credit log:', error);
 	}
 
-	const { data: dataHealth, error: errorHealth } =
-		await supabase.client.rpc('get_public_pool_health');
+	const { data: dataHealth, error: errorHealth } = await supabase.rpc('get_public_pool_health');
 
 	const mergedBalance = {
 		...dataBalance,
-		communityHealth: "Low" as 'Healthy' | 'Low' | 'Critical' | 'Empty' | null
+		communityHealth: dataHealth as 'Healthy' | 'Low' | 'Critical' | 'Empty' | null
 	};
 
 	return { balance: mergedBalance || null, error };
@@ -31,3 +34,23 @@ export async function getUserCreditBalance(userId: string) {
 type UserCreditBalanceReturn =
 	ReturnType<typeof getUserCreditBalance> extends Promise<infer T> ? T : never;
 export type UserCreditBalance = UserCreditBalanceReturn['balance'];
+
+export async function canUserAfford(
+	supabase: SupabaseClient<Database>,
+	userId: string,
+	cost: number
+) {
+	const { balance, error: balanceError } = await getUserCreditBalance(supabase, userId);
+
+	if (balanceError) throw new Error(balanceError.message);
+	if (cost <= 0) throw new Error('Cost must be positive');
+
+	console.log(balance?.balance, 'user seeds and', balance?.communityHealth, 'health');
+
+	if (!balance?.balance || balance?.balance < cost || balance?.communityHealth === 'Empty') {
+		console.log('Not enough private nor public seeds.');
+		return false;
+	}
+
+	return true;
+}
