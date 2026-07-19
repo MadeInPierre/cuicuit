@@ -4,10 +4,9 @@
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { cn } from '$lib/utils';
-	import { Heart, HeartCrack } from '@lucide/svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import HelloDialog from './HelloDialog.svelte';
+	import SupportBanner from './SupportBanner.svelte';
 	import ThemeButton from './ThemeButton.svelte';
 	import { Button } from './ui/button';
 
@@ -86,28 +85,9 @@
 
 				<!-- <CommandMenu /> -->
 
-				{#if userState.creditBalance && !userState.creditBalance.balance}
-					<Button
-						href="/supporter"
-						variant="secondary"
-						class={cn(
-							'hidden md:flex mr-8 h-8 text-md px-2 font-normal text-pink-400 items-center gap-1 bg-transparent hover:bg-pink-100 shadow-none font-hand',
-							userState.creditBalance.communityHealth === 'Low' && 'bg-pink-100',
-							userState.creditBalance.communityHealth === 'Critical' &&
-								'bg-pink-400 text-white hover:bg-pink-500 font-bold text-lg',
-								userState.creditBalance.communityHealth === 'Empty' &&
-								'bg-red-500 text-white hover:bg-red-600 font-bold text-sm font-sans'
-						)}
-					>
-						{#if userState.creditBalance.communityHealth === 'Healthy'}
-							<Heart />
-							<span>Support</span>
-						{:else}
-							<HeartCrack />
-							<span>Community health: {userState.creditBalance.communityHealth}</span>
-						{/if}
-					</Button>
-				{/if}
+				<div class="hidden sm:inline-block mr-8">
+					<SupportBanner />
+				</div>
 
 				<ThemeButton class="md:hidden" />
 

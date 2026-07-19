@@ -22,7 +22,7 @@ export async function getUserCreditBalance(userId: string) {
 
 	const mergedBalance = {
 		...dataBalance,
-		communityHealth: "Healthy" // dataHealth as 'Healthy' | 'Low' | 'Critical' | 'Empty' | null
+		communityHealth: "Low" as 'Healthy' | 'Low' | 'Critical' | 'Empty' | null
 	};
 
 	return { balance: mergedBalance || null, error };

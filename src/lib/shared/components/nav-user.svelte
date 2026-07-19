@@ -3,7 +3,6 @@
 	import { signOut } from '$lib/features/auth/actions/sign-out';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as DropdownMenu from '$lib/shared/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
@@ -11,8 +10,7 @@
 	import { Settings } from 'lucide-svelte';
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
 	import LogOut from 'lucide-svelte/icons/log-out';
-
-	import SupportWall from '../../../routes/(marketing)/supporter/SupportWall.svelte';
+	import SupportWallAutoDialog from '../../../routes/(marketing)/supporter/success/SupportWallAutoDialog.svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 
 	const userState = getUserState();
@@ -23,7 +21,6 @@
 
 	let openSupportDialog = $state(false);
 	let media = useMedia();
-
 	function openSupportWall() {
 		if (media.md) openSupportDialog = true;
 		else goto('/supporter');
@@ -117,8 +114,4 @@
 	</Sidebar.MenuItem>
 </Sidebar.Menu>
 
-<Dialog.Root bind:open={openSupportDialog}>
-	<Dialog.Content class="lg:min-w-250 overflow-hidden bg-background">
-		<SupportWall email={userState.user?.email || null} />
-	</Dialog.Content>
-</Dialog.Root>
+<SupportWallAutoDialog email={userState.user?.email || null} bind:open={openSupportDialog} />

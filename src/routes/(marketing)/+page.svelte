@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
-	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import {
 		Camera,
@@ -26,7 +25,7 @@
 		Terminal,
 		Users
 	} from 'lucide-svelte';
-	import SupportWall from './supporter/SupportWall.svelte';
+	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
 
 	const { data } = $props();
 
@@ -90,12 +89,7 @@
 			emoji: '🥚',
 			label: 'Open Foundations',
 			note: 'Project setup, hosted version, basic multi-user support.',
-			items: [
-				'Publicly hosted version',
-				'Multi-user spaces',
-				'Docker deployment',
-				'Self-hosted docs'
-			],
+			items: ['Publicly hosted version', 'Docker deployment', 'Self-hosted docs', 'Many bugfixes'],
 			state: 'In Progress',
 			tone: 'active'
 		},
@@ -165,7 +159,6 @@
 
 	let openSupportDialog = $state(false);
 	let media = useMedia();
-
 	function openSupportWall() {
 		if (media.md) openSupportDialog = true;
 		else goto('/supporter');
@@ -732,7 +725,7 @@
 			</div>
 			<p class="mt-1 text-sm text-muted-foreground">No credit card. Start in one click.</p>
 			<ul class="mt-6 space-y-3 text-sm">
-				{#each ['All features free with fair usage limits', "Use the shared garden's seeds 🌱 gifted by supporters"] as t (t)}
+				{#each ['All features free with fair usage limits', "Use the community garden's seeds 🌱 gifted by supporters"] as t (t)}
 					<li class="flex items-start gap-2">
 						<Check class="h-4 w-4 mt-0.5 shrink-0" />
 						{t}
@@ -1122,11 +1115,7 @@
 	</div>
 </footer>
 
-<Dialog.Root bind:open={openSupportDialog}>
-	<Dialog.Content class="lg:min-w-250 overflow-hidden bg-background">
-		<SupportWall email={data.claims?.email || null} />
-	</Dialog.Content>
-</Dialog.Root>
+<SupportWallAutoDialog email={data.claims?.email || null} bind:open={openSupportDialog} />
 
 <style>
 	:global(html) {

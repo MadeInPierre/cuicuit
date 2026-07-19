@@ -10,6 +10,8 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { createDraftRecipe } from '../actions/create-draft-recipe';
 	import { createRecipeManualSchema, type CreateRecipeManualSchema } from '../models/schemas';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { cn } from '$lib/utils';
 
 	type Props = {
 		openDialog?: boolean;
@@ -31,6 +33,7 @@
 	let loading = $state(false);
 
 	const space = getActiveSpaceState();
+	const media = useMedia();
 
 	async function onSubmit(data: Infer<CreateRecipeManualSchema>) {
 		loading = true;
@@ -83,8 +86,13 @@
 			</div>
 		{/if} -->
 
-		<Dialog.Footer class="mt-4">
-			<Form.Button type="submit" disabled={loading || !$formData.title} class="w-full">
+		<Dialog.Footer class={cn('mt-4', !media.md && 'bg-transparent border-0')}>
+			<Form.Button type="submit" disabled={loading || !$formData.title} class="w-full relative">
+				<div
+					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
+				>
+					Free
+				</div>
 				{#if loading}
 					<div class="flex items-center gap-2">
 						<Loader2 class="size-4 animate-spin" />

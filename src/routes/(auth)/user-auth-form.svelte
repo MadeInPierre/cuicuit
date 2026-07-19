@@ -16,7 +16,7 @@
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { Icons } from '$lib/shared/icons';
 	import { cn } from '$lib/utils';
-	import { Check, Eye, EyeOff, ShieldQuestion } from 'lucide-svelte';
+	import { Check, Eye, EyeOff } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
@@ -183,6 +183,7 @@
 										onclick={() => resetPassword($formData.email)}
 										class="text-xs text-muted-foreground decoration-dotted underline-offset-4 hover:underline"
 										type="button"
+										tabindex={-1}
 									>
 										Forgot password?
 									</button>

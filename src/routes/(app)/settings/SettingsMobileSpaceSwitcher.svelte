@@ -29,7 +29,7 @@
 	let activeTab: 'create' | 'join' = $state('create');
 </script>
 
-<div class="max-w-lg rounded-xl bg-white shadow-xs border border-border/60 text-md grid">
+<div class="max-w-lg mx-0 rounded-xl bg-white shadow-xs border border-border/60 text-md grid">
 	{#snippet tabList()}
 		<Tabs.List class="grid w-full grid-cols-2 mt-6 mb-4">
 			<Tabs.Trigger value="create">

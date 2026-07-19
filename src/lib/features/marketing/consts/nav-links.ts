@@ -1,7 +1,8 @@
+import { Sprout } from '@lucide/svelte';
 import { House, LayoutDashboard, Lock, LogOut, ScanLine, Scroll, User, Users } from 'lucide-svelte';
 
 export type NavLink = {
-	href: string; // Link to the page
+	href?: string; // Link to the page
 	title: string; // Page name displayed on the navbar
 	startsWith?: boolean; // Item is active if the path starts with href (equal otherwise)
 	startPath?: string; // Optionally specify a different value than href for startsWith
@@ -61,6 +62,11 @@ export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = 
 		name: 'Your account',
 		links: [
 			{
+				title: 'Seeds',
+				href: '/settings/seeds',
+				icon: Sprout
+			},
+			{
 				title: 'Profile',
 				href: '/settings',
 				icon: User
@@ -71,8 +77,7 @@ export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = 
 				icon: Lock
 			},
 			{
-				title: 'Logout',
-				href: '/logout',
+				title: 'Sign out',
 				icon: LogOut,
 				display: 'mobile'
 			}
