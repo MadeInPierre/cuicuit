@@ -7,12 +7,12 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { cn } from '$lib/utils';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
-	import { cn } from '$lib/utils';
-	import { importRecipeFromText } from '../actions/import-from-url';
+	import { importRecipeFromText } from '../actions/import-from-url.remote';
 	import { importRecipeTextSchema, type ImportRecipeTextSchema } from '../models/schemas';
 
 	const userState = getUserState();
@@ -50,7 +50,12 @@
 			}
 
 			// Import the recipe from the URL
-			const result = await importRecipeFromText(space, data.text);
+			const result = await importRecipeFromText({
+				spaceId: space.activeSpace.id,
+				text: data.text,
+				fallbackLang: space.language.lang
+			});
+			userState.refresh();
 
 			// Navigate based on completeness
 			if (result.isComplete) {

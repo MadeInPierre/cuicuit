@@ -267,7 +267,7 @@
 						More features coming!
 					</div>
 
-					{#each Object.values(FEATURE_COSTS) as f (f.name)}
+					{#each Object.values(FEATURE_COSTS).filter((feature) => feature.display) as f (f.name)}
 						{@const canDo = Math.floor(yourSeeds / f.seeds)}
 
 						<li class={cn('flex items-center gap-2 py-1.5', f.comingSoon && 'opacity-60 blur-xs')}>

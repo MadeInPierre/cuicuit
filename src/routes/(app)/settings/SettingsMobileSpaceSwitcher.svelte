@@ -9,6 +9,7 @@
 		type SpaceThemeKey
 	} from '$lib/features/spaces/consts';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import DialogResponsive from '$lib/shared/components/DialogResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
@@ -28,6 +29,16 @@
 	let openDialog = $state(false);
 	let activeTab: 'create' | 'join' = $state('create');
 </script>
+
+<DialogResponsive>
+	{#snippet trigger()}
+		hi
+	{/snippet}
+
+	{#snippet content()}
+		ho
+	{/snippet}
+</DialogResponsive>
 
 <div class="max-w-lg mx-0 rounded-xl bg-white shadow-xs border border-border/60 text-md grid">
 	{#snippet tabList()}

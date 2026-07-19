@@ -2,18 +2,18 @@
 	import { goto } from '$app/navigation';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { FEATURE_COSTS } from '$lib/features/billing/consts';
-	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url';
+	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url.remote';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { cn } from '$lib/utils';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
-	import { cn } from '$lib/utils';
-	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 
 	const userState = getUserState();
 
@@ -40,6 +40,8 @@
 	const media = useMedia();
 
 	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
+		if (loading) throw new Error('An web import is already ongoing, aborting.');
+
 		loading = true;
 		try {
 			// Get the user
@@ -49,8 +51,17 @@
 				return;
 			}
 
+			if (!space.activeSpace) throw new Error('No active space');
+			if (!space.language) throw new Error('No active language');
+
 			// Import the recipe from the URL
-			const result = await importRecipeFromUrl(space, data.url, userState.user.id);
+			console.log('TRIGGERING IMPORT');
+			const result = await importRecipeFromUrl({
+				spaceId: space.activeSpace.id,
+				url: data.url,
+				fallbackLang: space.language.lang
+			});
+			userState.refresh();
 
 			// Navigate based on completeness
 			if (result.isComplete) {
@@ -63,6 +74,7 @@
 				goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
 			}
 		} catch (error) {
+			console.error(error);
 			toast.error('Failed to import recipe. Please try again.');
 		}
 		loading = false;
@@ -95,7 +107,7 @@
 			</div>
 		{/if} -->
 
-		<Dialog.Footer class={cn("mt-4", !media.md && 'bg-transparent border-0')}>
+		<Dialog.Footer class={cn('mt-4', !media.md && 'bg-transparent border-0')}>
 			<Form.Button type="submit" disabled={loading || !$formData.url} class="w-full relative">
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"

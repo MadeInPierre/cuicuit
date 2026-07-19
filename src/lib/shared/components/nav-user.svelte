@@ -69,7 +69,9 @@
 						class="bg-lime-50 hover:bg-lime-50 data-[highlighted]:bg-lime-100 data-[highlighted]:text-lime-600 text-lime-600"
 					>
 						<span class="">🌱</span>
-						You have {userState.creditBalance?.balance} seeds
+						You have {userState.creditBalance?.balance} seed{userState.creditBalance?.balance > 1
+							? 's'
+							: ''}
 						<ArrowRight class="ml-auto mr-2 text-lime-600" />
 					</DropdownMenu.Item>
 				{:else}

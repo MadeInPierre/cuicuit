@@ -3,6 +3,7 @@ import { getRequestEvent, query } from '$app/server';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import Stripe from 'stripe';
 import z from 'zod';
+import { serverIsUserAuthenticated } from './utils/is-user-authenticated';
 
 const MINIMUM_PER_PAYMENT_AMOUNT = 3;
 const STRIPE_CUICUIT_PRODUCT_ID = dev ? 'prod_Us4cfPGPtzu7nF' : 'prod_Us4Gy2Fism9M4E'; // Test mode and LIVE stripe products
@@ -23,17 +24,8 @@ export const createStripeCheckoutSession = query(
 	async ({ amountChosen, currency, interval }) => {
 		console.log(amountChosen, currency, interval);
 		const event = getRequestEvent();
-		const { data: userData, error: userError } = await event.locals.supabase.auth.getUser();
-
-		if (userError || userData.user?.role !== 'authenticated') {
-			throw new Error('Not authenticated or Unauthorized');
-		}
-
-		const { id: userId, email, confirmed_at, is_anonymous } = userData.user;
-
-		if (is_anonymous || !email || !confirmed_at) {
-			throw new Error('User must be confirmed with a valid email.');
-		}
+		const { userId, email, isValid } = await serverIsUserAuthenticated(event.locals.supabase);
+		if (!isValid) throw new Error('User must be confirmed with a valid email.');
 
 		if (amountChosen < MINIMUM_PER_PAYMENT_AMOUNT) {
 			throw new Error(`Minimum billing amount is ${MINIMUM_PER_PAYMENT_AMOUNT}.`);

@@ -1,5 +1,6 @@
 import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
+import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
 export const createRecipeFormSchema = z

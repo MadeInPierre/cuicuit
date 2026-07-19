@@ -42,7 +42,7 @@ class UserState {
 					});
 
 					// Fetch credit balance
-					getUserCreditBalance(session.user.id).then((result) => {
+					getUserCreditBalance(supabase.client, session.user.id).then((result) => {
 						this.#userCreditBalance = result.balance;
 					});
 				}
@@ -111,7 +111,9 @@ class UserState {
 		this.#userCreditLogs = (await getUserCreditLogs(this.#userState.id)).logs;
 
 		// Refresh user credit balance
-		this.#userCreditBalance = (await getUserCreditBalance(this.#userState.id)).balance;
+		this.#userCreditBalance = (
+			await getUserCreditBalance(supabase.client, this.#userState.id)
+		).balance;
 	}
 }
 
