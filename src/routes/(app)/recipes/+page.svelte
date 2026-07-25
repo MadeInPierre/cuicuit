@@ -22,13 +22,11 @@
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { FunnelPlus, RotateCcw } from '@lucide/svelte';
-	import { ArrowRight, ChefHat, Plus } from 'lucide-svelte';
+	import { ArrowRight, ChefHat, Plus, RotateCcw } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
-	import { cn } from 'tailwind-variants';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
-	import FilterButtonMulti from './FilterButtonMulti.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
+	import RecipeFilters from './RecipeFilters.svelte';
 	import SearchBar from './SearchBar.svelte';
 
 	const userState = getUserState();
@@ -334,7 +332,25 @@
 					</ImportRecipeDialog>
 				</div>
 
-				{@render filters('end')}
+				<RecipeFilters
+					align="end"
+					filters={parameters.filters}
+					onFiltersChange={(newFilters) => {
+						setParameters({ ...parameters, filters: newFilters });
+					}}
+					{searchInput}
+					onReset={() => {
+						searchInput = '';
+						setParameters({
+							...parameters,
+							filters: {
+								timeOfDay: [],
+								course: [],
+								cuisine: []
+							}
+						});
+					}}
+				/>
 			</div>
 		</div>
 
@@ -344,7 +360,24 @@
 			<div
 				class="overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 			>
-				{@render filters()}
+				<RecipeFilters
+					filters={parameters.filters}
+					onFiltersChange={(newFilters) => {
+						setParameters({ ...parameters, filters: newFilters });
+					}}
+					{searchInput}
+					onReset={() => {
+						searchInput = '';
+						setParameters({
+							...parameters,
+							filters: {
+								timeOfDay: [],
+								course: [],
+								cuisine: []
+							}
+						});
+					}}
+				/>
 			</div>
 
 			<div
@@ -432,119 +465,3 @@
 		</div>
 	{/if}
 </div>
-
-{#snippet filters(align: 'start' | 'end' = 'start')}
-	<div class={cn('flex gap-2', align === 'end' && 'justify-end')}>
-		<Button size="icon-sm" class="size-7 rounded-md sm:hidden">
-			<FunnelPlus />
-		</Button>
-
-		{#if align === 'end'}
-			{@render resetFiltersButton()}
-		{/if}
-
-		<FilterButtonMulti
-			title="Filter by Course"
-			emptyLabel="Course"
-			description="What are we feeling today?"
-			options={Object.entries(recipeCoursesSectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				// description: item.subtitle,
-				icon: item.icon
-			}))}
-			values={parameters.filters.course}
-			onChange={(values) => {
-				setParameters({ ...parameters, filters: { ...parameters.filters, course: values } });
-			}}
-		/>
-
-		<FilterButtonMulti
-			title="Filter by Cuisine"
-			emptyLabel="Cuisine"
-			description="Where are we travelling to?"
-			options={Object.entries(recipeCuisineSectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				// description: item.subtitle,
-				icon: item.icon
-			}))}
-			values={parameters.filters.cuisine}
-			onChange={(values) => {
-				setParameters({ ...parameters, filters: { ...parameters.filters, cuisine: values } });
-			}}
-		/>
-
-		<FilterButtonMulti
-			title="Filter by Time of Day"
-			emptyLabel="Time"
-			description="What are we planning for?"
-			options={Object.entries(recipeTimesOfDaySectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				// description: item.subtitle,
-				icon: item.icon
-			}))}
-			values={parameters.filters.timeOfDay}
-			onChange={(values) => {
-				setParameters({ ...parameters, filters: { ...parameters.filters, timeOfDay: values } });
-			}}
-		/>
-
-		<!-- <FilterButton text="Cookable" /> -->
-		<!-- <FilterButton text="My Recipes" /> -->
-		<!-- <FilterButton text="Expire soon" class="hidden lg:flex" /> -->
-		<!-- <FilterButton text="Quick & Easy" class="hidden 2xl:flex" /> -->
-
-		{#if align === 'start'}
-			{@render resetFiltersButton()}
-		{/if}
-
-		<Button size="icon-sm" class="size-7 rounded-md hidden sm:flex">
-			<FunnelPlus />
-		</Button>
-
-		<!-- <Sheet.Root>
-			<Sheet.Trigger>
-				<FilterButton icon={FunnelPlus} primary />
-			</Sheet.Trigger>
-			<Sheet.Content side="right" class="flex flex-col h-full justify-start">
-				<Sheet.Header>
-					<Sheet.Title>Search filters</Sheet.Title>
-					<Sheet.Description>Find your ideal recipe.</Sheet.Description>
-				</Sheet.Header>
-
-				<div class="p-4 grid space-y-6">
-					<DiscoverDial />
-				</div>
-
-				<Sheet.Footer class="mt-auto">
-					<Button type="submit" class="w-full">See 42 results</Button>
-					<Sheet.Close class={buttonVariants({ variant: 'outline' })}>Close</Sheet.Close>
-				</Sheet.Footer>
-			</Sheet.Content>
-		</Sheet.Root> -->
-	</div>
-{/snippet}
-
-{#snippet resetFiltersButton()}
-	{#if searchInput || parameters.filters.timeOfDay.length > 0 || parameters.filters.course.length > 0 || parameters.filters.cuisine.length > 0}
-		<Button
-			variant="ghost"
-			class="size-7 px-2 text-muted-foreground"
-			onclick={() => {
-				searchInput = '';
-				setParameters({
-					...parameters,
-					filters: {
-						timeOfDay: [],
-						course: [],
-						cuisine: []
-					}
-				});
-			}}
-		>
-			<RotateCcw class="size-4" />
-		</Button>
-	{/if}
-{/snippet}

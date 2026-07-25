@@ -1647,6 +1647,8 @@ means that there's a component at `src/lib/Button.svelte`.
 
 # shadcn-svelte
 
+This project uses shadcn-svelte components. ALWAYS prefer using existing shadcn components whenever possible instead of creating your own. Look at the documentation before using any of these components, to make sure you have the correct shadcn + svelte API in mind.
+
 > shadcn-svelte is a collection of beautifully-designed, accessible components for Svelte and SvelteKit. It is built with TypeScript, Tailwind CSS, and Bits UI primitives. Open Source. Open Code. AI-Ready. It also comes with a command-line tool to install and manage components and a registry system to publish and distribute code. This repo uses shadcn components everywhere.
 
 ## Overview

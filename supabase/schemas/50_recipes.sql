@@ -220,9 +220,19 @@ CREATE INDEX "idx_recipes_total_time" ON "public"."recipes" USING "btree" ("time
 -------------------
 -- Recipes with random order for UI
 -------------------
-CREATE OR REPLACE VIEW "public"."recipes_randomized" 
+CREATE OR REPLACE VIEW "public"."recipes_randomized"
 WITH (security_invoker = on) AS 
 SELECT * FROM "public"."recipes" ORDER BY RANDOM();
+
+-- 2. Ownership
+ALTER VIEW "public"."recipes_randomized" OWNER TO "postgres";
+
+-- 3. Grants
+GRANT ALL ON TABLE "public"."recipes_randomized" TO "anon";
+
+GRANT ALL ON TABLE "public"."recipes_randomized" TO "authenticated";
+
+GRANT ALL ON TABLE "public"."recipes_randomized" TO "service_role";
 
 -------------------
 -- Recipe Ingredients (junction table between recipes and ingredients)
