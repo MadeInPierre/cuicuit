@@ -1,10 +1,10 @@
 import type { UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 import { Bean } from '@lucide/svelte';
 import {
-    Beef, Blocks, Cake, Candy,
-    Carrot, Clock, Cookie, Croissant,
-    Cross,
-    CupSoda, EggFried, Milk, Pizza, Salad, Sandwich, ShoppingBag, Snowflake, Soup, Wheat
+	Beef, Blocks, Cake, Candy,
+	Carrot, Clock, Cookie, Croissant,
+	Cross,
+	CupSoda, EggFried, Milk, Pizza, Salad, Sandwich, ShoppingBag, Snowflake, Soup, Wheat
 } from 'lucide-svelte';
 import type { RecipeCourseKey, RecipeCuisineKey, RecipeTimeOfDayKey } from '../db/recipe-doc';
 
@@ -103,7 +103,7 @@ export const recipeCuisineSectionHeaders = {
 		classes: 'bg-red-100'
 	},
 	default: {
-		title: 'Around the World',
+		title: 'Other',
 		icon: '🌍',
 		subtitle: 'A variety of delicious recipes from around the world.',
 		classes: 'bg-slate-100'
