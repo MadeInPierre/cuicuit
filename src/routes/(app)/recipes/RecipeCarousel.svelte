@@ -4,15 +4,17 @@
 	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { ArrowRight } from '@lucide/svelte';
 
-	const { recipes, expand = false }: { recipes: Recipe[]; expand?: boolean } = $props();
+	type Props = { recipes: Recipe[]; expand?: boolean; showSeeAll?: boolean; onSeeAll?: Function };
+	const { recipes, expand = false, showSeeAll = true, onSeeAll = undefined }: Props = $props();
 
 	// Check if we're in loading state
 	const isLoading = $derived(recipes.length === 0);
 
 	// Page size based on screen size
 	const media = useMedia();
-	const itemsPerPage = $derived.by(() => {
+	const columnsPerPage = $derived.by(() => {
 		if (media['2xl']) return 6;
 		if (media.xl) return 5;
 		if (media.lg) return 4;
@@ -23,14 +25,14 @@
 	// Rows per page based on screen size
 	const rowsPerPage = $derived.by(() => {
 		if (media['2xl']) return 3;
-		if (media.xl) return 2;
+		if (media.xl) return 3;
 		if (media.lg) return 2;
 		if (media.md) return 2;
 		return 2;
 	});
 
 	// Total items per carousel page
-	const itemsPerCarouselPage = $derived(itemsPerPage * rowsPerPage);
+	const itemsPerCarouselPage = $derived(columnsPerPage * rowsPerPage);
 
 	// Display only full pages of recipes (up to 4 pages)
 	const displayRecipes = $derived(
@@ -46,7 +48,7 @@
 		)
 	);
 
-	// Chunk into pages to render exactly rowsPerPage x itemsPerPage per slide
+	// Chunk into pages to render exactly rowsPerPage x columnsPerPage per slide
 	const pages = $derived.by(() => {
 		// If loading, create skeleton pages
 		if (isLoading) {
@@ -64,8 +66,8 @@
 
 	// Carousel state
 	let api = $state<CarouselAPI>();
-	const totalSlides = $derived(api ? api.scrollSnapList().length : 0);
 	let currentSlide = $state(0);
+	const totalSlides = $derived(api?.scrollSnapList().length || 0);
 
 	// Sync this component with the carousel API
 	$effect(() => {
@@ -78,7 +80,7 @@
 	});
 </script>
 
-{#if isLoading || (!expand && totalSlides > 1)}
+{#if isLoading || (!expand && recipes.length > itemsPerCarouselPage)}
 	<Carousel.Root
 		opts={{
 			active: recipes.length > itemsPerCarouselPage && !isLoading && !expand,
@@ -89,8 +91,8 @@
 	>
 		<Carousel.Content>
 			{#each pages as page, i (i)}
-				<Carousel.Item class="">
-					{@render recipeGrid(page)}
+				<Carousel.Item class="w-full">
+					{@render recipeGrid(page, i === pages.length - 1)}
 				</Carousel.Item>
 			{/each}
 		</Carousel.Content>
@@ -106,13 +108,28 @@
 	{@render recipeGrid(displayRecipes)}
 {/if}
 
-{#snippet recipeGrid(recipes: Recipe[])}
+{#snippet recipeGrid(recipes: Recipe[], lastPage = false)}
 	<div
-		class="grid gap-4"
-		style={`grid-template-columns: repeat(${itemsPerPage}, minmax(0, 1fr)); grid-template-rows: repeat(auto, auto);`}
+		class="grid gap-3"
+		style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin-top: 1rem;"
 	>
 		{#each recipes as recipe, idx (recipe?.id ?? `skeleton-${idx}`)}
-			<RecipeCarouselCard {recipe} showAddToPlanButton />
+			{#if showSeeAll && !expand && lastPage && idx === recipes.length - 1 && recipes.length > displayRecipes.length}
+				<button
+					onclick={() => onSeeAll?.()}
+					class="flex aspect-4/3 mb-auto w-full flex-col justify-center rounded-xl bg-accent p-4 text-left transition-colors hover:bg-muted/90"
+				>
+					<div
+						class="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/80"
+					>
+						<ArrowRight class="size-5 text-muted-foreground transition-transform" />
+					</div>
+					<p class="text-sm font-medium">See all</p>
+					<p class="text-sm text-muted-foreground">Add new filter</p>
+				</button>
+			{:else}
+				<RecipeCarouselCard {recipe} showAddToPlanButton />
+			{/if}
 
 			<!-- <div
 				class="grid space-y-1 p-2 mb-4 rounded-2xl bg-gradient-to-br from-amber-200/60 to-amber-200 dark:from-amber-900/90 dark:to-amber-900 group"
@@ -144,5 +161,5 @@
 
 <!-- <div class="text-muted-foreground py-2 text-center text-sm">
 	Slide {currentSlide} of {totalSlides}, showing {displayRecipes.length} of {recipes.length} recipes
-	({itemsPerPage} per row, {rowsPerPage} rows per page)
+	({columnsPerPage} per row, {rowsPerPage} rows per page)
 </div> -->

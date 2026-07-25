@@ -1,10 +1,25 @@
 import type { UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 import { Bean } from '@lucide/svelte';
 import {
-	Beef, Blocks, Cake, Candy,
-	Carrot, Clock, Cookie, Croissant,
+	Beef,
+	Blocks,
+	Cake,
+	Candy,
+	Carrot,
+	Clock,
+	Cookie,
+	Croissant,
 	Cross,
-	CupSoda, EggFried, Milk, Pizza, Salad, Sandwich, ShoppingBag, Snowflake, Soup, Wheat
+	CupSoda,
+	EggFried,
+	Milk,
+	Pizza,
+	Salad,
+	Sandwich,
+	ShoppingBag,
+	Snowflake,
+	Soup,
+	Wheat
 } from 'lucide-svelte';
 import type { RecipeCourseKey, RecipeCuisineKey, RecipeTimeOfDayKey } from '../db/recipe-doc';
 
@@ -101,6 +116,72 @@ export const recipeCuisineSectionHeaders = {
 		icon: '🇺🇸',
 		subtitle: 'Delicious American recipes.',
 		classes: 'bg-red-100'
+	},
+	japanese: {
+		title: 'Japanese',
+		icon: '🇯🇵',
+		subtitle: 'Sushi, ramen, and more from Japan.',
+		classes: 'bg-sky-100'
+	},
+	mediterranean: {
+		title: 'Mediterranean',
+		icon: '🇲🇽',
+		subtitle: 'Fresh and flavorful Mediterranean dishes.',
+		classes: 'bg-amber-100'
+	},
+	spanish: {
+		title: 'Spanish',
+		icon: '🇪🇸',
+		subtitle: 'Tapas, paella and Spanish classics.',
+		classes: 'bg-red-100'
+	},
+	thai: {
+		title: 'Thai',
+		icon: '🇹🇭',
+		subtitle: 'Aromatic and spicy Thai recipes.',
+		classes: 'bg-green-100'
+	},
+	greek: {
+		title: 'Greek',
+		icon: '🇬🇷',
+		subtitle: 'Mediterranean Greek flavors and dishes.',
+		classes: 'bg-blue-100'
+	},
+	korean: {
+		title: 'Korean',
+		icon: '🇰🇷',
+		subtitle: 'Korean BBQ, kimchi and more.',
+		classes: 'bg-rose-100'
+	},
+	vietnamese: {
+		title: 'Vietnamese',
+		icon: '🇻🇳',
+		subtitle: 'Fresh Vietnamese soups and rolls.',
+		classes: 'bg-emerald-100'
+	},
+	middleeast: {
+		title: 'Middle Eastern',
+		icon: '🇸🇦',
+		subtitle: 'Hearty and spiced Middle Eastern cuisine.',
+		classes: 'bg-yellow-100'
+	},
+	british: {
+		title: 'British',
+		icon: '🇬🇧',
+		subtitle: 'Classic British comfort food.',
+		classes: 'bg-slate-100'
+	},
+	caribbean: {
+		title: 'Caribbean',
+		icon: '🇯🇲',
+		subtitle: 'Tropical and spicy Caribbean dishes.',
+		classes: 'bg-amber-100'
+	},
+	african: {
+		title: 'African',
+		icon: '🌍',
+		subtitle: 'Diverse African recipes and flavors.',
+		classes: 'bg-orange-100'
 	},
 	default: {
 		title: 'Other',

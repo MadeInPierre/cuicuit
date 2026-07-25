@@ -186,7 +186,7 @@
 			🐣 alpha — expect rough edges &amp; bugs
 		</span>
 		<h1
-			class="mt-8 font-display text-[42px] sm:text-5xl md:text-7xl font-semibold leading-[1.02] tracking-tight text-balance"
+			class="mt-8 font-hand text-[48px] sm:text-7xl md:text-8xl font-semibold leading-[0.9] tracking-tight text-balance"
 		>
 			Your favorite
 			<br />

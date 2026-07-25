@@ -38,3 +38,10 @@ export type MealWithRecipeAndIngredients = NonNullable<
 export type ShoppingIngredient = NonNullable<
 	Awaited<ReturnType<typeof getPlanMeals>>['data']
 >[number]['shopping_ingredients'][number];
+
+export function formatIngredientDisplayName(si: ShoppingIngredient) {
+	const t = si.ingredient?.translations?.[0];
+	return si.quantity && si.quantity > 1
+		? t?.name_plural || t?.name_singular || si.name
+		: t?.name_singular || t?.name_plural || si.name;
+}

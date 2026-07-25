@@ -75,6 +75,7 @@
 	--font-hand: 'Caveat', 'Segoe Script', cursive;
 	/* --font-hand: 'Schoolbell', 'Caveat', 'Segoe Script', cursive; */
 
+	--shadow-mini: 0 1px 2px oklch(0.3 0.06 35 / 0.06), 0 4px 12px oklch(0.3 0.06 35 / 0.08);
 	--shadow-soft: 0 1px 2px oklch(0.3 0.06 35 / 0.06), 0 8px 24px oklch(0.3 0.06 35 / 0.08);
 	--shadow-lift: 0 20px 60px -20px oklch(0.4 0.11 35 / 0.28);
 }

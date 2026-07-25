@@ -21,6 +21,7 @@
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { ArrowRight, ChefHat, Plus, RotateCcw } from 'lucide-svelte';
 	import { slide } from 'svelte/transition';
@@ -256,6 +257,8 @@
 		// Debounce search input
 		return () => clearTimeout(timeout);
 	});
+
+	const media = useMedia();
 </script>
 
 <div class="space-y-8 pb-16 min-h-full">
@@ -434,7 +437,18 @@
 
 					<RecipeCarousel
 						recipes={sectionRecipes.recipes}
-						expand={(['recommended', 'cookableState'] as GroupByKey[]).includes(parameters.groupBy)}
+						expand={(['recommended', 'cookableState'] as GroupByKey[]).includes(
+							parameters.groupBy
+						) || !media.sm}
+						onSeeAll={() => {
+							setParameters({
+								...parameters,
+								filters: {
+									...parameters.filters,
+									[parameters.groupBy]: [sectionRecipes.key]
+								}
+							});
+						}}
 					/>
 				</div>
 			{/if}
