@@ -42,49 +42,71 @@
 			icon: Repeat,
 			color: 'text-amber-600 dark:text-amber-500'
 		},
-		'missing-ingredients': {
-			key: 'missing-ingredients',
-			label: 'Eggs, Milk, Flour +1',
+		missing: {
+			key: 'missing',
+			label: 'Missing ingredients',
 			icon: ShoppingBasket,
 			color: 'text-red-600 dark:text-red-500'
+		},
+		unknown: {
+			key: 'unknown',
+			label: 'Unknown',
+			icon: CircleQuestionMark,
+			color: 'text-gray-600 dark:text-gray-500'
 		}
 	} as const;
 
-	type StatusKey = (typeof statuses)[keyof typeof statuses]['key'];
+	export type CookableStatusKey = (typeof statuses)[keyof typeof statuses]['key'];
 
-	export const statusKeys: StatusKey[] = Object.keys(statuses) as StatusKey[];
+	export const statusKeys: CookableStatusKey[] = Object.keys(statuses) as CookableStatusKey[];
 </script>
 
 <script lang="ts">
 	import {
+		formatIngredientDisplayName,
+		type ShoppingIngredient
+	} from '$lib/features/plans/queries/get-plan-meals';
+	import {
 		Check,
 		CheckCheck,
+		CircleQuestionMark,
 		EqualApproximately,
 		Repeat,
 		Scale,
 		ShoppingBasket
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	type Props = {
-		status?: StatusKey | null;
+		status?: CookableStatusKey | null;
+		ingredients?: ShoppingIngredient[];
 	};
 
-	const { status: statusKey = null }: Props = $props();
+	const { status: statusKey = null, ingredients = [] }: Props = $props();
 
-	const randomStatus = $derived(
-		statusKey
-			? statuses[statusKey]
-			: statuses[statusKeys[Math.floor(Math.random() * statusKeys.length)]]
-	);
+	function formatMissingIngredients(ingredients: ShoppingIngredient[]) {
+		if (!ingredients || ingredients.length === 0) return 'Missing ingredients';
+
+		const names = ingredients.map((si) => formatIngredientDisplayName(si));
+		if (names.length === 0) return 'Missing ingredients';
+
+		const visible = names.slice(0, 3);
+		const remaining = names.length - visible.length;
+
+		return visible.join(', ') + (remaining > 0 ? ` +${remaining}` : '');
+	}
+
+	const status = $derived(statuses[statusKey || 'unknown']);
+	const missingLabel = $derived(formatMissingIngredients(ingredients));
 </script>
 
-{#snippet status(status: string, Icon: any, color: string)}
-	<div class="text-xs flex items-center {color}">
-		<Icon class="size-3.5 inline-block mr-1" />
-		<span class="line-clamp-1 text-left">{status}</span>
-		<!-- <Apple class="size-3.5 inline-block ml-auto text-muted-foreground" />
-						<span class="ml-1 text-xs text-muted-foreground"> 4/5 </span> -->
-	</div>
-{/snippet}
+<div class="text-xs flex items-center {status.color}">
+	<status.icon class="size-3.5 min-w-3.5 inline-block mr-1" />
 
-{@render status(randomStatus.label, randomStatus.icon, randomStatus.color)}
+	<span class="line-clamp-1 text-left">
+		{#if statusKey === ('missing' as CookableStatusKey)}
+			{missingLabel}
+		{:else}
+			{status.label}
+		{/if}
+	</span>
+</div>

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import CookableStatus, {
+		type CookableStatusKey
+	} from '$lib/features/recipes/components/CookableStatus.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
@@ -22,7 +25,11 @@
 	import { fade, slide } from 'svelte/transition';
 	import { updatePlanItemChecked, updatePlanItemDeleted } from '../actions/update-item';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
-	import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
+	import {
+		formatIngredientDisplayName,
+		type MealWithRecipeAndIngredients,
+		type ShoppingIngredient
+	} from '../queries/get-plan-meals';
 	import {
 		hoveredMealIngredient,
 		selectedMealIngredient
@@ -85,21 +92,12 @@
 				))
 	);
 
-	type ShoppingIngredient = MealWithRecipeAndIngredients['shopping_ingredients'][number];
-
 	const priorityOrder = {
 		required: 0,
 		nicetohave: 1,
 		whynot: 2,
 		optional: 3
 	} as Record<Enums<'item_priority'>, number>;
-
-	function getDisplayName(si: ShoppingIngredient) {
-		const t = si.ingredient?.translations?.[0];
-		return si.quantity && si.quantity > 1
-			? t?.name_plural || t?.name_singular || si.name
-			: t?.name_singular || t?.name_plural || si.name;
-	}
 
 	function sortShoppingIngredients(
 		a: ShoppingIngredient,
@@ -149,6 +147,15 @@
 	);
 
 	let clickStart: { x: number; y: number } | null = $state(null);
+
+	let cookableStatus: CookableStatusKey = $derived.by(() => {
+		const missingRequired = requiredIngredients.filter((i) => !i.checked_at && !i.deleted_at);
+		const missingOptional = optionalIngredients.filter((i) => !i.checked_at && !i.deleted_at);
+
+		if (missingRequired.length > 0) return 'missing';
+		else if (missingOptional.length > 0) return 'cookable-required';
+		else return 'cookable';
+	});
 </script>
 
 {#if meal}
@@ -184,6 +191,13 @@
 		{/if}
 	{/snippet}
 
+	{#snippet belowSnippet()}
+		<CookableStatus
+			status={cookableStatus}
+			ingredients={requiredIngredients.filter((i) => !i.checked_at && !i.deleted_at)}
+		/>
+	{/snippet}
+
 	<div class="grid w-full">
 		<RecipeCard
 			recipe={meal.recipe}
@@ -208,6 +222,7 @@
 				clickStart = { x: e.x, y: e.y };
 			}}
 			endSnippet={cardEndSnippet || (selected || hovered || expanded ? defaultEndSnippet : null)}
+			{belowSnippet}
 		/>
 
 		{#if expanded}
@@ -317,7 +332,7 @@
 {/if}
 
 {#snippet ingredientRow(si: ShoppingIngredient, variant: 'default' | 'optional' = 'default')}
-	{@const displayName = getDisplayName(si)}
+	{@const displayName = formatIngredientDisplayName(si)}
 	{@const status =
 		si.deleted_at && !si.checked_at
 			? 'ignore'
@@ -428,7 +443,7 @@
 				skipRefresh: true
 			});
 
-			const toastId = toast.success(`Set ${getDisplayName(si)} to ${status}`, {
+			const toastId = toast.success(`Set ${formatIngredientDisplayName(si)} to ${status}`, {
 				duration: 5000,
 				description: meal?.recipe.title || '',
 				action: {

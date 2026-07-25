@@ -10,6 +10,7 @@
 		recipe?: Recipe | null; // null for loading state
 		servings?: number | boolean; // If number, show servings. If false, don't show. If true, show if servings exist on recipe.
 		endSnippet?: Snippet | null; // Optional snippet to render at the end of the item (e.g. for actions)
+		belowSnippet?: Snippet | null; // Optional snippet to render below the title
 		size?: 'md' | 'lg';
 		class?: string;
 		[key: string]: any; // Allow additional props (e.g. on:click)
@@ -19,6 +20,7 @@
 		recipe = null,
 		servings = recipe?.servings ?? false,
 		endSnippet = null,
+		belowSnippet = null,
 		size = 'md',
 		class: className = '',
 		...others
@@ -46,7 +48,11 @@
 				{recipe.title}
 			</h3>
 
-			<CookableStatus status="cookable" />
+			{#if belowSnippet}
+				{@render belowSnippet()}
+			{:else}
+				<CookableStatus status="cookable" />
+			{/if}
 			<!-- <span class="text-muted-foreground text-xs mr-auto flex items-center gap-1">
 				<Calendar class="size-3" />
 				No date

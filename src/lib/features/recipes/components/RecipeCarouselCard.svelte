@@ -36,9 +36,9 @@
 </script>
 
 {#if recipe}
-	<div class={cn('w-full group flex flex-col items-start', className)}>
+	<div class={cn('w-full max-w-full group flex flex-col items-start', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
-			<div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-sm">
+			<div class="relative w-full aspect-4/3 rounded-lg overflow-hidden">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<!-- svelte-ignore a11y_missing_attribute -->
@@ -100,33 +100,37 @@
 							variant="ghost"
 							size="icon"
 							class={cn(
-								'size-8 bg-white hover:bg-slate-100 rounded-full shadow-sm',
+								'size-8 sm:size-7 bg-white hover:bg-slate-100 rounded-full shadow-sm',
 								!isTouchscreen && 'opacity-0 group-hover:opacity-100 transition-opacity'
 							)}
 							aria-label="Add to plan"
 							title="Add to plan"
-							onclick={() => addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings)}
+							onclick={() => {
+								if (recipe.id && recipe.servings) {
+									addRecipeToActivePlan(activeSpace, recipe.id, recipe.servings);
+								}
+							}}
 						>
-							<CalendarPlus class="size-4 text-black" />
+							<CalendarPlus class="size-4 sm:size-3.5 text-black" />
 						</Button>
 					{/if}
 				</div>
 
-				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-xs z-10">
+				<div class="absolute bottom-2 left-2 flex items-center gap-2 text-[11px] z-10">
 					<div
-						class="bg-white dark:bg-background/60 rounded-full px-2 py-0.5 flex items-center gap-1"
+						class="bg-white dark:bg-background/60 rounded-full px-1.5 py-0 flex items-center gap-1"
 					>
 						<div class="relative flex items-center" style="width: 1rem; height: 1rem;">
-							<Signal class="absolute top-0 left-0 size-3.5 text-muted rounded-full" />
+							<Signal class="absolute top-0 left-0 size-3 text-muted rounded-full" />
 
 							{#if recipe.effort_level == 'none'}
-								<SignalLow class="absolute top-0 left-0 size-3.5 rounded-full text-green-600" />
+								<SignalLow class="absolute top-0 left-0 size-3 rounded-full text-green-600" />
 							{:else if recipe.effort_level == 'low'}
-								<SignalMedium class="absolute top-0 left-0 size-3.5 rounded-full text-green-600" />
+								<SignalMedium class="absolute top-0 left-0 size-3 rounded-full text-green-600" />
 							{:else if recipe.effort_level == 'medium'}
-								<SignalHigh class="absolute top-0 left-0 size-3.5 text-yellow-600" />
+								<SignalHigh class="absolute top-0 left-0 size-3 text-yellow-600" />
 							{:else if recipe.effort_level == 'high'}
-								<Signal class="absolute top-0 left-0 size-3.5 text-red-600" />
+								<Signal class="absolute top-0 left-0 size-3 text-red-600" />
 							{/if}
 						</div>
 

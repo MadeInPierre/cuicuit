@@ -11,6 +11,7 @@
 
 <Sidebar.Group class="group-data-[collapsible=icon]:hidden">
 	<Sidebar.GroupLabel>Development</Sidebar.GroupLabel>
+
 	<Sidebar.Menu>
 		{#each favorites as item (item.name)}
 			<Sidebar.MenuItem>
