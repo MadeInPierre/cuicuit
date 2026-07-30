@@ -292,7 +292,7 @@
 		</div>
 
 		<div
-			class="p-4 sm:p-5 h-min bg-popover rounded-xl rotate-2 mx-auto sm:mx-8 shadow-(--shadow-soft) my-auto max-w-md"
+			class="p-4 sm:p-5 h-min bg-card rounded-xl rotate-2 mx-auto sm:mx-8 shadow-(--shadow-soft) my-auto max-w-md"
 		>
 			<div
 				class="text-pink-500 font-display text-sm sm:text-lg font-semibold leading-none text-center"
