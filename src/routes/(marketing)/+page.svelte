@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
+import { goto } from '$app/navigation';
+import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import {
 		Camera,
 		Check,
+		ChevronDown,
 		CircleQuestionMark,
 		ExternalLink,
 		Globe,
@@ -26,6 +27,7 @@
 		Users
 	} from 'lucide-svelte';
 	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
+	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
 
 	const { data } = $props();
 
@@ -55,11 +57,11 @@
 		{
 			icon: BookOpen,
 			title: 'Import from anywhere',
-			body: 'Paste a link from your food blog and Cuicuit pulls the recipe, ingredients, and timings.'
+			body: 'Paste a link from your food blog, Cuicuit pulls the recipe and guesses convenient filters.'
 		},
 		{
 			icon: ShoppingBasket,
-			title: 'Groceries derived from Plan',
+			title: 'Groceries from Plan',
 			body: 'Your plan turns into an aisle-aware grocery list, with smart suggestions from past purchases.'
 		},
 		{
@@ -108,7 +110,7 @@
 		},
 		{
 			emoji: '🐥',
-			label: 'Pantry-Aware Planning',
+			label: 'Pantry-Aware',
 			note: "Track what's in your fridge and get smarter suggestions.",
 			items: [
 				'Pantry management',
@@ -121,13 +123,195 @@
 		},
 		{
 			emoji: '🐓',
-			label: 'Habits & Intelligence',
+			label: 'Habits & Smartness',
 			note: 'The app learns your patterns and saves you even more time.',
 			items: ['Consumption habits', 'Smart recommendations', 'Timeline & stats', 'LLM assistant'],
 			state: 'Planned',
 			tone: 'soon'
 		}
 	];
+
+	const FUTURE_IDEA_PREVIEW_COUNT = 3;
+	const DISCUSSION_SEARCH_BASE =
+		'https://github.com/MadeInPierre/cuicuit/discussions?discussions_q=';
+
+	const toFeatureDiscussion = (feature: string) =>
+		`${DISCUSSION_SEARCH_BASE}${encodeURIComponent(`is:open category:ideas ${feature}`)}`;
+
+	const futureIdeaDomains = [
+		{
+			key: 'recipes',
+			label: 'Recipes',
+			ideas: [
+				{ label: 'Custom recipe filters', href: toFeatureDiscussion('Custom recipe filters') },
+				{
+					label: 'Semantic recipe grouping',
+					href: toFeatureDiscussion('Semantic recipe grouping')
+				},
+				{
+					label: 'Scale by nutrition target',
+					href: toFeatureDiscussion('Scale by nutrition target')
+				},
+				{
+					label: 'Ingredient substitutions',
+					href: toFeatureDiscussion('Ingredient substitutions')
+				},
+				{ label: 'Allergen & preferences', href: toFeatureDiscussion('Allergen preferences') },
+				{ label: 'Hands-free cook mode', href: toFeatureDiscussion('Hands-free cook mode') },
+				{
+					label: 'Recipe difficulty scoring',
+					href: toFeatureDiscussion('Recipe difficulty scoring')
+				},
+				{
+					label: 'Auto timing parallelizer',
+					href: toFeatureDiscussion('Auto timing parallelizer')
+				},
+				{
+					label: 'AI suggestions from leftovers',
+					href: toFeatureDiscussion('AI suggestions from leftovers')
+				}
+			]
+		},
+		{
+			key: 'pantry',
+			label: 'Pantry & Shopping',
+			ideas: [
+				{ label: 'Shop mode: product decision help', href: toFeatureDiscussion('Shop mode product decision help') },
+				{
+					label: 'Barcode & receipt scan to pantry',
+					href: toFeatureDiscussion('Barcode receipt scan pantry')
+				},
+				{
+					label: 'Habit-based sugestions',
+					href: toFeatureDiscussion('Habits suggestions')
+				},
+				{ label: 'Expiration heatmap', href: toFeatureDiscussion('Expiration heatmap') },
+				{ label: 'Fridge photo to pantry', href: toFeatureDiscussion('Fridge photo to pantry') },
+				{ label: 'Waste-risk alerts', href: toFeatureDiscussion('Waste-risk alerts') },
+				{
+					label: 'Aisle reorder by store',
+					href: toFeatureDiscussion('Aisle reorder by store')
+				},
+				{ label: 'Bulk buy suggestions', href: toFeatureDiscussion('Bulk buy suggestions') },
+				{
+					label: 'Pantry confidence score',
+					href: toFeatureDiscussion('Pantry confidence score')
+				}
+			]
+		},
+		{
+			key: 'planning',
+			label: 'Planning & Household',
+			ideas: [
+				{
+					label: 'Weekly auto-plan generator',
+					href: toFeatureDiscussion('Weekly auto-plan generator')
+				},
+				{ label: 'Kid-friendly meal lane', href: toFeatureDiscussion('Kid-friendly meal lane') },
+				{
+					label: 'Weekly goals - budget, nutrition',
+					href: toFeatureDiscussion('Weekly goals budget nutrition')
+				},
+				{
+					label: 'Calendar planner with habits',
+					href: toFeatureDiscussion('Calendar planner with habits')
+				},
+				{
+					label: 'Veggies seasonal indicator',
+					href: toFeatureDiscussion('Veggies seasonal indicator')
+				},
+				{
+					label: 'Meal logging and history',
+					href: toFeatureDiscussion('Meal logging and history')
+				}
+			]
+		},
+		{
+			key: 'integrations',
+			label: 'Integrations',
+			ideas: [
+				{ label: 'Public REST API', href: toFeatureDiscussion('REST API') },
+				{
+					label: 'MCP server & A2A for agents',
+					href: toFeatureDiscussion('MCP server A2A agents')
+				},
+				{ label: 'CLI for power users', href: toFeatureDiscussion('CLI') },
+				{ label: 'Gemini & Siri', href: toFeatureDiscussion('Gemini Siri') },
+				{ label: 'AI sidebar in-app', href: toFeatureDiscussion('AI sidebar') },
+				{ label: 'Webhook automations', href: toFeatureDiscussion('Webhook') },
+				{
+					label: 'Zapier/n8n connectors',
+					href: toFeatureDiscussion('Zapier n8n connectors')
+				},
+				{
+					label: 'Sync with Notion and Obsidian',
+					href: toFeatureDiscussion('Sync with Notion and Obsidian')
+				}
+			]
+		},
+		{
+			key: 'mobile',
+			label: 'Mobile & Offline',
+			ideas: [
+				{
+					label: 'Offline shopping mode',
+					href: toFeatureDiscussion('Offline shopping mode')
+				},
+				{
+					label: 'Voice rambling interaction',
+					href: toFeatureDiscussion('Voice rambling')
+				},
+				{
+					label: 'Wearable shopping companion',
+					href: toFeatureDiscussion('Wearable shopping companion')
+				},
+				{
+					label: 'Camera-led pantry updates',
+					href: toFeatureDiscussion('Camera-led pantry updates')
+				},
+				{
+					label: 'Mobile notifications & reminders',
+					href: toFeatureDiscussion('Mobile notifications reminders')
+				}
+			]
+		},
+		{
+			key: 'insights',
+			label: 'Insights & Automation',
+			ideas: [
+				{
+					label: 'Nutrition & habit trends dashboard',
+					href: toFeatureDiscussion('Nutrition habit trends dashboard')
+				},
+				{
+					label: 'Carbon footprint estimates',
+					href: toFeatureDiscussion('Carbon footprint estimates')
+				},
+				{
+					label: 'Habit nudges and reminders',
+					href: toFeatureDiscussion('Habit nudges and reminders')
+				},
+				{ label: 'Meal plan quality score', href: toFeatureDiscussion('Meal plan quality score') },
+				{ label: 'Auto reorder assistant', href: toFeatureDiscussion('Auto reorder assistant') },
+				{
+					label: 'Personalized weekly goals',
+					href: toFeatureDiscussion('Personalized weekly goals')
+				},
+				{
+					label: 'Adaptive recommendation engine',
+					href: toFeatureDiscussion('Adaptive recommendation engine')
+				},
+				{ label: 'Cost per meal analytics', href: toFeatureDiscussion('Cost per meal analytics') },
+				{ label: 'Open data export packs', href: toFeatureDiscussion('Open data export packs') }
+			]
+		}
+	];
+
+	let expandedIdeaDomains = $state({} as Record<string, boolean>);
+
+	function toggleIdeaDomain(domainKey: string) {
+		expandedIdeaDomains[domainKey] = !expandedIdeaDomains[domainKey];
+	}
 
 	const faqs = [
 		{
@@ -189,7 +373,7 @@
 			class="mt-8 font-hand text-[48px] sm:text-7xl md:text-8xl font-semibold leading-[0.9] tracking-tight text-balance"
 		>
 			Your favorite
-			<br />
+			<br class="xl:hidden" />
 			<span class="relative inline-block text-primary">
 				kitchen companion
 				<svg
@@ -208,9 +392,9 @@
 				</svg>
 			</span>
 		</h1>
-		<p class="mx-auto mt-8 max-w-2xl text-lg text-muted-foreground text-balance">
-			No more <em class="italic">"what's for dinner?"</em>. Cuicuit imports your recipes, plans the
-			week, and quietly builds the shopping list for you.
+		<p class="mx-auto mt-8 px-6 max-w-3xl text-lg text-muted-foreground text-balance">
+			Focus on meals, not ingredients. Cuicuit imports your recipes, plans your week, and creates
+			your shopping list. Open source, self-hostable &amp; hosted options.
 		</p>
 		<div class="mt-8 flex flex-wrap justify-center gap-3">
 			<a
@@ -233,25 +417,26 @@
 		</p>
 
 		<div class="relative mt-16 mx-auto max-w-5xl">
-			<div aria-hidden={true} class="hidden md:block absolute -left-6 -top-16 rotate-[-8deg] z-10">
-				<span class="font-hand text-2xl text-primary/60">sneak peek</span>
-				<svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 ml-16 -mt-1">
+			<div aria-hidden={true} class="hidden md:block absolute -left-6 -top-12 rotate-[-8deg] z-10">
+				<span class="font-hand text-2xl text-primary/70">sneak peek</span>
+				<!-- <svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 ml-16 -mt-1">
 					<path
-						d="M4 8 Q 50 4, 90 30 T 116 52"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-					/>
-					<path
-						d="M108 44 L 116 52 L 104 54"
+						d="M6 10 C 36 2, 76 12, 106 42"
 						fill="none"
 						stroke="currentColor"
 						stroke-width="2"
 						stroke-linecap="round"
 						stroke-linejoin="round"
 					/>
-				</svg>
+					<path
+						d="M96 40 L 106 42 L 102 52"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg> -->
 			</div>
 			<div
 				aria-hidden={true}
@@ -263,13 +448,13 @@
 				<img
 					src="/hero/hero_wide.png"
 					alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
-					class="w-full rounded-xl hidden sm:block"
+					class="w-full rounded-xl hidden md:block"
 					loading="eager"
 				/>
 				<img
 					src="/hero/hero_narrow.png"
 					alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
-					class="w-full rounded-xl sm:hidden"
+					class="w-full rounded-xl md:hidden"
 					loading="eager"
 				/>
 			</div>
@@ -528,17 +713,40 @@
 	</div>
 
 	<div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-		{#each features as { icon: Icon, title, body } (title)}
+		{#each features as { icon: Icon, title, body }, i (title)}
 			<article
-				class="group rounded-xl bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
+				class={`group relative isolate overflow-hidden rounded-2xl bg-card p-4 md:p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) origin-[50%_100%] transition-all duration-300 hover:-translate-y-1.5 ${i % 2 === 0 ? 'rotate-[-0.45deg] hover:rotate-0' : 'rotate-[0.45deg] hover:rotate-0'}`}
 			>
 				<div
-					class="grid place-items-center h-11 w-11 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition"
+					aria-hidden={true}
+					class="absolute -top-1 left-6 h-3 w-12 rotate-[-8deg] rounded-sm border border-border/60 bg-background/75 opacity-70"
+				></div>
+				<div
+					aria-hidden={true}
+					class="absolute -top-1 right-8 h-3 w-10 rotate-[8deg] rounded-sm border border-border/60 bg-background/70 opacity-60"
+				></div>
+
+				<div
+					class="grid place-items-center h-12 w-12 rounded-[34%_66%_58%_42%/44%_40%_60%_56%] bg-primary/12 text-primary transition-all duration-300 group-hover:rounded-xl group-hover:bg-primary group-hover:text-primary-foreground"
 				>
 					<Icon class="h-5 w-5" />
 				</div>
-				<h3 class="mt-5 font-display text-xl font-semibold">{title}</h3>
+				<h3 class="mt-6 font-display text-xl font-semibold">{title}</h3>
 				<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
+
+				<svg
+					aria-hidden={true}
+					viewBox="0 0 180 20"
+					class="pointer-events-none absolute bottom-4 right-5 h-3 w-20 translate-y-0.5 text-primary/55 opacity-45 transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-hover:opacity-90"
+				>
+					<path
+						d="M4 11 Q 30 3, 60 11 T 120 11 T 176 8"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="3"
+						stroke-linecap="round"
+					/>
+				</svg>
 			</article>
 		{/each}
 	</div>
@@ -555,40 +763,160 @@
 		</p>
 	</div>
 
-	<ol class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-		{#each roadmap as r, i (r.label)}
-			<li
-				class="relative rounded-2xl bg-card p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) hover:-translate-y-1 transition"
-			>
-				<span
-					class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
-						(r.tone === 'active'
-							? 'bg-amber-100 text-primary'
-							: 'bg-muted/40 text-muted-foreground')}
+	<div class="mt-14">
+		<ol class="grid gap-[1.35rem] lg:grid-cols-4 lg:gap-5">
+			{#each roadmap as r, i (r.label)}
+				<li class="relative lg:even:mt-8">
+					<article
+						class={`relative rounded-2xl bg-card p-6 shadow-(--shadow-soft) transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-lift) after:pointer-events-none after:absolute after:right-[1.1rem] after:bottom-[0.7rem] after:h-3 after:w-[4.4rem] after:opacity-40 after:content-[''] after:[background:radial-gradient(circle_at_10%_50%,var(--primary)_0.1rem,transparent_0.12rem)_0_50%/0.66rem_100%_repeat-x] ${i % 2 === 0 ? 'rotate-[-0.7deg] hover:rotate-0' : 'rotate-[0.7deg] hover:rotate-0'}`}
+					>
+						<span
+							class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
+								(r.tone === 'active'
+									? 'bg-amber-100 text-primary'
+									: 'bg-muted/40 text-muted-foreground')}
+						>
+							{r.tone === 'active' ? '🚧 ' : ''}{r.state}
+						</span>
+						<div class="text-4xl leading-none select-none">{r.emoji}</div>
+						<div
+							class="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+						>
+							Step {i}
+						</div>
+						<div class="mt-1 font-display text-xl font-semibold leading-snug">
+							{r.label}
+						</div>
+						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{r.note}</p>
+						<ul class="mt-5 space-y-1.5 text-sm text-foreground/80">
+							{#each r.items as item (item)}
+								<li class="flex items-start gap-2">
+									<span class="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-primary/65"></span>
+									{item}
+								</li>
+							{/each}
+						</ul>
+					</article>
+
+					{#if i < roadmap.length - 1}
+						<svg
+							aria-hidden={true}
+							viewBox="0 0 64 96"
+							class="pointer-events-none absolute left-1/2 bottom-[-4.9rem] z-10 h-[5.3rem] w-[3.6rem] -translate-x-1/2 rotate-[4deg] text-[color-mix(in_oklab,var(--primary)_58%,var(--muted-foreground))] opacity-70 lg:hidden"
+						>
+							<path
+								d="M32 8 C 50 30, 14 48, 32 72"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.4"
+								stroke-linecap="round"
+								stroke-dasharray="5 6"
+							/>
+							<path
+								d="M24 62 L32 74 L40 62"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.4"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+
+						<svg
+							aria-hidden={true}
+							viewBox="0 0 220 92"
+							class={`pointer-events-none absolute top-[44%] -right-8 z-15 hidden h-10 w-14 -translate-y-1/2 text-[color-mix(in_oklab,var(--primary)_58%,var(--muted-foreground))] opacity-70 lg:block ${i % 2 === 0 ? 'lg:rotate-[-4deg]' : 'lg:rotate-[4deg]'}`}
+						>
+							<path
+								d="M8 64 C 68 18, 150 18, 208 62"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="8"
+								stroke-linecap="round"
+								stroke-dasharray="5 6"
+							/>
+							<path
+								d="M194 50 L208 62 L188 64"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="8"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+					{/if}
+				</li>
+			{/each}
+		</ol>
+	</div>
+</section>
+
+<section id="future-ideas" class="mx-auto max-w-6xl px-6 mt-16 scroll-mt-24">
+	<div class="text-center mx-auto max-w-2xl">
+		<span class="font-hand text-2xl text-muted-foreground/80">future ideas</span>
+		<p class="mt-3 text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
+			Explore future ideas being considered. Click to discuss them and vote!
+		</p>
+	</div>
+
+	<div class="mt-10">
+		<div
+			class="-mx-6 flex gap-3 overflow-x-auto px-6 pb-1 pr-1 snap-x snap-mandatory scrollbar-thin scroll-px-[9vw] sm:scroll-px-0"
+		>
+			{#each futureIdeaDomains as domain (domain.key)}
+				<article
+					class="w-[82vw] sm:w-[20rem] lg:w-76 shrink-0 snap-center sm:snap-start rounded-xl bg-sidebar px-4 py-4"
 				>
-					{r.tone === 'active' ? '🚧 ' : ''}{r.state}
-				</span>
-				<div class="text-4xl leading-none">{r.emoji}</div>
-				<div
-					class="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-				>
-					Step {i}
-				</div>
-				<div class="mt-1 font-display text-xl font-semibold leading-snug">
-					{r.label}
-				</div>
-				<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{r.note}</p>
-				<ul class="mt-5 space-y-1.5 text-sm text-foreground/80">
-					{#each r.items as item (item)}
-						<li class="flex gap-2">
-							<span class="text-primary">·</span>
-							{item}
-						</li>
-					{/each}
-				</ul>
-			</li>
-		{/each}
-	</ol>
+					<div class="flex items-center justify-between gap-2">
+						<div class="inline-flex items-center gap-2">
+							<span aria-hidden={true} class="h-2 w-2 rounded-full bg-primary/45"></span>
+							<h3 class="font-display text-base font-semibold text-foreground/85">
+								{domain.label}
+							</h3>
+						</div>
+						<span class="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/85">
+							{domain.ideas.length}
+						</span>
+					</div>
+
+					<SeparatorZigZag class="mt-3 mb-5" amplitude={3} pitch={5} opacity={0.2} />
+
+					<ul class="mt-3 space-y-3 text-sm">
+						{#each expandedIdeaDomains[domain.key] ? domain.ideas : domain.ideas.slice(0, FUTURE_IDEA_PREVIEW_COUNT) as idea (idea.label)}
+							<li>
+								<a
+									href={idea.href}
+									target="_blank"
+									rel="noreferrer"
+									class="inline-flex items-start gap-2 text-muted-foreground hover:text-foreground transition-colors"
+								>
+									<span class="text-primary/45">→</span>
+									<span class="leading-snug underline-offset-2 hover:underline decoration-dotted">
+										{idea.label}
+									</span>
+								</a>
+							</li>
+						{/each}
+					</ul>
+
+					{#if domain.ideas.length > FUTURE_IDEA_PREVIEW_COUNT}
+						<button
+							type="button"
+							onclick={() => toggleIdeaDomain(domain.key)}
+							class="mt-3 text-sm font-hand tracking-[0.12em] text-muted-foreground/85 hover:text-foreground transition-colors"
+						>
+							{#if expandedIdeaDomains[domain.key]}
+								Collapse
+							{:else}
+								Expand +{domain.ideas.length - FUTURE_IDEA_PREVIEW_COUNT}
+								<ChevronDown class="inline-block h-3 w-3" />
+							{/if}
+						</button>
+					{/if}
+				</article>
+			{/each}
+		</div>
+	</div>
 
 	<div class="mt-10 flex justify-center">
 		<a
@@ -685,7 +1013,7 @@
 				Supporter
 			</div>
 			<div class="mt-4 font-display text-4xl font-semibold">Any amount</div>
-			<p class="mt-1 text-sm text-muted-foreground">5 € = 100 seeds 🌱 ≈ 50 recipe imports</p>
+			<p class="mt-1 text-sm text-muted-foreground">5 € = 100 seeds 🌱 ≈ 100 recipe imports</p>
 			<ul class="mt-6 space-y-3 text-sm">
 				{#each ['Get your own seeds for some features', 'Unused seeds get shared to all users', "Accelerate Cuicuit's development", 'A very warm thank-you 🩷'] as t (t)}
 					<li class="flex items-start gap-2">
@@ -772,7 +1100,7 @@
 			</h3>
 
 			<p class="mt-2 mx-4 text-balance text-sm text-muted-foreground max-w-2xl text-center">
-				Cuicuit believes in a fair open concept — all features are free except costly ones to host.
+				Cuicuit believes in a fair open concept: all features are free except costly ones to host.
 				<br class="hidden sm:block" />
 				By supporting Cuicuit, you get your own seeds to use and give some to all users.
 				<br class="hidden sm:block" />
@@ -849,9 +1177,9 @@
 					<div>
 						<p class="font-semibold">Personal Seeds 🌱</p>
 						<p class="text-muted-foreground text-xs leading-relaxed">
-							Reserved for you to shield you from empty garden moments. Shared <br
-								class="hidden sm:block"
-							/> if unused after 12 months.
+							Reserved for you to shield you from empty garden moments. Shared
+							<br class="hidden sm:block" />
+							if unused after 12 months.
 						</p>
 					</div>
 				</div>
@@ -880,8 +1208,7 @@
 					<div>
 						<p class="font-semibold">Taxes & Fees</p>
 						<p class="text-muted-foreground text-xs leading-relaxed">
-							Cuicuit is seen as a regular software product by your & my countries. Payment fees add
-							up on top.
+							Cuicuit is seen as a regular software product by your & my countries. Payment fees on top.
 						</p>
 					</div>
 				</div>

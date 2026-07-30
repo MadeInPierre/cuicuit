@@ -11,9 +11,12 @@
 > [!WARNING]
 > 🐣 **Cuicuit just hatched!** Expect alpha-quality with many bugs and rough edges. Feedback is appreciated!
 
-No more *What's for dinner?*, Cuicuit does the thinking for you! Import recipes from anywhere and get convenient shopping lists from your plan. It passively learns your habits, tracks what's in your fridge, and serves up perfect recipe ideas for the week or right before your food expires.
+> [!NOTE]
+> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first.
 
-Cuicuit is open-source and self-hostable with simplicity and privacy in mind. If you prefer things to just work, a cloud version is also available, crowd-funded entirely by a collaborative moneypot.
+No more *What's for dinner?*, Cuicuit does the thinking for you! Focus on meals, not ingredients.
+
+Import recipes from anywhere and get convenient shopping lists from your plan. It passively learns your habits, tracks what's in your fridge, and serves up perfect recipe ideas for the week or right before your food expires.
 
 🥁 P.S. *cui-cui* is how we write the sound of a bird in French (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit!*
 
@@ -29,7 +32,7 @@ Here is what Cuicuit aims to be once grown up:
 
 ## ✨ Features
 
-Today, Cuicuit is in its early alpha stage. Here are the main features that are already implemented:
+Today, Cuicuit is in its early alpha stage. Here are the current features:
 
 * **Shared households**: Create one or more spaces and invite your family or roommates.
 * **Recipe gallery**: Import recipes from websites, then search & filter and add to your plan.
@@ -47,8 +50,8 @@ Click to expand. Items marked with 🚧 are currently in progress:
 
 * [ ] **LAUNCH BLOCKERS**
   * [x] ⛔ RLS Security and privacy enforcements
-  * [ ] ⛔ Copyright-free images and recipes (remove marmiton references)
-  * [ ] ⛔ Homepage, marketing, blog
+  * [ ] ⛔ Copyright-free images and recipes
+  * [ ] ⛔ Homepage, marketing, blog, SEO
 * [ ] **🚧 Hosted version**
   * [x] Publicly hosted version for testing and feedback
   * [x] Basic multi-user support with isolated spaces
