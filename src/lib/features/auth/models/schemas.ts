@@ -37,6 +37,7 @@ export const profileFormSchema = z.object({
 		.trim()
 		.min(2, 'Your username must be longer than 2 characters.')
 		.max(30, 'Your username cannot be longer than 30 characters.')
-		.refine((s) => !s.includes(' '), 'No spaces allowed in the username.')
+		.refine((s) => !s.includes(' '), 'No spaces allowed in the username.'),
+	iconKey: z.string().trim().min(1, 'You must select an icon for your profile.'),
 });
 export type ProfileFormSchema = typeof profileFormSchema;

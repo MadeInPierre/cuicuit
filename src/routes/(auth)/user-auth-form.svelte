@@ -109,7 +109,7 @@
 </script>
 
 <div class={cn('grid gap-4', className)} {...restProps}>
-	<div class="grid grid-cols-1 gap-6">
+	<div class="grid grid-cols-1 gap-3">
 		<Button
 			variant="outline"
 			type="button"
@@ -121,22 +121,24 @@
 			{:else}
 				<Icons.google class="mr-2 size-4" />
 			{/if}
-			Google
+			Continue with Google
 		</Button>
 
-		<!-- <Button
+		<Button
 			variant="outline"
 			type="button"
-			disabled={isLoading}
-			onclick={() => onSubmit(AuthMethod.GITHUB)}
+			disabled={true}
+			onclick={() => onSubmit(AuthMethod.APPLE)}
+			class="relative"
 		>
-			{#if isLoading && selectedMethod == AuthMethod.GITHUB}
+			{#if isLoading && selectedMethod == AuthMethod.APPLE}
 				<Icons.spinner class="mr-2 size-4 animate-spin" />
 			{:else}
-				<Icons.gitHub class="mr-2 size-4" />
+				<Icons.apple class="mr-2 size-4" />
 			{/if}
-			GitHub
-		</Button> -->
+			Continue with Apple
+			<span class="absolute right-4 top-1/2 -translate-y-1/2 italic text-xs">soon</span>
+		</Button>
 	</div>
 
 	<div class="flex gap-3 items-center mt-2">

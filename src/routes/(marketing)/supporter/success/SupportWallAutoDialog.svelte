@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { hideBannerUntil } from '$lib/shared/components/support/hide-banner.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -17,19 +16,14 @@
 
 	let media = useMedia();
 	const userState = getUserState();
-
-	function openSupportWall() {
-		if (media.md) open = true;
-		else goto('/supporter');
-	}
-
-	$effect(() => {
-		if (open) openSupportWall();
-	});
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="lg:min-w-250 overflow-hidden bg-background">
+	<Dialog.Content
+		class={media.md
+			? 'min-w-xl sm:min-x-xl lg:min-w-250 overflow-hidden bg-background'
+			: 'h-screen w-screen max-w-none sm:max-w-none md:max-w-none lg:max-w-none rounded-none border-0 bg-background p-0'}
+	>
 		{#if suggestHide}
 			<Button
 				disabled={userState.creditBalance?.communityHealth === 'Empty'}
@@ -46,7 +40,7 @@
 						action: {
 							label: 'Support',
 							onClick: () => {
-								openSupportWall();
+								open = true;
 							}
 						}
 					});

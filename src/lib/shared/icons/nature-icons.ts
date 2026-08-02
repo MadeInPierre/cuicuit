@@ -79,3 +79,5 @@ export const nature_icons: Record<string, any> = {
 	sprout: Icons.Sprout,
 	tent: Icons.Tent
 };
+
+export type NatureIconKey = keyof typeof nature_icons;

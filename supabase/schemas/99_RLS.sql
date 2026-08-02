@@ -122,7 +122,7 @@ alter table public.spaces enable row level security;
 
 create policy "User can create spaces they own"
 on public.spaces 
-for INSERT 
+for INSERT
 to authenticated
 with check (
     author_id = auth.uid()

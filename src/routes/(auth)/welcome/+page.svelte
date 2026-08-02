@@ -1,79 +1,34 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { createUserData } from '$lib/features/auth/actions/create-user-data';
+	import { generateRandomProfileDraft } from '$lib/features/auth/actions/create-user-data';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import { createSpace } from '$lib/features/spaces/actions/create-space';
-	import { joinSpace } from '$lib/features/spaces/actions/join-space';
-	import type { SpaceIconKey, SpaceThemeKey } from '$lib/features/spaces/consts';
+	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
+	import { Dice4, Dice6 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
 
 	const userState = getUserState();
 
-	// Require the user to be signed in to get here
 	$effect(() => {
+		// Require the user to be signed in to get here
 		if (browser && userState.user === null) {
 			console.warn('User is not logged in, redirect to /login');
 			goto('/login');
 		}
-	});
 
-	// Forbid this zone if the user already finished his onboarding
-	$effect(() => {
-		userState.preferences; // Force rerun if preferences change
-		console.log('User updated:', userState.user, userState.profile, userState.preferences);
-
-		if (browser && userState.user?.id) {
-			if (userState.preferences === null) {
-				// Freshly signed up user without initial data yet, create it
-				initializeUserData(userState.user.id);
-			} else if (userState.preferences?.onboarding_status === 'finished') {
-				console.log('User is already onboarded, going /recipes.');
-				window.location.href = '/recipes';
-			}
+		// Forbid this zone if the user already finished his onboarding
+		if (browser && userState.user?.id && userState.preferences?.onboarding_status === 'finished') {
+			console.log('User is already onboarded, going /recipes.');
+			goto('/recipes');
 		}
 	});
-
-	async function initializeUserData(userId: string) {
-		// Create a new user doc if they're a new user
-		const firstName = await createUserData(userId);
-
-		// Join space if they have a join intent in local storage
-		const inviteSpaceId = localStorage.getItem('invite-join-space-id');
-		if (inviteSpaceId) {
-			try {
-				await joinSpace(userId, inviteSpaceId, 'yellow');
-				localStorage.removeItem('invite-join-space-id');
-			} catch {
-				// Fallback by creating a private space
-				await createSpace(
-					userId,
-					firstName + "'s Home",
-					'yellow' as SpaceThemeKey,
-					'house' as SpaceIconKey
-				);
-			}
-		}
-
-		// Create a new space for the user
-		else {
-			await createSpace(
-				userId,
-				firstName + "'s Home",
-				'yellow' as SpaceThemeKey,
-				'house' as SpaceIconKey
-			);
-		}
-
-		// Refresh profile & preferences to populate the form
-		await userState.refresh();
-	}
 
 	// Validate the form data using zod
 	const form = superForm(defaults(zod(profileFormSchema)), {
@@ -95,7 +50,8 @@
 				const { error: profileError } = await supabase.client
 					.from('user_public_profiles')
 					.update({
-						user_name: $formData.userName
+						user_name: String($formData.userName ?? ''),
+						icon: String($formData.iconKey ?? '')
 					})
 					.eq('user_id', userState.user.id);
 
@@ -121,21 +77,26 @@
 		}
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance } = form as any;
 
-	// Refresh the user's data once logged in
-	$effect(() => {
-		if (userState.user) {
-			console.log('Refreshing user state');
-			userState.refresh();
-		}
-	});
+	function randomizeProfileDraft() {
+		const draft = generateRandomProfileDraft();
+		$formData.firstName = draft.firstName;
+		$formData.lastName = '';
+		$formData.userName = draft.userName;
+		$formData.iconKey = draft.iconKey;
+	}
 
 	// Get the current values in supabase to set the input values & placeholders
 	$effect(() => {
-		$formData.firstName = userState.preferences?.first_name || '';
-		$formData.lastName = userState.preferences?.last_name || '';
-		$formData.userName = userState.profile?.user_name || '';
+		$formData.firstName = userState.preferences?.first_name;
+		$formData.lastName = userState.preferences?.last_name;
+		$formData.userName = userState.profile?.user_name;
+		$formData.iconKey = userState.profile?.icon;
+
+		// if (!$formData.firstName && !$formData.userName) {
+		// 	randomizeProfileDraft();
+		// }
 	});
 </script>
 
@@ -164,7 +125,7 @@
 							<Input
 								{...props}
 								bind:value={$formData.firstName}
-								placeholder={$formData.firstName || 'John'}
+								placeholder={String($formData.firstName ?? '') || 'John'}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -178,7 +139,7 @@
 							<Input
 								{...props}
 								bind:value={$formData.lastName}
-								placeholder={$formData.lastName || 'Doe'}
+								placeholder={String($formData.lastName ?? '') || 'Doe'}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -189,30 +150,45 @@
 			<p class="text-sm text-muted-foreground">Only visible to you and your family members.</p>
 		</div>
 
-		<Form.Field {form} name="userName">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Username</Form.Label>
-					<Input
-						{...props}
-						bind:value={$formData.userName}
-						placeholder={$formData.userName || 'CuiCarrot'}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.Description>This is your public display name.</Form.Description>
-			<Form.FieldErrors />
-		</Form.Field>
+		<div class="flex gap-3">
+			<Form.Field {form} name="userName" class="w-full">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Username</Form.Label>
+						<Input
+							{...props}
+							bind:value={$formData.userName}
+							placeholder={String($formData.userName ?? '') || 'CuiCarrot'}
+						/>
+					{/snippet}
+				</Form.Control>
+				<Form.Description>This is your public display name.</Form.Description>
+				<Form.FieldErrors />
+			</Form.Field>
+
+			{#if userState.profile}
+				<UserAvatar
+					profile={{ ...userState.profile, icon: $formData.iconKey || 'bird' }}
+					class="mt-5.5"
+				/>
+			{/if}
+		</div>
 
 		<!-- <ImagePicker /> -->
 
-		<Form.Button class="w-full" disabled={!userState.preferences}>
-			{#if userState.preferences}
-				Let's go!
-			{:else}
-				Getting ready...
-			{/if}
-		</Form.Button>
+		<div class="flex gap-2">
+			<Button type="button" variant="outline" class="flex-1" onclick={randomizeProfileDraft}>
+				<Dice4 />
+				Randomize
+			</Button>
+			<Form.Button class="flex-1" disabled={!userState.preferences}>
+				{#if userState.preferences}
+					Let's go!
+				{:else}
+					Getting ready...
+				{/if}
+			</Form.Button>
+		</div>
 	</form>
 
 	<!-- <p class="px-8 text-center text-sm text-muted-foreground"></p> -->
