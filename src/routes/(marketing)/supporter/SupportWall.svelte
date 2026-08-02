@@ -138,7 +138,7 @@
 		</div>
 	</div>
 
-	<div class="mt-8 grid gap-5 lg:grid-cols-2 lg:gap-6">
+	<div class="mt-8 flex flex-col-reverse lg:grid gap-5 lg:grid-cols-2 lg:gap-6">
 		<div>
 			<div class="flex items-end justify-between gap-4">
 				<div>

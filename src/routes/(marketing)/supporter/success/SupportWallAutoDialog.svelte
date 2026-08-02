@@ -22,6 +22,10 @@
 		if (media.md) open = true;
 		else goto('/supporter');
 	}
+
+	$effect(() => {
+		if (open) openSupportWall();
+	});
 </script>
 
 <Dialog.Root bind:open>

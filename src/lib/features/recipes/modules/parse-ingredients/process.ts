@@ -1,3 +1,5 @@
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { RecipeIngredientWithTranslations } from '../../queries/get-recipe-detailed';
 import { matchIngredients } from './match';
@@ -12,6 +14,7 @@ export const ingredientProcessedSchema = z.object({
 export type IngredientProcessed = z.infer<typeof ingredientProcessedSchema>;
 
 export async function processIngredientStrings(
+	supabase: SupabaseClient<Database>,
 	input: string[],
 	lang: string = 'en-US'
 ): Promise<IngredientProcessed[]> {
@@ -23,6 +26,7 @@ export async function processIngredientStrings(
 
 	// Match the parsed ingredient names against the ingredient database
 	const { data: matchData, error: matchError } = await matchIngredients(
+		supabase,
 		parsed.map((p, i) => p.ingredientText || eligibleStrings[i]),
 		lang
 	);
@@ -41,8 +45,9 @@ export async function processIngredientStrings(
 }
 
 export function processIngredientString(
+	supabase: SupabaseClient<Database>,
 	input: string,
 	lang: string = 'en-US'
 ): Promise<IngredientProcessed> {
-	return processIngredientStrings([input], lang).then((results) => results[0]);
+	return processIngredientStrings(supabase, [input], lang).then((results) => results[0]);
 }

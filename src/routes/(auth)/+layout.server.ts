@@ -9,7 +9,7 @@ export const load: LayoutServerLoad = async ({ url, locals: { supabase } }) => {
 	if (!error && data?.claims) {
 		const userId = data.claims.sub;
 
-		const { preferences, error: prefError } = await getUserPreferences(userId);
+		const { preferences, error: prefError } = await getUserPreferences(supabase, userId);
 		if (prefError) console.error(prefError);
 		// console.log('Server check at /(auth):', url.pathname, data.claims, preferences);
 

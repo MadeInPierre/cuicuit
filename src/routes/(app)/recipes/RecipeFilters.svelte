@@ -81,14 +81,14 @@
 	description="Find your ideal recipe"
 	side="right"
 >
-	<ScrollArea class="flex-1 px-6 overflow-visible">
+	<ScrollArea class="flex-1 px-2">
 		<div class="py-4 px-2">
 			<FilterList {filters} onFilterChange={handleFilterChange} layout="vertical" />
 		</div>
 	</ScrollArea>
 
 	{#if hasActiveFilters}
-		<div class="border-t px-6 py-4 shrink-0">
+		<div class="border-t px-4 py-4 shrink-0">
 			<Button variant="outline" class="w-full" onclick={handleReset}>
 				<RotateCcw class="size-4" />
 				Reset all filters

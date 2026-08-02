@@ -24,7 +24,7 @@
 		<IngredientImage
 			id={ingredientId || null}
 			name={name || 'Unknown'}
-			class="w-7 h-7 rounded-full"
+			class="w-7 h-7 rounded-full text-lg"
 		/>
 
 		<span class="text-sm" title={score || ''}>

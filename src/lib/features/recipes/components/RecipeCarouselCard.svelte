@@ -178,7 +178,7 @@
 	</div>
 {:else}
 	<div class={cn('w-full group flex flex-col items-start', className)}>
-		<div class="relative w-full aspect-square rounded-xl overflow-hidden">
+		<div class="relative w-full aspect-4/3 rounded-xl overflow-hidden">
 			<div
 				class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
 			>
