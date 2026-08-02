@@ -22,7 +22,6 @@
 			new Date(hideBannerUntil.value) > new Date() &&
 			userState.creditBalance?.communityHealth !== 'Empty'
 	);
-
 </script>
 
 {#if !hideBanner && userState.creditBalance && !userState.creditBalance.balance}
@@ -32,10 +31,9 @@
 		class={cn(
 			'flex h-8 text-md px-2 font-normal text-pink-400 items-center gap-1 bg-transparent hover:bg-pink-100 shadow-none font-hand',
 			userState.creditBalance.communityHealth === 'Low' && 'bg-pink-100',
-			userState.creditBalance.communityHealth === 'Critical' &&
-				'bg-pink-400 text-white hover:bg-pink-500 font-bold text-lg',
+			userState.creditBalance.communityHealth === 'Critical' && 'bg-pink-100 font-semibold',
 			userState.creditBalance.communityHealth === 'Empty' &&
-				'bg-red-100 text-red-600 hover:bg-red-200 font-bold text-sm font-sans'
+				'bg-red-100 text-red-600 hover:bg-red-200 text-sm font-sans tracking-tight'
 		)}
 	>
 		{#if userState.creditBalance.communityHealth === 'Healthy'}
@@ -46,7 +44,7 @@
 			<span>No more community seeds, please contribute!</span>
 		{:else}
 			<HeartCrack />
-			<span>Community health: {userState.creditBalance.communityHealth}</span>
+			<span>{userState.creditBalance.communityHealth} community health - Support us!</span>
 		{/if}
 	</Button>
 {/if}

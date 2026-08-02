@@ -36,6 +36,60 @@ GRANT ALL ON TABLE "public"."user_preferences" TO "service_role";
 -- 6. Indexes
 
 -- =================================================
+-- Trigger function: create onboarding data for new auth users
+-- =================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+    v_space_id uuid;
+BEGIN
+    INSERT INTO public.user_preferences (user_id, first_name, last_name, onboarding_status)
+    VALUES (
+        NEW.id,
+        'Birdie',
+        '',
+        'not-started'
+    )
+    ON CONFLICT (user_id) DO NOTHING;
+
+    INSERT INTO public.user_public_profiles (user_id, user_name, icon)
+    VALUES (
+        NEW.id,
+        'birdie' || floor(random() * 10000)::int,
+        'bird'
+    )
+    ON CONFLICT (user_id) DO NOTHING;
+
+    INSERT INTO public.spaces (name, icon, initial_theme, author_id)
+    VALUES (
+        'Birdie''s Home',
+        'house',
+        'yellow',
+        NEW.id
+    )
+    RETURNING id INTO v_space_id;
+
+    INSERT INTO public.space_members (space_id, user_id, theme)
+    VALUES (
+        v_space_id,
+        NEW.id,
+        'yellow'
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_new_user();
+
+-- =================================================
 -- Table: User Public Profiles
 -- =================================================
 -- 1. Definition

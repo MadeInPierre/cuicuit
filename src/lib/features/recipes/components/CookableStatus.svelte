@@ -89,7 +89,10 @@
 		const names = ingredients.map((si) => formatIngredientDisplayName(si));
 		if (names.length === 0) return 'Missing ingredients';
 
-		const visible = names.slice(0, 3);
+		// Show all if we're close to done, otherwise just a peek
+		const nDisplay = names.length >= 3 ? 1 : 3;
+
+		const visible = names.slice(0, nDisplay);
 		const remaining = names.length - visible.length;
 
 		return visible.join(', ') + (remaining > 0 ? ` +${remaining}` : '');

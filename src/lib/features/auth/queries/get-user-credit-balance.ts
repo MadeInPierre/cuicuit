@@ -1,6 +1,8 @@
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+export type CommunityHealth = 'Healthy' | 'Low' | 'Critical' | 'Empty';
+
 export async function getUserCreditBalance(
 	supabase: SupabaseClient<Database> | undefined,
 	userId: string
@@ -23,7 +25,7 @@ export async function getUserCreditBalance(
 
 	const mergedBalance = {
 		...dataBalance,
-		communityHealth: dataHealth as 'Healthy' | 'Low' | 'Critical' | 'Empty' | null
+		communityHealth: dataHealth as CommunityHealth | null
 	};
 
 	return { balance: mergedBalance || null, error };

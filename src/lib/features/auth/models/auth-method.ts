@@ -6,5 +6,6 @@ export enum AuthMethod {
 	EMAIL_LINK,
 	GOOGLE,
 	GITHUB,
+	APPLE,
 	ANONYMOUS
 }

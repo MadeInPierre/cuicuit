@@ -21,11 +21,11 @@
 			registerSW({
 				immediate: true,
 				onRegistered(r: ServiceWorkerRegistration | undefined) {
-					// uncomment following code if you want check for updates
-					// r && setInterval(() => {
-					//    console.log('Checking for sw update')
-					//    r.update()
-					// }, 20000 /* 20s for testing purposes */)
+					// check for updates
+					r && setInterval(() => {
+					   // console.log('Checking for sw update')
+					   r.update()
+					}, 60 * 1000)
 					// console.log(`SW Registered: ${r}`);
 				},
 				onRegisterError(error: any) {
