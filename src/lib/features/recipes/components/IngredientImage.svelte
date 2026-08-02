@@ -21,16 +21,16 @@
 			el.style.display = 'none';
 
 			const classes = cn(
-				'bg-muted aspect-square w-full rounded-md flex items-center justify-center text-muted-foreground',
-				className
-			);
-			el.insertAdjacentHTML('afterend', `<div class="${classes}">?</div>`);
+			'w-full rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-5xl',
+			className
+		)
+			el.insertAdjacentHTML('afterend', `<div class="${classes}">${name ? name.charAt(0).toUpperCase() : '?'}</div>`);
 		}}
 	/>
 {:else}
 	<div
 		class={cn(
-			'w-full bg-white rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-6xl',
+			'w-full bg-muted rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-5xl',
 			className
 		)}
 	>

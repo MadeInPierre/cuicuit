@@ -4,10 +4,10 @@ import { FEATURE_COSTS, type PaidFeatureKey } from '$lib/features/billing/consts
 import { consumeCredits } from '$lib/features/billing/server/consume-credits.remote';
 import { serverIsUserAuthenticated } from '$lib/features/billing/server/utils/is-user-authenticated';
 import { languageKeySchema, languages, type LanguageKey } from '$lib/features/user-settings/consts';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import type { Database } from '$lib/shared/db/supabase.types';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import { capitalize } from '$lib/utils';
-import type { Database } from 'lucide-svelte';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import z from 'zod';
 import {
 	enrichParsedRecipe,
@@ -33,10 +33,12 @@ import { uploadRecipeImage } from './upload-recipe-image';
  * Enriches and matches a raw list of ingredients against the database matches.
  */
 async function processAndMatchIngredients(
+	supabase: SupabaseClient<Database>,
 	enrichedIngredients: ParsedSearchInput[],
 	lang: LanguageKey
 ): Promise<IngredientProcessed[]> {
 	const { data: matchData, error: matchError } = await matchIngredients(
+		supabase,
 		enrichedIngredients
 			.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
 			.map((p) => p.ingredientText || 'Unknown'),
@@ -59,16 +61,15 @@ async function processAndMatchIngredients(
  * Updates an existing recipe with data received from the LLM enrichment process.
  */
 async function saveEnrichedRecipe(
+	supabase: SupabaseClient<Database>,
 	recipeId: string,
 	enrichedRecipe: EnrichedRecipeOutput
 ): Promise<void> {
-	if (!supabase.client) throw new Error('No supabase client');
-
 	// Get the recipe's language database ID
 	const langId =
 		Object.entries(languages).find(([key, _]) => key === enrichedRecipe.lang)?.[1].id || 1;
 
-	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase.client
+	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase
 		.from('recipes')
 		.update({
 			language_id: langId,
@@ -105,11 +106,10 @@ async function saveEnrichedRecipe(
  * Iterates through processed ingredients and hooks them up to the recipe-ingredient join table.
  */
 async function insertRecipeIngredients(
+	supabase: SupabaseClient<Database>,
 	recipeId: string,
 	processedIngredients: IngredientProcessed[]
 ): Promise<void> {
-	if (!supabase.client) throw new Error('No supabase client');
-
 	if (!processedIngredients || processedIngredients.length === 0) {
 		console.warn('No ingredients matched during import.');
 		return;
@@ -124,7 +124,7 @@ async function insertRecipeIngredients(
 			continue;
 		}
 
-		const { data: ingredientInsertData, error: ingredientInsertError } = await supabase.client
+		const { data: ingredientInsertData, error: ingredientInsertError } = await supabase
 			.from('recipe_ingredients')
 			.insert([
 				{
@@ -190,7 +190,7 @@ export const importRecipeFromUrl = query(
 		}
 
 		// Use the space's language as fallback if the LLM doesn't guess it from the recipe later
-		const { data: languageData } = await getLanguageId(fallbackLang as LanguageKey);
+		const { data: languageData } = await getLanguageId(event.locals.supabase, fallbackLang as LanguageKey);
 		if (!languageData) throw new Error('Could not retrieve language ID.');
 
 		const recipeId = await createDraftRecipe({
@@ -248,9 +248,10 @@ export const importRecipeFromUrl = query(
 				ingredients: parsedRecipe.ingredients.flatMap((group) => group.ingredients) // TODO support ingredient groups
 			});
 
-			await saveEnrichedRecipe(recipeId, enrichedRecipe);
+			await saveEnrichedRecipe(event.locals.supabase, recipeId, enrichedRecipe);
 
 			processedIngredients = await processAndMatchIngredients(
+				event.locals.supabase,
 				enrichedRecipe.ingredients,
 				(enrichedRecipe.lang as LanguageKey) || languageData.lang || 'fr-FR'
 			);
@@ -260,12 +261,13 @@ export const importRecipeFromUrl = query(
 
 			// Fallback to locally processing the ingredients
 			processedIngredients = await processIngredientStrings(
+				event.locals.supabase,
 				parsedRecipe.ingredients.flatMap((group) => group.ingredients), // TODO support groups
 				languageData.lang // Assuming the space's main language as fallback
 			);
 		}
 
-		await insertRecipeIngredients(recipeId, processedIngredients);
+		await insertRecipeIngredients(event.locals.supabase, recipeId, processedIngredients);
 
 		const usage = await consumeCredits({
 			amount: FEATURE_COSTS.import_recipe_from_website.seeds,
@@ -303,7 +305,7 @@ export const importRecipeFromText = query(
 		if (!authorized) throw new Error('User cannot afford the feature.');
 
 		// Use the space's language as fallback if the LLM doesn't guess it from the recipe later
-		const { data: languageData } = await getLanguageId(fallbackLang as LanguageKey);
+		const { data: languageData } = await getLanguageId(event.locals.supabase, fallbackLang as LanguageKey);
 		if (!languageData) throw new Error('Could not retrieve language ID.');
 
 		const recipeId = await createDraftRecipe({
@@ -322,17 +324,18 @@ export const importRecipeFromText = query(
 			const enrichedRecipe = await enrichTextRecipe({ text });
 
 			processedIngredients = await processAndMatchIngredients(
+				event.locals.supabase,
 				enrichedRecipe.ingredients,
 				(enrichedRecipe.lang as LanguageKey) || languageData.lang || 'fr-FR'
 			);
 			console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 
-			await saveEnrichedRecipe(recipeId, enrichedRecipe);
+			await saveEnrichedRecipe(event.locals.supabase, recipeId, enrichedRecipe);
 		} catch (error) {
 			throw new Error('LLM errored, cannot import text recipe without LLM');
 		}
 
-		await insertRecipeIngredients(recipeId, processedIngredients);
+		await insertRecipeIngredients(event.locals.supabase, recipeId, processedIngredients);
 
 		const usage = await consumeCredits({
 			amount: FEATURE_COSTS.import_recipe_from_website.seeds,

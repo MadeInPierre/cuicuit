@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { processIngredientStrings } from '$lib/features/recipes/modules/parse-ingredients/process';
 	import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
 	const benchmarkIngredients = {
 		'en-US': `2 Red bell peppers, diced\n29.57 mL Olive oil\n1 medium Onion, finely chopped\n1 Red bell pepper, diced\n3 Garlic cloves, minced\n4.93 mL Smoked paprika\n1.23 mL Cayenne pepper (optional, for heat)\nSalt, to taste\nFreshly ground black pepper, to taste\n4 large Eggs\n120 mL Greek yogurt (full-fat recommended)\nFresh parsley, chopped, for garnish\nFeta cheese crumbles (optional), for garnish\n1 tablespoon Fresh lemon juice\n0.25 cup Reserved pasta cooking water\n0.25 cup (50g) sugar (adjust for sweetness)\n2 tablespoons Water or milk (only if needed)`,
@@ -15,10 +16,12 @@
 
 	async function handleMatchIngredients() {
 		if (!ingredientsText.trim()) return;
+		if (!supabase.client) return;
 		isLoading = true;
 		results = [];
 
 		const processedIngredients = await processIngredientStrings(
+			supabase.client,
 			ingredientsText.split('\n'),
 			selectedLang
 		);
@@ -82,7 +85,8 @@
 					<span>{result.sourceText}</span>
 					{#if result.match}
 						<span class="match-found">
-							✅ Matched: <strong>{result.match.slug}</strong> (General: {result.match.slug_general})
+							✅ Matched: <strong>{result.match.slug}</strong> (General: {result.match
+								.slug_general})
 						</span>
 					{:else}
 						<span class="no-match">❌ No Match Found</span>

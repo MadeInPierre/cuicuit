@@ -1,6 +1,7 @@
 import { matchIngredientsRPC } from '$lib/features/ingredients/server/match-ingredients.remote';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type MatchIngredientsResponse = {
 	matches: {
@@ -10,9 +11,11 @@ export type MatchIngredientsResponse = {
 	}[];
 } | null;
 
-export async function matchIngredients(ingredientStrings: string[], lang: string) {
-	if (!supabase.client) throw new Error('No supabase client');
-
+export async function matchIngredients(
+	supabase: SupabaseClient<Database>,
+	ingredientStrings: string[],
+	lang: string
+) {
 	const { matches } = await matchIngredientsRPC({ ingredientStrings, lang: lang || 'fr-FR' });
 
 	// Step 2: Get the unique ingredient IDs from the matches and fetch their full details from the database
@@ -27,7 +30,7 @@ export async function matchIngredients(ingredientStrings: string[], lang: string
 		};
 	}
 
-	const { data: enriched, error: enrichedError } = await supabase.client
+	const { data: enriched, error: enrichedError } = await supabase
 		.from('ingredients')
 		.select(
 			`*,

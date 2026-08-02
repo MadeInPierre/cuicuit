@@ -1,10 +1,9 @@
 import type { LanguageKey } from '$lib/features/user-settings/consts';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export function getLanguageId(lang: LanguageKey) {
-	if (!supabase.client) throw new Error('No supabase client');
-	
-	return supabase.client
+export function getLanguageId(supabase: SupabaseClient<Database>, lang: LanguageKey) {
+	return supabase
 		.from('languages')
 		.select('*')
 		.or(`code.eq.${lang}, lang.eq.${lang}`)

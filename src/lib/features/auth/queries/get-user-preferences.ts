@@ -1,10 +1,10 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export async function getUserPreferences(userId: string) {
-	if (!supabase.client) return { preferences: null, error: 'No supabase client' };
+export async function getUserPreferences(supabase: SupabaseClient<Database>, userId: string) {
 	if (!userId) throw new Error('User ID not provided');
 
-	const { data: preferences, error } = await supabase.client
+	const { data: preferences, error } = await supabase
 		.from('user_preferences')
 		.select('*')
 		.eq('user_id', userId)

@@ -16,7 +16,7 @@ class UserState {
 	#unsub: any;
 
 	constructor(supabaseClient: SupabaseClient<Database> | undefined) {
-		if (!supabaseClient?.auth) throw new Error('Supabase auth not initialized');
+		if (!supabaseClient?.auth) return;
 
 		const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
 			// console.log('Supabase auth state changed:', event, session);
@@ -25,14 +25,14 @@ class UserState {
 				this.#userState = session?.user || null;
 
 				// If the user is signed in, fetch their public profile and preferences
-				if (session?.user?.id) {
+				if (session?.user?.id && supabase.client) {
 					// Fetch user profile
 					getUserPublicProfile(session.user.id).then((result) => {
 						this.#userPublicProfile = result.profile;
 					});
 
 					// Fetch user preferences
-					getUserPreferences(session.user.id).then((result) => {
+					getUserPreferences(supabase.client, session.user.id).then((result) => {
 						this.#userPreferences = result.preferences;
 					});
 
@@ -88,9 +88,7 @@ class UserState {
 		return (
 			this.#userState &&
 			this.#userPublicProfile &&
-			this.#userPreferences &&
-			this.#userCreditLogs &&
-			this.#userCreditBalance
+			this.#userPreferences
 		); // Neither null nor undefined
 	}
 
@@ -99,13 +97,13 @@ class UserState {
 	}
 
 	async refresh() {
-		if (!this.#userState?.id) return;
+		if (!this.#userState?.id || !supabase.client) return;
 
 		// Refresh user profile
 		this.#userPublicProfile = (await getUserPublicProfile(this.#userState.id)).profile;
 
 		// Refresh user preferences
-		this.#userPreferences = (await getUserPreferences(this.#userState.id)).preferences;
+		this.#userPreferences = (await getUserPreferences(supabase.client, this.#userState.id)).preferences;
 
 		// Refresh user credit logs
 		this.#userCreditLogs = (await getUserCreditLogs(this.#userState.id)).logs;
@@ -122,5 +120,3 @@ const currentUserState = $derived(new UserState(supabase.client));
 export function getUserState() {
 	return currentUserState;
 }
-
-// export type UserState = ReturnType<typeof createUserState>;

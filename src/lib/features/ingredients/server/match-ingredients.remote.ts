@@ -1,6 +1,5 @@
-import { query } from '$app/server';
+import { getRequestEvent, query } from '$app/server';
 import { languageKeySchema } from '$lib/features/user-settings/consts';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import z from 'zod';
 
 // We only remove numbers, fractions, units, and action verbs.
@@ -39,16 +38,16 @@ export const matchIngredientsRPC = query(
 		lang: languageKeySchema
 	}),
 	async ({ ingredientStrings, lang }) => {
-		const matchPromises = ingredientStrings.map(async (originalText: string) => {
-			if (!supabase.client) throw new Error('No supabase client');
+		const { supabase } = getRequestEvent().locals;
 
+		const matchPromises = ingredientStrings.map(async (originalText: string) => {
 			const cleanedText = preprocessIngredient(originalText);
 
 			if (!cleanedText) {
 				return { originalText, bestMatches: [], message: 'Empty after cleaning.' };
 			}
 
-			const { data, error } = await supabase.client.rpc('match_ingredient', {
+			const { data, error } = await supabase.rpc('match_ingredient', {
 				query_text: cleanedText,
 				lang_code: lang || 'fr-FR',
 				n_matches: 10

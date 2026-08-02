@@ -16,6 +16,7 @@
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
@@ -43,6 +44,7 @@
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(async () => {
 			if (!space.activeSpace?.language_id) return;
+			if (!supabase.client) return;
 
 			// Reset processed input
 			if (!inputValue.trim()) {
@@ -55,6 +57,7 @@
 
 			// Process the ingredient string into a structured format matched to the database
 			processedIngredient = await processIngredientString(
+				supabase.client,
 				inputValue,
 				space.activeSpace.language.lang as LanguageKey
 			);

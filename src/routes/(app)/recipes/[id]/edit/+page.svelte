@@ -231,7 +231,10 @@
 		if (!supabase.client) throw new Error('No supabase client');
 
 		loading = true;
-		const { data: langData, error: langError } = await getLanguageId(data.language as LanguageKey);
+		const { data: langData, error: langError } = await getLanguageId(
+			supabase.client,
+			data.language as LanguageKey
+		);
 
 		if (!userState.user) {
 			toast.error('You must be logged in to create a recipe.');
@@ -696,7 +699,7 @@
 								</div>
 							</Card.Content>
 						</Card.Root> -->
-						
+
 						<Card.Root>
 							<Card.Header>
 								<Card.Title>Instructions</Card.Title>

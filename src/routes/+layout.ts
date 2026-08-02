@@ -9,23 +9,26 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
 
 	const sb = isBrowser()
 		? createBrowserClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-				global: {
-					fetch
-				}
-			})
+			global: {
+				fetch
+			}
+		})
 		: createServerClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-				global: {
-					fetch
-				},
-				cookies: {
-					getAll() {
-						return data.cookies;
-					}
+			global: {
+				fetch
+			},
+			cookies: {
+				getAll() {
+					return data.cookies;
 				}
-			});
+			}
+		});
 
-	// Make the supabase client available globally in the app, for server and browser
-	supabase.client = sb;
+	// The singleton is browser-only: on the server, a fresh client is created per request
+	// and must stay scoped to that request (never shared across requests/users).
+	if (isBrowser()) {
+		supabase.client = sb;
+	}
 
 	/**
 	 * `getClaims` validates the JWT signature locally (for asymmetric keys) once

@@ -2,6 +2,8 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import { Bug, Heart, Lightbulb, MessageCircle, Video } from 'lucide-svelte';
+	import SupportWallAutoDialog from '../../../routes/(marketing)/supporter/success/SupportWallAutoDialog.svelte';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -9,6 +11,8 @@
 	let { children }: Props = $props();
 
 	let openAlphaDialog = $state(false);
+	let openSupportWall = $state(false)
+	const userState = getUserState()
 </script>
 
 <Dialog.Root bind:open={openAlphaDialog}>
@@ -31,9 +35,9 @@
 				</span>
 				<span>
 					I love and rely on open source software every day. I want to give back to the community by
-					making the best OSS everything-kitchen app! However, maintaining and improving on Cuicuit takes a lot of
-					effort, so I will be exploring different ways to support its development. Maybe
-					a cheap hosted version? Sponsors?
+					making the best OSS everything-kitchen app! However, maintaining and improving Cuicuit
+					takes a lot of effort, so I am exploring few ways to support its development, such as a
+					crowdfunded hosted version and direct donations.
 				</span>
 				<span>
 					If you found a bug or have ideas, I would love to hear from you! Feel free to reach out
@@ -55,7 +59,7 @@
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<Dialog.Footer class="flex">
+		<Dialog.Footer class="grid grid-cols-2 sm:flex sm:grid-cols-none">
 			<Button
 				variant="link"
 				onclick={() => (openAlphaDialog = false)}
@@ -84,14 +88,15 @@
 				Discord
 			</Button>
 			<Button
-				variant="link"
-				onclick={() => (openAlphaDialog = false)}
-				href="https://calendly.com/madeinpierre/30min"
-				target="_blank"
+				variant="default"
+				onclick={() => (openSupportWall = true)}
+				class="font-hand bg-pink-500 hover:bg-pink-600 text-lg"
 			>
-				<Video class="size-4" />
-				Let's talk
+				<Heart class="size-4" />
+				Support
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
+
+<SupportWallAutoDialog email={userState.user?.email || null} bind:open={openSupportWall}/>

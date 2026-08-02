@@ -3,9 +3,8 @@
 	import { cn } from '$lib/utils';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { ChevronDown, ChevronRight } from 'lucide-svelte';
+	import { ChevronDown } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
-	import { ChevronUp } from '@lucide/svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 
 	type Props = {
@@ -80,7 +79,7 @@
 					label={option.label}
 					side="right"
 					class={cn(
-						'p-3 md:p-2 rounded-xl bg-white shadow-xs border border-border/60 data-[highlighted]:bg-white transition-all',
+						'p-3 md:p-2 rounded-xl bg-card shadow-xs border border-border/60 data-[highlighted]:bg-card transition-all',
 						values.includes(option.value) && 'ring-3 ring-primary/60 border-transparent'
 					)}
 					size="lg"
@@ -90,7 +89,7 @@
 						{#if typeof option.icon === 'string'}
 							<span class="text-2xl">{option.icon}</span>
 						{:else if option.icon}
-							<option.icon class="mr-3 size-5 flex-shrink-0" />
+							<option.icon class="mr-3 size-5 shrink-0" />
 						{/if}
 
 						<div class="grid">

@@ -5,6 +5,14 @@ import type { Handle } from '@sveltejs/kit'
 
 export const handle: Handle = async ({ event, resolve }) => {
   event.locals.supabase = createServerClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+    // This client is short-lived (one per request). Auto-refresh/URL detection run
+    // asynchronously in the background and can outlive the request, later trying to
+    // set cookies on a response that has already been sent. Auth is checked explicitly
+    // per-request via `getClaims()`/`getUser()`, so neither behaviour is needed here.
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
     cookies: {
       getAll: () => event.cookies.getAll(),
       /**

@@ -20,7 +20,7 @@ export const createDraftRecipe = query(
 		if (!isValid) throw new Error('User must be confirmed with a valid email.');
 
 		// Use the space's language as fallback if the LLM doesn't guess it from the recipe later
-		const { data: languageData } = await getLanguageId(lang as LanguageKey);
+		const { data: languageData } = await getLanguageId(event.locals.supabase, lang as LanguageKey);
 		if (!languageData) throw new Error('Could not retrieve language ID.');
 
 		// Create an empty recipe

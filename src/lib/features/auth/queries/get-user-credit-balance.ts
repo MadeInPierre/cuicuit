@@ -12,13 +12,11 @@ export async function getUserCreditBalance(
 		.from('credit_balances')
 		.select('*')
 		.eq('user_id', userId)
-		.single();
+		.maybeSingle();
 
 	if (error) {
-		// No results
-		if (error?.code === 'PGRST116') return { balance: null, error: null };
-
 		console.error('Error fetching credit log:', error);
+		return { balance: null, error };
 	}
 
 	const { data: dataHealth, error: errorHealth } = await supabase.rpc('get_public_pool_health');
