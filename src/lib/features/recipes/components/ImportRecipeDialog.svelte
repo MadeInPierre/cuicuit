@@ -52,7 +52,7 @@
 						Import from the web
 					</Dialog.Title>
 					<Dialog.Description class="text-center sm:text-left">
-						Grab the link of any recipe out there and paste it here.
+						Grab the link of any recipe and paste it here.
 					</Dialog.Description>
 				</Dialog.Header>
 
@@ -78,7 +78,7 @@
 					{@render tabList()}
 				{/if}
 
-				Coming soon!
+				<p class="p-6 bg-muted rounded-md text-center text-muted-foreground">Coming soon!</p>
 			</Tabs.Content>
 
 			<Tabs.Content value="text" class="">
@@ -106,7 +106,7 @@
 						Create manually
 					</Dialog.Title>
 					<Dialog.Description class="text-center sm:text-left">
-						Start with a blank recipe and fill in the details yourself.
+						Start with a blank recipe.
 					</Dialog.Description>
 				</Dialog.Header>
 
