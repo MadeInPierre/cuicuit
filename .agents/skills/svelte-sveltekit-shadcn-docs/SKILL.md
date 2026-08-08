@@ -1,6 +1,6 @@
 ---
 name: svelte-sveltekit-shadcn-docs
-description: Svelte 5, SvelteKit 2 and shadcn-svelte documentation. Load whenever you're about to work on frontend code.
+description: Svelte 5, SvelteKit and shadcn-svelte documentation. Load this whenever you're about to work on web-related code.
 ---
 
 <SYSTEM>This is the abridged developer documentation for the tools used in this project: Svelte and SvelteKit.</SYSTEM>

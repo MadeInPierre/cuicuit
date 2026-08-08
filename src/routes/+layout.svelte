@@ -22,10 +22,11 @@
 				immediate: true,
 				onRegistered(r: ServiceWorkerRegistration | undefined) {
 					// check for updates
-					r && setInterval(() => {
-					   // console.log('Checking for sw update')
-					   r.update()
-					}, 60 * 1000)
+					r &&
+						setInterval(() => {
+							// console.log('Checking for sw update')
+							r.update();
+						}, 60 * 1000);
 					// console.log(`SW Registered: ${r}`);
 				},
 				onRegisterError(error: any) {
@@ -40,6 +41,9 @@
 
 	// Refetch token when it expires
 	onMount(() => {
+		// `sb` is only set on the client (see +layout.ts); on the server it's null
+		if (!sb) return;
+
 		const { data } = sb.auth.onAuthStateChange((event, _session) => {
 			if (_session?.expires_at !== claims?.exp) {
 				console.log('Supabase session token expired, refreshing.');

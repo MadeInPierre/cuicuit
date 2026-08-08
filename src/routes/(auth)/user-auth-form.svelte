@@ -16,7 +16,7 @@
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { Icons } from '$lib/shared/icons';
 	import { cn } from '$lib/utils';
-	import { Check, Eye, EyeOff } from 'lucide-svelte';
+	import { Eye, EyeOff } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod } from 'sveltekit-superforms/adapters';
@@ -46,7 +46,6 @@
 	const { form: formData, enhance } = form;
 
 	// Component state
-	let linkEmailSent = $state(false);
 	let isLoading = $state(false);
 	let selectedMethod: AuthMethod = $state(AuthMethod.ANONYMOUS);
 	let showExistingAccountDialog = $state(false);
@@ -74,7 +73,13 @@
 					$formData.email,
 					$formData.password
 				);
-				linkEmailSent = emailSent;
+
+				// For email/password signup, a confirmation email is sent. Bring the
+				// user to the "verify your email" page instead of leaving them here.
+				if (emailSent) {
+					goto('/verify');
+					return;
+				}
 			} else if (logMethod == LogMethod.CONVERT_ANONYMOUS) {
 				// TODO convertAnonToUser(logMethod, authMethod, $formData.email, $formData.password);
 			} else {
@@ -232,11 +237,8 @@
 						</p>
 					{/if}
 
-					<Form.Button disabled={isLoading || linkEmailSent} type="submit" class="mt-2 w-full">
-						{#if linkEmailSent}
-							<Check class="mr-2 h-5 w-5" />
-							Your email is on the way, click on the link!
-						{:else if isLoading && selectedMethod == AuthMethod.EMAIL_PASSWORD}
+					<Form.Button disabled={isLoading} type="submit" class="mt-2 w-full">
+						{#if isLoading && selectedMethod == AuthMethod.EMAIL_PASSWORD}
 							<Icons.spinner class="mr-2 size-4 animate-spin" />
 							Sending email...
 						{:else if logMethod == LogMethod.LOGIN}

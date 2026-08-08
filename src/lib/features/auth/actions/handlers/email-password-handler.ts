@@ -1,5 +1,4 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
-import { toast } from 'svelte-sonner';
 import { AuthMethod } from '../../models/auth-method';
 import { LogMethod } from '../../models/log-method';
 import {
@@ -74,10 +73,6 @@ async function signupWithEmailPassword(email: string, password: string) {
 	const emailSent = !data.session;
 
 	if (emailSent) {
-		toast.success('Verification email sent!', {
-			description: 'Please click on the link inside the email before logging in.'
-		});
-
 		return { emailSent: true };
 	}
 

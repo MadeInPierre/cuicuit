@@ -24,7 +24,12 @@ export const GET = async (event) => {
 		const { error } = await supabase.auth.verifyOtp({ token_hash, type });
 		if (!error) {
 			redirectTo.searchParams.delete('next');
-			redirect(303, redirectTo);
+			try {
+				const nextUrl = new URL(next);
+				redirect(303, nextUrl.toString());
+			} catch {
+				redirect(303, redirectTo);
+			}
 		}
 	}
 
