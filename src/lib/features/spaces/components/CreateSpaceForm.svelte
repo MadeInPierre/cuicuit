@@ -8,7 +8,7 @@
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { createSpace } from '../actions/create-space';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import { createSpaceFormSchema } from '../models/schemas';
@@ -32,9 +32,9 @@
 		}
 	);
 
-	const form = superForm(defaults(zod(schema)), {
+	const form = superForm(defaults(zod4(schema)), {
 		SPA: true,
-		validators: zod(schema),
+		validators: zod4(schema),
 		clearOnSubmit: 'errors-and-message',
 		onUpdate({ form }) {
 			if (form.valid) onSubmit();

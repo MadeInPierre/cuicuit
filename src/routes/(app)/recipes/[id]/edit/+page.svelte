@@ -53,7 +53,7 @@
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import IngredientEditItem from './IngredientEditItem.svelte';
 
@@ -69,9 +69,9 @@
 	const activeSpace = getActiveSpaceState();
 
 	// Validate the form data using zod
-	const form = superForm(defaults(zod(createRecipeFormSchema)), {
+	const form = superForm(defaults(zod4(createRecipeFormSchema)), {
 		SPA: true,
-		validators: zod(
+		validators: zod4(
 			createRecipeFormSchema.refine(
 				(s) => !(s.source_type === 'website' && !s.source_url),
 				'Recipes from websites must have a URL.'

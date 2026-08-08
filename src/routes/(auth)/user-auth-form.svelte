@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	const authSchema = passwordFormSchema.extend({ email: z.string().email() });
+	const authSchema = passwordFormSchema.extend({ email: z.email() });
 </script>
 
 <script lang="ts">
@@ -19,7 +19,7 @@
 	import { Eye, EyeOff } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { z } from 'zod';
 	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
 
@@ -33,9 +33,9 @@
 	let { logMethod, class: className = undefined, ...restProps }: Props = $props();
 
 	// Validate the form data using zod
-	const form = superForm(defaults(zod(authSchema)), {
+	const form = superForm(defaults(zod4(authSchema)), {
 		SPA: true,
-		validators: zod(authSchema),
+		validators: zod4(authSchema),
 		clearOnSubmit: 'none',
 		onUpdate({ form }) {
 			if (form.valid) {

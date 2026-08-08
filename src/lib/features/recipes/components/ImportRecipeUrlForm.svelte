@@ -12,7 +12,7 @@
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
 
 	const userState = getUserState();
@@ -23,9 +23,9 @@
 
 	let { openDialog = $bindable() }: Props = $props();
 
-	const form = superForm(defaults(zod(importRecipeUrlSchema)), {
+	const form = superForm(defaults(zod4(importRecipeUrlSchema)), {
 		SPA: true,
-		validators: zod(importRecipeUrlSchema),
+		validators: zod4(importRecipeUrlSchema),
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
 			else toast.error('Please fix the errors in the form.');

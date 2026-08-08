@@ -9,7 +9,7 @@
 	import { Check, Loader2, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import ImagePicker from './AvatarForm.svelte';
 
 	const userState = getUserState();
@@ -19,9 +19,9 @@
 	let updateStatus: UpdateStatus = $state('idle');
 
 	// Validate the form data using zod
-	const form = superForm(defaults(zod(profileFormSchema)), {
+	const form = superForm(defaults(zod4(profileFormSchema)), {
 		SPA: true,
-		validators: zod(profileFormSchema),
+		validators: zod4(profileFormSchema),
 		resetForm: false,
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);

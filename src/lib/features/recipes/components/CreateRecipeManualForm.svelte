@@ -7,7 +7,7 @@
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { createDraftRecipe } from '../actions/create-draft-recipe.remote';
 	import { createRecipeManualSchema, type CreateRecipeManualSchema } from '../models/schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
@@ -19,9 +19,9 @@
 
 	let { openDialog = $bindable() }: Props = $props();
 
-	const form = superForm(defaults(zod(createRecipeManualSchema)), {
+	const form = superForm(defaults(zod4(createRecipeManualSchema)), {
 		SPA: true,
-		validators: zod(createRecipeManualSchema),
+		validators: zod4(createRecipeManualSchema),
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
 			else toast.error('Please fix the errors in the form.');
