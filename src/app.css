@@ -360,7 +360,6 @@
 	@apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }
 
-// Prevent pull-to-refresh on mobile
 html {
 	overscroll-behavior-y: contain;
 }

@@ -1,34 +1,27 @@
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
-import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
+import { createBrowserClient, isBrowser } from '@supabase/ssr';
 import type { LayoutLoad } from './$types';
 
-export const load: LayoutLoad = async ({ fetch, data, depends }) => {
+export const load: LayoutLoad = async ({ fetch, depends }) => {
 	depends('supabase:auth');
 
-	const sb = isBrowser()
-		? createBrowserClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-			global: {
-				fetch
-			}
-		})
-		: createServerClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-			global: {
-				fetch
-			},
-			cookies: {
-				getAll() {
-					return data.cookies;
-				}
-			}
-		});
-
-	// The singleton is browser-only: on the server, a fresh client is created per request
-	// and must stay scoped to that request (never shared across requests/users).
-	if (isBrowser()) {
-		supabase.client = sb;
+	// Server-side auth is handled in hooks.server.ts and the layout server loads
+	// via `event.locals.supabase` — creating a second server client here would
+	// read a stale cookie snapshot and register an extra auth subscriber.
+	if (!isBrowser()) {
+		return { supabase: null, claims: null };
 	}
+
+	const sb = createBrowserClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+		global: {
+			fetch
+		}
+	});
+
+	// The singleton is browser-only: it's created once per page on the client.
+	supabase.client = sb;
 
 	/**
 	 * `getClaims` validates the JWT signature locally (for asymmetric keys) once

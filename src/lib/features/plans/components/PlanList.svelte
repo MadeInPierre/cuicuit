@@ -82,14 +82,14 @@
 				/>
 			{:else if !filterOnIngredientId}
 				<div
-					class="py-10 text-center text-sm sm:text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed"
+					class="py-10 text-center text-sm sm:text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-4 sm:gap-2"
 				>
 					<Utensils class="size-8" />
 					<p class="mx-auto w-34 sm:w-28 text-center">Search for recipes to add meals here</p>
 				</div>
 			{:else}
 				<div
-					class="py-10 text-center text-sm sm:text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed italic"
+					class="py-10 text-center text-sm sm:text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-4 sm:gap-2 italic"
 				>
 					No meals with this ingredient
 				</div>
@@ -148,14 +148,14 @@
 				</div>
 			{:else if !filterOnIngredientId}
 				<div
-					class="mt-2 py-10 text-center text-sm sm:text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed"
+					class="mt-2 py-10 text-center text-sm sm:text-xs text-muted-foreground bg-muted rounded-md flex flex-col items-center gap-4 sm:gap-2"
 				>
 					<ShoppingBasket class="size-8" />
 					<p class="mx-auto w-34 sm:w-28 text-center">Search for items to add them here</p>
 				</div>
 			{:else}
 				<div
-					class="mt-2 py-10 text-center text-sm sm:text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-4 sm:gap-2 border border-dashed italic"
+					class="mt-2 py-10 text-center text-sm sm:text-xs text-muted-foreground/80 rounded-md flex flex-col items-center gap-4 sm:gap-2 italic"
 				>
 					No additional items
 				</div>
@@ -165,7 +165,7 @@
 		<!-- <div class="grid space-y-4">
 				{@render sectionHeader(BellPlus, 'Refill suggestions', 'Ingredients that are running low')}
 				<div
-					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2 border border-dashed"
+					class="py-10 text-center text-xs text-muted-foreground/60 bg-muted rounded-md flex flex-col items-center gap-2"
 				>
 					<BellPlus class="size-8" />
 					<p class="w-28 text-center">
