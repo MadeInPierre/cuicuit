@@ -17,16 +17,16 @@
 	import { Check, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 	import UserAuthForm from '../../../(auth)/user-auth-form.svelte';
 	import AddProvider from './AddProvider.svelte';
 
 	const userState = getUserState();
 
 	// Validate the form data using zod
-	const form = superForm(defaults(zod(passwordFormSchema)), {
+	const form = superForm(defaults(zod4(passwordFormSchema)), {
 		SPA: true,
-		validators: zod(passwordFormSchema),
+		validators: zod4(passwordFormSchema),
 
 		onUpdate({ form }) {
 			if (form.valid) {

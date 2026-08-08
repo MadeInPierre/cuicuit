@@ -159,7 +159,7 @@ async function insertRecipeIngredients(
 export const importRecipeFromUrl = query(
 	z.object({
 		spaceId: z.string(),
-		url: z.string().url(),
+		url: z.url(),
 		fallbackLang: languageKeySchema
 	}),
 	async ({ spaceId, url, fallbackLang }) => {

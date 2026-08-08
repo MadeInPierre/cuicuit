@@ -12,7 +12,7 @@
 	import { Dice4 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
-	import { zod } from 'sveltekit-superforms/adapters';
+	import { zod4 } from 'sveltekit-superforms/adapters';
 
 	const userState = getUserState();
 
@@ -31,9 +31,9 @@
 	});
 
 	// Validate the form data using zod
-	const form = superForm(defaults(zod(profileFormSchema)), {
+	const form = superForm(defaults(zod4(profileFormSchema)), {
 		SPA: true,
-		validators: zod(profileFormSchema),
+		validators: zod4(profileFormSchema),
 		resetForm: false,
 		async onUpdate({ form }) {
 			if (form.valid) {

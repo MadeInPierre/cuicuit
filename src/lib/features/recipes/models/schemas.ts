@@ -1,6 +1,5 @@
 import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
-import { zod } from 'sveltekit-superforms/adapters';
 import { z } from 'zod';
 
 export const createRecipeFormSchema = z
@@ -17,7 +16,6 @@ export const createRecipeFormSchema = z
 		// Source
 		source_type: publicRecipeSourceTypeSchema,
 		source_url: z
-			.string()
 			.url('Please enter a valid URL, like https://...')
 			.nullable()
 			.or(z.literal('')),
@@ -127,7 +125,7 @@ export const createRecipeFormSchema = z
 export type CreateRecipeFormSchema = typeof createRecipeFormSchema;
 
 export const importRecipeUrlSchema = z.object({
-	url: z.string().url({ message: 'Oops, please enter a valid URL.' })
+	url: z.url({ message: 'Oops, please enter a valid URL.' })
 });
 
 export type ImportRecipeUrlSchema = typeof importRecipeUrlSchema;
