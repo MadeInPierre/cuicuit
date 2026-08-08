@@ -107,7 +107,7 @@
 			</div>
 		{/if} -->
 
-		<Dialog.Footer class={cn('mt-4', !media.md && 'bg-transparent border-0')}>
+		<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
 			<Form.Button type="submit" disabled={loading || !$formData.url} class="w-full relative">
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
@@ -124,10 +124,14 @@
 					Import recipe
 				{/if}
 			</Form.Button>
+
+			{#if (userState.creditBalance?.balance || 0) < FEATURE_COSTS.import_recipe_from_website.seeds}
+				<p class="text-xs text-center text-muted-foreground">
+					<strong>Note:</strong>
+					You have {userState.creditBalance?.balance || 0} 🌱. You are using community seeds. Consider
+					supporting us to get &amp; gift seeds!
+				</p>
+			{/if}
 		</Dialog.Footer>
-		<!-- <p class="text-muted-foreground text-xs text-center">
-			By importing a recipe, you agree to our
-			<a href="/terms" target="_blank" class="underline"> terms of service </a>.
-		</p> -->
 	</div>
 </form>

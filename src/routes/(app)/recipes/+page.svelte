@@ -455,8 +455,8 @@
 		{/each}
 	{:else}
 		<div class="bg-sidebar p-6 md:p-12 rounded-lg text-center text-muted-foreground text-sm">
-			<ChefHat class="size-12 mx-auto mb-4" />
-			<p class="mb-2 text-md font-medium">No recipes yet</p>
+			<ChefHat class="size-12 mx-auto mb-3" />
+			<p class="text-lg font-medium">No recipes yet</p>
 
 			{#if Object.values(parameters.filters).some((value) => value.length > 0)}
 				<p class="w-40 mx-auto mb-6">Try resetting your filters to get more results.</p>
@@ -474,7 +474,16 @@
 					Reset filters
 				</Button>
 			{:else}
-				<p class="w-40 mx-auto">Start by importing or creating new recipes!</p>
+				<p class="text-sm mx-auto">Start by importing or creating new recipes!</p>
+
+				<ImportRecipeDialog>
+				{#snippet trigger({ props })}
+					<Button {...props} class="mt-6" size='sm'>
+						<Plus class="size-4" />
+						Add a recipe
+					</Button>
+				{/snippet}
+			</ImportRecipeDialog>
 			{/if}
 		</div>
 	{/if}

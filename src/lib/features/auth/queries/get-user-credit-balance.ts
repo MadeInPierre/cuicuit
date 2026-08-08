@@ -25,6 +25,7 @@ export async function getUserCreditBalance(
 
 	const mergedBalance = {
 		...dataBalance,
+		balance: dataBalance?.balance || 0, // In case the balance is null, default to 0
 		communityHealth: dataHealth as CommunityHealth | null
 	};
 
@@ -47,7 +48,7 @@ export async function canUserAfford(
 
 	console.log(balance?.balance, 'user seeds and', balance?.communityHealth, 'health');
 
-	if (!balance?.balance || balance?.balance < cost || balance?.communityHealth === 'Empty') {
+	if ((!balance?.balance || balance?.balance < cost) && balance?.communityHealth === 'Empty') {
 		console.log('Not enough private nor public seeds.');
 		return false;
 	}
