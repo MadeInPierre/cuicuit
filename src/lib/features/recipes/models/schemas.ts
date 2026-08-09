@@ -45,17 +45,17 @@ export const createRecipeFormSchema = z
 			.number()
 			.int()
 			.min(0)
-			.max(60 * 24),
+			.max(60 * 48),
 		timeRest: z
 			.number()
 			.int()
 			.min(0)
-			.max(60 * 24),
+			.max(60 * 48),
 		timeCook: z
 			.number()
 			.int()
 			.min(0)
-			.max(60 * 24),
+			.max(60 * 48),
 
 		// Servings & Ingredients
 		servings: z.number().int().min(1).max(20),

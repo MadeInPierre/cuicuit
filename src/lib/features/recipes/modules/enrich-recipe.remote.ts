@@ -56,7 +56,7 @@ const relevantRecipeFieldsSchema = z.object({
 }) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
 
 const outputSchema = z.object({
-	lang: languageKeySchema.describe("The input recipe's written language."),
+	lang: languageKeySchema.describe("The input recipe's written language, e.g. en-US, fr-FR, pt-BR, es-ES."),
 	recipe: relevantRecipeFieldsSchema.describe(
 		'The main enriched recipe object with inferred details.'
 	),
@@ -82,12 +82,10 @@ export const enrichRawRecipe = query(
 			.min(1)
 			.max(200_000, 'Scraped content too long, refusing to call enrich LLM.'),
 		format: z.enum(['ldjson', 'recipe-json', 'markdown']),
-		fallbackLang: languageKeySchema
 	}),
-	async ({ content, format, fallbackLang }) => {
+	async ({ content, format }) => {
 		return enrichRecipeLlm({
 			source_format: format,
-			fallback_language: fallbackLang,
 			raw_content: content
 		});
 	}
@@ -290,6 +288,13 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 				);
 				recovered.ingredients = recoveredIngredients;
 			}
+		}
+
+		// Recover the language if present
+		if (parsed.lang && typeof parsed.lang === 'string') {
+			const langResult = languageKeySchema.safeParse(parsed.lang);
+			recovered.lang = langResult.data;
+			console.log(`Recovered language: ${recovered.lang}`);
 		}
 
 		// If we recovered some valid data, return it
