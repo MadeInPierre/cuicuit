@@ -469,7 +469,9 @@
 				{/if}
 
 				{#each Object.entries($errors) || [] as [key, messages] (key)}
-					<Label class="text-red-600 ml-auto">{messages}</Label>
+					<Label class="text-red-600 ml-auto">
+						{`${capitalize(key).replaceAll('_', ' ')}: ${typeof messages == 'string' ? messages : Object.values(messages).join(', ')}`}
+					</Label>
 				{/each}
 
 				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
