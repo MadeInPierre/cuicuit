@@ -1,4 +1,6 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import type { Database } from '$lib/shared/db/supabase.types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
 
 function generateUuid() {
@@ -18,11 +20,11 @@ function generateUuid() {
  * Upload a new recipe image to the storage and add the image url to the recipeDoc urls list
  */
 export async function uploadRecipeImage(
+	supabase: SupabaseClient<Database>,
 	file: File,
 	recipeId: string,
 	currentImageIds: string[] | null
 ) {
-	if(!supabase.client) throw new Error("No supabase client");
 	if (!file) throw new Error('No file to upload');
 
 	// Get the file extension
@@ -31,7 +33,7 @@ export async function uploadRecipeImage(
 	const imageId = `${uuid}.${ext}`;
 
 	// Upload the image to Supabase storage
-	const { data, error } = await supabase.client.storage
+	const { data, error } = await supabase.storage
 		.from('recipes')
 		.upload(`images/${recipeId}/${imageId}`, file, {
 			contentType: file.type,
@@ -47,7 +49,7 @@ export async function uploadRecipeImage(
 	toast.success('Image uploaded successfully.');
 
 	// Update the recipe row in supabase with the new image ID
-	const { error: updateError } = await supabase.client
+	const { error: updateError } = await supabase
 		.from('recipes')
 		.update({ image_ids: [...(currentImageIds || []), imageId] })
 		.eq('id', recipeId);
@@ -66,18 +68,18 @@ export async function uploadRecipeImage(
  * Delete the recipe image from the storage and remove the image url from the recipeDoc urls list
  */
 export async function deleteRecipeImage(
+	supabase: SupabaseClient<Database>,
 	imgId: string,
 	recipeId: string,
 	currentImageIds: string[]
 ) {
-	if(!supabase.client) throw new Error("No supabase client");
 
 	// Delete the image from Supabase storage
-	await supabase.client.storage.from('recipes').remove([`images/${recipeId}/${imgId}`]);
+	await supabase.storage.from('recipes').remove([`images/${recipeId}/${imgId}`]);
 
 	// Remove the image ID from the recipe's image_ids array
 	const updatedImageIds = currentImageIds.filter((id) => id !== imgId);
-	const { error } = await supabase.client
+	const { error } = await supabase
 		.from('recipes')
 		.update({ image_ids: updatedImageIds })
 		.eq('id', recipeId);

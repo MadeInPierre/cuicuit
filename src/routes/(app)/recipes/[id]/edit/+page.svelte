@@ -7,11 +7,9 @@
 		recipeCourses,
 		recipeCuisines,
 		recipeTimesOfDay,
-		recipeTools,
 		type RecipeCourseKey,
 		type RecipeCuisineKey,
-		type RecipeTimeOfDayKey,
-		type RecipeToolKey
+		type RecipeTimeOfDayKey
 	} from '$lib/features/recipes/db/recipe-doc';
 	import {
 		createRecipeFormSchema,
@@ -452,18 +450,16 @@
 					</div>
 				</div>
 
-				{#each ($errors._errors || []) as e (e)}
-					<Label class="text-red-600 ml-auto">{e}</Label>
-				{/each}
-
 				{#if banner == 'import-incomplete' && openBanner}
-					<div class="w-full bg-yellow-50 flex gap-8 p-4 items-start text-yellow-800" out:slide>
+					<div
+						class="w-full bg-green-50 dark:bg-green-900 flex gap-8 p-4 items-start text-green-800 dark:text-white rounded-md"
+						out:slide
+					>
 						<div class="rounded-md text-sm">
-							<span class="font-semibold">Missing information:</span>
+							<span class="font-semibold">Almost there!</span>
 							<span>
-								Almost there! It seems like the imported recipe is missing some information required
-								for Cuicuit recipes. Please take a moment to fill in the remaining details and save
-								the recipe.
+								It seems the recipe is missing some information. Please take a moment to fill in the
+								remaining details.
 							</span>
 						</div>
 						<button class="ml-auto" onclick={() => (openBanner = false)}>
@@ -471,6 +467,10 @@
 						</button>
 					</div>
 				{/if}
+
+				{#each Object.entries($errors) || [] as [key, messages] (key)}
+					<Label class="text-red-600 ml-auto">{messages}</Label>
+				{/each}
 
 				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">

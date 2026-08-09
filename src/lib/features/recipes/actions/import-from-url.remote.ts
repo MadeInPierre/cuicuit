@@ -211,7 +211,7 @@ export const importRecipeFromUrl = query(
 				const imgResponse = await fetch(scraped.image);
 				const blob = await imgResponse.blob();
 				const file = new File([blob], 'imported-image.jpg', { type: blob.type });
-				await uploadRecipeImage(file, recipeId, []);
+				await uploadRecipeImage(event.locals.supabase, file, recipeId, []);
 			} catch (error) {
 				console.warn('Failed to download & upload the image, skipping:', error);
 			}
@@ -223,7 +223,6 @@ export const importRecipeFromUrl = query(
 			enrichedRecipe = await enrichRawRecipe({
 				content: scraped.content,
 				format: scraped.format,
-				fallbackLang
 			});
 		} catch (error) {
 			console.error('Failed to parse scraped recipe with the LLM:', error);

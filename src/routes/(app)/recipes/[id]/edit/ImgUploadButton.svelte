@@ -5,6 +5,7 @@
 		uploadRecipeImage
 	} from '$lib/features/recipes/actions/upload-recipe-image';
 	import { Input } from '$lib/shared/components/ui/input';
+	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { cn } from '$lib/utils';
 	import { Camera, Loader2, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
@@ -26,10 +27,10 @@
 	let loading = $state(false);
 
 	async function uploadImage(file: File) {
-		if (!recipeId) return;
+		if (!recipeId || !supabase.client) return;
 
 		loading = true;
-		const imageId = await uploadRecipeImage(file, recipeId, currentImageIds);
+		const imageId = await uploadRecipeImage(supabase.client, file, recipeId, currentImageIds);
 		loading = false;
 
 		// Call the callback if provided
@@ -37,10 +38,10 @@
 	}
 
 	async function deleteImage() {
-		if (!recipeId || !imgId) return;
+		if (!recipeId || !imgId || !supabase.client) return;
 
 		loading = true;
-		const newImageIds = await deleteRecipeImage(imgId, recipeId, currentImageIds);
+		const newImageIds = await deleteRecipeImage(supabase.client, imgId, recipeId, currentImageIds);
 		loading = false;
 
 		// Call the callback if provided
