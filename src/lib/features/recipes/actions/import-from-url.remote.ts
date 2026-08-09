@@ -163,7 +163,7 @@ export const importRecipeFromUrl = query(
 		fallbackLang: languageKeySchema
 	}),
 	async ({ spaceId, url, fallbackLang }) => {
-		console.log('Importing recipe from URL', spaceId, url);
+		console.log('Importing recipe from URL', spaceId, url, fallbackLang);
 
 		// Check authentication
 		const event = getRequestEvent();
@@ -178,6 +178,7 @@ export const importRecipeFromUrl = query(
 		);
 		if (!authorized) throw new Error('User cannot afford the feature.');
 
+		console.log('Fetching recipe from URL:', url);
 		const parsedRecipe = (await parseRecipeUrl({ url })) as RecipeParsed;
 		console.log('Fetched recipe object:', parsedRecipe);
 

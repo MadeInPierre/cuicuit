@@ -61,6 +61,8 @@
 				url: data.url,
 				fallbackLang: space.language.lang
 			});
+
+			// Refresh credit balance
 			userState.refresh();
 
 			// Navigate based on completeness

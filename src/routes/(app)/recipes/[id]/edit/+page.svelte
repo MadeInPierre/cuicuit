@@ -112,13 +112,13 @@
 				formData.update(
 					(f) => {
 						// General info
-						f.language = (recipeData.language.lang as LanguageKey) || 'fr-FR';
+						f.language = (recipeData.language?.lang as LanguageKey) || 'fr-FR';
 						f.title = recipeData.title || 'New recipe';
 						f.short_title = recipeData.short_title || 'New';
 						f.description = recipeData.description || 'Delicious new recipe';
 
 						// Source
-						f.source_type = recipeData.source_type;
+						f.source_type = recipeData.source_type || 'user-manual';
 						f.source_url = recipeData.source_url;
 
 						// Images
@@ -452,7 +452,7 @@
 					</div>
 				</div>
 
-				{#each $errors._errors as e (e)}
+				{#each ($errors._errors || []) as e (e)}
 					<Label class="text-red-600 ml-auto">{e}</Label>
 				{/each}
 

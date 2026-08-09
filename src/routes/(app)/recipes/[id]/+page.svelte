@@ -239,7 +239,7 @@
 
 							{@render recipeFilter(
 								Utensils,
-								recipe.times_of_day?.length > 1 ? 'Times of Day' : 'Time of Day',
+								recipe.times_of_day && recipe.times_of_day.length > 1 ? 'Times of Day' : 'Time of Day',
 								recipe.times_of_day?.map(
 									(t) => recipeTimesOfDay[t as keyof typeof recipeTimesOfDay]
 								) || ['Unknown']
@@ -276,7 +276,7 @@
 									size="sm"
 									type="submit"
 									class="flex ml-auto"
-									onclick={() => recipe && addRecipeToActivePlan(space, recipe.id, displayServings)}
+									onclick={() => recipe?.id && addRecipeToActivePlan(space, recipe.id, displayServings)}
 								>
 									<CalendarPlus class="size-4" />
 

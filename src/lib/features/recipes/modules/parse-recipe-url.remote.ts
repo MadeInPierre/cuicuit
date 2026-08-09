@@ -35,6 +35,7 @@ export const parseRecipeUrl = query(importRecipeUrlSchema, async (input) => {
 		return new Response(JSON.stringify({ error: 'Invalid input URL parameter' }), { status: 400 });
 	}
 
+	console.log('Parsing recipe URL:', input.url);
 	const response = await fetch(SCRAPER_API_URL, {
 		method: 'POST',
 		headers: {

@@ -145,6 +145,7 @@
 {#if open}
 	<!-- Dialog -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<!-- svelte-ignore a11y_interactive_supports_focus -->
 	<div
 		class="place-items-center p-4"
 		role="dialog"
@@ -202,6 +203,7 @@
 			<!-- Dial -->
 			<div class="mt-6 px-6 pb-0" bind:this={container}>
 				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					class="relative mx-auto select-none outline-hidden"
 					style={`width:${dialPx}px;height:${120}px`}

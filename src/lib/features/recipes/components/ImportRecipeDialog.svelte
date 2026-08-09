@@ -33,11 +33,11 @@
 		</Tabs.Trigger>
 		<Tabs.Trigger value="image">
 			<FileImage class="mr-2 size-4" />
-			Image
+			Photo
 		</Tabs.Trigger>
 		<Tabs.Trigger value="manual">
 			<Pencil class="mr-2 size-4" />
-			Manual
+			New
 		</Tabs.Trigger>
 	</Tabs.List>
 {/snippet}

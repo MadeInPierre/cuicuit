@@ -64,6 +64,7 @@
 	}
 
 	async function onSelectRecipe(recipe: Recipe) {
+		if (!recipe?.id || !recipe?.servings) return;
 		await addRecipeToActivePlan(space, recipe.id, recipe.servings); // TODO refactor to allow choosing servings & send this function to parent component
 
 		// Reset the search input and matches
