@@ -70,27 +70,26 @@ export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
 /* ------------- PUBLIC --------------- */
 
 /**
- * Takes a draft or incomplete recipe and enriches it to infer missing details, filters, optional ingredients, etc.
- * Uses a remote LLM.
- *
- * @param recipe - The incomplete recipe to enrich.
- * @returns A promise that resolves to the enriched recipe.
+ * Parses raw scraped content (JSON-LD, recipe JSON, or cleaned Markdown) into a
+ * structured, enriched recipe using the LLM. The scraping pipeline passes the
+ * raw content through as-is; this is where all parsing into the app schema
+ * happens.
  */
-export const enrichParsedRecipe = query(
+export const enrichRawRecipe = query(
 	z.object({
-		recipe: relevantRecipeFieldsSchema.describe('The main recipe object to enrich.'),
-		ingredients: z
-			.array(z.string())
-			.describe('The list of ingredient strings, as raw parsed from the source.')
+		content: z
+			.string()
+			.min(1)
+			.max(200_000, 'Scraped content too long, refusing to call enrich LLM.'),
+		format: z.enum(['ldjson', 'recipe-json', 'markdown']),
+		fallbackLang: languageKeySchema
 	}),
-	async (input) => {
-		// Extract only the relevant fields using the schema
-		const relevantInput = {
-			recipe: relevantRecipeFieldsSchema.parse(input.recipe),
-			ingredients: input.ingredients
-		};
-
-		return enrichRecipeLlm(relevantInput);
+	async ({ content, format, fallbackLang }) => {
+		return enrichRecipeLlm({
+			source_format: format,
+			fallback_language: fallbackLang,
+			raw_content: content
+		});
 	}
 );
 
@@ -199,7 +198,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 						// Try to validate individual fields using the schema shape
 						const fieldSchema =
 							relevantRecipeFieldsSchema.shape[
-								key as keyof typeof relevantRecipeFieldsSchema.shape
+							key as keyof typeof relevantRecipeFieldsSchema.shape
 							];
 						if (fieldSchema) {
 							const fieldResult = fieldSchema.safeParse(value);

@@ -1,4 +1,9 @@
-This is a python REST server that takes a recipe URL and returns the parsed recipe in JSON format. It should run in a docker container in a VPS along with the cuicuit frontend. 
+This is a Python REST server that takes a recipe URL and returns the parsed recipe in JSON format. It is **one strategy** in Cuicuit's multi-strategy scraping pipeline: it runs in a Docker container on a VPS alongside the frontend and is called by the SvelteKit orchestrator at `POST /scrape-recipe`. The service is fully optional — if it's down or unset, the orchestrator falls through to the SaaS providers.
+
+## Endpoints
+
+- `GET /health` — liveness probe.
+- `POST /scrape-recipe` — body `{ "url": "https://..." }` → parsed recipe JSON (raw passthrough, enriched downstream by the LLM). Returns `422` when no recipe can be parsed, `502/504` on fetch failures.
 
 ## Local development
 
