@@ -267,7 +267,7 @@ export default defineConfig({
 			},
 			includeAssets: ['favicon.png'],
 			devOptions: {
-				// enabled: true
+				enabled: true
 			}
 		})
 		// visualizer({

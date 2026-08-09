@@ -96,19 +96,13 @@
 		$formData.lastName = userState.preferences?.last_name;
 		$formData.userName = userState.profile?.user_name;
 		$formData.iconKey = userState.profile?.icon;
-
-		// if (!$formData.firstName && !$formData.userName) {
-		// 	randomizeProfileDraft();
-		// }
 	});
 </script>
 
 {#if userState.preferences?.onboarding_status === 'finished'}
 	<div class="flex flex-col space-y-2 text-center">
-		<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>
-		<p class="text-sm text-muted-foreground">
-			Looks like you've already finished the welcome step, redirecting you to your homepage...
-		</p>
+		<h1 class="text-2xl font-semibold tracking-tight">All good!</h1>
+		<p class="text-sm text-muted-foreground">2 clicks left to import your first recipe!</p>
 	</div>
 {:else}
 	<div class="flex flex-col space-y-2 text-center">
