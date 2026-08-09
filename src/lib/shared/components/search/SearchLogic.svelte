@@ -36,7 +36,7 @@
 
 	const space = getActiveSpaceState();
 
-	let debounceTimeout: NodeJS.Timeout;
+	let debounceTimeout: any;
 
 	$effect(() => {
 		loading = inputValue.trim().length > 0;

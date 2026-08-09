@@ -72,7 +72,7 @@ export async function getRecipeDetailed(recipeId: string, languageId: number) {
 	const { data: authorProfile, error: profileError } = await supabase.client
 		.from('user_public_profiles')
 		.select('*')
-		.eq('user_id', data.author_id)
+		.eq('user_id', data.author_id!)
 		.single();
 
 	if (profileError || !authorProfile) {

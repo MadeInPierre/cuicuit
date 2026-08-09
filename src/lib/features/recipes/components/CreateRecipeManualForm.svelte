@@ -47,7 +47,11 @@
 			}
 
 			// Create a draft recipe
-			const recipeId = await createDraftRecipe('user-manual', space.language?.id, data.title);
+			const recipeId = await createDraftRecipe({
+				sourceType: 'user-manual',
+				lang: space.language?.lang,
+				title: data.title
+			});
 
 			// Navigate based on completeness
 			if (recipeId) {

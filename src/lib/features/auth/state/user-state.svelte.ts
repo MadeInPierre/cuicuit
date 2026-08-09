@@ -6,7 +6,7 @@ import { getUserCreditLogs, type UserCreditLogs } from '../queries/get-user-cred
 import { getUserPreferences, type UserPreferences } from '../queries/get-user-preferences';
 import { getUserPublicProfile, type UserPublicProfile } from '../queries/get-user-public-profile';
 
-class UserState {
+export class UserState {
 	#userState = $state<User | undefined | null>(undefined);
 	#userPublicProfile = $state<UserPublicProfile | undefined | null>(undefined);
 	#userPreferences = $state<UserPreferences | undefined | null>(undefined);

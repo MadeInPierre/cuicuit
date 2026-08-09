@@ -60,7 +60,7 @@
 
 		// Update the form placeholders with the new profile data
 		await userState.refresh();
-		updateStatus = UpdateStatus.IDLE;
+		updateStatus = 'idle';
 	}
 
 	// This effect runs when the userState changes to fill the form fields

@@ -2,7 +2,11 @@
 	import { page } from '$app/state';
 	import { Input } from '../ui/input';
 
-	let { ref = $bindable(), value = $bindable('') } = $props();
+	type Props = {
+		ref?: HTMLElement | null;
+		value?: string;
+	};
+	let { ref = $bindable(), value = $bindable('') }: Props = $props();
 </script>
 
 <Input

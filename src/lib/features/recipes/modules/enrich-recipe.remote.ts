@@ -191,7 +191,6 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 				recovered.recipe = recipeResult.data;
 			} else {
 				// Attempt field-by-field recovery for recipe
-				console.warn('Recipe validation failed:', recipeResult.error.errors);
 				console.log('Attempting field-by-field recovery for recipe');
 				const partialRecipe: Record<string, unknown> = {};
 
@@ -208,7 +207,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 								partialRecipe[key] = fieldResult.data;
 								console.log(`✓ Recovered field: ${key}`);
 							} else {
-								console.warn(`✗ Failed to recover field: ${key}`, fieldResult.error.errors);
+								console.warn(`✗ Failed to recover field: ${key}`, fieldResult.error);
 							}
 						} else {
 							// If no schema for this field, include it as-is
@@ -230,7 +229,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 					console.log('Successfully parsed partial recipe');
 					recovered.recipe = partialRecipeResult.data as z.infer<typeof relevantRecipeFieldsSchema>;
 				} else {
-					console.error('Failed to parse partial recipe:', partialRecipeResult.error.errors);
+					console.error('Failed to parse partial recipe:', partialRecipeResult.error);
 				}
 			}
 		}
@@ -248,7 +247,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 					// Attempt field-by-field recovery for ingredient
 					console.warn(
 						'Ingredient validation failed, attempting field-by-field recovery:',
-						result.error.errors
+						result.error
 					);
 					const partialIngredient: Record<string, unknown> = {};
 

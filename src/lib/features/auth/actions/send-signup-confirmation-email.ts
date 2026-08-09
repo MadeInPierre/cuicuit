@@ -2,7 +2,7 @@ import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 
 export async function resendConfirmationEmail() {
-	return supabase.auth
+	return supabase.client?.auth
 		.resend({
 			type: 'signup',
 			email: 'email@example.com',
