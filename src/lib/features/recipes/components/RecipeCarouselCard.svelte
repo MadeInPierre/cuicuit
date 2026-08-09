@@ -38,7 +38,7 @@
 {#if recipe}
 	<div class={cn('w-full max-w-full group flex flex-col items-start', className)}>
 		{#if recipe.image_ids && recipe.image_ids.length > 0}
-			<div class="relative w-full aspect-4/3 rounded-lg overflow-hidden">
+			<div class="relative w-full aspect-4/3 rounded-lg overflow-hidden shadow-2xs">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<!-- svelte-ignore a11y_missing_attribute -->
@@ -147,7 +147,7 @@
 		{:else}
 			<a
 				href={'/recipes/' + recipe.id}
-				class="w-full aspect-square bg-muted rounded-xl flex items-center justify-center"
+				class="w-full aspect-4/3 bg-muted rounded-lg flex items-center justify-center shadow-2xs"
 				aria-label={'Recipe ' + recipe.title}
 			>
 				<ChefHat class="size-1/4 text-muted-foreground" />
@@ -178,7 +178,7 @@
 	</div>
 {:else}
 	<div class={cn('w-full group flex flex-col items-start', className)}>
-		<div class="relative w-full aspect-4/3 rounded-xl overflow-hidden">
+		<div class="relative w-full aspect-4/3 rounded-lg overflow-hidden">
 			<div
 				class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
 			>

@@ -1,6 +1,15 @@
+"""Cuicuit Recipe Scraper.
+
+Thin HTTP wrapper around the `recipe-scrapers` package. This is ONE of the
+strategies in the Cuicuit scraping pipeline (the free Python one); it is called
+by the SvelteKit orchestrator at `POST /scrape-recipe`. The service is fully
+optional — if it's down or unset, the orchestrator simply moves on to the next
+strategy.
+"""
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -8,8 +17,10 @@ from urllib3.util.retry import Retry
 
 from recipe_scrapers import scrape_html
 
-app = FastAPI()
+app = FastAPI(title="Cuicuit Recipe Scraper", version="2.0.0")
 
+# The service is only ever called server-side by the SvelteKit backend, but we
+# keep permissive CORS for local development.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,7 +31,7 @@ app.add_middleware(
 
 
 class RecipeRequest(BaseModel):
-    url: str
+    url: HttpUrl
 
 
 HEADERS = {
@@ -34,61 +45,72 @@ HEADERS = {
     "Referer": "https://www.google.com/",
 }
 
+TIMEOUT_SECONDS = 15
+
 
 def fetch_html(url: str) -> str:
     session = requests.Session()
     session.headers.update(HEADERS)
 
-    retry = Retry(
-        total=2,
-        status_forcelist=[403, 429, 500],
-    )
+    retry = Retry(total=2, status_forcelist=[429, 500, 502, 503, 504], backoff_factor=0.5)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount("http://", adapter)
     session.mount("https://", adapter)
 
     try:
-        response = session.get(url, timeout=10)
+        response = session.get(url, timeout=TIMEOUT_SECONDS)
         response.raise_for_status()
         return response.text
-    except Exception:
-        return fetch_html_browser(url)
-
-
-def fetch_html_browser(url: str) -> str:
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
+    except requests.exceptions.Timeout as exc:
+        raise HTTPException(
+            status_code=504,
+            detail={"error": "fetch_timeout", "message": "Timed out fetching the page."},
+        ) from exc
+    except requests.exceptions.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        raise HTTPException(
+            status_code=502 if status >= 500 else status,
+            detail={
+                "error": "fetch_failed",
+                "status": status,
+                "message": "The site refused the request (likely bot protection).",
+            },
+        ) from exc
+    except requests.exceptions.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail="Blocked by site and Playwright not installed",
-        )
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, timeout=15000)
-        html = page.content()
-        browser.close()
-        return html
+            detail={"error": "unreachable", "message": "Could not reach the page."},
+        ) from exc
 
 
-@app.post("/scrape-recipe/")
-async def scrape_recipe(request: RecipeRequest):
+@app.get("/health")
+async def health() -> dict:
+    return {"status": "ok", "service": "cuicuit-recipe-scraper"}
+
+
+@app.post("/scrape-recipe")
+async def scrape_recipe(request: RecipeRequest) -> dict:
+    url = str(request.url)
+
     try:
-        html = fetch_html(request.url)
-        scraper = scrape_html(html, org_url=request.url)
+        html = fetch_html(url)
+        scraper = scrape_html(html, org_url=url)
         scrape = scraper.to_json()
 
         instructions = scrape.get("instructions_list")
         if not instructions:
-            instructions = [step.strip() for step in scrape.get("instructions", "").split("\n") if step.strip()]
+            instructions = [
+                step.strip()
+                for step in scrape.get("instructions", "").split("\n")
+                if step.strip()
+            ]
 
         return {
+            "strategy": "recipe-scrapers",
             "source": {
                 "name": scrape.get("site_name", ""),
                 "domain": scrape.get("host", ""),
-                "url": scrape.get("canonical_url", ""),
+                "url": scrape.get("canonical_url", url),
             },
             "title": scrape.get("title", ""),
             "description": scrape.get("description", ""),
@@ -110,6 +132,10 @@ async def scrape_recipe(request: RecipeRequest):
             "category": scrape.get("category", ""),
             "language": scrape.get("language", ""),
         }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "parse_failed", "message": "Could not parse a recipe from this page."},
+        ) from exc

@@ -341,6 +341,13 @@ begin
     raise exception 'Consumption amount must be a positive integer value.';
   end if;
 
+  -- 1b. Normalize p_metadata so the '||' merges below always yield a single flat
+  -- object. PostgREST clients may send the metadata either as a proper jsonb
+  -- object or as a JSON-encoded string (e.g. pre-JSON.stringify'd in the app).
+  if p_metadata is not null and jsonb_typeof(p_metadata) = 'string' then
+    p_metadata := (p_metadata #>> '{}')::jsonb;
+  end if;
+
   -- 2. Lock and Read Private Balance to prevent race conditions
   -- (Assuming a row always exists per user. If not, consider a FOR UPDATE on a parent table or upsert)
   select coalesce(balance, 0) into v_private_bal

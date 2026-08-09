@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # Set Python runtime env
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -9,18 +9,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set the working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container
-COPY . /app
-
-# Create a non-root user for security
-RUN useradd -m app
-
+# Install dependencies first for better layer caching
+COPY requirements.txt .
 # Install build tools for ARM (Raspberry Pi), then pip deps, then clean up
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential && \
-    pip install --no-cache-dir --prefer-binary fastapi uvicorn recipe-scrapers rich && \
+    pip install --no-cache-dir --prefer-binary -r requirements.txt && \
     apt-get purge -y --auto-remove build-essential && \
     rm -rf /var/lib/apt/lists/*
+
+# Copy the application code
+COPY . .
+
+# Create a non-root user for security
+RUN useradd -m app && chown -R app:app /app
 
 # Expose the port FastAPI will run on
 EXPOSE 8000

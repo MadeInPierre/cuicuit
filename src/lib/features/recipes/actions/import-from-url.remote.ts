@@ -6,21 +6,17 @@ import { serverIsUserAuthenticated } from '$lib/features/billing/server/utils/is
 import { languageKeySchema, languages, type LanguageKey } from '$lib/features/user-settings/consts';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
-import { capitalize } from '$lib/utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import z from 'zod';
 import {
-	enrichParsedRecipe,
+	enrichRawRecipe,
 	enrichTextRecipe,
 	type EnrichedRecipeOutput
 } from '../modules/enrich-recipe.remote';
 import { matchIngredients } from '../modules/parse-ingredients/match';
 import type { ParsedSearchInput } from '../modules/parse-ingredients/parse';
-import {
-	processIngredientStrings,
-	type IngredientProcessed
-} from '../modules/parse-ingredients/process';
-import { parseRecipeUrl, type RecipeParsed } from '../modules/parse-recipe-url.remote';
+import type { IngredientProcessed } from '../modules/parse-ingredients/process';
+import { scrapeRecipeUrl } from '../modules/scrape-recipe/orchestrator.remote';
 import { getLanguageId } from '../queries/get-language-id';
 import { createDraftRecipe } from './create-draft-recipe.remote';
 import { uploadRecipeImage } from './upload-recipe-image';
@@ -67,7 +63,7 @@ async function saveEnrichedRecipe(
 ): Promise<void> {
 	// Get the recipe's language database ID
 	const langId =
-		Object.entries(languages).find(([key, _]) => key === enrichedRecipe.lang)?.[1].id || 1;
+		Object.entries(languages).find(([key]) => key === enrichedRecipe.lang)?.[1].id || 1;
 
 	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase
 		.from('recipes')
@@ -178,22 +174,18 @@ export const importRecipeFromUrl = query(
 		);
 		if (!authorized) throw new Error('User cannot afford the feature.');
 
-		console.log('Fetching recipe from URL:', url);
-		const parsedRecipe = (await parseRecipeUrl({ url })) as RecipeParsed;
-		console.log('Fetched recipe object:', parsedRecipe);
+		// 1. Scrape with the multi-strategy pipeline (cheapest to most expensive).
+		const scraped = await scrapeRecipeUrl({ url });
+		console.log('Scraped recipe:', scraped.strategy, scraped.format, scraped.attempts);
 
-		if (
-			!parsedRecipe.title ||
-			!parsedRecipe.instructions ||
-			parsedRecipe.instructions.length === 0
-		) {
-			throw new Error('Failed to extract recipe parsedRecipe from the provided URL.');
-		}
-
-		// Use the space's language as fallback if the LLM doesn't guess it from the recipe later
-		const { data: languageData } = await getLanguageId(event.locals.supabase, fallbackLang as LanguageKey);
+		// 2. Use the space's language as fallback if the LLM doesn't guess it from the recipe.
+		const { data: languageData } = await getLanguageId(
+			event.locals.supabase,
+			fallbackLang as LanguageKey
+		);
 		if (!languageData) throw new Error('Could not retrieve language ID.');
 
+		// 3. Create the draft recipe.
 		const recipeId = await createDraftRecipe({
 			sourceType: 'website',
 			lang: languageData.lang,
@@ -203,78 +195,65 @@ export const importRecipeFromUrl = query(
 			throw new Error('Failed to create draft recipe.');
 		}
 
-		// Download & store the image to Supabase, and get the image ID
-		try {
-			const imgResponse = await fetch(parsedRecipe.image);
-			const blob = await imgResponse.blob();
-			const file = new File([blob], 'imported-image.jpg', { type: blob.type });
-			await uploadRecipeImage(file, recipeId, []);
-		} catch (error) {
-			console.warn('Failed to download & upload the image, skipping:', error);
-		}
-
-		// Insert the imported data into the database
-		const { data: insertData, error: insertError } = await event.locals.supabase
+		// 4. Attach source attribution to the draft (best-effort, so the draft is
+		// traceable even if the LLM parse fails later).
+		await event.locals.supabase
 			.from('recipes')
 			.update({
-				author_id: userId,
-				source_type: 'website',
-				source_url: parsedRecipe.source.url,
-				title: capitalize(parsedRecipe.title?.trim()),
-				short_title: capitalize(parsedRecipe.title?.trim())?.split(' ')?.[0] || '?',
-				description: capitalize(parsedRecipe.description?.trim() || ''),
-				time_prep_minutes: parseInt(parsedRecipe.time.prep) || null,
-				time_cook_minutes: parseInt(parsedRecipe.time.cook) || null,
-				time_rest_minutes: parseInt(parsedRecipe.time.rest) || null,
-				servings: parseInt(parsedRecipe.servings) || 4,
-				language_id: languageData.id,
-				updated_at: new Date().toISOString(),
-				steps: parsedRecipe.instructions
-			} satisfies Partial<PublicRecipesRow>)
-			.eq('id', recipeId)
-			.select()
-			.single();
+				source_url: scraped.source?.url || url,
+				updated_at: new Date().toISOString()
+			})
+			.eq('id', recipeId);
 
-		if (insertError || !insertData) {
-			console.error('Error inserting imported recipe data:', insertError);
-			throw new Error('Failed to insert imported recipe data.');
+		// 5. Download & store the best-guess image (best-effort).
+		if (scraped.image) {
+			try {
+				const imgResponse = await fetch(scraped.image);
+				const blob = await imgResponse.blob();
+				const file = new File([blob], 'imported-image.jpg', { type: blob.type });
+				await uploadRecipeImage(file, recipeId, []);
+			} catch (error) {
+				console.warn('Failed to download & upload the image, skipping:', error);
+			}
 		}
 
-		let processedIngredients: IngredientProcessed[] = [];
-
-		// Try to call an LLM to enhance & complete the data before inserting
+		// 6. Let the LLM parse the raw scraped content into the app schema.
+		let enrichedRecipe: EnrichedRecipeOutput;
 		try {
-			const enrichedRecipe = await enrichParsedRecipe({
-				recipe: insertData,
-				ingredients: parsedRecipe.ingredients.flatMap((group) => group.ingredients) // TODO support ingredient groups
+			enrichedRecipe = await enrichRawRecipe({
+				content: scraped.content,
+				format: scraped.format,
+				fallbackLang
 			});
-
-			await saveEnrichedRecipe(event.locals.supabase, recipeId, enrichedRecipe);
-
-			processedIngredients = await processAndMatchIngredients(
-				event.locals.supabase,
-				enrichedRecipe.ingredients,
-				(enrichedRecipe.lang as LanguageKey) || languageData.lang || 'fr-FR'
-			);
-			console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 		} catch (error) {
-			console.warn('Failed to enrich imported recipe data, proceeding with raw data:', error);
-
-			// Fallback to locally processing the ingredients
-			processedIngredients = await processIngredientStrings(
-				event.locals.supabase,
-				parsedRecipe.ingredients.flatMap((group) => group.ingredients), // TODO support groups
-				languageData.lang // Assuming the space's main language as fallback
+			console.error('Failed to parse scraped recipe with the LLM:', error);
+			throw new Error(
+				'Failed to parse the scraped recipe with the LLM. The draft was saved — please try again.'
 			);
 		}
 
+		// 7. Persist the enriched recipe.
+		await saveEnrichedRecipe(event.locals.supabase, recipeId, enrichedRecipe);
+		console.log('Enriched recipe from LLM:', enrichedRecipe);
+
+		// 8. Match & insert the enriched ingredients.
+		const processedIngredients = await processAndMatchIngredients(
+			event.locals.supabase,
+			enrichedRecipe.ingredients,
+			(enrichedRecipe.lang as LanguageKey) || languageData.lang || 'fr-FR'
+		);
 		await insertRecipeIngredients(event.locals.supabase, recipeId, processedIngredients);
 
+		// 9. Charge the feature, recording scrape stats in the billing metadata.
 		const usage = await consumeCredits({
 			amount: FEATURE_COSTS.import_recipe_from_website.seeds,
 			feature: 'import_recipe_from_website' as PaidFeatureKey,
 			metadata: JSON.stringify({
-				recipe_url: url
+				recipe_url: url,
+				strategy: scraped.strategy,
+				format: scraped.format,
+				content_length: scraped.content.length,
+				attempts: scraped.attempts.length
 			})
 		});
 
@@ -332,15 +311,15 @@ export const importRecipeFromText = query(
 			console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 
 			await saveEnrichedRecipe(event.locals.supabase, recipeId, enrichedRecipe);
-		} catch (error) {
+		} catch {
 			throw new Error('LLM errored, cannot import text recipe without LLM');
 		}
 
 		await insertRecipeIngredients(event.locals.supabase, recipeId, processedIngredients);
 
 		const usage = await consumeCredits({
-			amount: FEATURE_COSTS.import_recipe_from_website.seeds,
-			feature: 'import_recipe_from_website' as PaidFeatureKey,
+			amount: FEATURE_COSTS.import_recipe_from_text.seeds,
+			feature: 'import_recipe_from_text' as PaidFeatureKey,
 			metadata: JSON.stringify({
 				length: text.length
 			})
