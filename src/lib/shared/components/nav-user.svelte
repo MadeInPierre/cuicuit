@@ -47,7 +47,7 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg bg-primary-foreground -translate-y-2"
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg bg-popover -translate-y-2"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="start"
 				sideOffset={4}
@@ -66,18 +66,20 @@
 				{#if userState.creditBalance?.balance}
 					<DropdownMenu.Item
 						onclick={() => goto('/settings/seeds')}
-						class="bg-lime-50 hover:bg-lime-50 data-[highlighted]:bg-lime-100 data-[highlighted]:text-lime-600 text-lime-600"
+						class="bg-lime-50 hover:bg-lime-50 data-[highlighted]:bg-lime-100 data-[highlighted]:text-lime-600 text-lime-600 dark:bg-lime-900 dark:hover:bg-lime-800 dark:data-[highlighted]:bg-lime-800 dark:data-[highlighted]:text-lime-400"
 					>
 						<span class="">🌱</span>
+
 						You have {userState.creditBalance?.balance} seed{userState.creditBalance?.balance > 1
 							? 's'
 							: ''}
+
 						<ArrowRight class="ml-auto mr-2 text-lime-600" />
 					</DropdownMenu.Item>
 				{:else}
 					<DropdownMenu.Item
 						onclick={openSupportWall}
-						class="bg-lime-100 hover:bg-lime-50 data-[highlighted]:bg-lime-50 data-[highlighted]:text-lime-600"
+						class="bg-lime-100 hover:bg-lime-50 data-[highlighted]:bg-lime-50 data-[highlighted]:text-lime-600 dark:bg-lime-900 dark:hover:bg-lime-800 dark:data-[highlighted]:bg-lime-800 dark:data-[highlighted]:text-lime-400"
 					>
 						<span class="ml-1">🌱</span>
 
@@ -86,7 +88,6 @@
 							<span class="text-xs text-lime-600">and support Cuicuit!</span>
 						</div>
 
-						<!-- <Heart class="group-hover:hidden ml-auto mr-2 text-lime-600" /> -->
 						<ArrowRight class="ml-auto mr-2 text-lime-600" />
 					</DropdownMenu.Item>
 				{/if}
