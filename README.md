@@ -12,31 +12,31 @@
 > 🐣 **Cuicuit just hatched!** Expect alpha-quality with many bugs and rough edges. Feedback is appreciated!
 
 > [!NOTE]
-> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first.
+> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first. No releases yet, but you can try the [hosted version](https://cuicuit.laclau.dev) and give feedback in the [GitHub discussions](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas).
 
-No more *What's for dinner?*, Cuicuit does the thinking for you! Focus on meals, not ingredients.
+Focus on meals, not ingredients. Cuicuit does the thinking for you!
 
-Import recipes from anywhere and get convenient shopping lists from your plan. It passively learns your habits, tracks what's in your fridge, and serves up perfect recipe ideas for the week or right before your food expires.
+Import recipes from anywhere and get an automatic shopping list from your plan. Coming soon: it will passively learn your habits, and serve up recipe ideas for the week or right before your food expires.
 
-🥁 P.S. *cui-cui* is how we write the sound of a bird in French (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit!*
+> 🥁 P.S. *cui-cui* is how we write the sound of a bird in French (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit!*
 
 ## 🍀 Why use Cuicuit?
 
 Here is what Cuicuit aims to be once grown up:
 
 * **Intuitive**: Drag recipes into your plan and watch your shopping list update.
-* **Discreet**: Minimizes clicks & steps by guessing habits and automating things.
+* **Discreet**: Minimizes clicks by guessing habits and automating things.
 * **Complete**: Recipes, plans, lists, pantry, nutrition, product scanning, sharing, and more.
 * **Self-hostable**: Cuicuit is open-source. Use the hosted version if you prefer.
-* **Open**: Freely export your data & connect to services via APIs and an MCP server.
+* **Open**: Freely export your data & connect to services via APIs, MCP, and CLI.
 
 ## ✨ Features
 
 Today, Cuicuit is in its early alpha stage. Here are the current features:
 
-* **Shared households**: Create one or more spaces and invite your family or roommates.
-* **Recipe gallery**: Import recipes from websites, then search & filter and add to your plan.
+* **Recipe gallery**: Import recipes from websites, and AI auto-fills the missing details.
 * **Derived shopping list**: A list appears and suggests you past purchases.
+* **Shared households**: Create spaces and invite your friends.
 * **Mobile-friendly**: Install the PWA web app on your phone.
 
 ## 🗺️ Roadmap
@@ -46,17 +46,13 @@ This roadmap presents a rough evolution plan of Cuicuit. Your feedback is very w
 Click to expand. Items marked with 🚧 are currently in progress:
 
 
-<details><summary><strong>🥚 Step 0: Open source & Project foundations 🚧</strong></summary>
+<details><summary><strong>🥚 Chapter 0: Open source & Project foundations 🚧</strong></summary>
 
-* [ ] **LAUNCH BLOCKERS**
-  * [x] ⛔ RLS Security and privacy enforcements
-  * [ ] ⛔ Copyright-free images and recipes
-  * [ ] ⛔ Homepage, marketing, blog, SEO
 * [ ] **🚧 Hosted version**
   * [x] Publicly hosted version for testing and feedback
   * [x] Basic multi-user support with isolated spaces
-  * [ ] ToS, Privacy, Cookies banners, and GDPR compliance
   * [ ] Crowd-funded moneypot to share LLM and hosting costs
+  * [ ] ToS, Privacy, Cookies banners, and GDPR compliance
 * [ ] **Self-hosted version**
   * [ ] Dockerized deployment & documentation
   * [ ] Automated database migrations on startup
@@ -73,7 +69,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
   * [ ] Is a PWA enough or should we build a native app?
 </details>
 
-<details><summary><strong>🐣 Step 1: Import recipes, plan meals, get shopping lists 🚧</strong></summary>
+<details><summary><strong>🐣 Chapter 1: Import recipes, plan meals, get shopping lists 🚧</strong></summary>
 
 * [x] **Shared households**
   * [x] Create one or more isolated "home" spaces (e.g., Home, Parents' house)
@@ -91,12 +87,13 @@ Click to expand. Items marked with 🚧 are currently in progress:
   * [x] Automatically generate a shopping list
   * [x] Suggest items based on past purchases
   * [ ] Sort & group items by aisle, meal, or cart status
+* [ ] **Make this foundation great before the next step**
 
   <!-- * [ ] Interact with recipes: Like, rate, categorize, and clone/customize existing ones -->
   <!-- * [ ] Discover recipes from the community (random roll, search by name, filter by category) -->
 </details>
 
-<details><summary><strong>🐥 Step 2: Meal recommendations from your pantry</strong></summary>
+<details><summary><strong>🐥 Chapter 2: Meal recommendations from your pantry</strong></summary>
 
 * [ ] **Pantry management**
   * [ ] Add pantry items with categories, quantities, expiration dates, and storage locations
@@ -112,7 +109,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
 
 <!-- The next steps are more long-term and depend on your feedback: -->
 
-<details><summary><strong>🐓 Step 3: Quality-of-life features to gain time</strong></summary>
+<details><summary><strong>🐓 Chapter 3: Quality-of-life features to gain time</strong></summary>
 
 * [ ] **Contextual & Predictive Pantry Rules**
   * [ ] Set "Minimum Quantities" per item to auto-trigger shopping list additions regardless of meal plan
@@ -130,7 +127,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
 * [ ] TODO History & Undo, LLM Assistant, Nutrition Stats, Sustainability Metrics, Local Producer Sourcing...
 </details>
 
-<details><summary><strong>🦅 Step 4: Future potential and ideas</strong></summary>
+<details><summary><strong>🦅 Chapter 4: Future potential and ideas</strong></summary>
 
 * [ ] **Supermarket mode**
   * [ ] Barcode scanning while shopping: nutrition insights, past purchases, price comparisons
@@ -150,7 +147,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
   * [ ] Kill-switch toggle to fully disable auto-filling behaviors
 </details>
 
-<!-- <details><summary>🪐 Step 5: The Extended Ecosystem (Long-Term Vision)</summary>
+<!-- <details><summary>🪐 Chapter 5: The Extended Ecosystem (Long-Term Vision)</summary>
 
 *Focus: Deep history, advanced AI, hyper-local networks, and environmental footprint tracking.*
 

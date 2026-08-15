@@ -185,39 +185,7 @@ export const importRecipeFromUrl = query(
 		);
 		if (!languageData) throw new Error('Could not retrieve language ID.');
 
-		// 3. Create the draft recipe.
-		const recipeId = await createDraftRecipe({
-			sourceType: 'website',
-			lang: languageData.lang,
-			title: 'Creating recipe...'
-		});
-		if (!recipeId) {
-			throw new Error('Failed to create draft recipe.');
-		}
-
-		// 4. Attach source attribution to the draft (best-effort, so the draft is
-		// traceable even if the LLM parse fails later).
-		await event.locals.supabase
-			.from('recipes')
-			.update({
-				source_url: scraped.source?.url || url,
-				updated_at: new Date().toISOString()
-			})
-			.eq('id', recipeId);
-
-		// 5. Download & store the best-guess image (best-effort).
-		if (scraped.image) {
-			try {
-				const imgResponse = await fetch(scraped.image);
-				const blob = await imgResponse.blob();
-				const file = new File([blob], 'imported-image.jpg', { type: blob.type });
-				await uploadRecipeImage(event.locals.supabase, file, recipeId, []);
-			} catch (error) {
-				console.warn('Failed to download & upload the image, skipping:', error);
-			}
-		}
-
-		// 6. Let the LLM parse the raw scraped content into the app schema.
+		// 3. Let the LLM parse the raw scraped content into the app schema.
 		let enrichedRecipe: EnrichedRecipeOutput;
 		try {
 			enrichedRecipe = await enrichRawRecipe({
@@ -229,6 +197,38 @@ export const importRecipeFromUrl = query(
 			throw new Error(
 				'Failed to parse the scraped recipe with the LLM. The draft was saved — please try again.'
 			);
+		}
+
+		// 4. Create the draft recipe.
+		const recipeId = await createDraftRecipe({
+			sourceType: 'website',
+			lang: languageData.lang,
+			title: 'Creating recipe...'
+		});
+		if (!recipeId) {
+			throw new Error('Failed to create draft recipe.');
+		}
+
+		// 5. Attach source attribution to the draft (best-effort, so the draft is
+		// traceable even if the LLM parse fails later).
+		await event.locals.supabase
+			.from('recipes')
+			.update({
+				source_url: scraped.source?.url || url,
+				updated_at: new Date().toISOString()
+			})
+			.eq('id', recipeId);
+
+		// 6. Download & store the image
+		if (scraped.image) {
+			try {
+				const imgResponse = await fetch(scraped.image);
+				const blob = await imgResponse.blob();
+				const file = new File([blob], 'imported-image.jpg', { type: blob.type });
+				await uploadRecipeImage(event.locals.supabase, file, recipeId, []);
+			} catch (error) {
+				console.warn('Failed to download & upload the image, skipping:', error);
+			}
 		}
 
 		// 7. Persist the enriched recipe.

@@ -29,7 +29,7 @@
 	// - <uuid>
 	const schema = joinSpaceFormSchema.refine(
 		(v) =>
-			/^((https?:\/\/)?(cuicu\.it|cuicuit\.app\/join)\/)?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$/.test(
+			/^((https?:\/\/)?(cuicu\.it|cuicuit\.app\/join|cuicuit\.laclau\.dev\/join)\/)?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$/.test(
 				v.url
 			),
 		{

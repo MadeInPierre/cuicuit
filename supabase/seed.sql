@@ -134936,9 +134936,9 @@ VALUES
 
 -- Billing
 insert into
-	public.credit_balances (user_id, balance)
+	public.credit_balances (id, user_id, balance)
 values
-	(null, 0) on conflict do nothing;
+	('00000000-0000-0000-0000-000000000000', null, 0) on conflict do nothing;
 
 INSERT INTO
 	"public"."credit_logs" (
