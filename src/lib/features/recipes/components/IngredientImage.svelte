@@ -13,7 +13,7 @@
 
 {#if id}
 	<img
-		src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images-marmiton/${id}.jpg`}
+		src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images/${id}.jpg`}
 		alt={name}
 		class={cn('aspect-square w-full object-contain rounded-lg bg-white p-0.5', className)}
 		onerror={(e) => {
@@ -21,10 +21,13 @@
 			el.style.display = 'none';
 
 			const classes = cn(
-			'w-full rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-5xl',
-			className
-		)
-			el.insertAdjacentHTML('afterend', `<div class="${classes}">${name ? name.charAt(0).toUpperCase() : '?'}</div>`);
+				'w-full rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-5xl',
+				className
+			);
+			el.insertAdjacentHTML(
+				'afterend',
+				`<div class="${classes}">${name ? name.charAt(0).toUpperCase() : '?'}</div>`
+			);
 		}}
 	/>
 {:else}

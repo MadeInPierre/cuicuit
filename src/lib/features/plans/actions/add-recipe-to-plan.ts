@@ -82,6 +82,7 @@ export async function addRecipeToActivePlan(
 		}
 	});
 
-	// Refresh the active plan meals after adding
+	// Refresh the active plan after adding
 	await space.refreshActivePlanMeals();
+	await space.refreshActivePlanItems();
 }

@@ -454,7 +454,8 @@ begin
 
   if v_pool_balance >= 10000 then return 'Healthy';
   elsif v_pool_balance >= 2500 then return 'Low';
-  else return 'Critical';
+  elsif v_pool_balance > 0 then return 'Critical';
+  else return 'Empty';
   end if;
 end;
 $$ language plpgsql security definer;

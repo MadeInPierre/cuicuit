@@ -1,6 +1,6 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
+	import { goto } from '$app/navigation';
+	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import {
@@ -49,7 +49,7 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 			icon: ShoppingBasket,
 			step: '03',
 			title: 'Just go shopping!',
-			body: 'An aisle-aware list appears — check things off as you cruise the store.'
+			body: 'An aisle-aware list appears. Check things off as you cruise the store.'
 		}
 	];
 
@@ -176,7 +176,10 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 			key: 'pantry',
 			label: 'Pantry & Shopping',
 			ideas: [
-				{ label: 'Shop mode: product decision help', href: toFeatureDiscussion('Shop mode product decision help') },
+				{
+					label: 'Shop mode: product decision help',
+					href: toFeatureDiscussion('Shop mode product decision help')
+				},
 				{
 					label: 'Barcode & receipt scan to pantry',
 					href: toFeatureDiscussion('Barcode receipt scan pantry')
@@ -702,7 +705,7 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 		<span class="font-hand text-2xl text-primary">features</span>
 
 		<div aria-hidden={true} class="hidden lg:block absolute -right-100 bottom-0 rotate-6">
-			<span class="font-hand text-xl text-primary/70">our favorite features</span>
+			<span class="font-hand text-xl text-primary/70">Cuicuit's values</span>
 		</div>
 		<h2 class="mt-2 font-display text-4xl md:text-5xl font-semibold tracking-tight">
 			Small app, <span class="italic">big appetite</span>.
@@ -1208,7 +1211,8 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 					<div>
 						<p class="font-semibold">Taxes & Fees</p>
 						<p class="text-muted-foreground text-xs leading-relaxed">
-							Cuicuit is seen as a regular software product by your & my countries. Payment fees on top.
+							Cuicuit is seen as a regular software product by your & my countries. Payment fees on
+							top.
 						</p>
 					</div>
 				</div>
@@ -1326,14 +1330,18 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 				</p>
 				<p>
 					I love and rely on open source software every day. I want to give back to the community by
-					making the best OSS everything-kitchen app! To me, the best tools are made
+					making the best OSS everything-kitchen app! However, maintaining and improving Cuicuit
+					takes a lot of effort, so I am exploring a few ways to support its development, such as a
+					crowdfunded hosted version and direct donations.
+
+					<!-- To me, the best tools are made
 					<span class="font-semibold"> with people, not in secret. </span>
 					That’s why Cuicuit is open-source, why the roadmap is public with voting, and why the hosted
-					version is free — supported by a community moneypot instead of ads or data selling.
+					version is free — supported by a community moneypot instead of ads or data selling. -->
 				</p>
 				<p>
-					If you find it useful, a star on GitHub, voting for features, or a small contribution to
-					the moneypot keeps the project growing. Every bit of support means more time I can spend
+					If you find it useful, a star on GitHub, voting for features, or a contribution to the
+					moneypot keeps the project growing. Every bit of support means more time I can spend
 					making Cuicuit the happiest little kitchen app on the internet. Bon appétit! 🇫🇷🐥
 				</p>
 			</div>
@@ -1355,7 +1363,14 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 				</button>
 			</div>
 
-			<p class="mt-6 text-sm text-muted-foreground italic">Thank you for being here. 🐣 — Pierre</p>
+			<p class="mt-6 text-sm text-muted-foreground italic">
+				Thank you for being here. 🐣 — <a
+					href="https://linkedin.com/in/pierre-laclau"
+					target="_blank"
+					rel="noreferrer"
+					class="hover:underline decoration-dotted">Pierre</a
+				>
+			</p>
 		</div>
 
 		<!-- <div aria-hidden={true} class="hidden lg:block absolute right-10 bottom-16 rotate-[10deg]">
@@ -1394,7 +1409,7 @@ import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 				C'est cuicuit. <span class="italic text-white/90">Dinner's sorted.</span>
 			</h2>
 			<p class="mx-auto mt-4 max-w-xl text-white/90">
-				Give the little chick a try. Import your first recipe in under a minute.
+				Import your first recipe in under a minute. See you on the other side!
 			</p>
 			<div class="mt-8 flex flex-wrap justify-center gap-3">
 				<a

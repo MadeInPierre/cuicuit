@@ -11,6 +11,7 @@
 	import type { ComponentProps } from 'svelte';
 	import type { TAILWIND_BREAKPOINTS } from '../hooks/use-media.svelte';
 	import NavUser from './nav-user.svelte';
+	import { dev } from '$app/environment';
 
 	const userState = getUserState();
 
@@ -274,7 +275,9 @@
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<!-- <NavWorkspaces workspaces={data.workspaces} /> -->
-		<NavFavorites favorites={data.favorites} />
+		{#if dev}
+			<NavFavorites favorites={data.favorites} />
+		{/if}
 		<NavSecondary items={data.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
 	<Sidebar.Rail />
