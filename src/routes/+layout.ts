@@ -1,8 +1,12 @@
+import { dev } from '$app/environment';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { createBrowserClient, isBrowser } from '@supabase/ssr';
+import { injectAnalytics } from '@vercel/analytics/sveltekit';
 import type { LayoutLoad } from './$types';
+
+injectAnalytics({ mode: dev ? 'development' : 'production' });
 
 export const load: LayoutLoad = async ({ fetch, depends }) => {
 	depends('supabase:auth');
