@@ -72,12 +72,12 @@
 		{
 			icon: Users,
 			title: 'Shared households',
-			body: 'Cook together. Invite family or roommates into shared spaces that stay perfectly in sync.'
+			body: 'Cook together. Invite family or roommates into shared spaces that stay in sync.'
 		},
 		{
 			icon: Smartphone,
 			title: 'Mobile-friendly',
-			body: 'Install Cuicuit on your phone as a PWA and take your list to the store. No app store detour.'
+			body: 'Install Cuicuit on your phone as a PWA and take your list to the store. No app store (yet).'
 		},
 		{
 			icon: Server,
@@ -625,7 +625,7 @@
 				<div
 					class="relative rounded-xl md:rounded-2xl bg-sidebar p-4 md:p-7 hover:-translate-y-1 hover:shadow-(--shadow-soft) transition group"
 				>
-					{#if image}
+					<!-- {#if image}
 						<img src={image} class="aspect-square w-60 mx-auto" alt="Step 1" />
 					{:else}
 						<div
@@ -633,10 +633,10 @@
 						>
 							<Icon class="h-6 w-6" />
 						</div>
-					{/if}
+					{/if} -->
 
 					<div class="flex items-center space-x-4 md:grid">
-						<div class="font-hand text-3xl text-primary/70 leading-none">{step}</div>
+						<div class="font-hand text-4xl text-primary/70 leading-none">{step}</div>
 						<h3 class="mt-1 font-display text-xl font-semibold">{title}</h3>
 						<div
 							class="md:hidden ml-auto grid place-items-center size-10 md:size-14 rounded-lg bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
@@ -1236,19 +1236,21 @@
 		{#each faqs as f (f.q)}
 			<details
 				id={f.id}
-				class="group rounded-2xl border border-border bg-card p-6 shadow-(--shadow-soft) open:shadow-(--shadow-lift) transition"
+				class="group rounded-2xl p-3"
 			>
 				<summary
 					class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-semibold"
 				>
-					{f.q}
 					<span
 						class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-open:rotate-45"
 					>
 						+
 					</span>
+					<span class="w-full ">
+						{f.q}
+					</span>
 				</summary>
-				<p class="mt-3 text-sm text-muted-foreground leading-relaxed">{f.a}</p>
+				<p class="mt-3 ml-12 text-sm text-muted-foreground leading-relaxed">{f.a}</p>
 			</details>
 		{/each}
 	</div>
