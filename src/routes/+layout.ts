@@ -4,9 +4,11 @@ import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { createBrowserClient, isBrowser } from '@supabase/ssr';
 import { injectAnalytics } from '@vercel/analytics/sveltekit';
+import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 import type { LayoutLoad } from './$types';
 
 injectAnalytics({ mode: dev ? 'development' : 'production' });
+injectSpeedInsights();
 
 export const load: LayoutLoad = async ({ fetch, depends }) => {
 	depends('supabase:auth');
