@@ -28,6 +28,7 @@
 	} from 'lucide-svelte';
 	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
 	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
+	import GlassScreenshots from './GlassScreenshots.svelte';
 
 	const { data } = $props();
 
@@ -328,15 +329,15 @@
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. It then uses AI to add filters, ingredient substitutions, and more!'
+			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it then uses AI to add filters, ingredient substitutions, and more!'
 		},
 		{
 			q: 'Can I self-host Cuicuit with Docker?',
 			a: "Yes. Cuicuit ships with a docker-compose setup. Clone the repo, run 'docker compose up -d', and you'll have your own instance running in minutes. Your recipes and data stay on your hardware."
 		},
 		{
-			q: 'Does Cuicuit work offline as a mobile app?',
-			a: "Cuicuit is a Progressive Web App (PWA). Install it from your phone's browser and take your shopping list to the store — no app store required. Offline support coming soon-ish. Mobile app to be planned once Cuicuit grows enough."
+			q: 'Where does the name Cuicuit come from?',
+			a: "Cuicuit is a play on words. In French, 'cui-cui' is the sound a bird makes, and 'cuit' means cooked. 'C'est cuit' is a French expression meaning 'it's cooked', so now we can say 'C'est cuicuit'!"
 		},
 		{
 			q: 'Can my family or roommates share a meal plan with me?',
@@ -355,11 +356,11 @@
 <section id="top" class="relative overflow-hidden bg-(--gradient-warm)">
 	<div
 		aria-hidden={true}
-		class="pointer-events-none absolute -top-40 -right-40 h-180 w-180 rounded-full bg-primary/5 sm:bg-primary/10 md:bg-primary/15 blur-[120px]"
+		class="pointer-events-none absolute -top-40 -right-40 h-180 w-180 rounded-full bg-primary/5 lg:bg-primary/10 blur-[120px]"
 	></div>
 	<div
 		aria-hidden={true}
-		class="pointer-events-none absolute top-60 -left-56 h-160 w-160 rounded-full bg-primary/5 sm:bg-primary/10 blur-[130px]"
+		class="pointer-events-none absolute top-60 -left-56 h-160 w-160 rounded-full bg-primary/5 sm:bg-primary/5 blur-[130px]"
 	></div>
 	<div
 		aria-hidden={true}
@@ -370,20 +371,18 @@
 		<span
 			class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 backdrop-blur px-4 py-0.5 font-hand text-xl text-primary shadow-(--shadow-soft)"
 		>
-			🐣 alpha — expect rough edges &amp; bugs
+			🐥 Your favorite kitchen companion!
 		</span>
 		<h1
-			class="mt-8 font-hand text-[48px] sm:text-7xl md:text-8xl font-semibold leading-[0.9] tracking-tight text-balance"
+			class="mt-8 font-hand text-6xl sm:text-7xl md:text-8xl font-semibold leading-[0.9] tracking-tight text-balance"
 		>
-			Your favorite
-			<br class="xl:hidden" />
-			<span class="relative inline-block text-primary">
-				kitchen companion
+			<span class="relative inline-block xl:text-primary">
+				Think about meals,
 				<svg
 					aria-hidden={true}
 					viewBox="0 0 600 24"
 					preserveAspectRatio="none"
-					class="absolute -bottom-3 left-0 w-full h-3 text-primary/60"
+					class="absolute -bottom-3 left-0 w-full h-3 text-primary/60 hidden xl:block"
 				>
 					<path
 						d="M4 14 Q 80 4, 160 12 T 320 12 T 480 12 T 596 10"
@@ -394,12 +393,17 @@
 					/>
 				</svg>
 			</span>
+			<br class="xl:hidden" />
+			not ingredients.
 		</h1>
-		<p class="mx-auto mt-8 px-6 max-w-3xl text-lg text-muted-foreground text-balance">
-			Focus on meals, not ingredients. Cuicuit imports your recipes, plans your week, and creates
-			your shopping list. Open source, self-hostable &amp; hosted options.
+		<p class="mx-auto mt-8 px-6 max-w-xl text-lg text-muted-foreground text-balance">
+			Simply jot down meal ideas & things you're missing, and get a ready-to-shop list.
 		</p>
-		<div class="mt-8 flex flex-wrap justify-center gap-3">
+		<p class="mt-3 text-xs italic text-muted-foreground">
+			Open-source · Self-hostable · Hosted version
+		</p>
+
+		<div class="mt-12 flex flex-wrap justify-center gap-3">
 			<a
 				href="#pricing"
 				class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-(--shadow-lift) hover:-translate-y-0.5 transition"
@@ -415,14 +419,11 @@
 				<Github class="h-4 w-4" /> Self-host for free
 			</a>
 		</div>
-		<p class="mt-6 text-xs italic text-muted-foreground">
-			🐤 <em>cui-cui</em> = bird chirp in French · <em>cuit</em> = cooked · c'est cuicuit!
-		</p>
 
 		<div class="relative mt-16 mx-auto max-w-5xl">
-			<div aria-hidden={true} class="hidden md:block absolute -left-6 -top-12 rotate-[-8deg] z-10">
+			<!-- <div aria-hidden={true} class="hidden md:block absolute -left-6 -top-12 rotate-[-8deg] z-10">
 				<span class="font-hand text-2xl text-primary/70">sneak peek</span>
-				<!-- <svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 ml-16 -mt-1">
+				<svg viewBox="0 0 120 60" class="w-24 h-12 text-primary/70 ml-16 -mt-1">
 					<path
 						d="M6 10 C 36 2, 76 12, 106 42"
 						fill="none"
@@ -439,28 +440,14 @@
 						stroke-linecap="round"
 						stroke-linejoin="round"
 					/>
-				</svg> -->
-			</div>
+				</svg>
+			</div> -->
 			<div
 				aria-hidden={true}
 				class="absolute inset-x-10 -bottom-6 h-16 rounded-full bg-primary/25 blur-2xl"
 			></div>
-			<div
-				class="relative rounded-2xl border border-border bg-card p-1.5 sm:p-2 shadow-(--shadow-lift)"
-			>
-				<img
-					src="/hero/hero_wide.png"
-					alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
-					class="w-full rounded-xl hidden md:block"
-					loading="eager"
-				/>
-				<img
-					src="/hero/hero_narrow.png"
-					alt="Screenshot of the Cuicuit app showing planned meals, recipe gallery, and shopping list."
-					class="w-full rounded-xl md:hidden"
-					loading="eager"
-				/>
-			</div>
+
+			<GlassScreenshots />
 		</div>
 	</div>
 </section>
@@ -499,6 +486,44 @@
 		<div
 			class="mt-4 flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 mx-4 md:mx-10 text-xs text-muted-foreground/80"
 		>
+			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+				<Globe class="h-5 w-5" />
+
+				Websites
+			</div>
+
+			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+				<Camera class="h-5 w-5" />
+
+				Photos
+			</div>
+
+			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
+				<BookOpen class="h-5 w-5" />
+
+				Any Text
+			</div>
+
+			<!-- <div class="flex items-center justify-center gap-1.5 sm:gap-2">
+				<svg
+					viewBox="0 0 24 24"
+					class="h-5 w-5"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<circle cx="12" cy="12" r="10" />
+					<circle cx="12" cy="12" r="4" />
+					<path d="M12 8a4 4 0 0 1 3.5 2h5.5" />
+					<path d="M8 14a4 4 0 0 1 0-4L4.5 6" />
+					<path d="M15 14.5a4 4 0 0 1-6 0l-2.5 4.5" />
+				</svg>
+
+				Chrome
+			</div> -->
+
 			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
 				<svg
 					viewBox="0 0 24 24"
@@ -565,44 +590,6 @@
 				</svg>
 
 				Twitter / X
-			</div>
-
-			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
-				<Camera class="h-5 w-5" />
-
-				Photos
-			</div>
-
-			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
-				<Globe class="h-5 w-5" />
-
-				Websites
-			</div>
-
-			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
-				<BookOpen class="h-5 w-5" />
-
-				Any Text
-			</div>
-
-			<div class="flex items-center justify-center gap-1.5 sm:gap-2">
-				<svg
-					viewBox="0 0 24 24"
-					class="h-5 w-5"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					<circle cx="12" cy="12" r="10" />
-					<circle cx="12" cy="12" r="4" />
-					<path d="M12 8a4 4 0 0 1 3.5 2h5.5" />
-					<path d="M8 14a4 4 0 0 1 0-4L4.5 6" />
-					<path d="M15 14.5a4 4 0 0 1-6 0l-2.5 4.5" />
-				</svg>
-
-				Chrome
 			</div>
 		</div>
 
@@ -968,7 +955,7 @@
 
 	<div class="mt-12 grid gap-6 md:grid-cols-3">
 		<div
-			class="rounded-3xl order-2 md:order-1 bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900 h-100 flex flex-col"
+			class="rounded-2xl order-2 md:order-1 bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900 h-100 flex flex-col"
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 text-sm font-semibold text-white">
@@ -1004,7 +991,7 @@
 		</div>
 
 		<div
-			class="relative rounded-3xl order-3 md:order-2 border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3 h-100 flex flex-col"
+			class="relative rounded-2xl order-3 md:order-2 border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3 h-100 flex flex-col"
 		>
 			<span
 				class="absolute w-max -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground"
@@ -1034,7 +1021,7 @@
 		</div>
 
 		<div
-			class="rounded-3xl order-1 md:order-3 border border-border bg-card p-8 shadow-(--shadow-soft) h-100 flex flex-col"
+			class="rounded-2xl order-1 md:order-3 border border-border bg-card p-8 shadow-(--shadow-soft) h-100 flex flex-col"
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 text-sm font-semibold">
@@ -1234,10 +1221,7 @@
 
 	<div class="mt-10 grid gap-3">
 		{#each faqs as f (f.q)}
-			<details
-				id={f.id}
-				class="group rounded-2xl p-3"
-			>
+			<details id={f.id} class="group rounded-2xl p-3">
 				<summary
 					class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-semibold"
 				>
@@ -1246,7 +1230,7 @@
 					>
 						+
 					</span>
-					<span class="w-full ">
+					<span class="w-full">
 						{f.q}
 					</span>
 				</summary>
@@ -1309,10 +1293,10 @@
 					<em>“what’s for dinner, and what do we even have in the fridge?”</em>
 				</p>
 				<p>
-					I wanted a kitchen companion that felt <span
-						class="relative inline-block font-semibold text-primary"
-					>
-						warm and helpful
+					I wanted a kitchen companion that felt <em>helpful and efficient</em>, not like other
+					cooking apps that need too many clicks and attention. The philosophy is simple:
+					<span class="relative inline-block font-semibold text-primary">
+						think about meals, not ingredients
 						<svg
 							aria-hidden={true}
 							viewBox="0 0 180 20"
@@ -1327,25 +1311,21 @@
 								stroke-linecap="round"
 							/>
 						</svg>
-					</span> — not like other cooking apps that need too many clicks and attention. So I started
-					building Cuicuit in the open, one feature at a time.
+					</span>. Jot down ideas at home, get a convenient list to go. Fancier features like
+					pantry-aware recommendations will come after solid foundations.
 				</p>
 				<p>
 					I love and rely on open source software every day. I want to give back to the community by
 					making the best OSS everything-kitchen app! However, maintaining and improving Cuicuit
 					takes a lot of effort, so I am exploring a few ways to support its development, such as a
 					crowdfunded hosted version and direct donations.
-
-					<!-- To me, the best tools are made
-					<span class="font-semibold"> with people, not in secret. </span>
-					That’s why Cuicuit is open-source, why the roadmap is public with voting, and why the hosted
-					version is free — supported by a community moneypot instead of ads or data selling. -->
 				</p>
 				<p>
 					If you find it useful, a star on GitHub, voting for features, or a contribution to the
-					moneypot keeps the project growing. Every bit of support means more time I can spend
-					making Cuicuit the happiest little kitchen app on the internet. Bon appétit! 🇫🇷🐥
+					moneypot keeps us growing. Every bit of support means more motivation I get to keep making
+					Cuicuit the happiest little kitchen app.
 				</p>
+				<p>Thank you & Bon appétit! 🇫🇷🐥</p>
 			</div>
 
 			<div class="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -1442,8 +1422,7 @@
 			<span>Cuicuit</span>
 		</div>
 		<p>
-			Made with <Heart class="inline h-3.5 w-3.5 text-primary" /> and a lot of eggs. Open source under
-			a friendly roof.
+			Made with <Heart class="inline h-3.5 w-3.5 text-primary" /> and released as fully open-source.
 		</p>
 		<div class="flex items-genter gap-6">
 			<ThemeButton />

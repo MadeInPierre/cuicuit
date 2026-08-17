@@ -1,27 +1,14 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { siteConfig } from '$lib/shared/config/site-config';
 
 	export let title: string = siteConfig.name;
 
 	function updateTitle(dataTitle: string) {
-		if (dataTitle) {
-			return `${dataTitle} - ${siteConfig.name}`;
-		}
-
-		return siteConfig.name;
-
-		// TODO PUT BACK? Automatically generate the title from the route name
-		// const routeEnd = $page.route.id?.split('/').pop();
-		// if (routeEnd) {
-		// 	let name = routeEnd.replace('(', '').replace(')', '');
-		// 	return `${name[0].toUpperCase() + name.slice(1)} - ${siteConfig.name}`;
-		// }
-
-		// return siteConfig.name;
+		return dataTitle ? `${dataTitle} - ${siteConfig.name}` : siteConfig.name;
 	}
 
-	$: title = updateTitle($page.data?.title);
+	$: title = updateTitle(page.data?.title);
 </script>
 
 <svelte:head>
@@ -38,7 +25,7 @@
 	<meta name="twitter:creator" content="madeinpierre" />
 	<meta property="og:title" content={title} />
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content={siteConfig.url + $page.url.pathname} />
+	<meta property="og:url" content={siteConfig.url + page.url.pathname} />
 	<meta property="og:image" content="https://shadcn-svelte.com/og.png" />
 	<meta property="og:image:alt" content={siteConfig.name} />
 	<meta property="og:image:width" content="1200" />

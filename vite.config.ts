@@ -72,7 +72,7 @@ export default defineConfig({
 				],
 				screenshots: [
 					{
-						src: '/screenshots/recipes_wide_1280x720.png',
+						src: '/screenshots/demo_desktop.png',
 						sizes: '1280x720',
 						type: 'image/png',
 						form_factor: 'wide'
