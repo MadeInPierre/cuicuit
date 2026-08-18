@@ -60,7 +60,7 @@ END IF; END $$;
 
 CREATE TYPE "public"."credit_type" AS ENUM('private', 'public');
 
-CREATE TYPE "public"."credit_source" AS ENUM('stripe_charge', 'consumed', 'expired_consumed', 'expired_to_public');
+CREATE TYPE "public"."credit_source" AS ENUM('stripe_charge', 'consumed', 'expired_consumed', 'expired_to_public', 'gift_manual');
 
 
 -- ====================================================================
