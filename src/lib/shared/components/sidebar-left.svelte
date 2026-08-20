@@ -77,17 +77,17 @@
 			// 	url: '/settings/space',
 			// 	icon: Settings2
 			// },
-			{
-				title: 'Send feedback',
-				url: '#',
-				icon: Send
-			},
-			{
-				title: "What's new",
-				url: '/changelog',
-				icon: Megaphone,
-				badge: '2'
-			}
+			// {
+			// 	title: 'Send feedback',
+			// 	url: '#',
+			// 	icon: Send
+			// },
+			// {
+			// 	title: "What's new",
+			// 	url: '/changelog',
+			// 	icon: Megaphone,
+			// 	badge: '2'
+			// }
 		],
 		favorites: [
 			{

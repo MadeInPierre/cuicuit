@@ -26,8 +26,8 @@
 	<div class="my-20 flex flex-col gap-3 items-center justify-center px-10">
 		<div class="text-center space-y-2">
 			<p class="text-xl font-semibold">Interested in meal recommendations?</p>
-			<p class="text-muted-foreground max-w-120">
-				Pantry management & automatic meal recommendations are coming soon! Help us prioritize this
+			<p class="text-muted-foreground max-w-120 text-sm sm:text-base text-balance">
+				Pantry management & automatic meal recommendations are planned! Help us prioritize this
 				feature by voting for it.
 			</p>
 		</div>
@@ -47,7 +47,7 @@
 			<CookableStatus status="cookable-far" />
 			<CookableStatus status="cookable-enough" />
 			<CookableStatus status="change-of-plans" />
-			<CookableStatus status="missing-ingredients" />
+			<CookableStatus status="missing" />
 		</div>
 	</div>
 </div>

@@ -4,6 +4,7 @@
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import { Bug, Lightbulb } from '@lucide/svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import HelloDialog from './HelloDialog.svelte';
 	import SupportBanner from './SupportBanner.svelte';
@@ -18,7 +19,6 @@
 	let { children }: Props = $props();
 
 	const media = useMedia();
-	let openAlphaDialog = $state(false);
 </script>
 
 <svelte:window
@@ -85,7 +85,26 @@
 
 				<!-- <CommandMenu /> -->
 
-				<div class="hidden sm:inline-block mr-8">
+				<div class="flex items-center gap-2">
+					<Button
+						variant="link"
+						href="https://github.com/MadeInPierre/cuicuit/discussions"
+						target="_blank"
+						class="text-muted-foreground hidden sm:flex"
+					>
+						<Lightbulb />
+						Feedback
+					</Button>
+					<Button
+						variant="link"
+						href="https://github.com/MadeInPierre/cuicuit/issues/new"
+						target="_blank"
+						class="text-muted-foreground hidden md:flex"
+					>
+						<Bug />
+						I found a bug
+					</Button>
+
 					<SupportBanner />
 				</div>
 

@@ -63,7 +63,7 @@
 			<Button
 				variant="link"
 				onclick={() => (openAlphaDialog = false)}
-				href="https://github.com/MadeInPierre/cuicuit/discussions/new"
+				href="https://github.com/MadeInPierre/cuicuit/discussions"
 				target="_blank"
 			>
 				<Lightbulb class="size-4" />
@@ -81,7 +81,7 @@
 			<Button
 				variant="link"
 				onclick={() => (openAlphaDialog = false)}
-				href="https://discord.gg/cuicuit"
+				href="https://discord.gg/yJrPfp2G3y"
 				target="_blank"
 			>
 				<MessageCircle class="size-4" />
