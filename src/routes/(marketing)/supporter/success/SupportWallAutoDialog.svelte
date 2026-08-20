@@ -31,7 +31,7 @@
 				class="absolute top-2 right-12 h-8 z-40"
 				onclick={() => {
 					hideBannerUntil.set(
-						new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString().split('T')[0]
+						new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0]
 					);
 
 					toast.success('Banner hidden for 2 months', {
@@ -48,7 +48,7 @@
 					open = false;
 				}}
 			>
-				Hide for 2 months
+				Hide for 3 months
 			</Button>
 		{/if}
 

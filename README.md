@@ -5,6 +5,10 @@
   <br>Cuicuit<br>
 </h1>
 <h3 align="center">Your favorite kitchen companion!</h3>
+<p align="center">
+  <a href="https://discord.gg/yJrPfp2G3y">Discord</a> •
+  <a href="https://t.me/MadeInJack>">Telegram</a> 
+</p>
 
 ![Hero](./static/hero/hero_wide.png)
 
@@ -12,13 +16,19 @@
 > 🐣 **Cuicuit just hatched!** Expect alpha-quality with many bugs and rough edges. Feedback is appreciated!
 
 > [!NOTE]
-> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first. No releases yet, but you can try the [hosted version](https://cuicuit.laclau.dev) and give feedback in the [GitHub discussions](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas).
+> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first. No releases yet, but you can try the [hosted version](https://cuicuit.laclau.dev) and give feedback in [Discord](https://discord.gg/yJrPfp2G3y) or [GitHub discussions](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas).
 
 Focus on meals, not ingredients. Cuicuit does the thinking for you!
 
 Import recipes from anywhere and get an automatic shopping list from your plan. Coming soon: it will passively learn your habits, and serve up recipe ideas for the week or right before your food expires.
 
 > 🥁 P.S. *cui-cui* is how we write the sound of a bird in French (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit!*
+
+## 👀 Demo
+
+https://github.com/user-attachments/assets/8f880754-87fd-4342-91ce-7fc59808c708
+
+[Sign up](https://cuicuit.laclau.dev) for the hosted version and use for free!
 
 ## 🍀 Why use Cuicuit?
 
@@ -32,7 +42,7 @@ Here is what Cuicuit aims to be once grown up:
 
 ## ✨ Features
 
-Today, Cuicuit is in its early alpha stage. Here are the current features:
+Today, Cuicuit is in its early alpha stage. Current features:
 
 * **Recipe gallery**: Import recipes from websites, and AI auto-fills the missing details.
 * **Derived shopping list**: A list appears and suggests you past purchases.

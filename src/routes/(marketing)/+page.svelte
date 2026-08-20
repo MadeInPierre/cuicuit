@@ -841,7 +841,7 @@
 	</div>
 </section>
 
-<section id="future-ideas" class="mx-auto max-w-6xl px-6 mt-16 scroll-mt-24">
+<!-- <section id="future-ideas" class="mx-auto max-w-6xl px-6 mt-16 scroll-mt-24">
 	<div class="text-center mx-auto max-w-2xl">
 		<span class="font-hand text-2xl text-muted-foreground/80">future ideas</span>
 		<p class="mt-3 text-sm md:text-base text-muted-foreground max-w-lg mx-auto">
@@ -919,7 +919,7 @@
 			Vote for features on GitHub <ArrowRight class="h-4 w-4" />
 		</a>
 	</div>
-</section>
+</section> -->
 
 <section id="pricing" class="relative mx-auto max-w-6xl px-6 mt-32 scroll-mt-24">
 	<div class="text-center max-w-2xl mx-auto">
