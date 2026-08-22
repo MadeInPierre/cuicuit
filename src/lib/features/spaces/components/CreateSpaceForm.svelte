@@ -5,6 +5,7 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { cn } from '$lib/utils';
+	import posthog from 'posthog-js';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
@@ -63,6 +64,10 @@
 			$formData.iconSlug as SpaceIconKey
 		)
 			.then((newSpaceId: string) => {
+				posthog.capture('space_created', {
+					space_theme: $formData.theme,
+					space_icon: $formData.iconSlug
+				});
 				activeSpace.id = newSpaceId; // Change the active space to the new one
 				openDialog = false;
 				loading = false;

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
+	import posthog from 'posthog-js';
 	import { Toaster } from '$lib/shared/components/ui/sonner';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip';
 	import { ModeWatcher } from 'mode-watcher';
@@ -44,8 +45,20 @@
 		// `sb` is only set on the client (see +layout.ts); on the server it's null
 		if (!sb) return;
 
-		const { data } = sb.auth.onAuthStateChange((event, _session) => {
-			if (_session?.expires_at !== claims?.exp) {
+		const { data } = sb.auth.onAuthStateChange((event, session) => {
+			if (event === 'SIGNED_OUT') {
+				posthog.reset();
+			} else if (
+				(event === 'SIGNED_IN' || event === 'INITIAL_SESSION') &&
+				session?.user?.id
+			) {
+				posthog.identify(session.user.id, {
+					email: session.user.email,
+					name: session.user.user_metadata.full_name ?? session.user.user_metadata.name
+				});
+			}
+
+			if (session?.expires_at !== claims?.exp) {
 				console.log('Supabase session token expired, refreshing.');
 				invalidate('supabase:auth');
 			}

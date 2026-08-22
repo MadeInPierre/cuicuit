@@ -23,6 +23,7 @@
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { capitalize } from '$lib/utils';
+	import posthog from 'posthog-js';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -81,6 +82,15 @@
 			displayServings = recipe?.servings || 1;
 		});
 	});
+
+	async function addRecipeToPlan() {
+		if (!recipe?.id) return;
+
+		await addRecipeToActivePlan(space, recipe.id, displayServings);
+		posthog.capture('recipe_added_to_plan', {
+			servings: displayServings
+		});
+	}
 </script>
 
 {#if recipe}
@@ -276,7 +286,7 @@
 									size="sm"
 									type="submit"
 									class="flex ml-auto"
-									onclick={() => recipe?.id && addRecipeToActivePlan(space, recipe.id, displayServings)}
+									onclick={addRecipeToPlan}
 								>
 									<CalendarPlus class="size-4" />
 

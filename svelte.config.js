@@ -13,6 +13,10 @@ const config = {
 		}),
 		experimental: {
 			remoteFunctions: true
+		},
+		paths: {
+			// Relative paths needed for PostHog, https://svelte.dev/docs/kit/configuration#paths
+			relative: false
 		}
 	},
 

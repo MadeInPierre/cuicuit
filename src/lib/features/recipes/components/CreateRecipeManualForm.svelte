@@ -11,6 +11,7 @@
 	import { createRecipeManualSchema } from '../models/schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
+	import posthog from 'posthog-js';
 
 	type Props = {
 		openDialog?: boolean;
@@ -45,6 +46,7 @@
 
 			// Navigate based on completeness
 			if (recipeId) {
+				posthog.capture('recipe_created', { source_type: 'manual' });
 				toast.success('Recipe created successfully!');
 				openDialog = false;
 				goto(`/recipes/${recipeId}/edit`);

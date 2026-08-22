@@ -9,6 +9,7 @@
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
+	import posthog from 'posthog-js';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { importRecipeFromText } from '../actions/import-from-url.remote';
@@ -49,6 +50,10 @@
 				fallbackLang: space.language.lang
 			});
 			userState.refresh();
+			posthog.capture('recipe_imported', {
+				source_type: 'text',
+				is_complete: result.isComplete
+			});
 
 			// Navigate based on completeness
 			if (result.isComplete) {

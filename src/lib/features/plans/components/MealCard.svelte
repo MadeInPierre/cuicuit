@@ -10,6 +10,7 @@
 	import { type Enums } from '$lib/shared/db/supabase.types';
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
+	import posthog from 'posthog-js';
 	import {
 		ChevronRight,
 		CircleSlash,
@@ -442,6 +443,7 @@
 			const undoDeleted = await updatePlanItemDeleted(space, si.id, deleted, {
 				skipRefresh: true
 			});
+			posthog.capture('shopping_item_status_updated', { status });
 
 			const toastId = toast.success(`Set ${formatIngredientDisplayName(si)} to ${status}`, {
 				duration: 5000,

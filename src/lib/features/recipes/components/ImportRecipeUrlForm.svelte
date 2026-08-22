@@ -10,6 +10,7 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
+	import posthog from 'posthog-js';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { importRecipeUrlSchema } from '../models/schemas';
@@ -54,6 +55,10 @@
 
 			// Refresh credit balance
 			userState.refresh();
+			posthog.capture('recipe_imported', {
+				source_type: 'url',
+				is_complete: result.isComplete
+			});
 
 			// Navigate based on completeness
 			if (result.isComplete) {
