@@ -3,17 +3,16 @@
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { FEATURE_COSTS } from '$lib/features/billing/consts';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
-	import * as Form from '$lib/shared/components/ui/form';
+	import { Label } from '$lib/shared/components/ui/label';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { importRecipeFromText } from '../actions/import-from-url.remote';
-	import { importRecipeTextSchema, type ImportRecipeTextSchema } from '../models/schemas';
+	import { importRecipeTextSchema } from '../models/schemas';
 
 	const userState = getUserState();
 
@@ -23,23 +22,14 @@
 
 	let { openDialog = $bindable() }: Props = $props();
 
-	const form = superForm(defaults(zod4(importRecipeTextSchema)), {
-		SPA: true,
-		validators: zod4(importRecipeTextSchema),
-		onUpdate({ form }) {
-			if (form.valid) onSubmit(form.data);
-			else toast.error('Please fix the errors in the form.');
-		}
-	});
-
-	const { form: formData, enhance } = form;
-
+	let text = $state('');
+	let textError = $state<string | null>(null);
 	let loading = $state(false);
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
-	async function onSubmit(data: Infer<ImportRecipeTextSchema>) {
+	async function onSubmit() {
 		loading = true;
 		try {
 			// Get the user
@@ -55,7 +45,7 @@
 			// Import the recipe from the URL
 			const result = await importRecipeFromText({
 				spaceId: space.activeSpace.id,
-				text: data.text,
+				text,
 				fallbackLang: space.language.lang
 			});
 			userState.refresh();
@@ -70,35 +60,43 @@
 				openDialog = false;
 				goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
 			}
-		} catch (error) {
+		} catch {
 			toast.error('Failed to import recipe. Please try again.');
 		}
 		loading = false;
 	}
+
+	function onClick() {
+		const result = importRecipeTextSchema.safeParse({ text });
+		if (!result.success) {
+			textError = result.error.issues[0]?.message ?? 'Please enter your recipe text.';
+			toast.error('Please fix the errors in the form.');
+			return;
+		}
+		onSubmit();
+	}
 </script>
 
-<form method="POST" use:enhance class="w-full space-y-4">
+<div class="w-full space-y-4">
 	<div class="space-y-2">
-		<Form.Field {form} name="text">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Recipe text</Form.Label>
+		<Label for="recipe-text">Recipe text</Label>
 
-					<Textarea
-						{...props}
-						placeholder="Paste or write a recipe in your own words with ingredients and steps..."
-						bind:value={$formData.text}
-						class="min-h-60 max-h-100"
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-red-600" />
-		</Form.Field>
+		<Textarea
+			id="recipe-text"
+			placeholder="Paste or write a recipe in your own words with ingredients and steps..."
+			bind:value={text}
+			class="min-h-60 max-h-100"
+			oninput={() => (textError = null)}
+		/>
+
+		{#if textError}
+			<p class="text-destructive text-sm font-medium text-red-600">{textError}</p>
+		{/if}
 	</div>
 
 	<div class="space-y-2">
 		<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
-			<Form.Button type="submit" disabled={loading || !$formData.text} class="w-full relative">
+			<Button onclick={onClick} disabled={loading || !text} class="w-full relative">
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
 				>
@@ -113,7 +111,7 @@
 				{:else}
 					Import recipe
 				{/if}
-			</Form.Button>
+			</Button>
 
 			{#if (userState.creditBalance?.balance || 0) < FEATURE_COSTS.import_recipe_from_website.seeds}
 				<p class="text-xs text-center text-muted-foreground">
@@ -124,4 +122,4 @@
 			{/if}
 		</Dialog.Footer>
 	</div>
-</form>
+</div>

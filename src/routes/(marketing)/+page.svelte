@@ -6,7 +6,6 @@
 	import {
 		Camera,
 		Check,
-		ChevronDown,
 		CircleQuestionMark,
 		ExternalLink,
 		Globe,
@@ -26,9 +25,8 @@
 		Terminal,
 		Users
 	} from 'lucide-svelte';
-	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
-	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
 	import GlassScreenshots from './GlassScreenshots.svelte';
+	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
 
 	const { data } = $props();
 
