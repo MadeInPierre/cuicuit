@@ -9,6 +9,7 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
+	import posthog from 'posthog-js';
 	import { Dice4 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
@@ -73,6 +74,7 @@
 
 				// Refresh UI state
 				await userState.refresh();
+				posthog.capture('onboarding_completed');
 
 				// Done, go to app!
 				goto('/recipes');

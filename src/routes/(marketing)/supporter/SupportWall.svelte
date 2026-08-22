@@ -8,6 +8,7 @@
 	import { Slider } from '$lib/shared/components/ui/slider';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
+	import posthog from 'posthog-js';
 	import { ArrowRight, Check, ExternalLink, Heart } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -102,7 +103,14 @@
 			interval: frequency
 		});
 
-		if (url) window.location.href = url;
+		if (url) {
+			posthog.capture('checkout_started', {
+				amount,
+				currency,
+				frequency
+			});
+			window.location.href = url;
+		}
 	}
 
 	const media = useMedia();
