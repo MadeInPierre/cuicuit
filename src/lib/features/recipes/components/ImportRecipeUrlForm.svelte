@@ -4,16 +4,15 @@
 	import { FEATURE_COSTS } from '$lib/features/billing/consts';
 	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url.remote';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
-	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
+	import { Label } from '$lib/shared/components/ui/label';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
-	import { importRecipeUrlSchema, type ImportRecipeUrlSchema } from '../models/schemas';
+	import { importRecipeUrlSchema } from '../models/schemas';
 
 	const userState = getUserState();
 
@@ -23,23 +22,14 @@
 
 	let { openDialog = $bindable() }: Props = $props();
 
-	const form = superForm(defaults(zod4(importRecipeUrlSchema)), {
-		SPA: true,
-		validators: zod4(importRecipeUrlSchema),
-		onUpdate({ form }) {
-			if (form.valid) onSubmit(form.data);
-			else toast.error('Please fix the errors in the form.');
-		}
-	});
-
-	const { form: formData, enhance } = form;
-
+	let url = $state('');
+	let urlError = $state<string | null>(null);
 	let loading = $state(false);
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
-	async function onSubmit(data: Infer<ImportRecipeUrlSchema>) {
+	async function onSubmit() {
 		if (loading) throw new Error('An web import is already ongoing, aborting.');
 
 		loading = true;
@@ -58,7 +48,7 @@
 			console.log('TRIGGERING IMPORT');
 			const result = await importRecipeFromUrl({
 				spaceId: space.activeSpace.id,
-				url: data.url,
+				url,
 				fallbackLang: space.language.lang
 			});
 
@@ -81,24 +71,33 @@
 		}
 		loading = false;
 	}
+
+	function onClick() {
+		const result = importRecipeUrlSchema.safeParse({ url });
+		if (!result.success) {
+			urlError = result.error.issues[0]?.message ?? 'Oops, please enter a valid URL.';
+			toast.error('Please fix the errors in the form.');
+			return;
+		}
+		onSubmit();
+	}
 </script>
 
-<form method="POST" use:enhance class="w-full space-y-4">
+<div class="w-full space-y-4">
 	<div class="space-y-2">
-		<Form.Field {form} name="url">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Recipe link</Form.Label>
+		<Label for="recipe-url">Recipe link</Label>
 
-					<Input
-						{...props}
-						placeholder="Paste any link to a recipe..."
-						bind:value={$formData.url}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-red-600" />
-		</Form.Field>
+		<Input
+			id="recipe-url"
+			type="url"
+			placeholder="Paste any link to a recipe..."
+			bind:value={url}
+			oninput={() => (urlError = null)}
+		/>
+
+		{#if urlError}
+			<p class="text-destructive text-sm font-medium text-red-600">{urlError}</p>
+		{/if}
 	</div>
 
 	<div class="space-y-2">
@@ -110,7 +109,7 @@
 		{/if} -->
 
 		<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
-			<Form.Button type="submit" disabled={loading || !$formData.url} class="w-full relative">
+			<Button onclick={onClick} disabled={loading || !url} class="w-full relative">
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
 				>
@@ -125,7 +124,7 @@
 				{:else}
 					Import recipe
 				{/if}
-			</Form.Button>
+			</Button>
 
 			{#if (userState.creditBalance?.balance || 0) < FEATURE_COSTS.import_recipe_from_website.seeds}
 				<p class="text-xs text-center text-muted-foreground">
@@ -136,4 +135,4 @@
 			{/if}
 		</Dialog.Footer>
 	</div>
-</form>
+</div>

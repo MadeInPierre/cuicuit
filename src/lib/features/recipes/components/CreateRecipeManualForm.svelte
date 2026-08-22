@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
-	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
+	import { Label } from '$lib/shared/components/ui/label';
 	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { createDraftRecipe } from '../actions/create-draft-recipe.remote';
-	import { createRecipeManualSchema, type CreateRecipeManualSchema } from '../models/schemas';
+	import { createRecipeManualSchema } from '../models/schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 
@@ -19,23 +18,14 @@
 
 	let { openDialog = $bindable() }: Props = $props();
 
-	const form = superForm(defaults(zod4(createRecipeManualSchema)), {
-		SPA: true,
-		validators: zod4(createRecipeManualSchema),
-		onUpdate({ form }) {
-			if (form.valid) onSubmit(form.data);
-			else toast.error('Please fix the errors in the form.');
-		}
-	});
-
-	const { form: formData, enhance } = form;
-
+	let title = $state('');
+	let titleError = $state<string | null>(null);
 	let loading = $state(false);
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
-	async function onSubmit(data: Infer<CreateRecipeManualSchema>) {
+	async function onSubmit() {
 		loading = true;
 		try {
 			if (!space.language?.id) {
@@ -50,7 +40,7 @@
 			const recipeId = await createDraftRecipe({
 				sourceType: 'user-manual',
 				lang: space.language?.lang,
-				title: data.title
+				title
 			});
 
 			// Navigate based on completeness
@@ -61,25 +51,37 @@
 			} else {
 				toast.error('Failed to create recipe. Please try again.');
 			}
-		} catch (error) {
+		} catch {
 			toast.error('Failed to create recipe. Please try again.');
 		}
 		loading = false;
 	}
+
+	function onClick() {
+		const result = createRecipeManualSchema.safeParse({ title });
+		if (!result.success) {
+			titleError = result.error.issues[0]?.message ?? 'Oops, please enter a valid title.';
+			toast.error('Please fix the errors in the form.');
+			return;
+		}
+		onSubmit();
+	}
 </script>
 
-<form method="POST" use:enhance class="w-full space-y-4">
+<div class="w-full space-y-4">
 	<div class="space-y-2">
-		<Form.Field {form} name="title">
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Recipe title</Form.Label>
+		<Label for="recipe-title">Recipe title</Label>
 
-					<Input {...props} placeholder="Start with a title..." bind:value={$formData.title} />
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-red-600" />
-		</Form.Field>
+		<Input
+			id="recipe-title"
+			placeholder="Start with a title..."
+			bind:value={title}
+			oninput={() => (titleError = null)}
+		/>
+
+		{#if titleError}
+			<p class="text-destructive text-sm font-medium text-red-600">{titleError}</p>
+		{/if}
 	</div>
 
 	<div class="space-y-2">
@@ -91,7 +93,7 @@
 		{/if} -->
 
 		<Dialog.Footer class={cn('mt-4', !media.md && 'bg-transparent border-0')}>
-			<Form.Button type="submit" disabled={loading || !$formData.title} class="w-full relative">
+			<Button onclick={onClick} disabled={loading || !title} class="w-full relative">
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
 				>
@@ -105,7 +107,7 @@
 				{:else}
 					Create recipe
 				{/if}
-			</Form.Button>
+			</Button>
 		</Dialog.Footer>
 		<!-- <p class="text-muted-foreground text-xs text-center">
 			By creating a recipe, you agree to our <a href="/terms" target="_blank" class="underline">
@@ -113,4 +115,4 @@
 			</a>.
 		</p> -->
 	</div>
-</form>
+</div>
