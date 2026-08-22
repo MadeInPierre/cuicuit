@@ -1,5 +1,7 @@
-import type { HandleClientError } from '@sveltejs/kit';
+import { dev } from '$app/env';
+import { version } from '$app/environment';
 import { env } from '$env/dynamic/public';
+import type { HandleClientError } from '@sveltejs/kit';
 import posthog from 'posthog-js';
 
 export function init() {
@@ -17,11 +19,18 @@ export function init() {
 
 	posthog.init(token, {
 		api_host: host,
+		ui_host: 'https://eu.posthog.com',
 		defaults: '2025-05-24',
 		capture_exceptions: {
 			capture_unhandled_errors: true,
 			capture_unhandled_rejections: true,
-			capture_console_errors: false
+			capture_console_errors: true
+		},
+		logs: {
+			captureConsoleLogs: true,
+			serviceName: 'cuicuit-web',
+			serviceVersion: version,
+			environment: dev ? 'development' : 'production'
 		}
 	});
 }
