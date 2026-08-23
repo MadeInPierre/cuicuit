@@ -1,5 +1,4 @@
-import { dev } from '$app/env';
-import { version } from '$app/environment';
+import { dev, version } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import type { HandleClientError } from '@sveltejs/kit';
 import posthog from 'posthog-js';
@@ -19,6 +18,14 @@ export function init() {
 		api_host: host,
 		ui_host: 'https://eu.posthog.com',
 		defaults: '2025-05-24',
+		// Backstop that does not depend on the bundler: drop any event from a
+		// local host, so a broken dev guard cannot send dev noise to production.
+		before_send: (event) => {
+			if (!event) return event;
+			const host = URL.parse(event.properties?.$current_url ?? '')?.hostname;
+			if (host === 'localhost' || host === '127.0.0.1') return null;
+			return event;
+		},
 		capture_exceptions: {
 			capture_unhandled_errors: true,
 			capture_unhandled_rejections: true,
