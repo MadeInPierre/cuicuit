@@ -20,11 +20,17 @@ export const load: LayoutLoad = async ({ fetch, depends }) => {
 		return { supabase: null, claims: null };
 	}
 
-	const sb = createBrowserClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-		global: {
-			fetch
-		}
-	});
+	// Reuse the existing client across load re-runs. A token refresh calls
+	// `invalidate('supabase:auth')`, which re-runs this load; building a new
+	// client each time would reset the `supabase.client` singleton and the
+	// user state that depends on it, blanking the app behind the splash.
+	const sb =
+		supabase.client ??
+		createBrowserClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+			global: {
+				fetch
+			}
+		});
 
 	// The singleton is browser-only: it's created once per page on the client.
 	supabase.client = sb;
