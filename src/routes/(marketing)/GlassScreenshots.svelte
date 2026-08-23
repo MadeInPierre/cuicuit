@@ -101,7 +101,7 @@
 		transition:fade
 	>
 		<div
-			class="relative w-[90vw] max-w-[90vw] mx-auto max-h-[94vh]"
+			class="relative w-[90vw] max-w-7xl mx-auto max-h-[94vh]"
 			in:scale={{ duration: 180 }}
 			out:scale={{ duration: 120 }}
 		>

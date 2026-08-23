@@ -6,6 +6,10 @@
 	let { children, data } = $props();
 </script>
 
+<svelte:head>
+	<meta name="theme-color" content="#f5f0e8" />
+</svelte:head>
+
 <div class="min-h-screen bg-background text-foreground font-sans antialiased" id="landing-root">
 	<header class="sticky top-0 z-30 backdrop-blur-md bg-background/70 border-b border-border/60">
 		<div class="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between">
