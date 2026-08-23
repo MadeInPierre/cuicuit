@@ -13,10 +13,20 @@ export class UserState {
 	#userCreditLogs = $state<UserCreditLogs | undefined | null>(undefined);
 	#userCreditBalance = $state<UserCreditBalance | undefined | null>(undefined);
 
+	#client: SupabaseClient<Database> | undefined;
 	#unsub: any;
 
 	constructor(supabaseClient: SupabaseClient<Database> | undefined) {
-		if (!supabaseClient?.auth) return;
+		this.setClient(supabaseClient);
+	}
+
+	// Bind to a Supabase client. Keeps the loaded user data, so a client swap
+	// (for example a token refresh) does not reset the state to empty.
+	setClient(supabaseClient: SupabaseClient<Database> | undefined) {
+		if (!supabaseClient?.auth || supabaseClient === this.#client) return;
+
+		this.#unsub?.subscription.unsubscribe();
+		this.#client = supabaseClient;
 
 		const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
 			// console.log('Supabase auth state changed:', event, session);
@@ -85,11 +95,7 @@ export class UserState {
 	}
 
 	get isComplete() {
-		return (
-			this.#userState &&
-			this.#userPublicProfile &&
-			this.#userPreferences
-		); // Neither null nor undefined
+		return this.#userState && this.#userPublicProfile && this.#userPreferences; // Neither null nor undefined
 	}
 
 	stopListening() {
@@ -103,7 +109,9 @@ export class UserState {
 		this.#userPublicProfile = (await getUserPublicProfile(this.#userState.id)).profile;
 
 		// Refresh user preferences
-		this.#userPreferences = (await getUserPreferences(supabase.client, this.#userState.id)).preferences;
+		this.#userPreferences = (
+			await getUserPreferences(supabase.client, this.#userState.id)
+		).preferences;
 
 		// Refresh user credit logs
 		this.#userCreditLogs = (await getUserCreditLogs(this.#userState.id)).logs;
@@ -115,8 +123,13 @@ export class UserState {
 	}
 }
 
-const currentUserState = $derived(new UserState(supabase.client));
+let currentUserState: UserState | undefined;
 
 export function getUserState() {
+	if (!currentUserState) {
+		currentUserState = new UserState(supabase.client);
+	} else {
+		currentUserState.setClient(supabase.client);
+	}
 	return currentUserState;
 }
