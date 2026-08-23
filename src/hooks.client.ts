@@ -5,17 +5,15 @@ import type { HandleClientError } from '@sveltejs/kit';
 import posthog from 'posthog-js';
 
 export function init() {
+	// The dev server reports errors and logs to the production PostHog project.
+	// These dev-server events add noise and hide real user errors, so skip init
+	// during development.
+	if (dev) return;
+
 	const token = env.PUBLIC_POSTHOG_PROJECT_TOKEN;
 	const host = env.PUBLIC_POSTHOG_HOST;
 
-	if (!token || !host) {
-		if (import.meta.env.DEV) {
-			throw new Error(
-				`${!token ? 'PUBLIC_POSTHOG_PROJECT_TOKEN' : 'PUBLIC_POSTHOG_HOST'} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${!token ? 'PUBLIC_POSTHOG_PROJECT_TOKEN' : 'PUBLIC_POSTHOG_HOST'} is configured`
-			);
-		}
-		return;
-	}
+	if (!token || !host) return;
 
 	posthog.init(token, {
 		api_host: host,
@@ -30,7 +28,7 @@ export function init() {
 			captureConsoleLogs: true,
 			serviceName: 'cuicuit-web',
 			serviceVersion: version,
-			environment: dev ? 'development' : 'production'
+			environment: 'production'
 		}
 	});
 }
