@@ -1,4 +1,4 @@
-import { dev } from '$app/env';
+import { dev } from '$app/environment';
 import { getRequestEvent, query } from '$app/server';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import Stripe from 'stripe';
