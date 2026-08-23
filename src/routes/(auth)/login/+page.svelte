@@ -12,10 +12,10 @@
 		// If the user is already logged in...
 		if (browser && userState.user?.id && userState.preferences) {
 			if (userState.preferences.onboarding_status !== 'finished') {
-				console.warn('User has not finished onboarding, redirect to welcome');
+				console.info('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');
 			} else {
-				console.warn('User has finished onboarding, going to app.');
+				console.info('User has finished onboarding, going to app.');
 				goto('/recipes');
 			}
 		}
