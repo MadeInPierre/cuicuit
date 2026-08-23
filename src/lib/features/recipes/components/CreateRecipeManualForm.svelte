@@ -5,13 +5,13 @@
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { cn } from '$lib/utils';
 	import { Loader2 } from 'lucide-svelte';
+	import posthog from 'posthog-js';
 	import { toast } from 'svelte-sonner';
 	import { createDraftRecipe } from '../actions/create-draft-recipe.remote';
 	import { createRecipeManualSchema } from '../models/schemas';
-	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
-	import { cn } from '$lib/utils';
-	import posthog from 'posthog-js';
 
 	type Props = {
 		openDialog?: boolean;
@@ -82,7 +82,7 @@
 		/>
 
 		{#if titleError}
-			<p class="text-destructive text-sm font-medium text-red-600">{titleError}</p>
+			<p class="text-sm font-medium text-red-600">{titleError}</p>
 		{/if}
 	</div>
 

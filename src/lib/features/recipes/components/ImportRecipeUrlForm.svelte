@@ -27,15 +27,14 @@
 	let url = $state('');
 	let urlError = $state<string | null>(null);
 	let loading = $state(false);
+	let currentStep = $state(-1);
 
 	const importSteps = [
-		'Navigating the internet',
-		'Detecting recipe in the page',
-		'Recognizing ingredients & units',
-		'Guessing filters and missing details'
+		'Finding the recipe',
+		'Uploading the recipe image',
+		'Guessing filters and missing details',
+		'Recognizing ingredients & units'
 	];
-
-	const importDelays = [1200, 800, 3300, 8000];
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
@@ -44,6 +43,7 @@
 		if (loading) throw new Error('A web import is already ongoing, aborting.');
 
 		loading = true;
+		currentStep = -1;
 		try {
 			if (!userState.user?.id) {
 				toast.error('You must be logged in to import a recipe.');
@@ -54,11 +54,21 @@
 			if (!space.activeSpace) throw new Error('No active space');
 			if (!space.language) throw new Error('No active language');
 
-			const result = await importRecipeFromUrl({
+			let result: { id: string; isComplete: boolean; usage: unknown } | undefined;
+			for await (const value of importRecipeFromUrl({
 				spaceId: space.activeSpace.id,
 				url,
 				fallbackLang: space.language.lang
-			});
+			})) {
+				console.log('Received yield', value);
+				if (typeof value === 'number') {
+					currentStep = value;
+				} else {
+					result = value;
+				}
+			}
+
+			if (!result) throw new Error('Import did not complete.');
 
 			userState.refresh();
 			posthog.capture('recipe_imported', {
@@ -80,6 +90,7 @@
 			toast.error('Failed to import recipe. Please try again.');
 		}
 		loading = false;
+		currentStep = -1;
 	}
 
 	function onClick() {
@@ -96,7 +107,7 @@
 <div class="w-full space-y-4">
 	{#if loading}
 		<div class="flex justify-center" transition:slide={{ duration: 300 }}>
-			<ImportRecipeStepper steps={importSteps} delays={importDelays} active={loading} />
+			<ImportRecipeStepper steps={importSteps} {currentStep} />
 		</div>
 	{:else}
 		<div class="space-y-2" transition:slide={{ duration: 300 }}>
