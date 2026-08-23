@@ -1,64 +1,26 @@
 <script lang="ts">
 	import { Check, Circle, Loader } from 'lucide-svelte';
-	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 
 	type StepStatus = 'waiting' | 'loading' | 'done';
 
 	type Props = {
 		steps: string[];
-		delays: number[];
-		active: boolean;
+		currentStep?: number;
 	};
 
-	let { steps, delays, active }: Props = $props();
+	let { steps, currentStep = $bindable(-1) }: Props = $props();
 
-	let statuses = $state<StepStatus[]>([]);
-	let cancelled = false;
-
-	function applyVariance(ms: number): number {
-		const variance = ms * 0.3;
-		return ms + (Math.random() * 2 - 1) * variance;
-	}
-
-	$effect(() => {
-		if (!active) {
-			statuses = steps.map(() => 'waiting');
-			return;
-		}
-	});
-
-	onMount(() => {
-		cancelled = false;
-		statuses = steps.map(() => 'waiting');
-
-		async function run() {
-			for (let i = 0; i < steps.length; i++) {
-				if (cancelled) return;
-				statuses[i] = 'loading';
-				statuses = [...statuses];
-
-				await new Promise((r) => setTimeout(r, applyVariance(delays[i] ?? 600)));
-
-				if (cancelled) return;
-
-				if (i === steps.length - 1 && active) {
-					while (!cancelled && active) {
-						await new Promise((r) => setTimeout(r, 200));
-					}
-					return;
-				}
-
-				statuses[i] = 'done';
-				statuses = [...statuses];
-			}
+	let statuses: StepStatus[] = $derived.by(() => {
+		if (currentStep >= 0) {
+			return steps.map((_, i) => {
+				if (i < currentStep) return 'done';
+				if (i === currentStep) return 'loading';
+				return 'waiting';
+			});
 		}
 
-		run();
-
-		return () => {
-			cancelled = true;
-		};
+		return steps.map(() => 'waiting');
 	});
 </script>
 
