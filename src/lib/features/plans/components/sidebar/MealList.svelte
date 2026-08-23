@@ -76,8 +76,8 @@
 			if (direction === 'left') await deleteMeal(space, mealId);
 			else {
 				// TODO implement marked as cooked
-				await deleteMeal(space, mealId);
-				toast.success('Marked as cooked', { description: 'Bon appétit ! TODO NOT IMPLEMENTED' });
+				await deleteMeal(space, mealId, { hideToast: true });
+				toast.success('Marked as cooked', { description: 'Bon appétit !' });
 			}
 		}
 	}
@@ -130,7 +130,6 @@
 						class="absolute text-emerald-600 bg-emerald-600/10 w-full h-19 rounded-lg z-0 flex items-center gap-2 pl-6 text-sm"
 						class:h-19={cardSize === 'lg'}
 						class:h-15={cardSize === 'md'}
-
 						style:right="var(--swipe-distance-x)"
 					>
 						<Check class="size-4" />
