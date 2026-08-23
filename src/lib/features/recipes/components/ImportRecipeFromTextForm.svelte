@@ -10,10 +10,11 @@
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 	import posthog from 'posthog-js';
-	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import { slide } from 'svelte/transition';
 	import { importRecipeFromText } from '../actions/import-from-url.remote';
 	import { importRecipeTextSchema } from '../models/schemas';
+	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
 
 	const userState = getUserState();
 
@@ -27,13 +28,21 @@
 	let textError = $state<string | null>(null);
 	let loading = $state(false);
 
+	const importSteps = [
+		'Warming up',
+		'Organizing your recipe',
+		'Finding ingredients & units',
+		'Guessing filters and missing details'
+	];
+
+	const importDelays = [1500, 800, 4500, 5000];
+
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
 	async function onSubmit() {
 		loading = true;
 		try {
-			// Get the user
 			if (!userState.user?.id) {
 				toast.error('You must be logged in to import a recipe.');
 				loading = false;
@@ -43,7 +52,6 @@
 			if (!space.activeSpace) throw new Error('No active space');
 			if (!space.language) throw new Error('No active language');
 
-			// Import the recipe from the URL
 			const result = await importRecipeFromText({
 				spaceId: space.activeSpace.id,
 				text,
@@ -55,7 +63,6 @@
 				is_complete: result.isComplete
 			});
 
-			// Navigate based on completeness
 			if (result.isComplete) {
 				toast.success('Recipe imported successfully!');
 				openDialog = false;
@@ -83,21 +90,27 @@
 </script>
 
 <div class="w-full space-y-4">
-	<div class="space-y-2">
-		<Label for="recipe-text">Recipe text</Label>
+	{#if loading}
+		<div class="flex justify-center" transition:slide={{ duration: 300 }}>
+			<ImportRecipeStepper steps={importSteps} delays={importDelays} active={loading} />
+		</div>
+	{:else}
+		<div class="space-y-2" transition:slide={{ duration: 300 }}>
+			<Label for="recipe-text">Recipe text</Label>
 
-		<Textarea
-			id="recipe-text"
-			placeholder="Paste or write a recipe in your own words with ingredients and steps..."
-			bind:value={text}
-			class="min-h-60 max-h-100"
-			oninput={() => (textError = null)}
-		/>
+			<Textarea
+				id="recipe-text"
+				placeholder="Paste or write a recipe in your own words with ingredients and steps..."
+				bind:value={text}
+				class="min-h-60 max-h-100"
+				oninput={() => (textError = null)}
+			/>
 
-		{#if textError}
-			<p class="text-destructive text-sm font-medium text-red-600">{textError}</p>
-		{/if}
-	</div>
+			{#if textError}
+				<p class="text-sm font-medium text-red-600">{textError}</p>
+			{/if}
+		</div>
+	{/if}
 
 	<div class="space-y-2">
 		<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
@@ -109,10 +122,7 @@
 				</div>
 
 				{#if loading}
-					<div class="flex items-center gap-2">
-						<Loader2 class="size-4 animate-spin" />
-						Importing recipe...
-					</div>
+					Importing recipe...
 				{:else}
 					Import recipe
 				{/if}

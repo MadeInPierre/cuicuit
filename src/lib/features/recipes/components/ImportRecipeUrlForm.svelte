@@ -11,9 +11,10 @@
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
 	import posthog from 'posthog-js';
-	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
+	import { slide } from 'svelte/transition';
 	import { importRecipeUrlSchema } from '../models/schemas';
+	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
 
 	const userState = getUserState();
 
@@ -27,15 +28,23 @@
 	let urlError = $state<string | null>(null);
 	let loading = $state(false);
 
+	const importSteps = [
+		'Navigating the internet',
+		'Detecting recipe in the page',
+		'Recognizing ingredients & units',
+		'Guessing filters and missing details'
+	];
+
+	const importDelays = [1200, 800, 3300, 8000];
+
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
 	async function onSubmit() {
-		if (loading) throw new Error('An web import is already ongoing, aborting.');
+		if (loading) throw new Error('A web import is already ongoing, aborting.');
 
 		loading = true;
 		try {
-			// Get the user
 			if (!userState.user?.id) {
 				toast.error('You must be logged in to import a recipe.');
 				loading = false;
@@ -45,22 +54,18 @@
 			if (!space.activeSpace) throw new Error('No active space');
 			if (!space.language) throw new Error('No active language');
 
-			// Import the recipe from the URL
-			console.log('TRIGGERING IMPORT');
 			const result = await importRecipeFromUrl({
 				spaceId: space.activeSpace.id,
 				url,
 				fallbackLang: space.language.lang
 			});
 
-			// Refresh credit balance
 			userState.refresh();
 			posthog.capture('recipe_imported', {
 				source_type: 'url',
 				is_complete: result.isComplete
 			});
 
-			// Navigate based on completeness
 			if (result.isComplete) {
 				toast.success('Recipe imported successfully!');
 				openDialog = false;
@@ -89,30 +94,29 @@
 </script>
 
 <div class="w-full space-y-4">
+	{#if loading}
+		<div class="flex justify-center" transition:slide={{ duration: 300 }}>
+			<ImportRecipeStepper steps={importSteps} delays={importDelays} active={loading} />
+		</div>
+	{:else}
+		<div class="space-y-2" transition:slide={{ duration: 300 }}>
+			<Label for="recipe-url">Recipe link</Label>
+
+			<Input
+				id="recipe-url"
+				type="url"
+				placeholder="Paste any link to a recipe..."
+				bind:value={url}
+				oninput={() => (urlError = null)}
+			/>
+
+			{#if urlError}
+				<p class="text-sm font-medium text-red-600">{urlError}</p>
+			{/if}
+		</div>
+	{/if}
+
 	<div class="space-y-2">
-		<Label for="recipe-url">Recipe link</Label>
-
-		<Input
-			id="recipe-url"
-			type="url"
-			placeholder="Paste any link to a recipe..."
-			bind:value={url}
-			oninput={() => (urlError = null)}
-		/>
-
-		{#if urlError}
-			<p class="text-destructive text-sm font-medium text-red-600">{urlError}</p>
-		{/if}
-	</div>
-
-	<div class="space-y-2">
-		<!-- {#if recipeId}
-			<div class="border border-yellow-800 bg-yellow-50 p-2 rounded-md text-yellow-800 text-xs">
-				<span class="font-bold"> Warning: </span>
-				This will overwrite the current data.
-			</div>
-		{/if} -->
-
 		<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
 			<Button onclick={onClick} disabled={loading || !url} class="w-full relative">
 				<div
@@ -122,10 +126,7 @@
 				</div>
 
 				{#if loading}
-					<div class="flex items-center gap-2">
-						<Loader2 class="size-4 animate-spin" />
-						Importing recipe...
-					</div>
+					Importing recipe...
 				{:else}
 					Import recipe
 				{/if}
