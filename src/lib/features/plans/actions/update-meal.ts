@@ -15,7 +15,10 @@ export async function updateMealServings(
 	if (servings < 1) throw new Error('Servings must be at least 1');
 
 	// Update the meal servings in Supabase
-	const { error } = await supabase.client.from('space_meals').update({ servings }).eq('id', meal.id);
+	const { error } = await supabase.client
+		.from('space_meals')
+		.update({ servings })
+		.eq('id', meal.id);
 	if (error) throw new Error('Error updating meal servings: ' + error.message);
 
 	// Update every shopping list item related to this meal to reflect the new amounts
@@ -68,7 +71,12 @@ export async function updateMealPosition(
 export async function deleteMeal(
 	activeSpace: ActiveSpaceState,
 	mealId: string,
-	options?: { skipRefresh?: boolean; undo?: boolean; toastId?: string | number }
+	options?: {
+		skipRefresh?: boolean;
+		undo?: boolean;
+		toastId?: string | number;
+		hideToast?: boolean;
+	}
 ) {
 	if (!supabase.client) throw new Error('Supabase client not available');
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
@@ -103,7 +111,7 @@ export async function deleteMeal(
 
 	if (options?.undo) {
 		toast.success('Meal restored', { description: 'We got it back!', id: options?.toastId });
-	} else {
+	} else if (!options?.hideToast) {
 		const id = toast.success('Meal deleted', {
 			description: 'It looked yummy though',
 			action: {
