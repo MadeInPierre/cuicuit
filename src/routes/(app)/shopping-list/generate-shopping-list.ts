@@ -187,12 +187,14 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 		const unitStr = unit === 'whole' ? '' : ` ${unit}`;
 		if (qty.optionalOnly > 0) {
 			if (qty.requiredOnly > 0) {
-				parts.push(`${qty.requiredOnly} to ${qty.withOptionals}${unitStr}`);
+				parts.push(
+					`${formatAmount(qty.requiredOnly)} to ${formatAmount(qty.withOptionals)}${unitStr}`
+				);
 			} else {
-				parts.push(`${qty.optionalOnly}${unitStr}`);
+				parts.push(`${formatAmount(qty.optionalOnly)}${unitStr}`);
 			}
 		} else {
-			parts.push(`${qty.withOptionals}${unitStr}`);
+			parts.push(`${formatAmount(qty.withOptionals)}${unitStr}`);
 		}
 	}
 
@@ -211,4 +213,54 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 		optText = ' (has opt)';
 	}
 	return parts.join(' + ') + optText;
+}
+
+function formatAmount(amount: number) {
+	const commonFractions = [
+		[0.0625, '⅟₁₆'],
+		[0.125, '⅛'],
+		[0.1875, '⅜'],
+		[0.25, '¼'],
+		[0.3125, '⅝'],
+		[0.375, '⅜'],
+		[0.4375, '⅞'],
+		[0.5, '½'],
+		[0.5625, '⅞'],
+		[0.625, '⅝'],
+		[0.6875, '⅞'],
+		[0.75, '¾'],
+		[0.8125, '⅞'],
+		[0.875, '⅞'],
+		[0.9375, '⅞'],
+		[0.2, '⅕'],
+		[0.4, '⅖'],
+		[0.6, '⅗'],
+		[0.8, '⅘'],
+		[1 / 3, '⅓'],
+		[0.33, '⅓'],
+		[0.34, '⅓'],
+		[2 / 3, '⅔'],
+		[0.66, '⅔'],
+		[0.67, '⅔']
+	] as const;
+
+	if (Number.isInteger(amount)) {
+		return String(amount);
+	}
+
+	const wholePart = Math.trunc(amount);
+	const decimalPart = Math.abs(amount - wholePart);
+	const matchingFraction = commonFractions.find(([value]) => Math.abs(decimalPart - value) < 1e-6);
+
+	if (matchingFraction) {
+		const [, fractionText] = matchingFraction;
+		const sign = amount < 0 ? '-' : '';
+		const scaledWhole = Math.abs(wholePart);
+		return `${sign}${scaledWhole > 0 ? `${scaledWhole} ${fractionText}` : fractionText}`;
+	}
+
+	return amount
+		.toFixed(2)
+		.replace(/\.00$/, '')
+		.replace(/(\.\d)0$/, '$1');
 }
