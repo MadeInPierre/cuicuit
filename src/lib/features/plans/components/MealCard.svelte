@@ -36,6 +36,7 @@
 		selectedMealIngredient
 	} from '../state/hovered-meal-ingredient.svelte';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
+	import { formatQuantityAmount } from '../../../../routes/(app)/shopping-list/generate-shopping-list';
 
 	const space = getActiveSpaceState();
 
@@ -167,7 +168,8 @@
 				<IngredientImage id={activeId} class="size-7 rounded-full" />
 
 				<span>
-					{(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
+				
+					{formatQuantityAmount(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
 						0) ||
 						''}
 

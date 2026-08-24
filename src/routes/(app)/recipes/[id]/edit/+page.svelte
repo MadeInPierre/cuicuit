@@ -33,7 +33,9 @@
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
+	import type { PublicRecipeSourceType } from '$lib/shared/db/supazod.schemas';
 	import { capitalize, cn } from '$lib/utils';
+	import { ArrowUpDown } from '@lucide/svelte';
 	import {
 		ChevronDown,
 		ChevronUp,
@@ -380,6 +382,11 @@
 
 	let showDismissDialog = $state(false);
 	let dismissDialogMode: 'discard' | 'delete' = $state('discard');
+
+	const sourceLabels = {
+		website: 'Website',
+		'user-manual': 'Manual'
+	} satisfies Record<PublicRecipeSourceType, string>;
 </script>
 
 <form method="POST" use:enhance class="space-y-8">
@@ -470,7 +477,7 @@
 
 				{#each Object.entries($errors) || [] as [key, messages] (key)}
 					<Label class="text-red-600 ml-auto">
-						{`${capitalize(key).replaceAll('_', ' ')}: ${typeof messages == 'string' ? messages : Object.values(messages).join(', ')}`}
+						{`${typeof messages == 'string' ? messages : Object.values(messages).join(', ')}`}
 					</Label>
 				{/each}
 
@@ -498,7 +505,7 @@
 													/>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
 										<Form.Field {form} name="language" class="grid">
@@ -533,7 +540,7 @@
 													</Select.Root>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -550,7 +557,7 @@
 												/>
 											{/snippet}
 										</Form.Control>
-										<Form.FieldErrors />
+										<Form.FieldErrors class="text-red-600" />
 									</Form.Field>
 
 									<div class="flex gap-4">
@@ -566,7 +573,9 @@
 														bind:value={$formData.source_type}
 													>
 														<Select.Trigger class="w-34 h-9">
-															{capitalize($formData.source_type).replaceAll('-', ' ') || '?'}
+															{sourceLabels[
+																($formData.source_type as PublicRecipeSourceType) || 'user-manual'
+															] || '?'}
 														</Select.Trigger>
 														<Select.Content>
 															<Select.Group>
@@ -574,10 +583,16 @@
 																{#each ['website', 'user-manual'] as value (value)}
 																	<Select.Item
 																		{value}
-																		label={capitalize(value).replaceAll('-', ' ') || '?'}
+																		label={sourceLabels[
+																			(value as PublicRecipeSourceType) || 'user-manual'
+																		] || '?'}
 																		class="flex gap-2 items-center"
 																	>
-																		<span>{capitalize(value).replaceAll('-', ' ') || '?'}</span>
+																		<span
+																			>{sourceLabels[
+																				(value as PublicRecipeSourceType) || 'user-manual'
+																			]}</span
+																		>
 																	</Select.Item>
 																{/each}
 															</Select.Group>
@@ -585,7 +600,7 @@
 													</Select.Root>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
 										<Form.Field {form} name="source_url" class="w-full grid">
@@ -596,11 +611,11 @@
 														disabled={loading || $formData.source_type !== 'website'}
 														{...props}
 														bind:value={$formData.source_url}
-														placeholder="(optional) https://..."
+														placeholder="e.g. https://..."
 													/>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 								</div>
@@ -804,7 +819,7 @@
 													</div>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 								{/each}
@@ -911,7 +926,7 @@
 													<input hidden bind:value={$formData.skillLevel} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -938,7 +953,7 @@
 													<input hidden bind:value={$formData.effortLevel} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -965,7 +980,7 @@
 													<input hidden bind:value={$formData.costLevel} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -992,7 +1007,7 @@
 													<input hidden bind:value={$formData.cleanupLevel} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -1013,7 +1028,7 @@
 													<p>min</p>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
 										<Form.Field {form} name="timeCook" class="pl-4 flex items-center gap-3">
@@ -1030,7 +1045,7 @@
 													<p>min</p>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
 										<Form.Field {form} name="timeRest" class="pl-4 flex items-center gap-3">
@@ -1047,7 +1062,7 @@
 													<p>min</p>
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 								</div>
@@ -1090,7 +1105,7 @@
 													<input hidden bind:value={$formData.timesofday_ids} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -1122,7 +1137,7 @@
 													<input hidden bind:value={$formData.course_ids} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 
@@ -1154,7 +1169,7 @@
 													<input hidden bind:value={$formData.cuisine_ids} name={props.name} />
 												{/snippet}
 											</Form.Control>
-											<Form.FieldErrors />
+											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 									</div>
 								</div>
@@ -1269,8 +1284,11 @@
 			}}
 		/>
 	{:else}
-		<p class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md">
-			Drag ingredients here to add {isOptional ? 'optional' : 'required'} ingredients
+		<p
+			class="text-xs text-muted-foreground text-center bg-muted/40 p-4 rounded-md flex items-center justify-center gap-1"
+		>
+			Click <ArrowUpDown class="size-4" /> on existing ingredients to make them
+			{isOptional ? 'optional' : 'required'}
 		</p>
 	{/each}
 {/snippet}

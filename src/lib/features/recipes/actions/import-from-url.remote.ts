@@ -65,11 +65,16 @@ async function saveEnrichedRecipe(
 	const langId =
 		Object.entries(languages).find(([key]) => key === enrichedRecipe.lang)?.[1].id || 1;
 
+	const title =
+		enrichedRecipe.recipe.title.length >= 47
+			? `${enrichedRecipe.recipe.title.slice(0, 47)}...`
+			: enrichedRecipe.recipe.title;
+
 	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase
 		.from('recipes')
 		.update({
 			language_id: langId,
-			title: enrichedRecipe.recipe.title,
+			title,
 			short_title: enrichedRecipe.recipe.short_title,
 			description: enrichedRecipe.recipe.description,
 			servings: enrichedRecipe.recipe.servings,
@@ -289,7 +294,7 @@ export const importRecipeFromText = query.live(
 		if (!languageData) throw new Error('Could not retrieve language ID.');
 
 		const recipeId = await createDraftRecipe({
-			sourceType: 'website',
+			sourceType: 'user-manual',
 			lang: languageData.lang,
 			title: 'Creating recipe...'
 		});
