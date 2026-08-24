@@ -79,6 +79,7 @@
 					{meals}
 					cardSize={displayMode === 'sidebar' ? 'md' : 'lg'}
 					expandOnSelected={displayMode === 'sidebar'}
+					reorderable={meals.length > 1}
 				/>
 			{:else if !filterOnIngredientId}
 				<div
@@ -106,13 +107,13 @@
 				<div
 					class={cn(
 						'py-2 relative grid grid-cols-1 gap-2',
-						displayMode === 'sidebar' && 'max-h-[380px] pb-2 overflow-x-visible overflow-y-clip'
+						displayMode === 'sidebar' && 'max-h-95 pb-2 overflow-x-visible overflow-y-clip'
 					)}
 					class:grid-cols-3={!filterOnIngredientId}
 				>
 					{#if displayMode === 'sidebar' && independentItems && independentItems.length > 9}
 						<div
-							class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-gradient-to-t from-sidebar to-transparent"
+							class="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-6 bg-linear-to-t from-sidebar to-transparent"
 						></div>
 					{/if}
 

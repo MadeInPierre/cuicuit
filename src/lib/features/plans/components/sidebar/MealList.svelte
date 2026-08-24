@@ -21,11 +21,13 @@
 		meals: MealWithRecipeAndIngredients[];
 		cardSize?: 'md' | 'lg';
 		expandOnSelected?: boolean; // Whether to automatically expand meal cards when an ingredient is selected
+		reorderable?: boolean;
 	};
 
-	let { meals, cardSize = 'md', expandOnSelected = false }: Props = $props();
+	let { meals, cardSize = 'md', expandOnSelected = false, reorderable = false }: Props = $props();
 
 	let slideDurationMs = $state(200);
+	let reordering = $state(false);
 
 	function updateLocalMealPositions(items: MealWithRecipeAndIngredients[]) {
 		if (!space.activePlanMeals) return;
@@ -37,6 +39,7 @@
 
 	function handleDndConsider(e: { detail: { items: MealWithRecipeAndIngredients[] } }) {
 		if (e.detail.items.length < 2) return;
+		reordering = true;
 
 		// Update the local state with the new order
 		slideDurationMs = 0;
@@ -45,6 +48,7 @@
 
 	async function handleDndFinalize(e: { detail: { items: MealWithRecipeAndIngredients[] } }) {
 		if (e.detail.items.length < 2) return;
+		reordering = false;
 
 		// Update the local state with the new order
 		updateLocalMealPositions(e.detail.items);
@@ -86,10 +90,16 @@
 <div
 	class="grid space-y-2 rounded-sm"
 	use:dragHandleZone={{
+		dragDisabled: !reorderable,
 		items: meals,
 		flipDurationMs: 200,
 		delayTouchStart: 300,
-		dropTargetStyle: { outline: '0px' }
+		dropTargetStyle: {
+			'outline-width': '0px',
+			'background-color': '#c9644210',
+			outline: 'rgba(201, 100, 66, 0.4) solid 4px'
+		},
+		type: 'meals'
 	}}
 	onconsider={handleDndConsider}
 	onfinalize={handleDndFinalize}
@@ -100,7 +110,8 @@
 				use:swipeable={{
 					direction: 'x',
 					disableTouchEvents: false,
-					followThrough: { container: 'body' }
+					followThrough: { container: 'body' },
+					enabled: !reordering
 				}}
 				style:left="var(--swipe-distance-x)"
 				style="touch-action: pan-y;"
@@ -109,11 +120,13 @@
 				class="flex relative group"
 				transition:slide={{ duration: slideDurationMs }}
 			>
-				<div class="mt-5" use:dragHandle>
-					<GripVertical
-						class="absolute -left-2.5 -translate-x-1.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
-					/>
-				</div>
+				{#if reorderable}
+					<div class="mt-5" use:dragHandle>
+						<GripVertical
+							class="absolute -left-2.5 -translate-x-1.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground cursor-drag opacity-0 group-hover:opacity-100 transition-opacity"
+						/>
+					</div>
+				{/if}
 
 				{#if direction === 'left'}
 					<div

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
+	import { SidebarClose, SidebarOpen } from '@lucide/svelte';
 	import type { ComponentProps } from 'svelte';
 	import ThemeButton from './ThemeButton.svelte';
 
@@ -20,12 +21,32 @@
 <Sidebar.Group bind:ref {...restProps}>
 	<Sidebar.GroupContent>
 		<Sidebar.Menu>
-			<Sidebar.MenuItem>
+			<Sidebar.MenuItem class="overflow-hidden">
 				<Sidebar.MenuButton>
-					<ThemeButton class="block w-full" />
-
+					{#snippet child({ props })}
+						<ThemeButton label={sidebar.open ? 'Change theme' : undefined} {...props} />
+					{/snippet}
 					{#snippet tooltipContent()}
-						<span>Toggle theme</span>
+						<span>Hello</span>
+					{/snippet}
+				</Sidebar.MenuButton>
+			</Sidebar.MenuItem>
+
+			<Sidebar.MenuItem>
+				<Sidebar.MenuButton
+					onclick={() => {
+						sidebar.setOpen(!sidebar.open);
+					}}
+				>
+					{#snippet child({ props })}
+						<div {...props}>
+							{#if sidebar.open}
+								<SidebarClose />
+								<span>Collapse sidebar</span>
+							{:else}
+								<SidebarOpen />
+							{/if}
+						</div>
 					{/snippet}
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>
