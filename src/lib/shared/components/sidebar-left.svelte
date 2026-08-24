@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dev } from '$app/environment';
 	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
@@ -6,12 +7,11 @@
 	import NavMain from '$lib/shared/components/nav-main.svelte';
 	import NavSecondary from '$lib/shared/components/nav-secondary.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { ChefHat, Megaphone, Notebook, Refrigerator, Send, ShoppingBasket } from 'lucide-svelte';
+	import { ChefHat, Notebook, Refrigerator, ShoppingBasket } from 'lucide-svelte';
 	import Calendar from 'lucide-svelte/icons/calendar';
 	import type { ComponentProps } from 'svelte';
 	import type { TAILWIND_BREAKPOINTS } from '../hooks/use-media.svelte';
 	import NavUser from './nav-user.svelte';
-	import { dev } from '$app/environment';
 
 	const userState = getUserState();
 
@@ -280,7 +280,7 @@
 		{/if}
 		<NavSecondary items={data.navSecondary} class="mt-auto" />
 	</Sidebar.Content>
-	<Sidebar.Rail />
+	<!-- <Sidebar.Rail onclick={() => {}} /> -->
 	<Sidebar.Header class="border-sidebar-border border-b">
 		<NavUser
 			user={{
