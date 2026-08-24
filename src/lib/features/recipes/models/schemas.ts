@@ -8,17 +8,14 @@ export const createRecipeFormSchema = z
 		language: languageKeySchema.default('fr-FR'),
 		title: z
 			.string()
-			.min(3, 'Name must be at least 3 characters long.')
-			.max(50, 'Name must be at most 50 characters long.'),
+			.min(3, 'Title must be at least 3 characters long.')
+			.max(50, 'Title must be at most 50 characters long.'),
 		short_title: z.string().min(1).max(40),
 		description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
 		// Source
 		source_type: publicRecipeSourceTypeSchema,
-		source_url: z
-			.url('Please enter a valid URL, like https://...')
-			.nullable()
-			.or(z.literal('')),
+		source_url: z.url('Please enter a valid URL, like https://...').nullable().or(z.literal('')),
 
 		// Images
 		imageIds: z
@@ -58,7 +55,11 @@ export const createRecipeFormSchema = z
 			.max(60 * 48),
 
 		// Servings & Ingredients
-		servings: z.number().int().min(1).max(20),
+		servings: z
+			.number()
+			.int()
+			.min(1, { message: 'Please indicate a servings amount.' })
+			.max(30, { message: 'Servings cannot go above 30.' }),
 		ingredientIds: z
 			.array(z.string().min(1, { message: 'Please select an ingredient.' }))
 			.min(2, { message: 'Please select at least 2 ingredients.' }),

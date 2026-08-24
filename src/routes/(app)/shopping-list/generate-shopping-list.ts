@@ -188,13 +188,13 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 		if (qty.optionalOnly > 0) {
 			if (qty.requiredOnly > 0) {
 				parts.push(
-					`${formatAmount(qty.requiredOnly)} to ${formatAmount(qty.withOptionals)}${unitStr}`
+					`${formatQuantityAmount(qty.requiredOnly)} to ${formatQuantityAmount(qty.withOptionals)}${unitStr}`
 				);
 			} else {
-				parts.push(`${formatAmount(qty.optionalOnly)}${unitStr}`);
+				parts.push(`${formatQuantityAmount(qty.optionalOnly)}${unitStr}`);
 			}
 		} else {
-			parts.push(`${formatAmount(qty.withOptionals)}${unitStr}`);
+			parts.push(`${formatQuantityAmount(qty.withOptionals)}${unitStr}`);
 		}
 	}
 
@@ -215,7 +215,7 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 	return parts.join(' + ') + optText;
 }
 
-function formatAmount(amount: number) {
+export function formatQuantityAmount(amount: number) {
 	const commonFractions = [
 		[0.0625, '⅟₁₆'],
 		[0.125, '⅛'],
@@ -260,7 +260,7 @@ function formatAmount(amount: number) {
 	}
 
 	return amount
-		.toFixed(2)
+		.toFixed(1)
 		.replace(/\.00$/, '')
 		.replace(/(\.\d)0$/, '$1');
 }

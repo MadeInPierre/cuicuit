@@ -1,11 +1,11 @@
 <script lang="ts">
-	import * as Form from '$lib/shared/components/ui/form';
-	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import { ArrowUpDown, GripVertical, X } from 'lucide-svelte';
-	import { Input } from '$lib/shared/components/ui/input';
 	import { Button } from '$lib/shared/components/ui/button';
+	import * as Form from '$lib/shared/components/ui/form';
+	import { Input } from '$lib/shared/components/ui/input';
+	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { unitLabels } from '$lib/shared/utils/quantity';
+	import { ArrowUpDown, X } from 'lucide-svelte';
 
 	type Props = {
 		form: any; // TODO: specify form type
@@ -33,11 +33,11 @@
 
 <div class="grid gap-3">
 	<div class="grid gap-2">
-		<div class="w-full flex gap-2 items-center">
+		<div class="w-full flex gap-3 items-center">
 			<!-- <GripVertical class="size-6 text-muted-foreground cursor-grab" /> -->
 			<!-- <IngredientSelectDropdown /> -->
 
-			<IngredientImage {id} {name} class="w-10 h-10" />
+			<IngredientImage {id} {name} class="w-10 h-10 min-w-10" />
 
 			<div class="flex">
 				<Form.Field {form} name="ingredientAmounts" class="space-y-0">
@@ -60,7 +60,7 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<Select.Root type="single" bind:value={unit} {...props} {disabled}>
-								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-20 h-9">
+								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-26 h-9">
 									{unit && Object.keys(unitLabels).includes(unit) ? unit : ''}
 								</Select.Trigger>
 								<Select.Content>
@@ -75,7 +75,7 @@
 				</Form.Field>
 			</div>
 
-			<Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
+			<!-- <Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Input
@@ -88,7 +88,8 @@
 						/>
 					{/snippet}
 				</Form.Control>
-			</Form.Field>
+			</Form.Field> -->
+			<span class="w-full">{name}</span>
 
 			<div class="flex">
 				<Button

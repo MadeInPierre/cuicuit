@@ -48,6 +48,9 @@ export function mergeQuantities(
 	const region = options.region ?? 'EU';
 	const crossTypeMerge = options.crossTypeMerge ?? 'none';
 
+	// If the item is alone, no need to merge, and display its unit as-is (more intuitive)
+	if (Object.keys(quantities).length === 1) return quantities;
+
 	const priorities = {
 		volume: options.priorities?.volume ?? defaultPriorities.volume,
 		weight: options.priorities?.weight ?? defaultPriorities.weight,
@@ -201,4 +204,3 @@ export function mergeQuantities(
 }
 
 export type MergeQuantitiesResult = Partial<Record<Unit, number>> & Record<string, number>;
-

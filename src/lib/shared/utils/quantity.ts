@@ -94,22 +94,25 @@ export const weightAliases = {
 };
 
 export const unitLabels = {
+	// Volume
 	ml: 'mL',
 	cl: 'cL',
 	dl: 'dL',
 	l: 'L',
-	tsp: 'teaspoon',
-	tbsp: 'tablespoon',
-	dstsp: 'desert spoon',
-	cup: 'cup',
 	quart: 'quart',
 	gallon: 'gallon',
+	tsp: 'teaspoon',
+	dstsp: 'desert spoon',
+	tbsp: 'tablespoon',
+	cup: 'cup',
 	floz: 'fluid ounce',
 	pint: 'pint',
+	// Weight
 	g: 'gram',
 	kg: 'kg',
 	oz: 'oz',
 	lb: 'lb',
+	// Other
 	whole: 'pieces',
 	pinch: 'pinch'
 } satisfies Record<

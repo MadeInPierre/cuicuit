@@ -16,7 +16,7 @@
 	let triedFallbackUrl = $state(false);
 </script>
 
-{#if error}
+{#if error || recipe?.image_ids?.length === 0}
 	<div class={cn('aspect-square size-11 bg-gray-200 rounded-md', className)}></div>
 {:else if recipe && recipe.image_ids && recipe.image_ids.length > 0}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
