@@ -22,24 +22,22 @@ import { z } from 'zod';
  * Represents the structured result of parsing an ingredient search input.
  */
 export const parsedSearchInputSchema = z.object({
-	sourceText: z.string().optional().describe('The original source text of the ingredient input.'),
+	sourceText: z.string().optional().describe('Original full text of the ingredient.'),
 	quantity: z
 		.object({
-			amount: z.number().describe('The numeric amount of the quantity.'),
-			unitText: z.string().describe('The unit of the quantity (e.g., "cup", "g", "ml").'),
-			unitKey: unitUnregionizedSchema.describe(
-				'The standardized key for the unit used in the database.'
-			)
+			amount: z.number().describe('Numeric amount of the quantity.'),
+			unitText: z.string().describe('Unit as given by the recipe, empty if none.'),
+			unitKey: unitUnregionizedSchema.describe('Standardized unit key.')
 		})
 		.nullable(),
 	linkWord: z
 		.string()
-		.describe('The linking word used between the quantity and ingredient, e.g. "of", "de", "d\'".')
+		.describe('Linking word used between quantity and ingredient, e.g. "of", "de", "d\'".')
 		.nullable(),
 	ingredientText: z
 		.string()
 		.describe(
-			'Name of the ingredient. Must be edible and easy to find in a database of common ingredients.'
+			'Name of ingredient. Must be edible and easy to find in a database of common ingredients.'
 		),
 	description: z
 		.string()
@@ -48,11 +46,11 @@ export const parsedSearchInputSchema = z.object({
 	preparation: z
 		.string()
 		.nullable()
-		.describe('Any short preparation notes for the ingredient, e.g. "sifted, chopped".'),
+		.describe('Any short preparation notes for ingredient, e.g. "sifted, chopped".'),
 	isOptional: z
 		.boolean()
 		.describe(
-			'True if the recipe can still be made without this ingredient and retain its essential character.'
+			'Considered optional if the recipe title remains valid when cooked without this ingredient.'
 		)
 });
 

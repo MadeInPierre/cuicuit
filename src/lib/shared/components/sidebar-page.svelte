@@ -4,7 +4,7 @@
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { Bug, Lightbulb } from '@lucide/svelte';
+	import { Lightbulb } from '@lucide/svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import HelloDialog from './HelloDialog.svelte';
 	import SupportBanner from './SupportBanner.svelte';
@@ -86,24 +86,12 @@
 				<!-- <CommandMenu /> -->
 
 				<div class="flex items-center gap-2">
-					<Button
-						variant="link"
-						href="https://github.com/MadeInPierre/cuicuit/discussions"
-						target="_blank"
-						class="text-muted-foreground hidden sm:flex"
-					>
-						<Lightbulb />
-						Feedback
-					</Button>
-					<Button
-						variant="link"
-						href="https://github.com/MadeInPierre/cuicuit/issues/new"
-						target="_blank"
-						class="text-muted-foreground hidden md:flex"
-					>
-						<Bug />
-						I found a bug
-					</Button>
+					<HelloDialog>
+						<Button variant="link" class="text-muted-foreground hidden sm:flex">
+							<Lightbulb />
+							Feedback
+						</Button>
+					</HelloDialog>
 
 					<SupportBanner />
 				</div>

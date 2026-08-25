@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
-	import { Bug, Heart, Lightbulb, MessageCircle, Video } from 'lucide-svelte';
+	import { Bug, Heart, Lightbulb, MessageCircle } from 'lucide-svelte';
 	import SupportWallAutoDialog from '../../../routes/(marketing)/supporter/success/SupportWallAutoDialog.svelte';
-	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -11,8 +11,8 @@
 	let { children }: Props = $props();
 
 	let openAlphaDialog = $state(false);
-	let openSupportWall = $state(false)
-	const userState = getUserState()
+	let openSupportWall = $state(false);
+	const userState = getUserState();
 </script>
 
 <Dialog.Root bind:open={openAlphaDialog}>
@@ -90,7 +90,7 @@
 			<Button
 				variant="default"
 				onclick={() => (openSupportWall = true)}
-				class="font-hand bg-pink-500 hover:bg-pink-600 text-lg"
+				class="font-hand bg-pink-100 dark:bg-pink-950 hover:bg-pink-200 dark:hover:bg-pink-900 text-lg text-pink-600 dark:text-white border border-pink-600  border-dashed"
 			>
 				<Heart class="size-4" />
 				Support
@@ -99,4 +99,4 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<SupportWallAutoDialog email={userState.user?.email || null} bind:open={openSupportWall}/>
+<SupportWallAutoDialog email={userState.user?.email || null} bind:open={openSupportWall} />
