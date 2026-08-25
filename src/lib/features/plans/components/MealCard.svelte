@@ -15,7 +15,6 @@
 		ChevronRight,
 		CircleSlash,
 		Home,
-		Play,
 		ShoppingBasket,
 		ShoppingCart,
 		Trash
@@ -306,7 +305,7 @@
 							/>
 						</div>
 
-						<div class="rounded-full p-1 bg-white flex border">
+						<!-- <div class="rounded-full p-1 bg-white flex border">
 							<Button
 								variant="link"
 								size="icon"
@@ -315,7 +314,7 @@
 							>
 								<Play class="max-w-3.5 max-h-3.5 text-foreground" />
 							</Button>
-						</div>
+						</div> -->
 
 						<!-- <div class="rounded-full p-1 bg-white border flex">
 							<Button

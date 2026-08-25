@@ -18,7 +18,7 @@
 		id: string;
 		name: string;
 		amount?: number;
-		unit?: UnitRegionized;
+		unit?: string;
 		isOptional?: boolean;
 		disabled?: boolean;
 		disableDelete?: boolean;
@@ -54,7 +54,7 @@
 								{disabled}
 								name="ingredientAmounts"
 								type="number"
-								step="0.1"
+								step="0.01"
 								class="w-20 rounded-r-none border-r-0"
 								bind:value={amount}
 							/>
@@ -67,8 +67,9 @@
 						{#snippet children({ props })}
 							<Select.Root type="single" bind:value={unit} {...props} {disabled}>
 								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-26 h-9">
-									{unit && Object.keys(unitLabels).includes(unitToUnregionized(unit))
-										? unitLabels[unitToUnregionized(unit)]
+									{unit &&
+									Object.keys(unitLabels).includes(unitToUnregionized(unit as UnitRegionized))
+										? unitLabels[unitToUnregionized(unit as UnitRegionized)]
 										: '?'}
 								</Select.Trigger>
 								<Select.Content>
@@ -80,7 +81,7 @@
 							</Select.Root>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors />
+					<Form.FieldErrors class="text-red-600" />
 				</Form.Field>
 			</div>
 
