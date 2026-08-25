@@ -20,6 +20,8 @@ Your task is to enrich the recipe by inferring missing details (null/incomplete 
 	- Example: "Pancakes" with "Greek" cuisine but clearly American → change to "American".
 	- Note: "prep" course is for small recipes meant to be combined with other dishes (sauces, quick sides). Standalone dishes should not use "prep".
 - ALL filters must have at least one value and be correct.
+- If ingredients have no or unclear quantities, suggest realistic quantities.
+- Set spices, salt, pepper, and other not-so-important ingredients as optional.
 
 Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description).
 If an ingredient string is actually describing multiple ingredients, split it into multiple ingredients with correct details.
@@ -56,7 +58,9 @@ const relevantRecipeFieldsSchema = z.object({
 }) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
 
 const outputSchema = z.object({
-	lang: languageKeySchema.describe("The input recipe's written language, e.g. en-US, fr-FR, pt-BR, es-ES."),
+	lang: languageKeySchema.describe(
+		"The input recipe's written language, e.g. en-US, fr-FR, pt-BR, es-ES."
+	),
 	recipe: relevantRecipeFieldsSchema.describe(
 		'The main enriched recipe object with inferred details.'
 	),
@@ -81,7 +85,7 @@ export const enrichRawRecipe = query(
 			.string()
 			.min(1)
 			.max(200_000, 'Scraped content too long, refusing to call enrich LLM.'),
-		format: z.enum(['ldjson', 'recipe-json', 'markdown']),
+		format: z.enum(['ldjson', 'recipe-json', 'markdown'])
 	}),
 	async ({ content, format }) => {
 		return enrichRecipeLlm({
@@ -196,7 +200,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 						// Try to validate individual fields using the schema shape
 						const fieldSchema =
 							relevantRecipeFieldsSchema.shape[
-							key as keyof typeof relevantRecipeFieldsSchema.shape
+								key as keyof typeof relevantRecipeFieldsSchema.shape
 							];
 						if (fieldSchema) {
 							const fieldResult = fieldSchema.safeParse(value);

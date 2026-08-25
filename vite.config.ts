@@ -24,7 +24,7 @@ export default defineConfig({
 				start_url: '/recipes',
 				display: 'standalone',
 				display_override: ['standalone', 'window-controls-overlay'],
-				orientation: 'natural',
+				// orientation: 'natural', // Remove this option to let the device choose
 				scope: '/',
 				lang: 'en',
 				id: 'cuicuit',

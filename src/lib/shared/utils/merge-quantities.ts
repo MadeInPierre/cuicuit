@@ -1,20 +1,16 @@
 import {
-	type Unit,
-	type UnitRegion,
+	unitAliases,
+	type UnitRegionized,
 	type UnitType,
-	volumeAliases,
 	volumeConversionRates,
-	type VolumeUnit,
-	weightAliases,
+	type VolumeUnitRegionized,
 	weightConversionRates,
-	type WeightUnit,
-	wholeAliases
+	type WeightUnitRegionized
 } from './quantity';
 
-export type MergeQuantitiesInput = Partial<Record<Unit, number>> & Record<string, number>;
+export type MergeQuantitiesInput = Partial<Record<UnitRegionized, number>> & Record<string, number>;
 
 export type MergeQuantitiesOptions = {
-	region?: UnitRegion;
 	/**
 	 * Preferred candidate units. The best magnitude among valid candidates is selected.
 	 * Accepts keys or aliases (e.g. "cup", "liters", "ml", "kg", "grams").
@@ -45,7 +41,6 @@ export function mergeQuantities(
 	density: number | undefined = undefined,
 	options: MergeQuantitiesOptions = {}
 ): MergeQuantitiesResult {
-	const region = options.region ?? 'EU';
 	const crossTypeMerge = options.crossTypeMerge ?? 'none';
 
 	// If the item is alone, no need to merge, and display its unit as-is (more intuitive)
@@ -57,23 +52,17 @@ export function mergeQuantities(
 		whole: options.priorities?.whole ?? defaultPriorities.whole
 	};
 
-	const parseUnit = (text: string): Unit | undefined => {
+	const parseUnit = (text: string): UnitRegionized | undefined => {
 		const normalized = text.toLowerCase().replace('.', '').trim();
 		if (!normalized) return undefined;
 
-		if (normalized in volumeConversionRates) return normalized as VolumeUnit;
-		if (normalized in weightConversionRates) return normalized as WeightUnit;
-		if (wholeAliases.includes(normalized)) return 'whole';
+		if (normalized in volumeConversionRates) return normalized as VolumeUnitRegionized;
+		if (normalized in weightConversionRates) return normalized as WeightUnitRegionized;
+		if ((unitAliases['whole'] as unknown as string[]).includes(normalized)) return 'whole';
 
-		for (const [key, aliases] of Object.entries(weightAliases)) {
-			if (key === normalized || aliases.includes(normalized)) return key as WeightUnit;
-		}
-
-		for (const [key, aliases] of Object.entries(volumeAliases)) {
-			if (key === normalized || aliases.includes(normalized)) {
-				if (key in volumeConversionRates) return key as VolumeUnit;
-				const regionKey = `${region.toLowerCase()}${key}`;
-				if (regionKey in volumeConversionRates) return regionKey as VolumeUnit;
+		for (const [key, aliases] of Object.entries(unitAliases)) {
+			if (key === normalized || (aliases as unknown as string[]).includes(normalized)) {
+				return key as UnitRegionized;
 			}
 		}
 
@@ -94,13 +83,17 @@ export function mergeQuantities(
 
 	const unique = <T extends string>(arr: T[]) => [...new Set(arr)];
 
-	const pickTargetUnit = (type: UnitType, candidates: string[], totalBase: number): Unit => {
+	const pickTargetUnit = (
+		type: UnitType,
+		candidates: string[],
+		totalBase: number
+	): UnitRegionized => {
 		if (type === 'whole') return 'whole';
 
 		const parsedCandidates = unique(
 			candidates
 				.map((candidate) => parseUnit(candidate))
-				.filter((u): u is Unit => !!u)
+				.filter((u): u is UnitRegionized => !!u)
 				.filter((u) =>
 					type === 'volume' ? u in volumeConversionRates : u in weightConversionRates
 				)
@@ -108,10 +101,12 @@ export function mergeQuantities(
 
 		const fallbackUnits =
 			type === 'volume'
-				? (Object.keys(volumeConversionRates) as VolumeUnit[])
-				: (Object.keys(weightConversionRates) as WeightUnit[]);
+				? (Object.keys(volumeConversionRates) as VolumeUnitRegionized[])
+				: (Object.keys(weightConversionRates) as WeightUnitRegionized[]);
 
-		const units = (parsedCandidates.length > 0 ? parsedCandidates : fallbackUnits) as Unit[];
+		const units = (
+			parsedCandidates.length > 0 ? parsedCandidates : fallbackUnits
+		) as UnitRegionized[];
 
 		let bestUnit = units[0];
 		let bestScore = Number.POSITIVE_INFINITY;
@@ -119,8 +114,8 @@ export function mergeQuantities(
 		for (const unit of units) {
 			const converted =
 				type === 'volume'
-					? totalBase / volumeConversionRates[unit as VolumeUnit]
-					: totalBase / weightConversionRates[unit as WeightUnit];
+					? totalBase / volumeConversionRates[unit as VolumeUnitRegionized]
+					: totalBase / weightConversionRates[unit as WeightUnitRegionized];
 
 			const score = magnitudeScore(converted);
 			if (score < bestScore) {
@@ -148,9 +143,9 @@ export function mergeQuantities(
 		}
 
 		if (unit in volumeConversionRates) {
-			totalMl += value * volumeConversionRates[unit as VolumeUnit];
+			totalMl += value * volumeConversionRates[unit as VolumeUnitRegionized];
 		} else if (unit in weightConversionRates) {
-			totalG += value * weightConversionRates[unit as WeightUnit];
+			totalG += value * weightConversionRates[unit as WeightUnitRegionized];
 		} else if (unit === 'whole') {
 			totalWhole += value;
 		}
@@ -182,12 +177,12 @@ export function mergeQuantities(
 	const result: MergeQuantitiesResult = {};
 
 	if (totalG !== 0) {
-		const target = pickTargetUnit('weight', priorities.weight, totalG) as WeightUnit;
+		const target = pickTargetUnit('weight', priorities.weight, totalG) as WeightUnitRegionized;
 		result[target] = totalG / weightConversionRates[target];
 	}
 
 	if (totalMl !== 0) {
-		const target = pickTargetUnit('volume', priorities.volume, totalMl) as VolumeUnit;
+		const target = pickTargetUnit('volume', priorities.volume, totalMl) as VolumeUnitRegionized;
 		result[target] = totalMl / volumeConversionRates[target];
 	}
 
@@ -203,4 +198,5 @@ export function mergeQuantities(
 	return result;
 }
 
-export type MergeQuantitiesResult = Partial<Record<Unit, number>> & Record<string, number>;
+export type MergeQuantitiesResult = Partial<Record<UnitRegionized, number>> &
+	Record<string, number>;

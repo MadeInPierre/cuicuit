@@ -5,7 +5,7 @@ import type {
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 import { mergeQuantities } from '$lib/shared/utils/merge-quantities';
-import type { Unit } from '$lib/shared/utils/quantity';
+import type { UnitRegionized } from '$lib/shared/utils/quantity';
 
 export type CombinedShoppingListItem = {
 	name: string;
@@ -14,7 +14,7 @@ export type CombinedShoppingListItem = {
 	meals: MealWithRecipeAndIngredients[];
 	mergedQuantity: {
 		// Map of unit to total amount for that unit, separated into required and optional quantities
-		[unit in Unit]?: {
+		[unit in UnitRegionized]?: {
 			withOptionals: number; // Total amount including optional items
 			requiredOnly: number; // Total amount for required items only
 			optionalOnly: number; // Total amount for optional items only (calculated as withOptionals - requiredOnly)
@@ -56,7 +56,7 @@ export function generateShoppingList(
 		// TODO Merge quantities
 		if (shoppingItem.quantity) {
 			const isOptional = shoppingItem.priority === 'optional';
-			const unitKey = (shoppingItem.unit?.trim() as Unit) || 'unknown';
+			const unitKey = (shoppingItem.unit?.trim() as UnitRegionized) || 'unknown';
 
 			const unitTotals = ingredientMap[key].mergedQuantity[unitKey] ?? {
 				withOptionals: 0,
@@ -121,10 +121,10 @@ export function generateShoppingList(
 			const quantitiesToMerge = entries.reduce(
 				(acc, [unit, quantities]) => {
 					const qty = quantities[quantityType];
-					if (qty > 0) acc[unit as Unit] = qty;
+					if (qty > 0) acc[unit as UnitRegionized] = qty;
 					return acc;
 				},
-				{} as Partial<Record<Unit, number>>
+				{} as Partial<Record<UnitRegionized, number>>
 			);
 
 			// Early skip this bucket if empty or has 1
@@ -133,7 +133,7 @@ export function generateShoppingList(
 			const mergedQuantities = mergeQuantities(quantitiesToMerge);
 
 			for (const [unit, qty] of Object.entries(mergedQuantities)) {
-				const unitKey = unit as Unit;
+				const unitKey = unit as UnitRegionized;
 				const target = (merged[unitKey] ??= {
 					withOptionals: 0,
 					requiredOnly: 0,

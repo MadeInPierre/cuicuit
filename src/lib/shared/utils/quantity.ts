@@ -48,30 +48,16 @@ export const weightConversionRates = {
 	lb: 453.59237
 } as const;
 
-export type VolumeUnit = keyof typeof volumeConversionRates;
-export type WeightUnit = keyof typeof weightConversionRates;
-export type Unit = VolumeUnit | WeightUnit | 'whole';
-export type UnitType = 'volume' | 'weight' | 'whole';
-export type UnitRegion = 'US' | 'UK' | 'EU' | 'AU';
+export const unitRegionKeys = ['us', 'uk', 'eu', 'au'] as const;
 
-// Define a Zod schema for all unit keys
-export const unitSchema = z
-	.union(
-		Object.keys(volumeConversionRates).map((k) =>
-			z.literal(k as keyof typeof volumeConversionRates)
-		) as [z.ZodLiteral<VolumeUnit>, z.ZodLiteral<VolumeUnit>, ...z.ZodLiteral<VolumeUnit>[]]
-	)
-	.or(
-		z.union(
-			Object.keys(weightConversionRates).map((k) =>
-				z.literal(k as keyof typeof weightConversionRates)
-			) as [z.ZodLiteral<WeightUnit>, z.ZodLiteral<WeightUnit>, ...z.ZodLiteral<WeightUnit>[]]
-		)
-	)
-	.or(z.literal('whole'));
+export type VolumeUnitRegionized = keyof typeof volumeConversionRates;
+export type WeightUnitRegionized = keyof typeof weightConversionRates;
+export type UnitRegionized = VolumeUnitRegionized | WeightUnitRegionized | 'whole' | 'pinch';
+export type UnitType = 'volume' | 'weight' | 'whole';
+export type UnitRegion = 'us' | 'uk' | 'eu' | 'au';
 
 // Define aliases for each unit to parse free text input
-export const volumeAliases = {
+export const unitAliases = {
 	ml: ['milliliter', 'millilitre', 'milliliters', 'millilitres'],
 	cl: ['centiliter', 'centilitre', 'centiliters', 'centilitres'],
 	dl: ['deciliter', 'decilitre', 'deciliters', 'decilitres'],
@@ -83,15 +69,31 @@ export const volumeAliases = {
 	quart: ['quarts', 'qt', 'qts'],
 	gallon: ['gallons', 'gal', 'gals'],
 	floz: ['fluid ounce', 'fluid ounces', 'fl oz', 'fl ozs'],
-	pint: ['pint', 'pints', 'pt', 'pts']
-};
-
-export const weightAliases = {
+	pint: ['pint', 'pints', 'pt', 'pts'],
 	g: ['gram', 'grams'],
 	kg: ['kilogram', 'kilograms'],
 	oz: ['ounce', 'ounces'],
-	lb: ['pound', 'pounds']
-};
+	lb: ['pound', 'pounds'],
+	whole: [
+		'whole',
+		'egg',
+		'eggs',
+		'piece',
+		'pieces',
+		'unit',
+		'units',
+		'item',
+		'items',
+		'portion',
+		'portions',
+		'slice',
+		'slices',
+		'u'
+	],
+	pinch: ['pinch', 'bit', 'some']
+} as const;
+
+export type UnitUnregionized = keyof typeof unitAliases;
 
 export const unitLabels = {
 	// Volume
@@ -113,12 +115,92 @@ export const unitLabels = {
 	oz: 'oz',
 	lb: 'lb',
 	// Other
-	whole: 'pieces',
+	whole: 'whole',
 	pinch: 'pinch'
-} satisfies Record<
-	keyof typeof volumeAliases | keyof typeof weightAliases | 'whole' | 'pinch',
-	string
->;
+} satisfies Record<UnitUnregionized, string>;
+
+// Define a Zod schema for all unit keys
+export const unitRegionizedSchema = z
+	.union(
+		Object.keys(volumeConversionRates).map((k) =>
+			z.literal(k as keyof typeof volumeConversionRates)
+		) as [
+			z.ZodLiteral<VolumeUnitRegionized>,
+			z.ZodLiteral<WeightUnitRegionized>,
+			...z.ZodLiteral<VolumeUnitRegionized>[]
+		]
+	)
+	.or(
+		z.union(
+			Object.keys(weightConversionRates).map((k) =>
+				z.literal(k as keyof typeof weightConversionRates)
+			) as [
+				z.ZodLiteral<WeightUnitRegionized>,
+				z.ZodLiteral<WeightUnitRegionized>,
+				...z.ZodLiteral<WeightUnitRegionized>[]
+			]
+		)
+	)
+	.or(z.literal('whole'));
+
+export const unitUnregionizedSchema = z.union(
+	Object.keys(unitLabels).map((k) => z.literal(k as keyof typeof unitLabels))
+);
+
+export const mapUnitUnregionizedToRegionized = {
+	// Metric
+	ml: 'ml',
+	cl: 'cl',
+	dl: 'dl',
+	l: 'l',
+	// Common
+	quart: 'quart',
+	gallon: 'gallon',
+	// EU
+	eutsp: 'tsp',
+	eudstsp: 'dstsp',
+	eutbsp: 'tbsp',
+	eucup: 'cup',
+	// US
+	ustsp: 'tsp',
+	usdstsp: 'dstsp',
+	ustbsp: 'tbsp',
+	uscup: 'cup',
+	usfloz: 'floz',
+	uspint: 'pint',
+	// UK
+	uktsp: 'tsp',
+	ukdstsp: 'dstsp',
+	uktbsp: 'tbsp',
+	ukcup: 'cup',
+	ukfloz: 'floz',
+	ukpint: 'pint',
+	// AU
+	autsp: 'tsp',
+	audstsp: 'dstsp',
+	autbsp: 'tbsp',
+	aucup: 'cup',
+
+	// Weight
+	g: 'g',
+	kg: 'kg',
+	oz: 'oz',
+	lb: 'lb',
+
+	// Other
+	whole: 'whole',
+	pinch: 'pinch'
+} as const satisfies Record<UnitRegionized, UnitUnregionized>;
+
+export function unitToRegionized(unit: UnitUnregionized, region: UnitRegion): UnitRegionized {
+	const n = Object.values(mapUnitUnregionizedToRegionized).filter((u) => u === unit).length;
+	if (n === 1) return unit as UnitRegionized; // No variants = only one region
+	return (region + unit) as UnitRegionized; // Many variants = add the region prefix
+}
+
+export function unitToUnregionized(unit: UnitRegionized): UnitUnregionized {
+	return mapUnitUnregionizedToRegionized[unit];
+}
 
 /**
  * Quantity class: represents a quantity of a food item with a value, a unit and an optional food density.
@@ -138,7 +220,7 @@ export const unitLabels = {
 abstract class VolumeWeightQuantity {
 	value: number;
 	originUnitInput: string;
-	originUnitKey: Unit;
+	originUnitKey: UnitRegionized;
 	originUnitType: UnitType;
 	density: number | undefined;
 	region: UnitRegion;
@@ -147,7 +229,7 @@ abstract class VolumeWeightQuantity {
 		value: number,
 		unit: string,
 		density: number | undefined = undefined,
-		region: UnitRegion = 'EU'
+		region: UnitRegion = 'eu'
 	) {
 		this.value = value;
 		this.originUnitInput = unit;
@@ -165,7 +247,7 @@ abstract class VolumeWeightQuantity {
 	 */
 	to(text: string, region: UnitRegion | undefined = undefined): number {
 		// Parse the new unit
-		const newUnit: Unit = this._parseUnit(text, region || this.region);
+		const newUnit: UnitRegionized = this._parseUnit(text, region || this.region);
 
 		// Detect the unit type (volume or weight)
 		const newUnitType: UnitType = this._detectUnitType(newUnit);
@@ -173,13 +255,13 @@ abstract class VolumeWeightQuantity {
 		// Convert between volume units
 		if (this.originUnitType === 'volume' && newUnitType === 'volume') {
 			return (
-				(this.value * volumeConversionRates[this.originUnitKey as VolumeUnit]) /
-				volumeConversionRates[newUnit as VolumeUnit]
+				(this.value * volumeConversionRates[this.originUnitKey as VolumeUnitRegionized]) /
+				volumeConversionRates[newUnit as VolumeUnitRegionized]
 			);
 		} else if (this.originUnitType === 'weight' && newUnitType === 'weight') {
 			return (
-				(this.value * weightConversionRates[this.originUnitKey as WeightUnit]) /
-				weightConversionRates[newUnit as WeightUnit]
+				(this.value * weightConversionRates[this.originUnitKey as WeightUnitRegionized]) /
+				weightConversionRates[newUnit as WeightUnitRegionized]
 			);
 		} else {
 			// Volume/weight conversions require a density value
@@ -187,15 +269,17 @@ abstract class VolumeWeightQuantity {
 
 			// Convert volume to weight
 			if (this.originUnitType === 'volume' && newUnitType === 'weight') {
-				const volumeInMl = this.value * volumeConversionRates[this.originUnitKey as VolumeUnit];
+				const volumeInMl =
+					this.value * volumeConversionRates[this.originUnitKey as VolumeUnitRegionized];
 				const weightInG = volumeInMl * this.density;
-				return weightInG / weightConversionRates[newUnit as WeightUnit];
+				return weightInG / weightConversionRates[newUnit as WeightUnitRegionized];
 
 				// Convert weight to volume
 			} else if (this.originUnitType === 'weight' && newUnitType === 'volume') {
-				const weightInG = this.value * weightConversionRates[this.originUnitKey as WeightUnit];
+				const weightInG =
+					this.value * weightConversionRates[this.originUnitKey as WeightUnitRegionized];
 				const volumeInMl = weightInG / this.density;
-				return volumeInMl / volumeConversionRates[newUnit as VolumeUnit];
+				return volumeInMl / volumeConversionRates[newUnit as VolumeUnitRegionized];
 			} else throw new Error(`Invalid unit types: ${this.originUnitType} to ${newUnitType}`);
 		}
 	}
@@ -205,10 +289,10 @@ abstract class VolumeWeightQuantity {
 	 * @param unit the unit to detect
 	 * @returns the type of the unit, either 'volume' or 'weight'
 	 */
-	protected _detectUnitType(unit: Unit): UnitType {
+	protected _detectUnitType(unit: UnitRegionized): UnitType {
 		if (unit in volumeConversionRates) return 'volume';
 		else if (unit in weightConversionRates) return 'weight';
-		else throw new Error('Invalid unit');
+		else return 'whole';
 	}
 
 	/**
@@ -216,37 +300,25 @@ abstract class VolumeWeightQuantity {
 	 * @param text any free form unit
 	 * @returns the key of the unit
 	 */
-	protected _parseUnit(text: string, region: UnitRegion): Unit {
+	protected _parseUnit(text: string, region: UnitRegion): UnitRegionized {
 		text = text.toLowerCase().replace('.', '').trim();
 
 		// Check if the unit is already a valid unit
 		if (text in volumeConversionRates) {
-			return text as VolumeUnit;
+			return text as VolumeUnitRegionized;
 		} else if (text in weightConversionRates) {
-			return text as WeightUnit;
-		}
-
-		// Check if the unit is a weight alias
-		for (const [key, value] of Object.entries(weightAliases)) {
-			if (value.includes(text)) return key as WeightUnit;
+			return text as WeightUnitRegionized;
 		}
 
 		// Check if the unit is a volume alias (region-dependent)
-		for (const [key, value] of Object.entries(volumeAliases)) {
-			if (value.includes(text) || key === text) {
-				// If the unit is not region-dependent, return it directly
-				if (key in volumeConversionRates) return key as VolumeUnit;
-				// If the unit is region-dependent, transform the unit to the
-				// correct region and check if it exists before returning it
-				else {
-					const unit: string = region.toLowerCase() + key;
-					if (unit in volumeConversionRates) return unit as VolumeUnit;
-					else throw new Error(`Invalid unit: ${unit}, maybe specify another region?`);
-				}
+		for (const [key, value] of Object.entries(unitAliases)) {
+			if ((value as unknown as string[]).includes(text) || key === text) {
+				return unitToRegionized(key as UnitUnregionized, region);
 			}
 		}
 
-		throw new Error(`Invalid unit: ${text}`);
+		// TODO need to be smarter about detecting whole vs custom units?
+		return 'whole' as UnitRegionized;
 	}
 
 	toString() {
@@ -261,23 +333,6 @@ export type MinMidMax = {
 };
 
 export type GramsPerWhole = MinMidMax;
-
-export const wholeAliases = [
-	'whole',
-	'egg',
-	'eggs',
-	'piece',
-	'pieces',
-	'unit',
-	'units',
-	'item',
-	'items',
-	'portion',
-	'portions',
-	'slice',
-	'slices',
-	'u'
-];
 
 type WholeVolumeWeightQuantityOptions = {
 	region: UnitRegion;
@@ -311,7 +366,7 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 		options?: Partial<Omit<WholeVolumeWeightQuantityOptions, 'density'>>
 	) {
 		// Set default options
-		options = { region: 'EU', gramsPerWhole: undefined, ...options };
+		options = { region: 'eu', gramsPerWhole: undefined, ...options };
 
 		// Fetch the density value from the API (uses vector embeddings)
 		const response = await fetch('http://localhost:5173/api/demo/embed/density', {
@@ -333,7 +388,7 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 
 	constructor(value: number, unit: string, options?: Partial<WholeVolumeWeightQuantityOptions>) {
 		// Set default options
-		options = { region: 'EU', density: undefined, gramsPerWhole: undefined, ...options };
+		options = { region: 'eu', density: undefined, gramsPerWhole: undefined, ...options };
 
 		// Get the density value if it's a string representing a food item
 		let ingredient = undefined;
@@ -356,7 +411,7 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 	// @ts-ignore: Override with different return type (number to MinMidMax), not an issue as the base class is private
 	to(text: string, region: UnitRegion | undefined = undefined): MinMidMax {
 		// Parse the new unit
-		const newUnit: Unit = this._parseUnit(text, region || this.region);
+		const newUnit: UnitRegionized = this._parseUnit(text, region || this.region);
 
 		// Detect the unit type (volume or weight)
 		const newUnitType: UnitType = this._detectUnitType(newUnit);
@@ -377,9 +432,15 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 				// Convert whole to weight
 			} else if (this.originUnitType === 'whole' && newUnitType === 'weight') {
 				return {
-					min: (this.value * this.gramsPerWhole.min) / weightConversionRates[newUnit as WeightUnit],
-					mid: (this.value * this.gramsPerWhole.mid) / weightConversionRates[newUnit as WeightUnit],
-					max: (this.value * this.gramsPerWhole.max) / weightConversionRates[newUnit as WeightUnit]
+					min:
+						(this.value * this.gramsPerWhole.min) /
+						weightConversionRates[newUnit as WeightUnitRegionized],
+					mid:
+						(this.value * this.gramsPerWhole.mid) /
+						weightConversionRates[newUnit as WeightUnitRegionized],
+					max:
+						(this.value * this.gramsPerWhole.max) /
+						weightConversionRates[newUnit as WeightUnitRegionized]
 				};
 				// Convert whole to volume
 			} else if (this.originUnitType === 'whole' && newUnitType === 'volume') {
@@ -391,13 +452,14 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 				for (const size of ['min', 'mid', 'max'] as const) {
 					const weightInG = this.value * this.gramsPerWhole[size];
 					const volumeInMl = weightInG / this.density;
-					result[size] = volumeInMl / volumeConversionRates[newUnit as VolumeUnit];
+					result[size] = volumeInMl / volumeConversionRates[newUnit as VolumeUnitRegionized];
 				}
 
 				return result;
 				// Convert weight to whole
 			} else if (this.originUnitType === 'weight' && newUnitType === 'whole') {
-				const weightInG = this.value * weightConversionRates[this.originUnitKey as WeightUnit];
+				const weightInG =
+					this.value * weightConversionRates[this.originUnitKey as WeightUnitRegionized];
 				return {
 					min: weightInG / this.gramsPerWhole.max,
 					mid: weightInG / this.gramsPerWhole.mid,
@@ -408,7 +470,8 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 				// Volume/whole conversions require a density value
 				if (!this.density) throw new Error('Density is required for volume to whole conversion');
 
-				const volumeInMl = this.value * volumeConversionRates[this.originUnitKey as VolumeUnit];
+				const volumeInMl =
+					this.value * volumeConversionRates[this.originUnitKey as VolumeUnitRegionized];
 				const weightInG = volumeInMl * this.density;
 				return {
 					min: weightInG / this.gramsPerWhole.max,
@@ -416,23 +479,6 @@ class WholeVolumeWeightQuantity extends VolumeWeightQuantity {
 					max: weightInG / this.gramsPerWhole.min
 				};
 			} else throw new Error(`Invalid unit types: ${this.originUnitType} to ${newUnitType}`);
-		}
-	}
-
-	// Add the whole unit type
-	protected _detectUnitType(unit: Unit): UnitType {
-		if (wholeAliases.includes(unit)) return 'whole' as UnitType;
-		else return super._detectUnitType(unit);
-	}
-
-	// Add the whole unit type
-	protected _parseUnit(text: string, region: UnitRegion): Unit {
-		if (wholeAliases.includes(text) || !text) return 'whole' as Unit;
-
-		try {
-			return super._parseUnit(text, region);
-		} catch {
-			return 'whole' as Unit; // Consider any other invalid unit as a whole unit
 		}
 	}
 
@@ -447,7 +493,7 @@ export const Quantity = WholeVolumeWeightQuantity;
 export type QuantityOptions = WholeVolumeWeightQuantityOptions;
 
 // Test all unit & region combinations using nested loops
-// const allUnits = Object.keys(volumeAliases).concat(Object.keys(weightAliases)).concat('whole');
+// const allUnits = Object.keys(unitAliases).concat(Object.keys(unitAliases)).concat('whole');
 
 // for (const originUnit of allUnits) {
 // 	for (const region of ['EU', 'US', 'UK', 'AU'] as UnitRegion[]) {
