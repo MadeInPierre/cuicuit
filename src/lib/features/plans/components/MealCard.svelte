@@ -8,9 +8,9 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { type Enums } from '$lib/shared/db/supabase.types';
+	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
-	import posthog from 'posthog-js';
 	import {
 		ChevronRight,
 		CircleSlash,
@@ -20,10 +20,12 @@
 		ShoppingCart,
 		Trash
 	} from 'lucide-svelte';
+	import posthog from 'posthog-js';
 	import type { Snippet } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
+	import { formatQuantityAmount } from '../../../../routes/(app)/shopping-list/generate-shopping-list';
 	import { updatePlanItemChecked, updatePlanItemDeleted } from '../actions/update-item';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import {
@@ -36,7 +38,6 @@
 		selectedMealIngredient
 	} from '../state/hovered-meal-ingredient.svelte';
 	import { openMealCardId } from '../state/open-meal-card.svelte';
-	import { formatQuantityAmount } from '../../../../routes/(app)/shopping-list/generate-shopping-list';
 
 	const space = getActiveSpaceState();
 
@@ -168,10 +169,9 @@
 				<IngredientImage id={activeId} class="size-7 rounded-full" />
 
 				<span>
-				
-					{formatQuantityAmount(meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ??
-						0) ||
-						''}
+					{formatQuantityAmount(
+						meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ?? 0
+					) || ''}
 
 					{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit === 'whole'
 						? ''
@@ -255,7 +255,7 @@
 							)}
 							onclick={() => (toggleOptional = !toggleOptional)}
 						>
-							<div class="h-[22px] p-0.5 px-2 flex items-center gap-1">
+							<div class="h-5.5 p-0.5 px-2 flex items-center gap-1">
 								<span class={cn('text-muted-foreground')}>
 									+{optionalIngredients.length}
 									optional{optionalIngredients.length > 1 ? 's' : ''}
@@ -358,7 +358,7 @@
 			hoveredMealIngredient.value = null;
 		}}
 	>
-		<div class="h-[22px] p-0.5 pl-2 flex items-center">
+		<div class="h-5.5 p-0.5 pl-2 flex items-center">
 			<span
 				class={cn(
 					'mr-auto text-muted-foreground group-hover/si:text-primary',
@@ -369,7 +369,7 @@
 				{displayName}
 			</span>
 
-			<div class="min-w-22 h-[22px] group/qty flex items-center justify-end">
+			<div class="min-w-22 h-5.5 group/qty flex items-center justify-end">
 				<div class="flex pr-2 group-hover/qty:hidden items-center">
 					<span
 						class={cn(
@@ -380,7 +380,7 @@
 						)}
 					>
 						<NumberFlow value={si.quantity || 0} />
-						{si.unit === 'whole' ? '' : si.unit}
+						{si.unit === 'whole' ? '' : unitToUnregionized(si.unit as UnitRegionized)}
 					</span>
 
 					{#if status === 'ignore'}

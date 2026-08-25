@@ -6,6 +6,7 @@ import { serverIsUserAuthenticated } from '$lib/features/billing/server/utils/is
 import { languageKeySchema, languages, type LanguageKey } from '$lib/features/user-settings/consts';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
+import { unitToRegionized } from '$lib/shared/utils/quantity';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import z from 'zod';
 import {
@@ -133,7 +134,7 @@ async function insertRecipeIngredients(
 					raw_input: processed.sourceText,
 					ingredient_id: bestMatch.id,
 					quantity: processed.parsed.quantity?.amount || 1,
-					unit: processed.parsed.quantity?.unitKey || 'whole',
+					unit: unitToRegionized(processed.parsed.quantity?.unitKey || 'whole', 'eu'), // TODO region, Store a truely standardized unit (regionized)
 					details: processed.parsed.description || '',
 					preparation: processed.parsed.preparation || '',
 					is_optional: processed.parsed.isOptional || false,

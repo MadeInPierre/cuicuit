@@ -22,8 +22,8 @@
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
 	import { capitalize } from '$lib/utils';
-	import posthog from 'posthog-js';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -40,6 +40,7 @@
 		Salad,
 		Utensils
 	} from 'lucide-svelte';
+	import posthog from 'posthog-js';
 	import SeparatorZigZag from '../../shopping-list/SeparatorZigZag.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
@@ -249,7 +250,9 @@
 
 							{@render recipeFilter(
 								Utensils,
-								recipe.times_of_day && recipe.times_of_day.length > 1 ? 'Times of Day' : 'Time of Day',
+								recipe.times_of_day && recipe.times_of_day.length > 1
+									? 'Times of Day'
+									: 'Time of Day',
 								recipe.times_of_day?.map(
 									(t) => recipeTimesOfDay[t as keyof typeof recipeTimesOfDay]
 								) || ['Unknown']
@@ -282,12 +285,7 @@
 							<div class="flex gap-2 items-center">
 								<h2 class="text-xl font-semibold">Your plan</h2>
 
-								<Button
-									size="sm"
-									type="submit"
-									class="flex ml-auto"
-									onclick={addRecipeToPlan}
-								>
+								<Button size="sm" type="submit" class="flex ml-auto" onclick={addRecipeToPlan}>
 									<CalendarPlus class="size-4" />
 
 									<div class="flex items-center gap-0.5">Add to plan</div>
@@ -429,7 +427,9 @@
 				layout={view}
 				ingredient={ing.ingredient}
 				plural={!!ing.quantity && ing.quantity > 1}
-				description={displayAmount + ' ' + ing.unit?.replace('whole', '')}
+				description={displayAmount +
+					' ' +
+					(ing.unit ? unitToUnregionized(ing.unit as UnitRegionized).replace('whole', '') : '')}
 				checkable={false}
 			>
 				{#if view === 'list'}

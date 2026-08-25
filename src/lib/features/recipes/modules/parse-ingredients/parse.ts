@@ -12,11 +12,9 @@
  * - "sugar" (no quantity)
  */
 import {
-	unitSchema,
-	volumeAliases,
-	weightAliases,
-	wholeAliases,
-	type Unit
+	unitAliases,
+	unitUnregionizedSchema,
+	type UnitUnregionized
 } from '$lib/shared/utils/quantity';
 import { z } from 'zod';
 
@@ -29,7 +27,9 @@ export const parsedSearchInputSchema = z.object({
 		.object({
 			amount: z.number().describe('The numeric amount of the quantity.'),
 			unitText: z.string().describe('The unit of the quantity (e.g., "cup", "g", "ml").'),
-			unitKey: unitSchema.describe('The standardized key for the unit used in the database.')
+			unitKey: unitUnregionizedSchema.describe(
+				'The standardized key for the unit used in the database.'
+			)
 		})
 		.nullable(),
 	linkWord: z
@@ -68,12 +68,6 @@ const linkWords = ['of', 'de', "d'", 'de', 'du', 'de la', 'des'];
  * This list can be expanded to support multiple languages.
  */
 const optionalAliases = ['optional', 'option', 'facultatif', 'opcional'];
-
-/**
- * A merged lookup object for all volume and weight unit aliases.
- * This is used for efficient unit identification.
- */
-const allUnitAliases = { ...volumeAliases, ...weightAliases };
 
 /**
  * Converts a fractional string to its decimal equivalent.
@@ -133,14 +127,14 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 		let unitFound = false;
 
 		// Check for unit in wholeAliases
-		if (wholeAliases.includes(possibleUnit.toLowerCase())) {
+		if ((unitAliases.whole as unknown as string[]).includes(possibleUnit.toLowerCase())) {
 			unitText = possibleUnit;
 			unitKey = 'whole';
 			ingredientText = remainingText;
 			unitFound = true;
 		} else {
-			// Check for unit in allUnitAliases
-			for (const [key, aliases] of Object.entries(allUnitAliases)) {
+			// Check for unit in unitAliases
+			for (const [key, aliases] of Object.entries(unitAliases)) {
 				const allAliases = [key, ...aliases].map((a) => a.toLowerCase());
 				if (allAliases.includes(possibleUnit.toLowerCase())) {
 					unitText = possibleUnit;
@@ -170,7 +164,7 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 
 	return {
 		sourceText: input,
-		quantity: amount !== null ? { amount, unitText, unitKey: unitKey as Unit } : null,
+		quantity: amount !== null ? { amount, unitText, unitKey: unitKey as UnitUnregionized } : null,
 		linkWord: linkWord || '',
 		ingredientText,
 		description: null,

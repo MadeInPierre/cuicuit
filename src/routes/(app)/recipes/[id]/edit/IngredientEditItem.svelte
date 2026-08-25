@@ -4,7 +4,13 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
-	import { unitLabels } from '$lib/shared/utils/quantity';
+	import {
+		unitLabels,
+		unitToRegionized,
+		unitToUnregionized,
+		type UnitRegionized,
+		type UnitUnregionized
+	} from '$lib/shared/utils/quantity';
 	import { ArrowUpDown, X } from 'lucide-svelte';
 
 	type Props = {
@@ -12,7 +18,7 @@
 		id: string;
 		name: string;
 		amount?: number;
-		unit?: string;
+		unit?: UnitRegionized;
 		isOptional?: boolean;
 		disabled?: boolean;
 		disableDelete?: boolean;
@@ -61,11 +67,14 @@
 						{#snippet children({ props })}
 							<Select.Root type="single" bind:value={unit} {...props} {disabled}>
 								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-26 h-9">
-									{unit && Object.keys(unitLabels).includes(unit) ? unit : ''}
+									{unit && Object.keys(unitLabels).includes(unitToUnregionized(unit))
+										? unitLabels[unitToUnregionized(unit)]
+										: '?'}
 								</Select.Trigger>
 								<Select.Content>
 									{#each Object.entries(unitLabels) as [key, label]}
-										<Select.Item value={key} {label} />
+										<!-- TODO make unit region a user setting -->
+										<Select.Item value={unitToRegionized(key as UnitUnregionized, 'eu')} {label} />
 									{/each}
 								</Select.Content>
 							</Select.Root>
