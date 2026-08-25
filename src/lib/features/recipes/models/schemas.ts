@@ -112,7 +112,7 @@ export const createRecipeFormSchema = z
 						message: 'The step description must be at most 500 characters long.'
 					})
 			)
-			.min(1)
+			.min(1, { message: 'Please write at least one step.' })
 			.default([''])
 	})
 	.refine((data) => {

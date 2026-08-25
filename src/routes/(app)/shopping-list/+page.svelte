@@ -49,12 +49,12 @@
 
 	let checkedItemsLayout = createPersistentState<'aisle' | 'bottom'>(
 		'view-shopping-list-checked-items-layout',
-		'aisle'
+		'bottom'
 	);
 
 	let itemsLayout = createPersistentState<'grid' | 'list'>(
 		'view-shopping-list-items-layout',
-		'list'
+		'grid'
 	);
 
 	type ShoppingListFilterKey = 'all' | 'meals' | 'independent';

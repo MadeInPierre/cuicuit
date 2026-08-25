@@ -5,7 +5,7 @@ import type {
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 import { mergeQuantities } from '$lib/shared/utils/merge-quantities';
-import type { UnitRegionized } from '$lib/shared/utils/quantity';
+import { unitToUnregionized, type UnitRegionized } from '$lib/shared/utils/quantity';
 
 export type CombinedShoppingListItem = {
 	name: string;
@@ -184,17 +184,18 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 	const parts: string[] = [];
 
 	for (const [unit, qty] of Object.entries(item.mergedQuantity)) {
-		const unitStr = unit === 'whole' ? '' : ` ${unit}`;
+		const unitStr = unit === 'whole' ? '' : unitToUnregionized(unit as UnitRegionized) || unit;
+
 		if (qty.optionalOnly > 0) {
 			if (qty.requiredOnly > 0) {
 				parts.push(
-					`${formatQuantityAmount(qty.requiredOnly)} to ${formatQuantityAmount(qty.withOptionals)}${unitStr}`
+					`${formatQuantityAmount(qty.requiredOnly)} to ${formatQuantityAmount(qty.withOptionals)} ${unitStr}`
 				);
 			} else {
-				parts.push(`${formatQuantityAmount(qty.optionalOnly)}${unitStr}`);
+				parts.push(`${formatQuantityAmount(qty.optionalOnly)} ${unitStr}`);
 			}
 		} else {
-			parts.push(`${formatQuantityAmount(qty.withOptionals)}${unitStr}`);
+			parts.push(`${formatQuantityAmount(qty.withOptionals)} ${unitStr}`);
 		}
 	}
 
