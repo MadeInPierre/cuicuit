@@ -37,24 +37,13 @@
 
 {#if recipe}
 	<div class={cn('w-full max-w-full group flex flex-col items-start', className)}>
-		{#if recipe.image_ids && recipe.image_ids.length > 0}
+		{#if (recipe.image_ids && recipe.image_ids.length > 0) || recipe.source_url?.includes('youtu')}
 			<div class="relative w-full aspect-4/3 rounded-lg overflow-hidden shadow-2xs">
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<!-- svelte-ignore a11y_missing_attribute -->
-				<a
-					class="shrink-0 w-full h-full block relative"
-					onclick={() => goto('/recipes/' + recipe.id)}
-				>
-					{#if recipe.image_ids[0]}
-						<div
-							class="absolute inset-0 bg-muted dark:bg-muted animate-pulse flex items-center justify-center"
-						>
-							<ChefHat class="size-12 text-muted-foreground" />
-						</div>
-					{/if}
-
-					<RecipeImage {recipe} class="absolute inset-0 w-full h-full object-cover" />
+				<a class="w-full h-full" onclick={() => goto('/recipes/' + recipe.id)}>
+					<RecipeImage {recipe} class="w-full aspect-4/3 h-full object-cover" />
 				</a>
 
 				<div class="absolute top-2 right-2 grid space-y-2 z-10">

@@ -23,7 +23,7 @@
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
-	import { capitalize } from '$lib/utils';
+	import { capitalize, youtubeUrlToThumbnailUrl } from '$lib/utils';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -138,30 +138,38 @@
 
 				<div class="grid gap-12 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-						<Carousel.Root class="w-full relative">
-							<Carousel.Content>
-								{#each recipe.image_ids || [] as imgId, i (imgId)}
-									<Carousel.Item>
-										<RecipeImage
-											{recipe}
-											class="w-full aspect-[1.618] object-cover rounded-md size-auto"
-										/>
-									</Carousel.Item>
-								{/each}
-							</Carousel.Content>
+						{#if (recipe?.image_ids?.length || 0) > 0}
+							<Carousel.Root class="w-full relative">
+								<Carousel.Content>
+									{#each recipe.image_ids || [] as imgId, i (imgId)}
+										<Carousel.Item>
+											<RecipeImage
+												{recipe}
+												class="w-full aspect-[1.618] object-cover rounded-md size-auto"
+											/>
+										</Carousel.Item>
+									{/each}
+								</Carousel.Content>
 
-							<div
-								class="absolute top-4 right-4 bg-black/40 text-white flex items-center px-2 py-0.5 rounded-sm"
-							>
-								{recipe?.image_ids?.length || 1}
-								<Camera class="size-4 ml-1.5" />
-							</div>
+								<div
+									class="absolute top-4 right-4 bg-black/40 text-white flex items-center px-2 py-0.5 rounded-sm"
+								>
+									{recipe?.image_ids?.length || 1}
+									<Camera class="size-4 ml-1.5" />
+								</div>
 
-							{#if (recipe?.image_ids?.length || 1) > 1}
-								<Carousel.Previous class="absolute left-4" />
-								<Carousel.Next class="absolute right-4" />
-							{/if}
-						</Carousel.Root>
+								{#if (recipe?.image_ids?.length || 1) > 1}
+									<Carousel.Previous class="absolute left-4" />
+									<Carousel.Next class="absolute right-4" />
+								{/if}
+							</Carousel.Root>
+						{:else if recipe.source_url?.includes('youtu')}
+							<img
+								src={youtubeUrlToThumbnailUrl(recipe.source_url)}
+								class="w-full aspect-[1.618] object-cover rounded-md"
+								alt="Youtube Thumbnail"
+							/>
+						{/if}
 
 						<div class="space-y-2">
 							<h1 class="text-3xl font-bold">{recipe?.title || 'Loading...'}</h1>
@@ -433,13 +441,13 @@
 				checkable={false}
 			>
 				{#if view === 'list'}
-					<!-- <span class="text-xs text-muted-foreground/80 flex gap-3">
-						{displayAmount + ' ' + ing.unit?.replace('whole', '')}
-					</span> -->
+					<span class="text-xs text-muted-foreground/80 line-clamp-2">
+						{ing.preparation}{ing.preparation && ing.details ? ', ' : ''}{ing.details}
+					</span>
 
-					{#if ing.is_optional}
+					<!-- {#if ing.is_optional}
 						<span class="text-xs text-muted-foreground/80"> Optional </span>
-					{/if}
+					{/if} -->
 				{/if}
 			</ShoppingItemCard>
 		{/each}

@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
-	import { cn } from '$lib/utils';
+	import { cn, youtubeUrlToThumbnailUrl } from '$lib/utils';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 
 	interface Props {
@@ -16,9 +16,7 @@
 	let triedFallbackUrl = $state(false);
 </script>
 
-{#if error || recipe?.image_ids?.length === 0}
-	<div class={cn('aspect-square size-11 bg-gray-200 rounded-md', className)}></div>
-{:else if recipe && recipe.image_ids && recipe.image_ids.length > 0}
+{#if recipe && recipe.image_ids && recipe.image_ids.length > 0}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<img
@@ -43,4 +41,14 @@
 			}
 		}}
 	/>
+{:else if error || recipe?.image_ids?.length === 0}
+	{#if recipe?.source_url?.includes('youtu')}
+		<img
+			src={youtubeUrlToThumbnailUrl(recipe.source_url)}
+			class={cn('w-full aspect-[1.618] object-cover rounded-md cursor-pointer', className)}
+			alt="Youtube Thumbnail"
+		/>
+	{:else}
+		<div class={cn('aspect-square size-11 bg-gray-200 rounded-md', className)}></div>
+	{/if}
 {/if}

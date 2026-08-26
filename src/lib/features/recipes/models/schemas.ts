@@ -99,6 +99,9 @@ export const createRecipeFormSchema = z
 			.default(['Test', 'Test2']),
 		ingredientIsOptional: z.array(z.boolean()).default([false, false]),
 		ingredientRawInputs: z.array(z.string()).default(['', '']),
+		ingredientDetails: z.array(z.string()).default(['', '']),
+		ingredientNotes: z.array(z.string()).default(['', '']),
+		ingredientPreparations: z.array(z.string()).default(['', '']),
 
 		// Steps
 		stepDescriptions: z
