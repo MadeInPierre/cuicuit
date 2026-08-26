@@ -149,6 +149,9 @@
 						f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
 						f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
 						f.ingredientRawInputs = recipeData.ingredients.map((ing) => ing.raw_input || '');
+						f.ingredientDetails = recipeData.ingredients.map((ing) => ing.details || '');
+						f.ingredientNotes = recipeData.ingredients.map((ing) => ing.notes || '');
+						f.ingredientPreparations = recipeData.ingredients.map((ing) => ing.preparation || '');
 
 						f.ingredientNames = recipeData.ingredients.map((ing) => {
 							const amount = ing.quantity || 1;
@@ -218,7 +221,10 @@
 				f.ingredientUnits.push(unit);
 				f.ingredientNames.push(name);
 				f.ingredientIsOptional.push(isOptional);
-				f.ingredientRawInputs.push(ingredientProcessed.sourceText || '');
+				f.ingredientRawInputs.push(/*ingredientProcessed.sourceText ||*/ ''); // Users typing are incomplete, ugly raw input
+				f.ingredientDetails.push('');
+				f.ingredientNotes.push('');
+				f.ingredientPreparations.push('');
 				return f;
 			},
 			{ taint: true }
@@ -330,9 +336,9 @@
 							ingredient_id: id,
 							quantity: data.ingredientAmounts[i],
 							unit: data.ingredientUnits[i],
-							details: '',
-							notes: '',
-							preparation: '',
+							details: data.ingredientDetails[i],
+							notes: data.ingredientNotes[i],
+							preparation: data.ingredientPreparations[i],
 							is_optional: data.ingredientIsOptional[i]
 						}) satisfies Tables<'recipe_ingredients'>
 				)
@@ -374,6 +380,9 @@
 				f.ingredientNames.splice(indexToDelete, 1);
 				f.ingredientIsOptional.splice(indexToDelete, 1);
 				f.ingredientRawInputs.splice(indexToDelete, 1);
+				f.ingredientDetails.splice(indexToDelete, 1);
+				f.ingredientNotes.splice(indexToDelete, 1);
+				f.ingredientPreparations.splice(indexToDelete, 1);
 				return f;
 			},
 			{ taint: true }
@@ -894,6 +903,10 @@
 										{/each}
 									</div>
 								</div>
+								<p class="text-xs text-muted-foreground/80">
+									<strong>Tip:</strong>
+									YouTube recipes have their thumbnail as default, upload another image to override.
+								</p>
 							</Card.Content>
 						</Card.Root>
 						<Card.Root>
