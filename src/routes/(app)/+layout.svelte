@@ -52,6 +52,13 @@
 		};
 
 	let openChat = $state(false);
+
+	// Latch once the first load finishes. Later refreshes may drop `isComplete`
+	// for a moment; without this latch the whole app would flash the splash.
+	let hasLoadedOnce = $state(false);
+	$effect(() => {
+		if (userState.isComplete) hasLoadedOnce = true;
+	});
 </script>
 
 <ModeWatcher />
@@ -59,7 +66,7 @@
 
 <!-- Hide the app if the user was not welcomed yet (prevents flickering between state changes) -->
 <!-- TODO userDocState.doc.checklist.welcome === false -->
-{#if !userState.isComplete}
+{#if !hasLoadedOnce}
 	<LoadingSplash />
 {:else}
 	<!-- {#if openChat}

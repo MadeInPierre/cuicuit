@@ -1,5 +1,4 @@
-import { dev } from '$app/env';
-import { version } from '$app/environment';
+import { dev, version } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import type { HandleClientError } from '@sveltejs/kit';
 import posthog from 'posthog-js';
