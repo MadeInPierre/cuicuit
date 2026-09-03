@@ -399,8 +399,8 @@
 </script>
 
 <form method="POST" use:enhance class="space-y-8">
-	<div class="w-full min-h-screen flex flex-col">
-		<main class="grid flex-1 items-start gap-4 md:gap-8">
+	<div class="flex flex-col">
+		<main class="grid flex-1 gap-4 md:gap-8">
 			<div class="mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
 				<div class="flex items-center gap-4">
 					<Button
@@ -630,14 +630,13 @@
 								</div>
 							</Card.Content>
 						</Card.Root>
+
 						<Card.Root>
 							<Card.Header>
 								<div class="flex">
 									<div class="flex flex-col space-y-1.5">
 										<Card.Title>Ingredients</Card.Title>
-										<Card.Description>
-											List all the ingredients required for the recipe
-										</Card.Description>
+										<Card.Description>List ingredients needed</Card.Description>
 									</div>
 									<div class="flex gap-2 items-center ml-auto p-2 bg-muted rounded-md">
 										<Button

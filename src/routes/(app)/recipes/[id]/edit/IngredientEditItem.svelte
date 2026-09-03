@@ -4,6 +4,7 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import {
 		unitLabels,
 		unitToRegionized,
@@ -11,7 +12,9 @@
 		type UnitRegionized,
 		type UnitUnregionized
 	} from '$lib/shared/utils/quantity';
-	import { ArrowUpDown, X } from 'lucide-svelte';
+	import { Pencil, Trash } from '@lucide/svelte';
+	import { ArrowUpDown, PencilOff } from 'lucide-svelte';
+	import { formatQuantityAmount } from '../../../shopping-list/generate-shopping-list';
 
 	type Props = {
 		form: any; // TODO: specify form type
@@ -35,16 +38,16 @@
 		disableDelete,
 		onDelete
 	}: Props = $props();
+
+	let edit = $state(false);
+	let media = useMedia();
 </script>
 
 <div class="grid gap-3">
-	<div class="grid gap-2">
-		<div class="w-full flex gap-3 items-center">
-			<!-- <GripVertical class="size-6 text-muted-foreground cursor-grab" /> -->
-			<!-- <IngredientSelectDropdown /> -->
+	<div class="w-full flex gap-3 items-center">
+		<IngredientImage {id} {name} class="w-10 h-10 min-w-10" />
 
-			<IngredientImage {id} {name} class="w-10 h-10 min-w-10" />
-
+		{#if edit || media.sm}
 			<div class="flex">
 				<Form.Field {form} name="ingredientAmounts" class="space-y-0">
 					<Form.Control>
@@ -55,7 +58,7 @@
 								name="ingredientAmounts"
 								type="number"
 								step="0.01"
-								class="w-20 rounded-r-none border-r-0"
+								class="w-16 sm:w-20 rounded-r-none border-r-0"
 								bind:value={amount}
 							/>
 						{/snippet}
@@ -66,7 +69,7 @@
 					<Form.Control>
 						{#snippet children({ props })}
 							<Select.Root type="single" bind:value={unit} {...props} {disabled}>
-								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none w-26 h-9">
+								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none max-[400px]:w-20 w-26 h-9">
 									{unit &&
 									Object.keys(unitLabels).includes(unitToUnregionized(unit as UnitRegionized))
 										? unitLabels[unitToUnregionized(unit as UnitRegionized)]
@@ -85,7 +88,24 @@
 				</Form.Field>
 			</div>
 
-			<!-- <Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
+			<span class="text-ellipsis line-clamp-1 max-[550px]:hidden">
+				{name}
+			</span>
+		{:else}
+			<span class="font-semi line-clamp-1">
+				{amount ? formatQuantityAmount(amount) : ''}
+
+				{unit && Object.keys(unitLabels).includes(unitToUnregionized(unit as UnitRegionized))
+					? unitLabels[unitToUnregionized(unit as UnitRegionized)]
+					: '?'}
+			</span>
+
+			<span class="text-ellipsis line-clamp-1">
+				{name}
+			</span>
+		{/if}
+
+		<!-- <Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Input
@@ -99,13 +119,13 @@
 					{/snippet}
 				</Form.Control>
 			</Form.Field> -->
-			<span class="w-full">{name}</span>
 
-			<div class="flex">
+		<div class="flex ml-auto">
+			{#if edit || media.sm}
 				<Button
 					variant="ghost"
 					size="icon"
-					class="ml-auto size-8 min-w-8"
+					class="ml-auto size-10 min-w-10"
 					{disabled}
 					onclick={() => {
 						isOptional = !isOptional;
@@ -118,16 +138,32 @@
 				<Button
 					variant="ghost"
 					size="icon"
-					class="size-8 min-w-8"
+					class="size-10 min-w-10"
 					disabled={disableDelete || disabled}
 					onclick={() => {
 						onDelete?.();
 					}}
 				>
-					<X />
+					<Trash />
 					<span class="sr-only">Delete</span>
 				</Button>
-			</div>
+			{:else}
+				<Button
+					variant="ghost"
+					size="icon"
+					class="size-10 min-w-10 sm:hidden"
+					onclick={() => {
+						edit = !edit;
+					}}
+				>
+					{#if edit}
+						<PencilOff />
+					{:else}
+						<Pencil />
+					{/if}
+					<span class="sr-only">Edit</span>
+				</Button>
+			{/if}
 		</div>
 	</div>
 
