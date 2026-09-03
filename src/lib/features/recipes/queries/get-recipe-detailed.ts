@@ -7,7 +7,7 @@ import { supabase } from '$lib/shared/db/supabase-client.svelte';
  * @returns A promise that resolves to the recipe data with detailed information.
  */
 export function getRecipesDetailed(languageId: number, searchText?: string) {
-	if (!supabase.client) throw new Error("No supabase client");
+	if (!supabase.client) throw new Error('No supabase client');
 
 	// substitutes:ingredient_substitutions!ingredient_substitutions_original_ingredient_id_fkey(
 	// 	*,
@@ -58,7 +58,7 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
  * @throws Will throw an error if the recipe ID is not provided or if the query fails.
  */
 export async function getRecipeDetailed(recipeId: string, languageId: number) {
-	if (!supabase.client) throw new Error("No supabase client");
+	if (!supabase.client) throw new Error('No supabase client');
 	if (!recipeId) throw new Error('Recipe ID not provided');
 
 	// Get the recipe

@@ -13,7 +13,7 @@
  */
 
 export const MIN_CARD_WIDTH = 180;
-export const MAX_CARD_WIDTH = 200;
+export const MAX_CARD_WIDTH = 220;
 /** Matches the `gap-3` class used on the recipe grid. */
 export const GAP = 12;
 export const DEFAULT_ROWS_SMALL = 2;
