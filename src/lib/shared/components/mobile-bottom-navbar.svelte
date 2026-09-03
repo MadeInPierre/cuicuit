@@ -32,7 +32,7 @@
 {#snippet navItem(label: string, Icon: any, href: string)}
 	<a
 		{href}
-		class="w-16 flex flex-col gap-1 items-center justify-center text-xs text-foreground font-medium"
+		class="min-w-12 w-full max-w-16 flex flex-col gap-1 items-center justify-center text-xs text-foreground font-medium"
 	>
 		<div
 			class={cn(
@@ -75,7 +75,7 @@
 		>
 			{@render navItem('Recipes', ChefHat, '/recipes')}
 			{@render navItem('Plan', Calendar, '/plan')}
-			{@render navItem('Groceries', ShoppingBasket, '/shopping-list')}
+			{@render navItem('List', ShoppingBasket, '/shopping-list')}
 			{@render navItem('Pantry', Refrigerator, '/pantry')}
 		</nav>
 	{/if}

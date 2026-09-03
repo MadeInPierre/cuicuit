@@ -97,7 +97,8 @@
 			note: 'Project setup, hosted version, basic multi-user support.',
 			items: ['Publicly hosted version', 'Docker deployment', 'Self-hosted docs', 'Many bugfixes'],
 			state: 'In Progress',
-			tone: 'active'
+			tone: 'active',
+			mobile: true
 		},
 		{
 			emoji: '🐣',
@@ -110,7 +111,8 @@
 				'Past purchase suggestions'
 			],
 			state: 'In Progress',
-			tone: 'active'
+			tone: 'active',
+			mobile: true
 		},
 		{
 			emoji: '🐥',
@@ -123,7 +125,8 @@
 				'Ingredient substitutions'
 			],
 			state: 'Planned',
-			tone: 'soon'
+			tone: 'soon',
+			mobile: true
 		},
 		{
 			emoji: '🐓',
@@ -131,7 +134,8 @@
 			note: 'The app learns your patterns and saves you even more time.',
 			items: ['Consumption habits', 'Smart recommendations', 'Timeline & stats', 'LLM assistant'],
 			state: 'Planned',
-			tone: 'soon'
+			tone: 'soon',
+			mobile: false
 		}
 	];
 
@@ -611,12 +615,12 @@
 
 	<div class="mt-14">
 		<ol class="grid gap-[1.35rem] md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-			{#each roadmap as r, i (r.label)}
+			{#each roadmap.filter((r) => media.sm || r.mobile) as r, i (r.label)}
 				<li class="relative lg:even:mt-8">
 					<article
-						class={`relative flex gap-6 items-center md:gap-0 md:grid rounded-2xl bg-card p-6 shadow-(--shadow-soft) transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-lift) after:pointer-events-none after:absolute after:right-[1.1rem] after:bottom-[0.7rem] after:h-3 after:w-[4.4rem] after:opacity-40 after:content-[''] after:[background:radial-gradient(circle_at_10%_50%,var(--primary)_0.1rem,transparent_0.12rem)_0_50%/0.66rem_100%_repeat-x] ${media.lg ? (i % 2 === 0 ? 'rotate-[-0.7deg] hover:rotate-0' : 'rotate-[0.7deg] hover:rotate-0') : ''}`}
+						class={`relative grid sm:flex sm:gap-6 sm:items-center md:grid md:gap-0 rounded-2xl bg-card p-6 shadow-(--shadow-soft) transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-lift) after:pointer-events-none after:absolute after:right-[1.1rem] after:bottom-[0.7rem] after:h-3 after:w-[4.4rem] after:opacity-40 after:content-[''] after:[background:radial-gradient(circle_at_10%_50%,var(--primary)_0.1rem,transparent_0.12rem)_0_50%/0.66rem_100%_repeat-x] ${media.lg ? (i % 2 === 0 ? 'rotate-[-0.7deg] hover:rotate-0' : 'rotate-[0.7deg] hover:rotate-0') : ''}`}
 					>
-						<div class="grid">
+						<div class="grid w-full">
 							<span
 								class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
 									(r.tone === 'active'
@@ -650,7 +654,7 @@
 						</div>
 					</article>
 
-					{#if i < roadmap.length - 1}
+					{#if i < roadmap.filter((r) => media.sm || r.mobile).length - 1}
 						<svg
 							aria-hidden={true}
 							viewBox="0 0 64 96"
