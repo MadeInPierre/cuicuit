@@ -233,7 +233,6 @@
 	let _firstRun = $state(true);
 	$effect(() => {
 		// Trigger this effect when searchInput or filters change
-		space.language; // Rerun when the user's language changes
 		searchInput;
 		parameters.filters;
 		parameters.discover;
@@ -246,13 +245,9 @@
 
 		// Fetch recipes with text search and filters
 		let timeout: any;
-		if (_firstRun) {
-			_firstRun = false;
-			fetchRecipes();
-		} else {
-			// Debounce search input
-			timeout = setTimeout(fetchRecipes, 500);
-		}
+
+		timeout = setTimeout(fetchRecipes, _firstRun ? 0 : 200);
+		if (_firstRun) _firstRun = false;
 
 		// Debounce search input
 		return () => clearTimeout(timeout);
@@ -477,13 +472,13 @@
 				<p class="text-sm mx-auto">Start by importing or creating new recipes!</p>
 
 				<ImportRecipeDialog>
-				{#snippet trigger({ props })}
-					<Button {...props} class="mt-6" size='sm'>
-						<Plus class="size-4" />
-						Add a recipe
-					</Button>
-				{/snippet}
-			</ImportRecipeDialog>
+					{#snippet trigger({ props })}
+						<Button {...props} class="mt-6" size="sm">
+							<Plus class="size-4" />
+							Add a recipe
+						</Button>
+					{/snippet}
+				</ImportRecipeDialog>
 			{/if}
 		</div>
 	{/if}
