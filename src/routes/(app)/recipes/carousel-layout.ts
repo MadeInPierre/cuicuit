@@ -13,13 +13,14 @@
  */
 
 export const MIN_CARD_WIDTH = 180;
-export const MAX_CARD_WIDTH = 240;
+export const MAX_CARD_WIDTH = 200;
 /** Matches the `gap-3` class used on the recipe grid. */
 export const GAP = 12;
 export const DEFAULT_ROWS_SMALL = 2;
 export const DEFAULT_ROWS_WIDE = 3;
 export const WIDE_THRESHOLD = 768;
 export const MAX_PAGES = 4;
+export const MIN_COLUMNS = 2;
 /** Used before the ResizeObserver fires (SSR / first paint). */
 export const FALLBACK_WIDTH = 640;
 
@@ -35,12 +36,13 @@ export interface CarouselLayout {
  */
 export function computeColumns(width: number): number {
     if (!Number.isFinite(width) || width <= 0) return 1;
-
+    
     // Smallest column count whose cards are not wider than MAX_CARD_WIDTH.
-    const minForMax = Math.max(1, Math.ceil((width + GAP) / (MAX_CARD_WIDTH + GAP)));
+    const minForMax = Math.max(MIN_COLUMNS, Math.ceil((width + GAP) / (MAX_CARD_WIDTH + GAP)));
     // Largest column count whose cards are not narrower than MIN_CARD_WIDTH.
-    const maxForMin = Math.max(1, Math.floor((width + GAP) / (MIN_CARD_WIDTH + GAP)));
-
+    const maxForMin = Math.max(MIN_COLUMNS, Math.floor((width + GAP) / (MIN_CARD_WIDTH + GAP)));
+    
+    console.log(width, minForMax, maxForMin)
     // A valid range exists: pick the count closest to the midpoint card size.
     if (minForMax <= maxForMin) {
         const mid = (MIN_CARD_WIDTH + MAX_CARD_WIDTH) / 2;
