@@ -5,8 +5,15 @@
 	type Props = {
 		ref?: HTMLElement | null;
 		value?: string;
+		onEnter?: Function;
+		onClose?: Function;
 	};
-	let { ref = $bindable(), value = $bindable('') }: Props = $props();
+	let {
+		ref = $bindable(),
+		value = $bindable(''),
+		onEnter = () => {},
+		onClose = () => {}
+	}: Props = $props();
 </script>
 
 <Input
@@ -22,8 +29,12 @@
 	onkeydown={(e) => {
 		if (e.key === 'Enter' && value) {
 			// TODO Handle sending message
+			onEnter?.();
 			value = '';
 			ref?.focus();
+		} else if (e.key === 'Escape') {
+			value = '';
+			onClose?.();
 		}
 	}}
 />

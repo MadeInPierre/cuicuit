@@ -1,13 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
-	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
-	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
-	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { capitalize } from '$lib/utils';
 	import { LoaderCircle } from '@lucide/svelte';
 	import { Bird, Search } from 'lucide-svelte';
@@ -18,6 +11,8 @@
 		inputValue: string;
 		inputRef: HTMLElement | null;
 		searchResults: SearchResults | null;
+		onSelectIngredient: Function;
+		onSelectRecipe: Function;
 		loading?: boolean;
 	};
 
@@ -25,60 +20,10 @@
 		inputValue = $bindable(''),
 		inputRef = $bindable(null),
 		searchResults = $bindable(null),
-		loading = false
+		loading = false,
+		onSelectIngredient,
+		onSelectRecipe
 	}: Props = $props();
-
-	const space = getActiveSpaceState();
-
-	function onSelectIngredient(chosenIndex: number | null) {
-		// Call the provided onSelect callback with the selected ingredient
-		// onSelect?.(searchResults.processedIngredient, chosenIndex);
-
-		if (!searchResults?.processedIngredient) return;
-		const quantity = searchResults.processedIngredient.parsed.quantity?.amount ?? null;
-		const unit = searchResults.processedIngredient.parsed.quantity?.unitKey ?? null;
-		const name = searchResults.processedIngredient.parsed.ingredientText ?? '';
-		const ingredientId =
-			chosenIndex !== null
-				? (searchResults.processedIngredient.matches[chosenIndex]?.id ?? null)
-				: null;
-
-		// Add the item to the shopping list
-		addShoppingItem(space, ingredientId, name, quantity, unit);
-
-		// Reset the sidebar view to show all meals and items
-		selectedMealIngredient.value = null;
-
-		// Reset the search input and matches
-		inputRef?.focus();
-		inputValue = '';
-		searchResults = null;
-
-		// Go to show the result
-		if (
-			!page.route.id?.startsWith('/(app)/plan') &&
-			!page.route.id?.startsWith('/(app)/shopping-list')
-		) {
-			goto('/plan');
-		}
-	}
-
-	async function onSelectRecipe(recipe: Recipe) {
-		if (!recipe?.id || !recipe?.servings) return;
-		await addRecipeToActivePlan(space, recipe.id, recipe.servings); // TODO refactor to allow choosing servings & send this function to parent component
-
-		// Reset the search input and matches
-		inputValue = '';
-		searchResults = null;
-
-		// Go to show the result
-		if (
-			!page.route.id?.startsWith('/(app)/plan') &&
-			!page.route.id?.startsWith('/(app)/shopping-list')
-		) {
-			goto('/plan');
-		}
-	}
 </script>
 
 {#if searchResults}

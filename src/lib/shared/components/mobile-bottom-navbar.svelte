@@ -1,8 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
+	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
+	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn } from '$lib/utils';
 	import {
-		AudioWaveform,
 		Calendar,
 		ChefHat,
 		Loader2,
@@ -15,16 +20,78 @@
 	} from 'lucide-svelte';
 	import { fade, slide } from 'svelte/transition';
 	import SearchInputMobile from './search/SearchInputMobile.svelte';
-	import SearchLogic from './search/SearchLogic.svelte';
+	import SearchLogic, { type SearchResults } from './search/SearchLogic.svelte';
 	import SearchResultsMobile from './search/SearchResultsMobile.svelte';
 	import { Button } from './ui/button';
 
 	let { openChat = $bindable(false) } = $props();
 
+	const space = getActiveSpaceState();
+
 	let inputValue = $state('');
 	let inputRef: HTMLInputElement | null = $state(null);
 	let searching = $state(false);
-	let searchResults = $state(null);
+	let searchResults: SearchResults | null = $state(null);
+
+	function onSelectIngredient(chosenIndex: number | null) {
+		// Call the provided onSelect callback with the selected ingredient
+		// onSelect?.(searchResults.processedIngredient, chosenIndex);
+
+		if (!searchResults?.processedIngredient) return;
+		const quantity = searchResults.processedIngredient.parsed.quantity?.amount ?? null;
+		const unit = searchResults.processedIngredient.parsed.quantity?.unitKey ?? null;
+		const name = searchResults.processedIngredient.parsed.ingredientText ?? '';
+		const ingredientId =
+			chosenIndex !== null
+				? (searchResults.processedIngredient.matches[chosenIndex]?.id ?? null)
+				: null;
+
+		// Add the item to the shopping list
+		addShoppingItem(space, ingredientId, name, quantity, unit);
+
+		// Reset the sidebar view to show all meals and items
+		selectedMealIngredient.value = null;
+
+		// Reset the search input and matches
+		inputValue = '';
+		searchResults = null;
+		inputRef?.focus();
+
+		// Go to show the result
+		if (
+			!page.route.id?.startsWith('/(app)/plan') &&
+			!page.route.id?.startsWith('/(app)/shopping-list')
+		) {
+			goto('/plan');
+		}
+	}
+
+	async function onSelectRecipe(recipe: Recipe) {
+		if (!recipe?.id || !recipe?.servings) return;
+		await addRecipeToActivePlan(space, recipe.id, recipe.servings); // TODO refactor to allow choosing servings & send this function to parent component
+
+		// Reset the search input and matches
+		inputValue = '';
+		searchResults = null;
+
+		// Go to show the result
+		if (
+			!page.route.id?.startsWith('/(app)/plan') &&
+			!page.route.id?.startsWith('/(app)/shopping-list')
+		) {
+			goto('/plan');
+		}
+	}
+
+	function onSelectDefault() {
+		if ((searchResults?.processedIngredient?.matches || []).length > 0) {
+			onSelectIngredient(0);
+		} else if (searchResults?.recipes && searchResults?.recipes.length > 0) {
+			onSelectRecipe(searchResults.recipes[0]);
+		} else {
+			onSelectIngredient(null); // Add a custom item
+		}
+	}
 </script>
 
 <SearchLogic bind:inputRef bind:inputValue bind:searchResults bind:loading={searching} />
@@ -36,7 +103,7 @@
 	>
 		<div
 			class={cn(
-				'w-full min-w-14 py-1 rounded-full flex items-center justify-center transition-colors bg-transparent',
+				'w-full min-w-12 py-1 rounded-full flex items-center justify-center transition-colors bg-transparent',
 				href && page.url.pathname.startsWith(href) && 'bg-primary/20 text-primary'
 			)}
 		>
@@ -65,13 +132,15 @@
 	class="z-40 pointer-events-none fixed inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent md:hidden"
 ></div>
 
-<div class="z-50 min-h-18 sticky bottom-6 mx-auto px-6 flex gap-3 max-w-lg md:hidden">
+<div
+	class="z-50 min-h-18 sticky bottom-6 mx-auto px-6 flex gap-3 max-w-lg md:hidden overflow-x-hidden"
+>
 	{#if !openChat}
 		<nav
 			class={cn(
 				'flex-1 border border-border/60 flex justify-around items-center py-2.5 px-4 rounded-full drop-shadow-md/5 bg-white/90 dark:bg-background/90 backdrop-blur-md'
 			)}
-			transition:slide={{ axis: 'x', duration: 75 }}
+			transition:slide={{ axis: 'x', duration: 150 }}
 		>
 			{@render navItem('Recipes', ChefHat, '/recipes')}
 			{@render navItem('Plan', Calendar, '/plan')}
@@ -92,22 +161,43 @@
 			<div class="w-full grid">
 				{#if searchResults}
 					<span class="p-6 pb-2" transition:slide={{ duration: 150 }}>
-						<SearchResultsMobile bind:searchResults bind:inputValue bind:inputRef />
+						<SearchResultsMobile
+							bind:searchResults
+							bind:inputValue
+							bind:inputRef
+							{onSelectIngredient}
+							{onSelectRecipe}
+						/>
 					</span>
 				{/if}
 
-				<div class="h-18 flex items-center gap-4 px-4">
-					<Button
+				<div class="h-18 flex items-center gap-0 px-4">
+					<!-- <Button
 						variant="secondary"
 						size="icon"
 						class="size-11 rounded-full shadow-none mr-auto"
 						onclick={() => {}}
 					>
 						<AudioWaveform class="size-5 text-muted-foreground " />
+					</Button> -->
+
+					<Button
+						disabled
+						variant="ghost"
+						size="icon"
+						class="size-11 rounded-full shadow-none mr-auto"
+						onclick={() => {}}
+					>
+						<Search class="size-5 text-muted-foreground " />
 					</Button>
 
-					<div in:fade={{ duration: 75, delay: 75 }} class="flex items-center gap-4 w-full">
-						<SearchInputMobile bind:ref={inputRef} bind:value={inputValue} />
+					<div in:fade={{ duration: 150, delay: 150 }} class="flex items-center gap-2 w-full">
+						<SearchInputMobile
+							bind:ref={inputRef}
+							bind:value={inputValue}
+							onClose={() => (openChat = false)}
+							onEnter={onSelectDefault}
+						/>
 
 						<Button
 							variant={searchResults ? 'default' : 'ghost'}
