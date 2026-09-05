@@ -45,7 +45,7 @@
 				{@render content?.()}
 			</Dialog.Content>
 		{:else}
-			<Drawer.Content class="max-h-[70%]">
+			<Drawer.Content class="max-h-[70dvh]">
 				{#if title || description}
 					<Drawer.Header class="text-start relative">
 						{#if title}
@@ -57,7 +57,7 @@
 					</Drawer.Header>
 				{/if}
 
-				<div class="grid gap-3 px-6 mb-6">
+				<div class="grid gap-3 px-6 mb-6 overflow-x-hidden overflow-y-auto min-w-0">
 					{@render content?.()}
 				</div>
 
