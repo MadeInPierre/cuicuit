@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS "public"."ingredients" (
     "unit_frequencies" "jsonb",
     "g_per_unit" "jsonb",
     "g_per_ml" real,
-    "embedding" "public"."vector" (1024),
+    "embedding" "extensions"."vector" (1024),
     CONSTRAINT "ingredients_check" CHECK (
         (
             (("slug")::"text" ~ '^[a-z0-9-]+$'::"text")
@@ -149,9 +149,9 @@ GRANT ALL ON TABLE "public"."ingredient_translations" TO "service_role";
 CREATE INDEX "ingredients_fts_idx" ON "public"."ingredient_translations" USING "gin" ("fts");
 
 CREATE INDEX "ingredients_trgm_idx" ON "public"."ingredient_translations" USING "gin" (
-    "name_singular" "public"."gin_trgm_ops",
-    "name_plural" "public"."gin_trgm_ops",
-    "name_general" "public"."gin_trgm_ops"
+    "name_singular" "extensions"."gin_trgm_ops",
+    "name_plural" "extensions"."gin_trgm_ops",
+    "name_general" "extensions"."gin_trgm_ops"
 );
 
 ----------------
@@ -195,7 +195,7 @@ ADD CONSTRAINT "ingredient_substitutions_substitute_ingredient_id_fkey" FOREIGN 
 -- 4. Triggers
 -- 4.1. Update Full-Text-Search internal index column on ingredient translations
 -- 4.1.1. Definition
-CREATE OR REPLACE FUNCTION "public"."update_ingredient_fts" () RETURNS "trigger" LANGUAGE "plpgsql" AS $$
+CREATE OR REPLACE FUNCTION "public"."update_ingredient_fts" () RETURNS "trigger" LANGUAGE "plpgsql" SET search_path = public AS $$
 BEGIN
     NEW.fts := to_tsvector('english',
         coalesce(NEW.name_singular, '') || ' ' ||
@@ -249,7 +249,7 @@ CREATE OR REPLACE FUNCTION public.match_ingredient (
     lang_code text,
     n_matches integer DEFAULT 10,
     is_raw_import boolean DEFAULT false
-) RETURNS SETOF public.ingredients LANGUAGE plpgsql AS $function$
+) RETURNS SETOF public.ingredients LANGUAGE plpgsql SET search_path = public, extensions AS $function$
 DECLARE
     target_lang_id INTEGER;
     ts_config regconfig;

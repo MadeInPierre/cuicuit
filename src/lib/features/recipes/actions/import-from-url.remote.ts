@@ -497,6 +497,11 @@ export const importRecipeFromText = query.live(
 		);
 		if (!authorized) throw new Error('User cannot afford the feature.');
 
+		// The draft recipe and its data are written through the admin client so that
+		// consume_credits (only callable by service_role) can be used and the recipe
+		// writes don't depend on client-side RLS.
+		const admin = event.locals.supabaseAdmin;
+
 		// Step 0: Warming up
 		yield 0;
 		const { data: languageData } = await getLanguageId(
@@ -527,14 +532,14 @@ export const importRecipeFromText = query.live(
 		// Step 2: Finding ingredients & units
 		yield 2;
 		const processedIngredients = await processAndMatchIngredients(
-			event.locals.supabase,
+			admin,
 			enrichedRecipe.ingredients,
 			(enrichedRecipe.lang as LanguageKey) || languageData.lang || 'fr-FR'
 		);
 		console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 
-		await saveEnrichedRecipe(event.locals.supabase, recipeId, enrichedRecipe);
-		await insertRecipeIngredients(event.locals.supabase, recipeId, processedIngredients);
+		await saveEnrichedRecipe(admin, recipeId, enrichedRecipe);
+		await insertRecipeIngredients(admin, recipeId, processedIngredients);
 
 		const usage = await consumeCredits({
 			amount: FEATURE_COSTS.import_recipe_from_text.seeds,

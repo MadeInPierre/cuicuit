@@ -270,7 +270,38 @@ CREATE INDEX "idx_recipes_total_time" ON "public"."recipes" USING "btree" ("time
 -------------------
 CREATE OR REPLACE VIEW "public"."recipes_randomized"
 WITH (security_invoker = on) AS 
-SELECT * FROM "public"."recipes" ORDER BY RANDOM();
+SELECT
+    id,
+    created_at,
+    updated_at,
+    deleted_at,
+    title,
+    short_title,
+    description,
+    notes,
+    image_ids,
+    slug,
+    author_id,
+    language_id,
+    source_type,
+    source_url,
+    time_prep_minutes,
+    time_cook_minutes,
+    time_rest_minutes,
+    time_total_minutes,
+    effort_level,
+    skill_level,
+    cleanup_level,
+    cost_level,
+    servings,
+    steps,
+    times_of_day,
+    courses,
+    cuisines,
+    tools,
+    search_term
+FROM "public"."recipes"
+ORDER BY RANDOM();
 
 -- 2. Ownership
 ALTER VIEW "public"."recipes_randomized" OWNER TO "postgres";
@@ -333,7 +364,7 @@ CREATE INDEX "idx_recipe_ingredients_ingredient_id" ON "public"."recipe_ingredie
 -- Generate & update the search term column for recipes
 -------------------
 -- 1. Definition
-CREATE OR REPLACE FUNCTION "public"."generate_recipe_search_term" () RETURNS "trigger" LANGUAGE "plpgsql" AS $$
+CREATE OR REPLACE FUNCTION "public"."generate_recipe_search_term" () RETURNS "trigger" LANGUAGE "plpgsql" SET search_path = public, extensions AS $$
 BEGIN
     -- Combine title and description, convert to lowercase, remove accents
     NEW.search_term = LOWER(
@@ -378,7 +409,7 @@ GRANT ALL ON FUNCTION "public"."generate_recipe_search_term" () TO "service_role
 -- Generate & update recipe slugs (uses the recipe's title)
 -------------------
 -- 1. Definition
-CREATE OR REPLACE FUNCTION "public"."set_unique_slug_from_name" () RETURNS "trigger" LANGUAGE "plpgsql" AS $$
+CREATE OR REPLACE FUNCTION "public"."set_unique_slug_from_name" () RETURNS "trigger" LANGUAGE "plpgsql" SET search_path = public AS $$
   DECLARE
       base_slug TEXT;
       new_slug TEXT;

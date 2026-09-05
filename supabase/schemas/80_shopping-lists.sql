@@ -7,7 +7,7 @@
 -- Soft delete shopping list items when a meal is deleted
 -------------------
 -- 1. Definition
-CREATE OR REPLACE FUNCTION "public"."soft_delete_shopping_list_for_meal" () RETURNS "trigger" LANGUAGE "plpgsql" AS $$
+CREATE OR REPLACE FUNCTION "public"."soft_delete_shopping_list_for_meal" () RETURNS "trigger" LANGUAGE "plpgsql" SET search_path = public AS $$
 begin
     update space_items
     set deleted_at = now()
@@ -85,7 +85,7 @@ CREATE OR REPLACE FUNCTION public.get_shopping_recommendations (
     slug_general text,
     name text,
     score bigint
-) LANGUAGE plpgsql AS $function$
+) LANGUAGE plpgsql SET search_path = public AS $function$
 BEGIN
     RETURN QUERY
     WITH scored AS (
