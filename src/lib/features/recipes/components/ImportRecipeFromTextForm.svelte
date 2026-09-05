@@ -112,7 +112,7 @@
 				id="recipe-text"
 				placeholder="Paste or write a recipe in your own words with ingredients and steps..."
 				bind:value={text}
-				class="min-h-60 max-h-100"
+				class="min-h-60 max-h-100 min-w-0"
 				oninput={() => (textError = null)}
 			/>
 
