@@ -7,7 +7,8 @@ import { toast } from 'svelte-sonner';
 export async function addRecipeToActivePlan(
 	space: ActiveSpaceState,
 	recipeId: string,
-	servings: number
+	servings: number,
+	options?: { hideToast?: boolean; skipRefresh?: boolean }
 ) {
 	if (!space?.activeSpace || !space.activePlanMeals || !space.activeMember?.user_id) {
 		console.error('No active space or active plan found');
@@ -67,22 +68,27 @@ export async function addRecipeToActivePlan(
 			}) satisfies TablesInsert<'space_items'>
 	);
 
-	const { error: shoppingListError } = await supabase.client.from('space_items').insert(shoppingListItems);
+	const { error: shoppingListError } = await supabase.client
+		.from('space_items')
+		.insert(shoppingListItems);
 
 	if (shoppingListError) {
 		console.error('Error adding ingredients to shopping list:', shoppingListError);
 		return;
 	}
 
-	toast.success('Added to plan', {
-		description: 'Go to the Plan tab for more',
-		action: {
-			label: 'View',
-			onClick: () => goto('/plan')
-		}
-	});
+	if (!options?.hideToast !== true) {
+		toast.success('Added to plan', {
+			description: 'Go to the Plan tab for more',
+			action: {
+				label: 'View',
+				onClick: () => goto('/plan')
+			}
+		});
+	}
 
 	// Refresh the active plan after adding
+	if (options?.skipRefresh) return;
 	await space.refreshActivePlanMeals();
 	await space.refreshActivePlanItems();
 }
