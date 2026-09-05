@@ -10,7 +10,7 @@ import {
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { Tables } from '$lib/shared/db/supabase.types';
 import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-import { getContext, setContext } from 'svelte';
+import { getContext, setContext, untrack } from 'svelte';
 import {
 	generateShoppingList,
 	type CombinedShoppingListItem
@@ -71,10 +71,14 @@ class ActiveSpaceState {
 	constructor(userState: UserState) {
 		this._userState = userState;
 
-		// If the user has spaces but none active, set the first one as active
+		// If the user has spaces but the active space id is missing or stale (e.g. a different
+		// account signed in on this device, or the space was deleted), fall back to the first one.
 		$effect(() => {
-			if (this._userId && this.userSpaces && this.userSpaces.length > 0 && !this.id) {
-				this.id = this.userSpaces[0].id;
+			if (this._userId && this.userSpaces && this.userSpaces.length > 0) {
+				const currentId = untrack(() => this.id);
+				if (!this.userSpaces.some((space) => space.id === currentId)) {
+					this.id = this.userSpaces[0].id;
+				}
 			}
 		});
 
@@ -119,11 +123,14 @@ class ActiveSpaceState {
 
 	/** Fetches the active plan meals for the current active space */
 	async refreshActivePlanMeals(options?: { refreshShoppingList?: boolean }) {
-		if (!this.id || !this.language) return;
+		if (!this.activeSpace?.id || !this.language) return;
 
 		try {
 			// Fetch currently active meals for the active space (deleted meals are excluded)
-			const response = await getPlanMeals(this.id, this.language.id).is('deleted_at', null);
+			const response = await getPlanMeals(this.activeSpace.id, this.language.id).is(
+				'deleted_at',
+				null
+			);
 			if (response.data)
 				this.activePlanMeals = response.data?.sort((a, b) => a.position - b.position) || [];
 
@@ -139,10 +146,10 @@ class ActiveSpaceState {
 
 	/** Fetches the active space's plan's items */
 	async refreshActivePlanItems(options?: { refreshShoppingList?: boolean }) {
-		if (!this.id || !this.language) return;
+		if (!this.activeSpace?.id || !this.language) return;
 
 		try {
-			const { data, error } = await getShoppingListItems(this.id, this.language.id).is(
+			const { data, error } = await getShoppingListItems(this.activeSpace.id, this.language.id).is(
 				'deleted_at',
 				null
 			);

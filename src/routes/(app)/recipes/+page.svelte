@@ -523,7 +523,12 @@
 						{/snippet}
 					</ImportRecipeDialog>
 
-					<Button variant="outline" onclick={onAddExampleRecipes} disabled={addingExamples}>
+					<Button
+						variant="outline"
+						onclick={onAddExampleRecipes}
+						disabled={addingExamples}
+						class="text-foreground"
+					>
 						{#if addingExamples}
 							<Loader2 class="size-4 animate-spin" />
 							Adding recipes...

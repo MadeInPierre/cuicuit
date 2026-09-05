@@ -63,7 +63,7 @@
 			$formData.theme as SpaceThemeKey,
 			$formData.iconSlug as SpaceIconKey
 		)
-			.then((newSpaceId: string) => {
+			.then(async (newSpaceId: string) => {
 				posthog.capture('space_created', {
 					space_theme: $formData.theme,
 					space_icon: $formData.iconSlug
@@ -71,6 +71,7 @@
 				activeSpace.id = newSpaceId; // Change the active space to the new one
 				openDialog = false;
 				loading = false;
+				await activeSpace.refreshSpaces(); // Make the new space show up in the switcher
 			})
 			.catch((error: Error) => {
 				if (error.message === 'space-already-exists')

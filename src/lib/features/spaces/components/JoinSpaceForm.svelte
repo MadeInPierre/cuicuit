@@ -74,11 +74,12 @@
 
 		loading = true;
 		joinSpace(userState.user.id, spaceId, $formData.theme as SpaceThemeKey)
-			.then(() => {
+			.then(async () => {
 				activeSpace.id = spaceId; // Change the active space to the newly joined one
 				localStorage.removeItem('invite-join-space-id');
 				openDialog = false;
 				loading = false;
+				await activeSpace.refreshSpaces(); // Make the joined space show up in the switcher
 			})
 			.catch((error: Error) => {
 				console.log('CATCH');
