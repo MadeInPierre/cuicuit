@@ -44,8 +44,8 @@
 
 <DialogResponsive {trigger} bind:open={openDialog}>
 	{#snippet content()}
-		<Tabs.Root bind:value={activeTab}>
-			<Tabs.Content value="url" class="">
+		<Tabs.Root bind:value={activeTab} class="min-w-0">
+			<Tabs.Content value="url" class="min-w-0">
 				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
 					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
 						<Globe class="size-5" />
@@ -63,7 +63,7 @@
 				<ImportRecipeUrlForm bind:openDialog />
 			</Tabs.Content>
 
-			<Tabs.Content value="image" class="">
+			<Tabs.Content value="image" class="min-w-0">
 				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
 					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
 						<FileImage class="size-5" />
@@ -81,7 +81,7 @@
 				<p class="p-6 bg-muted rounded-md text-center text-muted-foreground">Coming soon!</p>
 			</Tabs.Content>
 
-			<Tabs.Content value="text" class="">
+			<Tabs.Content value="text" class="min-w-0">
 				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
 					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
 						<FileText class="size-5" />
@@ -99,7 +99,7 @@
 				<ImportRecipeFromTextForm bind:openDialog />
 			</Tabs.Content>
 
-			<Tabs.Content value="manual" class="">
+			<Tabs.Content value="manual" class="min-w-0">
 				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
 					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
 						<Pencil class="size-5" />
