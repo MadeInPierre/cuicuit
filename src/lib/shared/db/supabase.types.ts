@@ -304,7 +304,8 @@ export type Database = {
       }
       recipes: {
         Row: {
-          author_id: string
+          author_id: string | null
+          cache_id: string | null
           cleanup_level: Database["public"]["Enums"]["cleanup_level"]
           cost_level: Database["public"]["Enums"]["cost_level"]
           courses: Database["public"]["Enums"]["course"][]
@@ -335,7 +336,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          author_id: string
+          author_id?: string | null
+          cache_id?: string | null
           cleanup_level: Database["public"]["Enums"]["cleanup_level"]
           cost_level: Database["public"]["Enums"]["cost_level"]
           courses: Database["public"]["Enums"]["course"][]
@@ -366,7 +368,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          author_id?: string
+          author_id?: string | null
+          cache_id?: string | null
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"]
           cost_level?: Database["public"]["Enums"]["cost_level"]
           courses?: Database["public"]["Enums"]["course"][]
@@ -398,6 +401,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "recipes_cache_id_fkey"
+            columns: ["cache_id"]
+            isOneToOne: false
+            referencedRelation: "recipes_cache"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "recipes_language_id_fkey"
             columns: ["language_id"]
             isOneToOne: false
@@ -405,6 +415,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      recipes_cache: {
+        Row: {
+          app_version: string
+          cache_key: string
+          created_at: string
+          id: string
+          llm_output: Json | null
+          llm_stats: Json | null
+          scrape_output: string | null
+          scrape_stats: Json | null
+          source_url: string
+          updated_at: string
+        }
+        Insert: {
+          app_version: string
+          cache_key: string
+          created_at?: string
+          id?: string
+          llm_output?: Json | null
+          llm_stats?: Json | null
+          scrape_output?: string | null
+          scrape_stats?: Json | null
+          source_url: string
+          updated_at?: string
+        }
+        Update: {
+          app_version?: string
+          cache_key?: string
+          created_at?: string
+          id?: string
+          llm_output?: Json | null
+          llm_stats?: Json | null
+          scrape_output?: string | null
+          scrape_stats?: Json | null
+          source_url?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       space_items: {
         Row: {
@@ -686,6 +735,7 @@ export type Database = {
       recipes_randomized: {
         Row: {
           author_id: string | null
+          cache_id: string | null
           cleanup_level: Database["public"]["Enums"]["cleanup_level"] | null
           cost_level: Database["public"]["Enums"]["cost_level"] | null
           courses: Database["public"]["Enums"]["course"][] | null
@@ -717,6 +767,7 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          cache_id?: string | null
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
           cost_level?: Database["public"]["Enums"]["cost_level"] | null
           courses?: Database["public"]["Enums"]["course"][] | null
@@ -748,6 +799,7 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          cache_id?: string | null
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
           cost_level?: Database["public"]["Enums"]["cost_level"] | null
           courses?: Database["public"]["Enums"]["course"][] | null
@@ -778,6 +830,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "recipes_cache_id_fkey"
+            columns: ["cache_id"]
+            isOneToOne: false
+            referencedRelation: "recipes_cache"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "recipes_language_id_fkey"
             columns: ["language_id"]
@@ -883,6 +942,7 @@ export type Database = {
         | "consumed"
         | "expired_consumed"
         | "expired_to_public"
+        | "gift_manual"
       credit_type: "private" | "public"
       cuisine:
         | "italian"
@@ -1096,6 +1156,7 @@ export const Constants = {
         "consumed",
         "expired_consumed",
         "expired_to_public",
+        "gift_manual",
       ],
       credit_type: ["private", "public"],
       cuisine: [

@@ -45,6 +45,7 @@ export const publicCreditSourceSchema = z.union([
   z.literal("consumed"),
   z.literal("expired_consumed"),
   z.literal("expired_to_public"),
+  z.literal("gift_manual"),
 ]);
 
 export const publicCreditTypeSchema = z.union([
@@ -452,7 +453,8 @@ export const publicRecipeIngredientsRelationshipsSchema = z.tuple([
 ]);
 
 export const publicRecipesRowSchema = z.object({
-  author_id: z.string(),
+  author_id: z.string().nullable(),
+  cache_id: z.string().nullable(),
   cleanup_level: publicCleanupLevelSchema,
   cost_level: publicCostLevelSchema,
   courses: z.array(publicCourseSchema),
@@ -484,7 +486,8 @@ export const publicRecipesRowSchema = z.object({
 });
 
 export const publicRecipesInsertSchema = z.object({
-  author_id: z.string(),
+  author_id: z.string().optional().nullable(),
+  cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema,
   cost_level: publicCostLevelSchema,
   courses: z.array(publicCourseSchema),
@@ -516,7 +519,8 @@ export const publicRecipesInsertSchema = z.object({
 });
 
 export const publicRecipesUpdateSchema = z.object({
-  author_id: z.string().optional(),
+  author_id: z.string().optional().nullable(),
+  cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema.optional(),
   cost_level: publicCostLevelSchema.optional(),
   courses: z.array(publicCourseSchema).optional(),
@@ -549,6 +553,13 @@ export const publicRecipesUpdateSchema = z.object({
 
 export const publicRecipesRelationshipsSchema = z.tuple([
   z.object({
+    foreignKeyName: z.literal("recipes_cache_id_fkey"),
+    columns: z.tuple([z.literal("cache_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("recipes_cache"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
+  z.object({
     foreignKeyName: z.literal("recipes_language_id_fkey"),
     columns: z.tuple([z.literal("language_id")]),
     isOneToOne: z.literal(false),
@@ -556,6 +567,45 @@ export const publicRecipesRelationshipsSchema = z.tuple([
     referencedColumns: z.tuple([z.literal("id")]),
   }),
 ]);
+
+export const publicRecipesCacheRowSchema = z.object({
+  app_version: z.string(),
+  cache_key: z.string(),
+  created_at: z.string(),
+  id: z.string(),
+  llm_output: jsonSchema.nullable(),
+  llm_stats: jsonSchema.nullable(),
+  scrape_output: z.string().nullable(),
+  scrape_stats: jsonSchema.nullable(),
+  source_url: z.string(),
+  updated_at: z.string(),
+});
+
+export const publicRecipesCacheInsertSchema = z.object({
+  app_version: z.string(),
+  cache_key: z.string(),
+  created_at: z.string().optional(),
+  id: z.string().optional(),
+  llm_output: jsonSchema.optional().nullable(),
+  llm_stats: jsonSchema.optional().nullable(),
+  scrape_output: z.string().optional().nullable(),
+  scrape_stats: jsonSchema.optional().nullable(),
+  source_url: z.string(),
+  updated_at: z.string().optional(),
+});
+
+export const publicRecipesCacheUpdateSchema = z.object({
+  app_version: z.string().optional(),
+  cache_key: z.string().optional(),
+  created_at: z.string().optional(),
+  id: z.string().optional(),
+  llm_output: jsonSchema.optional().nullable(),
+  llm_stats: jsonSchema.optional().nullable(),
+  scrape_output: z.string().optional().nullable(),
+  scrape_stats: jsonSchema.optional().nullable(),
+  source_url: z.string().optional(),
+  updated_at: z.string().optional(),
+});
 
 export const publicSpaceItemsRowSchema = z.object({
   checked_at: z.string().nullable(),
@@ -842,6 +892,7 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
 
 export const publicRecipesRandomizedRowSchema = z.object({
   author_id: z.string().nullable(),
+  cache_id: z.string().nullable(),
   cleanup_level: publicCleanupLevelSchema.nullable(),
   cost_level: publicCostLevelSchema.nullable(),
   courses: z.array(publicCourseSchema).nullable(),
@@ -874,6 +925,7 @@ export const publicRecipesRandomizedRowSchema = z.object({
 
 export const publicRecipesRandomizedInsertSchema = z.object({
   author_id: z.string().optional().nullable(),
+  cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema.optional().nullable(),
   cost_level: publicCostLevelSchema.optional().nullable(),
   courses: z.array(publicCourseSchema).optional().nullable(),
@@ -906,6 +958,7 @@ export const publicRecipesRandomizedInsertSchema = z.object({
 
 export const publicRecipesRandomizedUpdateSchema = z.object({
   author_id: z.string().optional().nullable(),
+  cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema.optional().nullable(),
   cost_level: publicCostLevelSchema.optional().nullable(),
   courses: z.array(publicCourseSchema).optional().nullable(),
@@ -937,6 +990,13 @@ export const publicRecipesRandomizedUpdateSchema = z.object({
 });
 
 export const publicRecipesRandomizedRelationshipsSchema = z.tuple([
+  z.object({
+    foreignKeyName: z.literal("recipes_cache_id_fkey"),
+    columns: z.tuple([z.literal("cache_id")]),
+    isOneToOne: z.literal(false),
+    referencedRelation: z.literal("recipes_cache"),
+    referencedColumns: z.tuple([z.literal("id")]),
+  }),
   z.object({
     foreignKeyName: z.literal("recipes_language_id_fkey"),
     columns: z.tuple([z.literal("language_id")]),
@@ -1143,6 +1203,13 @@ export type PublicRecipesInsert = z.infer<typeof publicRecipesInsertSchema>;
 export type PublicRecipesUpdate = z.infer<typeof publicRecipesUpdateSchema>;
 export type PublicRecipesRelationships = z.infer<
   typeof publicRecipesRelationshipsSchema
+>;
+export type PublicRecipesCacheRow = z.infer<typeof publicRecipesCacheRowSchema>;
+export type PublicRecipesCacheInsert = z.infer<
+  typeof publicRecipesCacheInsertSchema
+>;
+export type PublicRecipesCacheUpdate = z.infer<
+  typeof publicRecipesCacheUpdateSchema
 >;
 export type PublicSpaceItemsRow = z.infer<typeof publicSpaceItemsRowSchema>;
 export type PublicSpaceItemsInsert = z.infer<

@@ -9,6 +9,7 @@ declare global {
     // interface Error {}
     interface Locals {
       supabase: SupabaseClient<Database>
+      supabaseAdmin: SupabaseClient<Database>
     }
     // interface PageState {}
     // interface Platform {}

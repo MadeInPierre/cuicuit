@@ -32,8 +32,9 @@ export function getRecipesDetailed(languageId: number, searchText?: string) {
 			)`
 		)
 		.eq('ingredients.ingredient.translations.language_id', languageId) // Only get translations in the user language
-		.is('deleted_at', null);
-	// .eq('author_id', userState.user?.id || ''); // TODO per-user recipe visibility
+		.is('deleted_at', null)
+		.not('author_id', 'is', null); // Hide author-less cache template recipes from the library (RLS forbids anyway)
+	// .eq('author_id', userState.user?.id || ''); // TODO RLS is filtering per space member for now but bad perf
 
 	if (searchText) {
 		// Remove accents from searchText for accent-insensitive search

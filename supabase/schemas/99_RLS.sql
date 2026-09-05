@@ -307,6 +307,15 @@ on public.recipes for DELETE to authenticated
 using (author_id = auth.uid());
 
 
+-----------------------
+-- RECIPE IMPORT CACHE
+-----------------------
+-- Only the server-side supabaseAdmin client (recipe imports) ever touches this
+-- table. RLS is enabled with no policies, so every role is blocked except
+-- service_role, which bypasses RLS.
+alter table public.recipes_cache enable row level security;
+
+
 ----------------------
 -- RECIPE INGREDIENTS
 ----------------------

@@ -5,7 +5,7 @@ import { withLlmFailover } from '$lib/shared/llm/fallback';
 import type { LlmProvider } from '$lib/shared/llm/providers';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import z from 'zod';
-import { parsedSearchInputSchema } from './parse-ingredients/parse';
+import { parsedSearchInputSchema } from '../parse-ingredients/parse';
 
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe parser. The user will provide you with a draft or incomplete recipe.
 
@@ -36,7 +36,9 @@ Requirements:
 
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({
-	title: publicRecipesRowSchema.shape.title.describe('Original or concise title.'),
+	title: publicRecipesRowSchema.shape.title.describe(
+		'Original title, but without useless SEO text, e.g. "the best".'
+	),
 	short_title: publicRecipesRowSchema.shape.short_title.describe(
 		'Shortest possible title for this recipe in 1 word.'
 	),
@@ -70,6 +72,16 @@ const outputSchema = z.object({
 });
 
 export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
+
+export type EnrichedRecipeResult = {
+	output: EnrichedRecipeOutput;
+	stats: {
+		provider: string;
+		fallbackUsed: boolean;
+		inputTokens: number | null;
+		outputTokens: number | null;
+	};
+};
 
 /* ------------- PUBLIC --------------- */
 
@@ -114,7 +126,7 @@ export const enrichTextRecipe = query(
 
 /* ------------- PRIVATE --------------- */
 
-async function enrichRecipeLlm(recipeInput: object) {
+async function enrichRecipeLlm(recipeInput: object): Promise<EnrichedRecipeResult> {
 	const inputSize = JSON.stringify(recipeInput).length;
 	console.log(`[llm] Enriching recipe (${inputSize} bytes input).`);
 
@@ -122,15 +134,29 @@ async function enrichRecipeLlm(recipeInput: object) {
 	return withLlmFailover((provider) => enrichRecipeWithProvider(provider, recipeInput)).then(
 		({ provider, fallbackUsed, value }) => {
 			console.log(
-				`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${value.lang}", title="${value.recipe.title ?? ''}", ${value.ingredients?.length ?? 0} ingredients.`,
-				JSON.stringify(value)
+				`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${value.output.lang}", title="${value.output.recipe.title ?? ''}", ${value.output.ingredients?.length ?? 0} ingredients.`,
+				JSON.stringify(value.output)
 			);
-			return value satisfies EnrichedRecipeOutput;
+			return {
+				output: value.output satisfies EnrichedRecipeOutput,
+				stats: {
+					provider,
+					fallbackUsed,
+					inputTokens: value.usage?.inputTokens ?? null,
+					outputTokens: value.usage?.outputTokens ?? null
+				}
+			};
 		}
 	);
 }
 
-async function enrichRecipeWithProvider(provider: LlmProvider, recipeInput: object) {
+async function enrichRecipeWithProvider(
+	provider: LlmProvider,
+	recipeInput: object
+): Promise<{
+	output: EnrichedRecipeOutput;
+	usage: { inputTokens: number | undefined; outputTokens: number | undefined } | null;
+}> {
 	try {
 		const response = await generateText({
 			model: provider.model,
@@ -154,7 +180,10 @@ async function enrichRecipeWithProvider(provider: LlmProvider, recipeInput: obje
 		console.log(
 			`[llm] ${provider.id}: ${response.usage?.inputTokens ?? '?'} input, ${response.usage?.outputTokens ?? '?'} output tokens.`
 		);
-		return response.output satisfies EnrichedRecipeOutput;
+		return {
+			output: response.output satisfies EnrichedRecipeOutput,
+			usage: response.usage ?? null
+		};
 	} catch (error) {
 		if (error instanceof NoObjectGeneratedError) {
 			console.error(`${provider.id}: no object generated, malformed LLM output:`, error.text);
@@ -164,7 +193,7 @@ async function enrichRecipeWithProvider(provider: LlmProvider, recipeInput: obje
 				const repaired = repairLlmOutput(error.text);
 				if (repaired) {
 					console.log(`[llm] ${provider.id}: malformed output repaired successfully.`);
-					return repaired;
+					return { output: repaired, usage: null };
 				}
 			}
 		} else {
