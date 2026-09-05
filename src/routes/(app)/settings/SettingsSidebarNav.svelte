@@ -32,7 +32,7 @@
 	{#if !userState.creditBalance?.balance}
 		<Button
 			href="/supporter"
-			class="md:hidden max-w-lg mb-8 bg-lime-100 border border-lime-400 text-lime-600 p-8 rounded-xl flex items-center gap-4 mx-0"
+			class="md:hidden max-w-lg mb-8 bg-lime-100 hover:bg-lime-200 border border-lime-400 text-lime-600 p-8 rounded-xl flex items-center gap-4 mx-0"
 		>
 			<span class="text-lg">🌱</span>
 			<div class="grid">

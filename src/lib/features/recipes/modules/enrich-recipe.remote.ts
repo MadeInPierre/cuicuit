@@ -1,8 +1,8 @@
 import { query } from '$app/server';
 import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
-import { modelMistral } from '$lib/shared/llm/mistral';
-import type { MistralLanguageModelOptions } from '@ai-sdk/mistral';
+import { withLlmFailover } from '$lib/shared/llm/fallback';
+import type { LlmProvider } from '$lib/shared/llm/providers';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import z from 'zod';
 import { parsedSearchInputSchema } from './parse-ingredients/parse';
@@ -115,17 +115,29 @@ export const enrichTextRecipe = query(
 /* ------------- PRIVATE --------------- */
 
 async function enrichRecipeLlm(recipeInput: object) {
-	// Call the LLM to enrich the recipe
+	const inputSize = JSON.stringify(recipeInput).length;
+	console.log(`[llm] Enriching recipe (${inputSize} bytes input).`);
+
+	// Call the LLM to enrich the recipe, failing over across providers in priority order.
+	return withLlmFailover((provider) => enrichRecipeWithProvider(provider, recipeInput)).then(
+		({ provider, fallbackUsed, value }) => {
+			console.log(
+				`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${value.lang}", title="${value.recipe.title ?? ''}", ${value.ingredients?.length ?? 0} ingredients.`,
+				JSON.stringify(value)
+			);
+			return value satisfies EnrichedRecipeOutput;
+		}
+	);
+}
+
+async function enrichRecipeWithProvider(provider: LlmProvider, recipeInput: object) {
 	try {
 		const response = await generateText({
-			model: modelMistral,
+			model: provider.model,
 			output: Output.object({
 				schema: outputSchema,
 				description: 'The same recipe as received, but enriched and/or corrected.'
 			}),
-			providerOptions: {
-				mistral: {} satisfies MistralLanguageModelOptions
-			},
 			messages: [
 				{
 					role: 'system',
@@ -139,25 +151,24 @@ async function enrichRecipeLlm(recipeInput: object) {
 			temperature: 0
 		});
 
-		console.log('Response from Mistral model:', response);
 		console.log(
-			'LLM Mistral used',
-			response.usage.inputTokens,
-			'input and',
-			response.usage.outputTokens,
-			'output tokens.'
+			`[llm] ${provider.id}: ${response.usage?.inputTokens ?? '?'} input, ${response.usage?.outputTokens ?? '?'} output tokens.`
 		);
 		return response.output satisfies EnrichedRecipeOutput;
 	} catch (error) {
 		if (error instanceof NoObjectGeneratedError) {
-			console.error('No object generated error, malformed LLM output:', error.text);
+			console.error(`${provider.id}: no object generated, malformed LLM output:`, error.text);
 
 			// Attempt to repair the malformed JSON
-			if (!error.text) throw error;
-			const repaired = repairLlmOutput(error.text);
-			if (repaired) return repaired;
+			if (error.text) {
+				const repaired = repairLlmOutput(error.text);
+				if (repaired) {
+					console.log(`[llm] ${provider.id}: malformed output repaired successfully.`);
+					return repaired;
+				}
+			}
 		} else {
-			console.error('Unexpected error during recipe enrichment:', error);
+			console.error(`[llm] Unexpected error during recipe enrichment with ${provider.id}:`, error);
 		}
 
 		throw error;
