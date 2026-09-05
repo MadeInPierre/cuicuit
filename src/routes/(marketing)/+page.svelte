@@ -9,6 +9,7 @@
 		ExternalLink,
 		Globe,
 		Share,
+		Sidebar,
 		TriangleAlert
 	} from '@lucide/svelte';
 	import {
@@ -53,15 +54,15 @@
 
 	const features = [
 		{
-			icon: BookOpen,
-			title: 'Import from anywhere',
-			body: 'Paste a link from your food blog, Cuicuit pulls the recipe and guesses convenient filters.',
+			icon: Sidebar,
+			title: 'The magic sidebar',
+			body: 'Throw ideas and missing things in the sidebar, and your list gets immediately organized.',
 			mobile: false
 		},
 		{
-			icon: ShoppingBasket,
-			title: 'Groceries from Plan',
-			body: 'Your plan turns into an aisle-aware grocery list, with smart suggestions from past purchases.',
+			icon: BookOpen,
+			title: 'Import from anywhere',
+			body: 'Paste a link from your food blog, Cuicuit pulls the recipe and guesses convenient filters.',
 			mobile: false
 		},
 		{

@@ -2,12 +2,15 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { addExampleRecipes } from '$lib/features/recipes/actions/add-example-recipes.remote';
 	import {
 		recipeCoursesSectionHeaders,
 		recipeCuisineSectionHeaders,
 		recipeTimesOfDaySectionHeaders
 	} from '$lib/features/recipes/components/consts';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
+	import { EXAMPLE_RECIPE_URLS } from '$lib/features/recipes/consts/example-recipes';
 	import {
 		recipeCourses,
 		recipeCuisines,
@@ -18,12 +21,15 @@
 		type RecipeDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { CookingPot, Loader2 } from '@lucide/svelte';
 	import { ArrowRight, ChefHat, Plus, RotateCcw } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import RecipeCarousel from './RecipeCarousel.svelte';
@@ -227,6 +233,42 @@
 		recipes = data || [];
 		searchLoading = false;
 		loading = false;
+	}
+
+	// Imports the hard-coded example recipes (already in the shared cache, so
+	// this is credit-free) and refreshes the page so they show up immediately.
+	let addingExamples = $state(false);
+
+	async function onAddExampleRecipes() {
+		if (addingExamples || !space.language) return;
+		addingExamples = true;
+		try {
+			const results = await addExampleRecipes({ fallbackLang: space.language.lang });
+			await fetchRecipes();
+
+			// The choice is deterministic: the first two recipes of the list
+			const urls =
+				EXAMPLE_RECIPE_URLS[space.language.lang as LanguageKey] ?? EXAMPLE_RECIPE_URLS['fr-FR']!;
+
+			// Import results come back in URL order, so add the first two to the plan
+			for (const result of results.slice(0, Math.min(2, urls.length))) {
+				const recipe = recipes.find((r) => r.id === result.id);
+				await addRecipeToActivePlan(space, result.id, recipe?.servings ?? 4, {
+					hideToast: true,
+					skipRefresh: true
+				});
+			}
+
+			await space.refreshActivePlanMeals({ refreshShoppingList: false });
+			await space.refreshActivePlanItems();
+
+			toast.success(`Added ${results.length} example recipes!`);
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to add example recipes. Please try again.');
+		} finally {
+			addingExamples = false;
+		}
 	}
 
 	// Search recipes with text search and filters when the search input or filters change, and on the first page load
@@ -471,14 +513,26 @@
 			{:else}
 				<p class="text-sm mx-auto">Start by importing or creating new recipes!</p>
 
-				<ImportRecipeDialog>
-					{#snippet trigger({ props })}
-						<Button {...props} class="mt-6" size="sm">
-							<Plus class="size-4" />
-							Add a recipe
-						</Button>
-					{/snippet}
-				</ImportRecipeDialog>
+				<div class="flex flex-wrap justify-center gap-2 mt-6">
+					<ImportRecipeDialog>
+						{#snippet trigger({ props })}
+							<Button {...props}>
+								<Plus class="size-4" />
+								Add a recipe
+							</Button>
+						{/snippet}
+					</ImportRecipeDialog>
+
+					<Button variant="outline" onclick={onAddExampleRecipes} disabled={addingExamples}>
+						{#if addingExamples}
+							<Loader2 class="size-4 animate-spin" />
+							Adding recipes...
+						{:else}
+							<CookingPot class="size-4" />
+							Try examples
+						{/if}
+					</Button>
+				</div>
 			{/if}
 		</div>
 	{/if}
