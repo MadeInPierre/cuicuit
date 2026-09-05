@@ -10,10 +10,13 @@ export async function addShoppingItem(
 	unit: string | null = null
 ) {
 	if (!supabase.client) throw new Error('No supabase client');
-	if (!space.id || !space.activeMember?.user_id) return;
+	if (!space.activeSpace?.id || !space.activeMember?.user_id) {
+		console.error('No active space found');
+		return;
+	}
 
 	await supabase.client.from('space_items').insert({
-		space_id: space.id,
+		space_id: space.activeSpace.id,
 		created_by: space.activeMember.user_id,
 		type: 'independent',
 		ingredient_id: ingredientId,
