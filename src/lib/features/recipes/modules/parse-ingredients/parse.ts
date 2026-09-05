@@ -22,7 +22,7 @@ import { z } from 'zod';
  * Represents the structured result of parsing an ingredient search input.
  */
 export const parsedSearchInputSchema = z.object({
-	sourceText: z.string().optional().describe('Original full text of the ingredient.'),
+	sourceText: z.string().describe('Original full text of the ingredient.'),
 	quantity: z
 		.object({
 			amount: z.number().describe('Numeric amount of the quantity.'),
