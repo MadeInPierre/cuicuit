@@ -120,6 +120,48 @@ ALTER TYPE "public"."time_of_day" OWNER TO "postgres";
 -- ==================================================
 --
 -------------------
+-- Recipe import cache (raw scrape + LLM outputs, reused across users)
+-------------------
+-- 1. Definition
+CREATE TABLE IF NOT EXISTS "public"."recipes_cache" (
+    "id" "uuid" DEFAULT "gen_random_uuid" () NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now" () NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now" () NOT NULL,
+    "app_version" "text" NOT NULL,
+    "cache_key" "text" NOT NULL,
+    "source_url" "text" NOT NULL,
+    "scrape_output" "text",
+    "scrape_stats" "jsonb",
+    "llm_output" "jsonb",
+    "llm_stats" "jsonb"
+);
+
+-- 2. Ownership
+ALTER TABLE "public"."recipes_cache" OWNER TO "postgres";
+
+-- 3. Constraints
+ALTER TABLE ONLY "public"."recipes_cache"
+ADD CONSTRAINT "recipes_cache_pkey" PRIMARY KEY ("id");
+
+ALTER TABLE ONLY "public"."recipes_cache"
+ADD CONSTRAINT "recipes_cache_cache_key_key" UNIQUE ("cache_key");
+
+-- 4. Triggers
+CREATE TRIGGER "update_recipes_cache_updated_at"
+BEFORE UPDATE ON "public"."recipes_cache" FOR EACH ROW
+EXECUTE FUNCTION "public"."update_updated_at_column" ();
+
+-- 5. Grants
+GRANT ALL ON TABLE "public"."recipes_cache" TO "anon";
+
+GRANT ALL ON TABLE "public"."recipes_cache" TO "authenticated";
+
+GRANT ALL ON TABLE "public"."recipes_cache" TO "service_role";
+
+-- 6. Indexes
+CREATE INDEX "idx_recipes_cache_app_version" ON "public"."recipes_cache" USING "btree" ("app_version");
+
+-------------------
 -- Recipes
 -------------------
 -- 1. Definition
@@ -134,7 +176,8 @@ CREATE TABLE IF NOT EXISTS "public"."recipes" (
     "notes" "text",
     "image_ids" "text" [],
     "slug" character varying(100) NOT NULL,
-    "author_id" "uuid" NOT NULL,
+    "author_id" "uuid",
+    "cache_id" "uuid",
     "language_id" integer NOT NULL,
     "source_type" "public"."recipe_source_type" NOT NULL,
     "source_url" "text",
@@ -194,6 +237,9 @@ ALTER TABLE ONLY "public"."recipes"
 ADD CONSTRAINT "recipes_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "auth"."users" ("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."recipes"
+ADD CONSTRAINT "recipes_cache_id_fkey" FOREIGN KEY ("cache_id") REFERENCES "public"."recipes_cache" ("id") ON DELETE SET NULL;
+
+ALTER TABLE ONLY "public"."recipes"
 ADD CONSTRAINT "recipes_language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "public"."languages" ("id") ON DELETE CASCADE;
 
 -- 4. Triggers
@@ -206,6 +252,8 @@ GRANT ALL ON TABLE "public"."recipes" TO "service_role";
 
 -- 6. Indexes
 CREATE INDEX "idx_recipes_courses" ON "public"."recipes" USING "gin" ("courses");
+
+CREATE INDEX "idx_recipes_cache_id" ON "public"."recipes" USING "btree" ("cache_id");
 
 CREATE INDEX "idx_recipes_cuisines" ON "public"."recipes" USING "gin" ("cuisines");
 

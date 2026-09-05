@@ -31,9 +31,9 @@
 
 	const importSteps = [
 		'Finding the recipe',
-		'Uploading the recipe image',
 		'Guessing filters and missing details',
-		'Recognizing ingredients & units'
+		'Recognizing ingredients & units',
+		'Uploading the recipe image'
 	];
 
 	const space = getActiveSpaceState();
