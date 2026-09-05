@@ -126,7 +126,11 @@ on conflict do nothing;
 -- ====================================================================
 
 create or replace function billing.on_credit_log_insert_update_balances()
-returns trigger as $$
+returns trigger
+language plpgsql
+security definer
+set search_path = public, billing
+as $$
 begin
   if new.user_id is null then
     -- Route to the global public pool row
@@ -144,7 +148,7 @@ begin
   end if;
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 create trigger trigger_on_credit_log_insert_update_balances
   after insert on public.credit_logs
@@ -159,7 +163,11 @@ create trigger trigger_on_credit_log_insert_update_balances
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
     EXECUTE '
     create or replace function billing.on_stripe_charge_insert_append_credit_log()
-    returns trigger as $f$
+    returns trigger
+    language plpgsql
+    security definer
+    set search_path = public, billing, stripe, auth
+    as $f$
     declare
     v_user_id uuid;
     v_private_rule numeric;
@@ -241,7 +249,7 @@ DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_na
     end if;
     return new;
     end;
-    $f$ language plpgsql security definer;
+    $f$;
     ';
 END IF; END $$;
 
@@ -259,7 +267,11 @@ END IF; END $$;
 -- ====================================================================
 
 create or replace function billing.process_expired_credits()
-returns void as $$
+returns void
+language plpgsql
+security definer
+set search_path = public, billing
+as $$
 declare
   r record;
 begin
@@ -313,7 +325,7 @@ begin
 
   end loop;
 end;
-$$ language plpgsql security definer;
+$$;
 
 
 -- ====================================================================
@@ -329,7 +341,11 @@ create or replace function public.consume_credits(
 returns table (
   private_credits_consumed integer,
   public_credits_consumed integer
-) as $$
+)
+language plpgsql
+security definer
+set search_path = public, billing
+as $$
 declare
   v_private_bal integer := 0;
   v_public_bal integer := 0;
@@ -412,7 +428,17 @@ begin
   public_credits_consumed  := v_deduct_public;
   return next;
 end;
-$$ language plpgsql security definer;
+$$;
+
+-- consume_credits is a server-side SECURITY DEFINER interface. It must only be
+-- invoked via the service_role client (supabaseAdmin), so its EXECUTE is revoked
+-- from PUBLIC/anon/authenticated to keep PostgREST from exposing it to clients.
+revoke all on function public.consume_credits(uuid, integer, text, jsonb) from public, anon, authenticated;
+grant execute on function public.consume_credits(uuid, integer, text, jsonb) to service_role;
+
+-- The billing trigger/cron functions are never meant to be called by clients.
+revoke all on function billing.on_credit_log_insert_update_balances() from public, anon, authenticated;
+revoke all on function billing.process_expired_credits() from public, anon, authenticated;
 
 
 -- ====================================================================
@@ -444,7 +470,11 @@ using (true);
 -- ====================================================================
 
 create or replace function public.get_public_pool_health()
-returns text as $$
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
 declare
   v_pool_balance integer;
 begin
@@ -458,7 +488,13 @@ begin
   else return 'Empty';
   end if;
 end;
-$$ language plpgsql security definer;
+$$;
+
+-- This SECURITY DEFINER function must stay callable by authenticated clients
+-- (the credit_balances RLS forbids reading the user_id = null public pool row),
+-- but it must never be callable by anon or PUBLIC at large.
+revoke all on function public.get_public_pool_health() from public, anon, authenticated;
+grant execute on function public.get_public_pool_health() to authenticated;
 
 -- ====================================================================
 -- 9. INITIALIZATIONS

@@ -1,13 +1,14 @@
 <h1 align="center">
   <a href="https://github.com/MadeInPierre/cuicuit">
-    <img src="./static/cuicuit_logo_transparent.png" width="140" />
+    <img src="./static/cuicuit_logo_transparent.png" width="120" />
   </a>
   <br>Cuicuit<br>
 </h1>
 <h3 align="center">Your favorite kitchen companion!</h3>
 <p align="center">
   <a href="https://discord.gg/yJrPfp2G3y">Discord</a> •
-  <a href="https://t.me/MadeInJack>">Telegram</a> 
+  <a href="https://t.me/MadeInJack>">Telegram</a> •
+  <a href="https://cal.com/madeinpierre/cuicuit">Call me</a>
 </p>
 
 ![Hero](./static/hero/hero_wide.png)
@@ -16,7 +17,7 @@
 > 🐣 **Cuicuit just hatched!** Expect alpha-quality with many bugs and rough edges. Feedback is appreciated!
 
 > [!NOTE]
-> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first. No releases yet, but you can try the [hosted version](https://cuicuit.laclau.dev) and give feedback in [Discord](https://discord.gg/yJrPfp2G3y) or [GitHub discussions](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas).
+> Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first. No releases yet, but you can try the [hosted version](https://cuicuit.laclau.dev) and give feedback in [Discord](https://discord.gg/yJrPfp2G3y), [Discussions](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas), or [call me](https://cal.com/madeinpierre/cuicuit).
 
 Focus on meals, not ingredients. Cuicuit does the thinking for you!
 
@@ -28,7 +29,7 @@ Import recipes from anywhere and get an automatic shopping list from your plan. 
 
 https://github.com/user-attachments/assets/8f880754-87fd-4342-91ce-7fc59808c708
 
-[Sign up](https://cuicuit.laclau.dev) for the hosted version and use for free!
+[Sign up](https://cuicuit.laclau.dev/signup) for the hosted version and use for free!
 
 ## 🍀 Why use Cuicuit?
 

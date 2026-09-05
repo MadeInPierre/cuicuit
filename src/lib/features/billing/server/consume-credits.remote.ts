@@ -14,7 +14,9 @@ export const consumeCredits = query(
 		const { userId, isValid } = await serverIsUserAuthenticated(event.locals.supabase);
 		if (!isValid) throw new Error('User must be confirmed with a valid email.');
 
-		const { data, error } = await event.locals.supabase.rpc('consume_credits', {
+		// consume_credits is SECURITY DEFINER and only callable by service_role
+		// (revoked from PUBLIC/anon/authenticated), so it must go through the admin client.
+		const { data, error } = await event.locals.supabaseAdmin.rpc('consume_credits', {
 			p_amount_to_consume: amount,
 			p_source: feature,
 			p_user_id: userId,

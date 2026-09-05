@@ -84,6 +84,10 @@ BEGIN
 END;
 $$;
 
+-- Trigger-only function: revoke EXECUTE from PUBLIC/anon/authenticated (fired via
+-- trigger without runtime EXECUTE checks, so it still runs on auth.users insert).
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+
 CREATE OR REPLACE TRIGGER on_auth_user_created
 AFTER INSERT ON auth.users
 FOR EACH ROW

@@ -117,6 +117,11 @@ as $$
   );
 $$;
 
+-- SECURITY DEFINER RLS helper: needed for RLS policy evaluation (authenticated),
+-- but must not be PUBLIC/anon callable.
+revoke all on function public.is_space_member(uuid, uuid) from public, anon;
+grant execute on function public.is_space_member(uuid, uuid) to authenticated;
+
 
 alter table public.spaces enable row level security;
 
@@ -284,6 +289,11 @@ as $$
   );
 $$;
 
+-- SECURITY DEFINER RLS helper: needed for RLS policy evaluation (authenticated),
+-- but must not be PUBLIC/anon callable.
+revoke all on function public.users_share_common_space(uuid, uuid) from public, anon;
+grant execute on function public.users_share_common_space(uuid, uuid) to authenticated;
+
 alter table public.recipes enable row level security;
 
 create policy "Recipes are viewable by owners and space peers"
@@ -390,20 +400,13 @@ create index if not exists idx_recipe_ingredients_recipe on public.recipe_ingred
 ----------------------
 -- STORAGE: INGREDIENT IMAGES
 ----------------------
---
-create policy "Ingredients are publicly readable"
-on storage.objects for select
-using (bucket_id = 'ingredients');
-
-
+-- No SELECT policy: the 'ingredients' bucket is public and images load via
+-- direct public URLs, so client-side listing is not needed by the app.
 ----------------------
 -- STORAGE: RECIPE IMAGES
 ----------------------
---
-create policy "Recipe images are viewable by all logged-in users"
-on storage.objects for select
-to authenticated
-using (bucket_id = 'recipes');
+-- No SELECT policy: images load via direct public URLs (/storage/v1/object/public/
+-- recipes/images/...). Uploads/updates/deletes are governed by the policies below.
 
 create policy "Recipe authors can upload images"
 on storage.objects for insert
