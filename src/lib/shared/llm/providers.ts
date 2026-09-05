@@ -1,8 +1,11 @@
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import { createGroq } from '@ai-sdk/groq';
 import { createMistral } from '@ai-sdk/mistral';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
+import { withTracing } from '@posthog/ai';
 import type { LanguageModel } from 'ai';
+import { PostHog } from 'posthog-node';
 
 const PROVIDER_TYPES = ['mistral', 'groq', 'openai-compatible'] as const;
 type ProviderType = (typeof PROVIDER_TYPES)[number];
@@ -14,6 +17,41 @@ export interface LlmProvider {
 	model: LanguageModel;
 }
 
+/** Identifies the caller of `getLlmProviders` for PostHog AI Observability. */
+export interface LlmCallIdentity {
+	/** Groups every provider attempt of one enrichment call into one trace. */
+	traceId: string;
+	/** Groups the (single) turn under one session, since this app has no multi-turn conversations. */
+	sessionId: string;
+	/** The authenticated user, if any. Left unset for anonymous calls. */
+	distinctId?: string;
+}
+
+/**
+ * Optional: only set when `PUBLIC_POSTHOG_PROJECT_TOKEN` is configured, so LLM
+ * observability stays a no-op for self-hosters who haven't set up PostHog.
+ */
+const posthogClient = publicEnv.PUBLIC_POSTHOG_PROJECT_TOKEN
+	? new PostHog(publicEnv.PUBLIC_POSTHOG_PROJECT_TOKEN, {
+			host: publicEnv.PUBLIC_POSTHOG_HOST,
+			flushAt: 1,
+			flushInterval: 0
+		})
+	: null;
+
+/** Wraps a model with PostHog AI Observability tracing, if configured. */
+function withObservability(
+	model: Exclude<LanguageModel, string>,
+	identity?: LlmCallIdentity
+): LanguageModel {
+	if (!posthogClient || !identity) return model;
+	return withTracing(model, posthogClient, {
+		posthogDistinctId: identity.distinctId,
+		posthogTraceId: identity.traceId,
+		posthogProperties: { $ai_session_id: identity.sessionId }
+	});
+}
+
 /** Order used when LLM_PRIORITY is unset: the base provider of each type. */
 const DEFAULT_PRIORITY: string[] = ['mistral', 'groq', 'openai-compatible'];
 
@@ -23,11 +61,13 @@ interface ProviderContext {
 	id: string;
 	/** Suffix appended to env var names ('' for the base provider), e.g. "2". */
 	suffix: string;
+	/** Caller identity for PostHog AI Observability, if the caller supplied one. */
+	identity?: LlmCallIdentity;
 }
 
 type ProviderFactory = (ctx: ProviderContext) => LlmProvider | null;
 
-function mistralFactory({ env, id, suffix }: ProviderContext): LlmProvider | null {
+function mistralFactory({ env, id, suffix, identity }: ProviderContext): LlmProvider | null {
 	const apiKeyVar = `MISTRAL_API_KEY${suffix}`;
 	const apiKey = env[apiKeyVar];
 	if (!apiKey) {
@@ -35,10 +75,10 @@ function mistralFactory({ env, id, suffix }: ProviderContext): LlmProvider | nul
 		return null;
 	}
 	const model = createMistral({ apiKey })(env[`MISTRAL_MODEL${suffix}`] || 'mistral-medium-latest');
-	return { id, model };
+	return { id, model: withObservability(model, identity) };
 }
 
-function groqFactory({ env, id, suffix }: ProviderContext): LlmProvider | null {
+function groqFactory({ env, id, suffix, identity }: ProviderContext): LlmProvider | null {
 	const apiKeyVar = `GROQ_API_KEY${suffix}`;
 	const apiKey = env[apiKeyVar];
 	if (!apiKey) {
@@ -46,10 +86,15 @@ function groqFactory({ env, id, suffix }: ProviderContext): LlmProvider | null {
 		return null;
 	}
 	const model = createGroq({ apiKey })(env[`GROQ_MODEL${suffix}`] || 'llama-3.3-70b-versatile');
-	return { id, model };
+	return { id, model: withObservability(model, identity) };
 }
 
-function openAiCompatibleFactory({ env, id, suffix }: ProviderContext): LlmProvider | null {
+function openAiCompatibleFactory({
+	env,
+	id,
+	suffix,
+	identity
+}: ProviderContext): LlmProvider | null {
 	const baseUrlVar = `OPENAI_COMPATIBLE_BASE_URL${suffix}`;
 	const baseURL = env[baseUrlVar];
 	if (!baseURL) {
@@ -64,7 +109,7 @@ function openAiCompatibleFactory({ env, id, suffix }: ProviderContext): LlmProvi
 		baseURL,
 		apiKey: env[`OPENAI_COMPATIBLE_API_KEY${suffix}`] || ''
 	})(env[`OPENAI_COMPATIBLE_MODEL${suffix}`] || 'default');
-	return { id, model };
+	return { id, model: withObservability(model, identity) };
 }
 
 const factories: Record<ProviderType, ProviderFactory> = {
@@ -91,8 +136,11 @@ const TYPES_LONGEST_FIRST: ProviderType[] = [...PROVIDER_TYPES].sort((a, b) => b
  *
  * When LLM_PRIORITY is unset, the base providers are enabled in a default order.
  * Misconfigured entries are skipped with a warning, so LLMs remain fully optional.
+ *
+ * @param identity - Caller identity for PostHog AI Observability. Every returned model
+ * shares the same trace, so failover attempts across providers land in one trace.
  */
-export function getLlmProviders(): LlmProvider[] {
+export function getLlmProviders(identity?: LlmCallIdentity): LlmProvider[] {
 	const ids = resolvePriority(env.LLM_PRIORITY);
 	const providers: LlmProvider[] = [];
 
@@ -105,7 +153,7 @@ export function getLlmProviders(): LlmProvider[] {
 			);
 			continue;
 		}
-		const provider = match.factory({ env, id, suffix: match.suffix });
+		const provider = match.factory({ env, id, suffix: match.suffix, identity });
 		if (provider) providers.push(provider);
 	}
 

@@ -1,4 +1,4 @@
-import { getLlmProviders, type LlmProvider } from './providers';
+import { getLlmProviders, type LlmCallIdentity, type LlmProvider } from './providers';
 
 export interface LlmCallResult<T> {
 	/** The provider/model that produced the result, e.g. "mistral:mistral-medium-latest". */
@@ -14,12 +14,15 @@ export interface LlmCallResult<T> {
  * output, ...). Returns the first successful result.
  *
  * @param run - Per-provider operation. Throw to fall back to the next provider.
+ * @param identity - Caller identity for PostHog AI Observability, shared by every
+ * provider attempt so a failover still lands in a single trace.
  * @throws The last provider's error if every provider fails.
  */
 export async function withLlmFailover<T>(
-	run: (provider: LlmProvider) => Promise<T>
+	run: (provider: LlmProvider) => Promise<T>,
+	identity?: LlmCallIdentity
 ): Promise<LlmCallResult<T>> {
-	const providers = getLlmProviders();
+	const providers = getLlmProviders(identity);
 
 	if (providers.length === 0) {
 		throw new Error(

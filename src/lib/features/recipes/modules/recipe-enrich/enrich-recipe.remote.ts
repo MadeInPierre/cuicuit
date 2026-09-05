@@ -1,4 +1,4 @@
-import { query } from '$app/server';
+import { getRequestEvent, query } from '$app/server';
 import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
 import { withLlmFailover } from '$lib/shared/llm/fallback';
@@ -130,24 +130,44 @@ async function enrichRecipeLlm(recipeInput: object): Promise<EnrichedRecipeResul
 	const inputSize = JSON.stringify(recipeInput).length;
 	console.log(`[llm] Enriching recipe (${inputSize} bytes input).`);
 
+	// PostHog: One enrichment call is one turn; there's no multi-turn conversation here, so the
+	// same id groups it as both the PostHog trace and session.
+	const traceId = crypto.randomUUID();
+	const identity = { traceId, sessionId: traceId, distinctId: await getOptionalDistinctId() };
+
 	// Call the LLM to enrich the recipe, failing over across providers in priority order.
-	return withLlmFailover((provider) => enrichRecipeWithProvider(provider, recipeInput)).then(
-		({ provider, fallbackUsed, value }) => {
-			console.log(
-				`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${value.output.lang}", title="${value.output.recipe.title ?? ''}", ${value.output.ingredients?.length ?? 0} ingredients.`,
-				JSON.stringify(value.output)
-			);
-			return {
-				output: value.output satisfies EnrichedRecipeOutput,
-				stats: {
-					provider,
-					fallbackUsed,
-					inputTokens: value.usage?.inputTokens ?? null,
-					outputTokens: value.usage?.outputTokens ?? null
-				}
-			};
-		}
-	);
+	return withLlmFailover(
+		(provider) => enrichRecipeWithProvider(provider, recipeInput),
+		identity
+	).then(({ provider, fallbackUsed, value }) => {
+		console.log(
+			`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${value.output.lang}", title="${value.output.recipe.title ?? ''}", ${value.output.ingredients?.length ?? 0} ingredients.`,
+			JSON.stringify(value.output)
+		);
+		return {
+			output: value.output satisfies EnrichedRecipeOutput,
+			stats: {
+				provider,
+				fallbackUsed,
+				inputTokens: value.usage?.inputTokens ?? null,
+				outputTokens: value.usage?.outputTokens ?? null
+			}
+		};
+	});
+}
+
+/**
+ * PostHog: The caller (e.g. `importRecipeFromUrl`) already enforces auth before reaching this
+ * module; this only reads the already-authenticated user for PostHog attribution, and
+ * never blocks the enrichment if it can't be determined.
+ */
+async function getOptionalDistinctId(): Promise<string | undefined> {
+	try {
+		const { data } = await getRequestEvent().locals.supabase.auth.getUser();
+		return data.user?.id;
+	} catch {
+		return undefined;
+	}
 }
 
 async function enrichRecipeWithProvider(
