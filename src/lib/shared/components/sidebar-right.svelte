@@ -6,7 +6,7 @@
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { type RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { ArrowRight, Calendar, ScrollText, X } from 'lucide-svelte';
+	import { ArrowRight, Calendar, ScrollText, X } from '@lucide/svelte';
 	import type { ComponentProps } from 'svelte';
 	import SearchSidebar from './search/SearchSidebar.svelte';
 	import { Button } from './ui/button';

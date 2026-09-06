@@ -7,8 +7,8 @@
 	import NavMain from '$lib/shared/components/nav-main.svelte';
 	import NavSecondary from '$lib/shared/components/nav-secondary.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
-	import { ChefHat, Notebook, Refrigerator, ShoppingBasket } from 'lucide-svelte';
-	import Calendar from 'lucide-svelte/icons/calendar';
+	import { ChefHat, Notebook, Refrigerator, ShoppingBasket } from '@lucide/svelte';
+	import Calendar from '@lucide/svelte/icons/calendar';
 	import type { ComponentProps } from 'svelte';
 	import type { TAILWIND_BREAKPOINTS } from '../hooks/use-media.svelte';
 	import NavUser from './nav-user.svelte';

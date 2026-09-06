@@ -16,7 +16,7 @@
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { Icons } from '$lib/shared/icons';
 	import { cn } from '$lib/utils';
-	import { Eye, EyeOff } from 'lucide-svelte';
+	import { Eye, EyeOff } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';

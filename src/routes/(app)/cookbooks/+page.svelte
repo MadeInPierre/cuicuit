@@ -12,7 +12,7 @@
 		PawPrint,
 		Salad,
 		UsersRound
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 
 	const space = getActiveSpaceState();

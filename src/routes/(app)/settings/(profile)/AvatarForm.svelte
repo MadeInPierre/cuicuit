@@ -8,7 +8,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
-	import { ImageUp, LoaderCircle, Trash2 } from 'lucide-svelte';
+	import { ImageUp, LoaderCircle, Trash2 } from '@lucide/svelte';
 	import IconPicker from './IconPicker.svelte';
 
 	const userState = getUserState();

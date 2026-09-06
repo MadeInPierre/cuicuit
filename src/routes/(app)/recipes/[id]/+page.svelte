@@ -39,7 +39,7 @@
 		RotateCcw,
 		Salad,
 		Utensils
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import posthog from 'posthog-js';
 	import SeparatorZigZag from '../../shopping-list/SeparatorZigZag.svelte';
 

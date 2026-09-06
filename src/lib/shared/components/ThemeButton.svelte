@@ -25,39 +25,37 @@
 	const { label = undefined, class: className }: Props = $props();
 </script>
 
-<div>
-	<Button
-		onclick={() => setMode($userPrefersMode === 'dark' ? 'light' : 'dark')}
-		variant="ghost"
-		size="icon-sm"
-		class={cn('block w-full justify-start font-normal', className)}
+<Button
+	onclick={() => setMode($userPrefersMode === 'dark' ? 'light' : 'dark')}
+	variant="ghost"
+	size="icon-sm"
+	class={cn('font-normal flex items-center justify-center', label && 'justify-start', className)}
+>
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		width="24"
+		height="24"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		class="size-4.5"
 	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="size-4.5"
-		>
-			<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-			<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-			<path d="M12 3l0 18" />
-			<path d="M12 9l4.65 -4.65" />
-			<path d="M12 14.3l7.37 -7.37" />
-			<path d="M12 19.6l8.85 -8.85" />
-		</svg>
-		<span class="sr-only">{$userPrefersMode === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+		<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+		<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+		<path d="M12 3l0 18" />
+		<path d="M12 9l4.65 -4.65" />
+		<path d="M12 14.3l7.37 -7.37" />
+		<path d="M12 19.6l8.85 -8.85" />
+	</svg>
+	<span class="sr-only">{$userPrefersMode === 'dark' ? 'Light mode' : 'Dark mode'}</span>
 
-		{#if label}
-			<span>{label}</span>
-		{/if}
-	</Button>
-</div>
+	{#if label}
+		<span>{label}</span>
+	{/if}
+</Button>
 
 <!-- {#snippet button(
 	ModeIcon: any,

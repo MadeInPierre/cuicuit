@@ -7,9 +7,9 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
 	import { ArrowRight } from '@lucide/svelte';
-	import { Settings } from 'lucide-svelte';
-	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
-	import LogOut from 'lucide-svelte/icons/log-out';
+	import { Settings } from '@lucide/svelte';
+	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import SupportWallAutoDialog from '../../../routes/(marketing)/supporter/success/SupportWallAutoDialog.svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 

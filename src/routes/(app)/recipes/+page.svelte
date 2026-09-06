@@ -28,7 +28,7 @@
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { CookingPot, Loader2 } from '@lucide/svelte';
-	import { ArrowRight, ChefHat, Plus, RotateCcw } from 'lucide-svelte';
+	import { ArrowRight, ChefHat, Plus, RotateCcw } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';

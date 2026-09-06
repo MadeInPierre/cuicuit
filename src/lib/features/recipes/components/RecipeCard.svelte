@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
-	import { Users } from 'lucide-svelte';
+	import { Users } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 	import CookableStatus from './CookableStatus.svelte';

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import Check from 'lucide-svelte/icons/check';
-	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
+	import Check from '@lucide/svelte/icons/check';
+	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
 	import * as Command from '$lib/shared/components/ui/command';
 	import * as Popover from '$lib/shared/components/ui/popover';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
 	import { tick } from 'svelte';
 	import { Icons } from '$lib/shared/icons';
-	import { Link } from 'lucide-svelte';
+	import { Link } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	// Props

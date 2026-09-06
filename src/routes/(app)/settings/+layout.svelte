@@ -5,7 +5,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
-	import { ChevronLeft } from 'lucide-svelte';
+	import { ChevronLeft } from '@lucide/svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 	import SettingsSidebarNav from './SettingsSidebarNav.svelte';
 

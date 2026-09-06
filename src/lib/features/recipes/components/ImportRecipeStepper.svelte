@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, Circle, Loader } from 'lucide-svelte';
+	import { Check, Circle, Loader } from '@lucide/svelte';
 	import { fly } from 'svelte/transition';
 
 	type StepStatus = 'waiting' | 'loading' | 'done';

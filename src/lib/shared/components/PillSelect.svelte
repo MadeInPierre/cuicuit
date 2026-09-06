@@ -4,7 +4,7 @@
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
-	import { ChevronDown } from 'lucide-svelte';
+	import { ChevronDown } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 
 	type Option = {

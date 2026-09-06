@@ -27,7 +27,7 @@
 		ShoppingBasket,
 		User,
 		Users
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';

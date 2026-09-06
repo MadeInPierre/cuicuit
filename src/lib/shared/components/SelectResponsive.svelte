@@ -2,7 +2,7 @@
 	import * as Drawer from '$lib/shared/components/ui/drawer/index.js';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { cn } from '$lib/utils';
-	import { CheckCheck, Clock, Globe, HandPlatter, Sparkle } from 'lucide-svelte';
+	import { CheckCheck, Clock, Globe, HandPlatter, Sparkle } from '@lucide/svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import { Button } from './ui/button';
 	import { Label } from './ui/label';

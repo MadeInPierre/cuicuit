@@ -8,8 +8,8 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { cn } from '$lib/utils';
-	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from 'lucide-svelte';
-	import Loader2 from 'lucide-svelte/icons/loader-circle';
+	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from '@lucide/svelte';
+	import Loader2 from '@lucide/svelte/icons/loader-circle';
 	import { onMount } from 'svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';

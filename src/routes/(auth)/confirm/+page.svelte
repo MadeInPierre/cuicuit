@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Loader2 } from 'lucide-svelte';
+	import { Loader2 } from '@lucide/svelte';
 </script>
 
 <div class="flex flex-col items-center gap-3 py-12 text-center">

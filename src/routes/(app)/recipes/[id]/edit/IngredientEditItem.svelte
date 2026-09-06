@@ -13,7 +13,7 @@
 		type UnitUnregionized
 	} from '$lib/shared/utils/quantity';
 	import { Pencil, Trash } from '@lucide/svelte';
-	import { ArrowUpDown, PencilOff } from 'lucide-svelte';
+	import { ArrowUpDown, PencilOff } from '@lucide/svelte';
 	import { formatQuantityAmount } from '../../../shopping-list/generate-shopping-list';
 
 	type Props = {

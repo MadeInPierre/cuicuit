@@ -14,7 +14,7 @@
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { capitalize } from '$lib/utils';
 	import type { Provider, User } from '@supabase/supabase-js';
-	import { Check, Eye, EyeOff, KeyRound, Trash2 } from 'lucide-svelte';
+	import { Check, Eye, EyeOff, KeyRound, Trash2 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';

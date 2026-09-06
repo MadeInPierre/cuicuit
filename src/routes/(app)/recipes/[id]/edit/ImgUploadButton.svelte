@@ -7,7 +7,7 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { cn } from '$lib/utils';
-	import { Camera, Loader2, X } from 'lucide-svelte';
+	import { Camera, Loader2, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {

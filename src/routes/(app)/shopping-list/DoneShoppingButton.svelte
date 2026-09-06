@@ -2,7 +2,7 @@
 	import { updatePlanItemDeleted } from '$lib/features/plans/actions/update-item';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Check } from 'lucide-svelte';
+	import { Check } from '@lucide/svelte';
 	import posthog from 'posthog-js';
 	import { toast } from 'svelte-sonner';
 

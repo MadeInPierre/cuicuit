@@ -3,7 +3,7 @@
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn, formatDateAgo } from '$lib/utils';
-	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from 'lucide-svelte';
+	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from '@lucide/svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import { updatePlanItemDeleted } from '../actions/update-item';

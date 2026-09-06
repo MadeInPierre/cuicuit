@@ -1,5 +1,5 @@
 import { Sprout } from '@lucide/svelte';
-import { House, LayoutDashboard, Lock, LogOut, ScanLine, Scroll, User, Users } from 'lucide-svelte';
+import { House, LayoutDashboard, Lock, LogOut, ScanLine, Scroll, User, Users } from '@lucide/svelte';
 
 export type NavLink = {
 	href?: string; // Link to the page

@@ -6,7 +6,7 @@
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import { Check, Loader2, X } from 'lucide-svelte';
+	import { Check, Loader2, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm, type Infer } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';

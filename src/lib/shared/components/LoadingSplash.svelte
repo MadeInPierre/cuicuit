@@ -1,6 +1,6 @@
 <script>
 	import { siteConfig } from '$lib/shared/config/site-config';
-	import { Loader2 } from 'lucide-svelte';
+	import { Loader2 } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 </script>
 

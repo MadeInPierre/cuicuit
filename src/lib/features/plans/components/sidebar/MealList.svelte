@@ -7,7 +7,7 @@
 		type SwipeSingleDirection,
 		type SwipeStartEventDetail
 	} from '@svelte-put/swipeable';
-	import { Check, GripVertical, Trash2 } from 'lucide-svelte';
+	import { Check, GripVertical, Trash2 } from '@lucide/svelte';
 	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';

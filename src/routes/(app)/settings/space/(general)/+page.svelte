@@ -7,7 +7,7 @@
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Separator } from '$lib/shared/components/ui/separator';
-	import { LogOut } from 'lucide-svelte';
+	import { LogOut } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	const userState = getUserState();

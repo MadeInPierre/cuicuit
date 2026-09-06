@@ -3,7 +3,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip/index.js';
 	import { cn } from '$lib/utils';
-	import { Plus, Shuffle } from 'lucide-svelte';
+	import { Plus, Shuffle } from '@lucide/svelte';
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';

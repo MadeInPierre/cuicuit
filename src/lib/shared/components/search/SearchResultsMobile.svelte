@@ -3,7 +3,7 @@
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { capitalize } from '$lib/utils';
 	import { LoaderCircle } from '@lucide/svelte';
-	import { Bird, Search } from 'lucide-svelte';
+	import { Bird, Search } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
 	import type { SearchResults } from './SearchLogic.svelte';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as Drawer from '$lib/shared/components/ui/drawer/index.js';
-	import { Download } from 'lucide-svelte';
+	import { Download } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import { Button } from './ui/button';

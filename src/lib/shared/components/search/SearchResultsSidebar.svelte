@@ -7,7 +7,7 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { capitalize, cn } from '$lib/utils';
 	import { LoaderCircle } from '@lucide/svelte';
-	import { Bird, Search } from 'lucide-svelte';
+	import { Bird, Search } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { Input } from '../ui/input';

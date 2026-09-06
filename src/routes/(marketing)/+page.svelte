@@ -2,29 +2,27 @@
 	import { goto } from '$app/navigation';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import GitHub from '$lib/shared/icons/github.svelte';
 	import {
+		ArrowRight,
+		BookOpen,
+		CalendarDays,
 		Camera,
 		Check,
 		CircleQuestionMark,
 		ExternalLink,
 		Globe,
-		Share,
-		Sidebar,
-		TriangleAlert
-	} from '@lucide/svelte';
-	import {
-		ArrowRight,
-		BookOpen,
-		CalendarDays,
-		Github,
 		Heart,
 		Server,
+		Share,
 		ShoppingBasket,
+		Sidebar,
 		Smartphone,
 		Sparkles,
 		Terminal,
+		TriangleAlert,
 		Users
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import GlassScreenshots from './GlassScreenshots.svelte';
 	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
 
@@ -290,7 +288,8 @@
 					rel="noreferrer"
 					class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-7 py-3 text-sm font-semibold text-foreground hover:bg-secondary transition"
 				>
-					<Github class="h-4 w-4" /> Self-host it
+					<GitHub class="h-4 w-4" />
+					Self-host it
 				</a>
 			</div>
 		</div>
@@ -765,7 +764,8 @@
 				rel="noreferrer"
 				class="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-neutral-800 text-neutral-100 px-5 py-3 text-sm font-semibold hover:bg-neutral-700 transition"
 			>
-				<Github class="h-4 w-4" /> Read the docs <ExternalLink class="size-4" />
+				<GitHub class="h-4 w-4" />
+				Read the docs <ExternalLink class="size-4" />
 			</a>
 		</div>
 
@@ -1081,7 +1081,7 @@
 					rel="noreferrer"
 					class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-(--shadow-lift) hover:-translate-y-0.5 transition"
 				>
-					<Github class="h-4 w-4" /> Star on GitHub
+					<GitHub class="h-4 w-4" /> Star on GitHub
 				</a>
 				<button
 					onclick={openSupportWall}
@@ -1138,7 +1138,7 @@
 					rel="noreferrer"
 					class="inline-flex items-center gap-2 rounded-full border border-white/50 text-white px-6 py-3 text-sm font-semibold hover:bg-white/10 transition"
 				>
-					<Github class="h-4 w-4" /> Self-host it
+					<GitHub class="h-4 w-4" /> Self-host it
 				</a>
 			</div>
 		</div>
@@ -1158,14 +1158,14 @@
 			Made with <Heart class="inline h-3.5 w-3.5 text-primary" /> and released as fully open-source.
 		</p>
 		<div class="flex items-center gap-6">
-			<ThemeButton />
+			<ThemeButton class="justify-center" />
 			<a
 				href="https://github.com/MadeInPierre/cuicuit"
 				target="_blank"
 				rel="noreferrer"
 				class="inline-flex items-center gap-1.5 hover:text-foreground"
 			>
-				<Github class="h-4 w-4" /> GitHub
+				<GitHub class="h-4 w-4" /> GitHub
 			</a>
 		</div>
 	</div>

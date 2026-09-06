@@ -6,7 +6,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
-	import { ArrowRight, Circle } from 'lucide-svelte';
+	import { ArrowRight, Circle } from '@lucide/svelte';
 	import { cubicInOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import SettingsMobileSpaceSwitcher from './SettingsMobileSpaceSwitcher.svelte';

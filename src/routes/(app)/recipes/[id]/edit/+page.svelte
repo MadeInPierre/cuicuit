@@ -45,10 +45,10 @@
 		Trash2,
 		Users,
 		X
-	} from 'lucide-svelte';
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-	import CirclePlus from 'lucide-svelte/icons/circle-plus';
-	import Heart from 'lucide-svelte/icons/heart';
+	} from '@lucide/svelte';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import CirclePlus from '@lucide/svelte/icons/circle-plus';
+	import Heart from '@lucide/svelte/icons/heart';
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';

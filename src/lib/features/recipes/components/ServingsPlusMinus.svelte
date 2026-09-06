@@ -2,7 +2,7 @@
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
 	import NumberFlow from '@number-flow/svelte';
-	import { Minus, Plus, Trash, User, Users } from 'lucide-svelte';
+	import { Minus, Plus, Trash, User, Users } from '@lucide/svelte';
 
 	type Props = {
 		value: number;

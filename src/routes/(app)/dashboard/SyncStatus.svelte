@@ -7,7 +7,7 @@
 		LoaderCircle,
 		Unplug,
 		X
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	interface Props {
 		status: string;

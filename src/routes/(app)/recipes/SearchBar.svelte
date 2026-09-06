@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
 	import { cn } from '$lib/utils';
-	import { Mic, SearchIcon, X } from 'lucide-svelte';
+	import { Mic, SearchIcon, X } from '@lucide/svelte';
 
 	let { value = $bindable(''), loading = false, class: className = '', ...others } = $props();
 

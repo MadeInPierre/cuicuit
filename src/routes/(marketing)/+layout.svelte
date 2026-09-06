@@ -1,7 +1,7 @@
 <script>
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
-	import { ArrowRight, Github } from 'lucide-svelte';
+	import { ArrowRight } from '@lucide/svelte';
 
 	let { children, data } = $props();
 </script>
@@ -37,7 +37,7 @@
 					rel="noreferrer"
 					class="hover:text-foreground transition-colors inline-flex items-center gap-1.5"
 				>
-					<Github class="h-4 w-4" /> GitHub
+					<!-- <Github class="h-4 w-4" /> GitHub -->
 				</a>
 			</nav>
 
