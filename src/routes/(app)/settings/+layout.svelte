@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { navLinksAppSettingsSidebar } from '$lib/features/marketing/consts/nav-links';
-	import SupportBanner from '$lib/shared/components/SupportBanner.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
@@ -36,9 +35,9 @@
 			</p>
 		</div>
 
-		<div class="sm:hidden ml-auto mr-2">
+		<!-- <div class="sm:hidden ml-auto mr-2">
 			<SupportBanner />
-		</div>
+		</div> -->
 	</div>
 
 	<SeparatorZigZag class="my-6" />

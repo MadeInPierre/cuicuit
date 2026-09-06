@@ -159,7 +159,7 @@
 				{#snippet children({ props })}
 					<Form.Label>Icon</Form.Label>
 
-					<div class="flex gap-2 items-center w-full">
+					<div class="grid grid-cols-8 gap-2 w-fit">
 						{#each Object.entries(spaceIcons) as [slug, Icon] (slug)}
 							<Button
 								{...props}
@@ -167,7 +167,7 @@
 								variant={slug === $formData.iconSlug ? 'default' : 'secondary'}
 								onclick={() => ($formData.iconSlug = slug)}
 								class={cn(
-									'w-full size-10',
+									'w-full size-8 sm:size-10',
 									slug === $formData.iconSlug &&
 										themeButtonClasses[$formData.theme as SpaceThemeKey]
 								)}
@@ -192,7 +192,7 @@
 						<span class="font-normal text-muted-foreground text-xs"> (applies to you only) </span>
 					</Form.Label>
 
-					<div class="flex gap-2 items-center w-full">
+					<div class="grid grid-cols-8 gap-2 w-fit">
 						{#each Object.keys(themeButtonClasses) as c}
 							<Button
 								{...props}
@@ -200,7 +200,7 @@
 								variant={c === $formData.theme ? 'link' : 'secondary'}
 								onclick={() => ($formData.theme = c)}
 								class={cn(
-									'w-full size-10 rounded-full',
+									'w-full size-9 sm:size-10 rounded-full',
 									c === $formData.theme && `border-2 border-${c}-500`
 								)}
 							>
@@ -215,8 +215,7 @@
 	</div>
 
 	<div class="space-y-2">
-		<!-- TODO check/load/X indicator -->
-		<Form.Button type="submit" {disabled}>
+		<Form.Button type="submit" {disabled} class="w-full">
 			{#if loading}
 				<div class="flex items-center gap-2">
 					<Loader2 class="size-4 animate-spin" />

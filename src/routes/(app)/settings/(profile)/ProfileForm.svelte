@@ -25,6 +25,7 @@
 		resetForm: false,
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
+			else console.error('Form invalid', form.errors);
 		}
 	});
 	const { form: formData, enhance, allErrors } = form;
@@ -68,6 +69,7 @@
 		$formData.firstName = userState.preferences?.first_name || '';
 		$formData.lastName = userState.preferences?.last_name || '';
 		$formData.userName = userState.profile?.user_name || '';
+		$formData.iconKey = userState.profile?.icon || '';
 	});
 
 	// Disable submit button if the values are identical to the placeholders
@@ -123,14 +125,14 @@
 				<Input {...props} bind:value={$formData.userName} placeholder="eEg. ninjabird" />
 			{/snippet}
 		</Form.Control>
-		<Form.Description
-			>This is your public display name. Not used in the app yet, maybe in the future!</Form.Description
-		>
+		<Form.Description>
+			This is your public display name. Not used in the app yet, maybe in the future!
+		</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 
 	<div class="flex items-center gap-4">
-		<Form.Button disabled={buttonDisabled}>Update</Form.Button>
+		<Form.Button type="submit" disabled={buttonDisabled} class="w-full">Update</Form.Button>
 
 		{#if updateStatus == 'loading'}
 			<Loader2 class="animate-spin" />
@@ -140,8 +142,4 @@
 			<X class="text-red-600" />
 		{/if}
 	</div>
-
-	<!-- {#if browser && dev}
-		<SuperDebug data={$formData} />
-		{/if} -->
 </form>
