@@ -27,8 +27,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { CookingPot, Loader2 } from '@lucide/svelte';
-	import { ArrowRight, ChefHat, Plus, RotateCcw } from '@lucide/svelte';
+	import { ArrowRight, ChefHat, CookingPot, Loader2, Plus, RotateCcw } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
@@ -304,7 +303,10 @@
 			<div class="grid space-y-1">
 				<div class="flex gap-6 items-center">
 					<h1 class="text-2xl md:text-3xl xl:text-4xl font-bold tracking-tight">
-						{getGreeting()}, {userState.preferences?.first_name || 'Chef'}!
+						<span class="hidden md:block">
+							{getGreeting()}, {userState.preferences?.first_name || 'Chef'}!
+						</span>
+						<span class="md:hidden">Recipes</span>
 					</h1>
 					<!-- <h1 class="text-4xl font-bold tracking-tight">Ideas for</h1>
 					<ServingsPlusMinus value={servingsPref.value || 1} size="lg" onChange={servingsPref.set} /> -->
@@ -316,7 +318,8 @@
 				</div>
 
 				<p class="flex gap-1.5 items-center text-muted-foreground">
-					<span class="py-1">Recipes by</span>
+					<span class="hidden md:block"> Recipes by </span>
+					<span class="md:hidden">Grouped by</span>
 					<SelectResponsive
 						title="Group recipes by..."
 						description="Organize your recipes in different ways"
