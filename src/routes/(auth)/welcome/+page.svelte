@@ -4,13 +4,14 @@
 	import { generateRandomProfileDraft } from '$lib/features/auth/actions/create-user-data';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
+	import { cn } from '$lib/utils';
+	import { Check } from '@lucide/svelte';
 	import posthog from 'posthog-js';
-	import { Dice4 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
@@ -66,8 +67,31 @@
 					})
 					.eq('user_id', userState.user.id);
 
-				if (profileError || prefError) {
-					console.error('Error updating user data:', profileError, prefError);
+				// Fetch the language id for the chosen language
+				const { data: languageData, error: languageError } = await supabase.client
+					.from('languages')
+					.select('id')
+					.eq('lang', $formData.lang)
+					.single();
+
+				// Set the language on all the user's spaces
+				const spaceUpdate =
+					languageData && !languageError
+						? supabase.client
+								.from('spaces')
+								.update({ language_id: languageData.id })
+								.eq('author_id', userState.user.id)
+						: null;
+				const { error: spaceError } = spaceUpdate ? await spaceUpdate : { error: null };
+
+				if (profileError || prefError || languageError || spaceError) {
+					console.error(
+						'Error updating user data:',
+						profileError,
+						prefError,
+						languageError,
+						spaceError
+					);
 					toast.error('Failed to update your profile. Please try again later.');
 					return;
 				}
@@ -98,6 +122,7 @@
 		$formData.lastName = userState.preferences?.last_name;
 		$formData.userName = userState.profile?.user_name;
 		$formData.iconKey = userState.profile?.icon;
+		$formData.lang ??= 'en-US';
 	});
 </script>
 
@@ -113,8 +138,6 @@
 	</div>
 
 	<form method="POST" use:enhance class="space-y-4">
-		<!-- <legend class="mb-4 text-lg font-medium"> Display names </legend> -->
-
 		<div class="flex flex-col">
 			<div class="flex w-full gap-4">
 				<Form.Field {form} name="firstName" class="w-full">
@@ -146,10 +169,10 @@
 				</Form.Field>
 			</div>
 
-			<p class="text-sm text-muted-foreground">Only visible to you and your family members.</p>
+			<p class="text-sm text-muted-foreground">Only visible to you and your household members.</p>
 		</div>
 
-		<div class="flex gap-3">
+		<!-- <div class="flex gap-3">
 			<Form.Field {form} name="userName" class="w-full">
 				<Form.Control>
 					{#snippet children({ props })}
@@ -171,15 +194,51 @@
 					class="mt-5.5"
 				/>
 			{/if}
+		</div> -->
+
+		<div class="space-y-2">
+			<Form.Fieldset {form} name="lang">
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Language</Form.Label>
+
+						<div class="grid grid-cols-2 gap-2 items-center w-full pt-1">
+							{#each Object.keys(languages) as LanguageKey[] as l}
+								<Button
+									{...props}
+									type="button"
+									size="sm"
+									variant="outline"
+									onclick={() => ($formData.lang = l)}
+									class={cn(
+										'relative p-3 shadow-2xs border border-border/60 transition-all flex items-center gap-2',
+										l === $formData.lang && 'ring-3 ring-primary/60 border-transparent'
+									)}
+								>
+									{languages[l as keyof typeof languages].emoji}
+									{languages[l as keyof typeof languages].label}
+
+									{#if l === $formData.lang}
+										<span class={cn('absolute right-3 flex size-3 items-center justify-center')}>
+											<Check class={cn('size-4.5 text-primary')} />
+										</span>
+									{/if}
+								</Button>
+							{/each}
+						</div>
+
+						<Form.Description>For ingredient names. App translation soon.</Form.Description>
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Fieldset>
 		</div>
 
-		<!-- <ImagePicker /> -->
-
 		<div class="flex gap-2">
-			<Button type="button" variant="outline" class="flex-1" onclick={randomizeProfileDraft}>
+			<!-- <Button type="button" variant="outline" class="flex-1" onclick={randomizeProfileDraft}>
 				<Dice4 />
 				Randomize
-			</Button>
+			</Button> -->
 			<Form.Button class="flex-1" disabled={!userState.preferences}>
 				{#if userState.preferences}
 					Let's go!
@@ -189,6 +248,4 @@
 			</Form.Button>
 		</div>
 	</form>
-
-	<!-- <p class="px-8 text-center text-sm text-muted-foreground"></p> -->
 {/if}
