@@ -20,7 +20,7 @@ import {
 	Snowflake,
 	Soup,
 	Wheat
-} from 'lucide-svelte';
+} from '@lucide/svelte';
 import type { RecipeCourseKey, RecipeCuisineKey, RecipeTimeOfDayKey } from '../db/recipe-doc';
 
 export const recipeTimesOfDaySectionHeaders = {

@@ -11,7 +11,7 @@
 		SignalHigh,
 		SignalLow,
 		SignalMedium
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import type { Recipe } from '../queries/get-recipe-detailed';
 	import RecipeImage from './RecipeImage.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/shared/components/ui/button';
 	import { cn } from '$lib/utils';
-	import { Check } from 'lucide-svelte';
+	import { Check } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
 
 	type Props = {

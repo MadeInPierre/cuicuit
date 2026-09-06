@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CookingPot } from 'lucide-svelte';
+	import { CookingPot } from '@lucide/svelte';
 	import NavDesktopLink from './NavDesktopLink.svelte';
 	import { navLinksMarketing } from '$lib/features/marketing/consts/nav-links';
 	import { siteConfig } from '$lib/shared/config/site-config';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { type ShoppingRecommendation } from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { Ellipsis, Lightbulb } from 'lucide-svelte';
+	import { Ellipsis, Lightbulb } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 

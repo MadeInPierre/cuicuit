@@ -6,7 +6,7 @@
 	import GithubIcon from '$lib/shared/icons/github.svelte';
 	import { cn } from '$lib/utils';
 	import { ExternalLink } from '@lucide/svelte';
-	import { ArrowRight, CheckCircle, Hourglass, Notebook } from 'lucide-svelte';
+	import { ArrowRight, CheckCircle, Hourglass, Notebook } from '@lucide/svelte';
 
 	const { data } = $props();
 

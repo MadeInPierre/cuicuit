@@ -3,7 +3,7 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { siteConfig } from '$lib/shared/config/site-config';
-	import { Check, Copy } from 'lucide-svelte';
+	import { Check, Copy } from '@lucide/svelte';
 	import { copyText } from 'svelte-copy';
 	import { toast } from 'svelte-sonner';
 	import { getActiveSpaceState } from '../state/active-space.svelte';

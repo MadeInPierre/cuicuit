@@ -1,7 +1,7 @@
 <script>
 	import * as Tooltip from '$lib/shared/components/ui/tooltip';
 	import { cn } from '$lib/utils';
-	import { ExternalLink, X } from 'lucide-svelte';
+	import { ExternalLink, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { createPersistentState } from '../state/create-persistent-state.svelte';
 	import { Button } from './ui/button';

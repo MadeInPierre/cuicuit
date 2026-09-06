@@ -4,7 +4,7 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { LogOut } from 'lucide-svelte';
+	import { LogOut } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 
 	const spaceState = getActiveSpaceState();

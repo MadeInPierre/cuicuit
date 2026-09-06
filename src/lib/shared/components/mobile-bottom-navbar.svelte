@@ -17,7 +17,7 @@
 		Search,
 		ShoppingBasket,
 		X
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import { fade, slide } from 'svelte/transition';
 	import SearchInputMobile from './search/SearchInputMobile.svelte';
 	import SearchLogic, { type SearchResults } from './search/SearchLogic.svelte';

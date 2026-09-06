@@ -3,7 +3,7 @@
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import * as InputGroup from '$lib/shared/components/ui/input-group/index.js';
-	import { Mic, SearchIcon, X } from 'lucide-svelte';
+	import { Mic, SearchIcon, X } from '@lucide/svelte';
 	import SearchResultsSidebar from './SearchResultsSidebar.svelte';
 
 	type Props = {

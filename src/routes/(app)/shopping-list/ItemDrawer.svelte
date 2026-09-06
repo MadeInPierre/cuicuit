@@ -8,7 +8,7 @@
 	import * as Drawer from '$lib/shared/components/ui/drawer/index.js';
 	import { ScrollArea } from '$lib/shared/components/ui/scroll-area/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
-	import { X } from 'lucide-svelte';
+	import { X } from '@lucide/svelte';
 
 	const media = useMedia();
 

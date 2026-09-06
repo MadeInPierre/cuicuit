@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Select from '$lib/shared/components/ui/select/index.js';
-	import { CheckCheck, Clock, Globe, HandPlatter, Sparkle } from 'lucide-svelte';
+	import { CheckCheck, Clock, Globe, HandPlatter, Sparkle } from '@lucide/svelte';
 
 	const defaultOptions = [
 		{

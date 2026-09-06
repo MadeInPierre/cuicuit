@@ -3,7 +3,7 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { TAILWIND_BREAKPOINTS, useMedia } from '../hooks/use-media.svelte';
 
-	// The `any` should be `Component` after lucide-svelte updates types
+	// The `any` should be `Component` after @lucide/svelte updates types
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let {
 		items

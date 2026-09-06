@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CookableStatus from '$lib/features/recipes/components/CookableStatus.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { ExternalLink } from 'lucide-svelte';
+	import { ExternalLink } from '@lucide/svelte';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 
 	interface Props {

@@ -18,7 +18,7 @@
 		ShoppingBasket,
 		ShoppingCart,
 		Trash
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import posthog from 'posthog-js';
 	import type { Snippet } from 'svelte';
 	import { toast } from 'svelte-sonner';

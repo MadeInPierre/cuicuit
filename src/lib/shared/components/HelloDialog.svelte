@@ -2,7 +2,7 @@
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
-	import { Bug, Heart, Lightbulb, MessageCircle } from 'lucide-svelte';
+	import { Bug, Heart, Lightbulb, MessageCircle } from '@lucide/svelte';
 	import SupportWallAutoDialog from '../../../routes/(marketing)/supporter/success/SupportWallAutoDialog.svelte';
 
 	interface Props {

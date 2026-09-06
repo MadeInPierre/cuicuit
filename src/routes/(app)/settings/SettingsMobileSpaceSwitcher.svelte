@@ -13,8 +13,8 @@
 	import * as Dialog from '$lib/shared/components/ui/dialog/index.js';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { cn } from '$lib/utils';
-	import { HousePlus, UserPlus } from 'lucide-svelte';
-	import Loader2 from 'lucide-svelte/icons/loader-circle';
+	import { HousePlus, UserPlus } from '@lucide/svelte';
+	import Loader2 from '@lucide/svelte/icons/loader-circle';
 	import { fade } from 'svelte/transition';
 	import SeparatorZigZag from '../shopping-list/SeparatorZigZag.svelte';
 

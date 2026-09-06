@@ -7,7 +7,7 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
-	import { Loader2 } from 'lucide-svelte';
+	import { Loader2 } from '@lucide/svelte';
 	import posthog from 'posthog-js';
 	import { toast } from 'svelte-sonner';
 	import { createDraftRecipe } from '../actions/create-draft-recipe.remote';

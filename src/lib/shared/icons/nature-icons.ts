@@ -1,4 +1,4 @@
-import * as Icons from 'lucide-svelte';
+import * as Icons from '@lucide/svelte';
 
 export const nature_icons: Record<string, any> = {
 	// Animals

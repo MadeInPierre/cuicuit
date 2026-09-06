@@ -12,7 +12,7 @@
 		type SwipeSingleDirection,
 		type SwipeStartEventDetail
 	} from '@svelte-put/swipeable';
-	import { Circle, CircleCheckBig, PanelLeft, PanelLeftClose, Trash } from 'lucide-svelte';
+	import { Circle, CircleCheckBig, PanelLeft, PanelLeftClose, Trash } from '@lucide/svelte';
 	import type { RecipeIngredientWithTranslations } from '../queries/get-recipe-detailed';
 	import IngredientImage from './IngredientImage.svelte';
 
