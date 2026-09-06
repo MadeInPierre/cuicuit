@@ -1,4 +1,3 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
@@ -42,7 +41,7 @@ export async function uploadRecipeImage(
 
 	if (error) {
 		console.error('Error uploading image:', error);
-		toast.error('Failed to upload image.');
+		toast.error('Failed to upload image.', { description: 'Please try again later.' });
 		return;
 	}
 
@@ -73,7 +72,6 @@ export async function deleteRecipeImage(
 	recipeId: string,
 	currentImageIds: string[]
 ) {
-
 	// Delete the image from Supabase storage
 	await supabase.storage.from('recipes').remove([`images/${recipeId}/${imgId}`]);
 

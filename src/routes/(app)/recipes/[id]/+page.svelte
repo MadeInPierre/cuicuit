@@ -173,7 +173,7 @@
 
 						<div class="space-y-2">
 							<h1 class="text-3xl font-bold">{recipe?.title || 'Loading...'}</h1>
-							<h3 class="text-lg text-muted-foreground text-justify">
+							<h3 class="text-sm sm:text-base text-muted-foreground text-justify">
 								{recipe?.description || ''}
 							</h3>
 
