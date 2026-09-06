@@ -48,7 +48,7 @@
 		"globals": "^15.0.0",
 		"jsrepo": "^3.0.11",
 		"mode-watcher": "^0.4.1",
-		"postcss": "^8.4.47",
+		"postcss": "^8.5.28",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
 		"rollup-plugin-visualizer": "^5.12.0",
