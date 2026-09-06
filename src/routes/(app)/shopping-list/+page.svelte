@@ -20,13 +20,9 @@
 	import { cn } from '$lib/utils';
 	import {
 		Apple,
-		BetweenHorizonalEnd,
 		Calendar,
 		ChefHat,
 		ClipboardList,
-		Grid3x3,
-		List,
-		PanelBottom,
 		RotateCcw,
 		ShoppingBasket,
 		User,
@@ -44,6 +40,7 @@
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
+	import ShoppingViewSettings from './ShoppingViewSettings.svelte';
 
 	const space = getActiveSpaceState();
 
@@ -55,6 +52,11 @@
 	let itemsLayout = createPersistentState<'grid' | 'list'>(
 		'view-shopping-list-items-layout',
 		'grid'
+	);
+
+	let suggestionsLayout = createPersistentState<'aisle' | 'bottom'>(
+		'view-shopping-list-suggestions-layout',
+		'aisle'
 	);
 
 	type ShoppingListFilterKey = 'all' | 'meals' | 'independent';
@@ -169,48 +171,8 @@
 			</div>
 		</div>
 
-		<div class="flex gap-2 items-center justify-end ml-auto">
-			<!-- <Tabs.List>
-				<Tabs.Trigger value="aisle">By Aisle</Tabs.Trigger>
-				<Tabs.Trigger value="recipe">By Recipe</Tabs.Trigger>
-			</Tabs.List> -->
-
-			<!-- <Button variant="outline"  onclick={() => {}}>
-				<Settings2 />
-				View
-			</Button> -->
-
-			<Button
-				variant="ghost"
-				size="icon"
-				onclick={() => {
-					itemsLayout.set(itemsLayout.value === 'grid' ? 'list' : 'grid');
-				}}
-			>
-				{#if itemsLayout.value === 'grid'}
-					<List class="min-w-4 h-4" />
-					<span class="sr-only">Switch to list view</span>
-				{:else}
-					<Grid3x3 class="min-w-4 h-4" />
-					<span class="sr-only">Switch to grid view</span>
-				{/if}
-			</Button>
-
-			<Button
-				variant="ghost"
-				size="icon"
-				onclick={() => {
-					checkedItemsLayout.set(checkedItemsLayout.value === 'aisle' ? 'bottom' : 'aisle');
-				}}
-			>
-				{#if checkedItemsLayout.value === 'aisle'}
-					<PanelBottom class="min-w-4 h-4" />
-					<span class="sr-only">Switch to bottom view</span>
-				{:else}
-					<BetweenHorizonalEnd class="min-w-4 h-4" />
-					<span class="sr-only">Switch to aisle view</span>
-				{/if}
-			</Button>
+		<div class="flex gap-3 items-center justify-end ml-auto">
+			<ShoppingViewSettings bind:itemsLayout bind:checkedItemsLayout bind:suggestionsLayout />
 
 			<DoneShoppingButton onclick={refreshRecommendations} class="hidden md:flex" />
 		</div>
@@ -277,7 +239,7 @@
 							<div class="mb-4 flex items-center justify-between">
 								<SectionHeader header={aisleHeader} size="sm" class="" />
 
-								{#if checkedItemsLayout.value === 'aisle'}
+								{#if suggestionsLayout.value === 'aisle'}
 									<ShoppingRecommendations
 										recommendations={aisleRecommendations.slice(0, 4)}
 										total={aisleRecommendations.length}
@@ -288,7 +250,7 @@
 							</div>
 
 							<div class="grid space-y-4 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
-								{#if checkedItemsLayout.value === 'aisle'}
+								{#if suggestionsLayout.value === 'aisle'}
 									<ShoppingRecommendationsMobile
 										recommendations={aisleRecommendations.slice(0, 10)}
 										total={aisleRecommendations.length}

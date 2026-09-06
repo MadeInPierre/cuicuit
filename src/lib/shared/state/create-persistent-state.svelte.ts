@@ -45,3 +45,9 @@ export function createPersistentState<T>(
 		set
 	};
 }
+
+export type PersistentState<T> = {
+	get value(): T | null;
+	set value(newValue: T | null);
+	set(newValue: T | null): void;
+};
