@@ -34,19 +34,21 @@
 			step: '01',
 			title: 'Paste a recipe link',
 			body: 'From any food blog. We parse ingredients, steps, timings and guessed filters.',
-			image: '/hero/howto_step1.png'
+			image: '/hero/mockups/iphone_recipes.png'
 		},
 		{
 			icon: CalendarDays,
 			step: '02',
 			title: 'Drop it in your plan',
-			body: 'Drag meals into a flexible plan. Scale servings, tweak, or swap ingredients easily.'
+			body: 'Drag meals into a flexible plan. Scale servings, tweak, or swap ingredients easily.',
+			image: '/hero/mockups/iphone_plan.png'
 		},
 		{
 			icon: ShoppingBasket,
 			step: '03',
 			title: 'Just go shopping!',
-			body: 'An aisle-aware list appears. Check things off as you cruise the store.'
+			body: 'An aisle-aware list appears. Check things off as you cruise the store.',
+			image: '/hero/mockups/iphone_list.png'
 		}
 	];
 
@@ -55,7 +57,7 @@
 			icon: Sidebar,
 			title: 'The magic sidebar',
 			body: 'Throw ideas and missing things in the sidebar, and your list gets immediately organized.',
-			mobile: false
+			mobile: true
 		},
 		{
 			icon: BookOpen,
@@ -141,16 +143,16 @@
 	const faqs = [
 		{
 			q: 'What is Cuicuit?',
-			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds an aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version.",
+			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds a beautiful aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version.",
 			id: 'experiment'
 		},
 		{
 			q: 'Is Cuicuit really free?',
-			a: 'Yes, and I hope forever! The full code is open source on GitHub and you can self-host it forever at no cost. The hosted cloud version also has an unlimited free plan, funded by a community moneypot. This free plan is an experiment, I hope to see enough supporters to keep the app free for everyone.'
+			a: "Yes, and I hope forever! The full code is open source on GitHub and you can self-host it forever at no cost. The hosted cloud version also has an unlimited free plan, funded by a community moneypot. Only genuinely costly backend features need 'seeds' as a way to share the costs, use the app daily for free. I hope to see enough supporters to keep the app free."
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste any recipe URL — food blog, magazine, or personal site — and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it then uses AI to add filters, ingredient substitutions, and more.'
+			a: 'Paste any recipe URL (food blog, magazine, or personal site) and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it then uses AI to guess filters, ingredient substitutions, and more.'
 		},
 		{
 			q: 'Can I self-host Cuicuit with Docker?',
@@ -158,7 +160,7 @@
 		},
 		{
 			q: 'Where does the name Cuicuit come from?',
-			a: "Cuicuit is a play on words. In French, 'cui-cui' is the sound a bird makes, and 'cuit' means cooked. 'C'est cuit' is a French expression meaning 'it's cooked', so now we can say 'C'est cuicuit'!"
+			a: "Cuicuit is a play on words. In French, 'cui-cui' is the sound a bird makes, and 'cuit' means cooked. 'C'est cuit' is a French expression meaning 'it's cooked', so now we can say 'C'est cuicuit'! Pronounce it 'qui-qui(ck)' without the 'ck'."
 		},
 		{
 			q: 'Can my family or roommates share a meal plan with me?',
@@ -244,7 +246,7 @@
 			</div>
 
 			<h1
-				class="font-hand text-6xl sm:text-7xl md:text-7xl font-semibold leading-[0.9] tracking-tight md:px-3"
+				class="font-hand max-[420px]:text-5xl text-6xl sm:text-7xl md:text-7xl font-semibold leading-[0.9] tracking-tight md:px-3"
 			>
 				Think about meals,
 				<br class="block lg:hidden" />
@@ -462,9 +464,11 @@
 	<div class="relative mt-14 grid gap-6 md:grid-cols-3">
 		{#each howToSteps as { icon: Icon, step, title, body, image }, i (step)}
 			<div class="relative">
-				<div
-					class="relative rounded-xl md:rounded-2xl bg-sidebar p-4 md:p-7 hover:-translate-y-1 hover:shadow-(--shadow-soft) transition group"
-				>
+				{#if image}
+					<img src={image} class="md:px-6 mx-auto max-w-80 md:max-w-full" alt="Mobile Screenshot" />
+				{/if}
+
+				<div class="relative transition group max-w-70 mx-auto">
 					<!-- {#if image}
 						<img src={image} class="aspect-square w-60 mx-auto" alt="Step 1" />
 					{:else}
@@ -475,23 +479,25 @@
 						</div>
 					{/if} -->
 
-					<div class="flex items-center space-x-4 md:grid">
+					<div class="flex items-center justify-center space-x-4">
 						<div class="font-hand text-4xl text-primary/70 leading-none">{step}</div>
 						<h3 class="mt-1 font-display text-xl font-semibold">{title}</h3>
-						<div
+						<!-- <div
 							class="md:hidden ml-auto grid place-items-center size-10 md:size-14 rounded-lg bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white transition-colors"
 						>
 							<Icon class="h-6 w-6" />
-						</div>
+						</div> -->
 					</div>
-					<p class="mt-2 mr-8 sm:mr-0 text-sm text-muted-foreground leading-relaxed">{body}</p>
+					<p class="mt-2 text-sm text-muted-foreground leading-relaxed text-center text-balance">
+						{body}
+					</p>
 				</div>
 				{#if i < 2}
 					<!-- Desktop -->
 					<svg
 						aria-hidden={true}
 						viewBox="0 0 80 40"
-						class="hidden md:block absolute -right-8 top-1/2 -translate-y-1/2 w-16 h-10 text-primary/60 z-10"
+						class="hidden md:block absolute -right-10 top-64 w-16 h-10 text-primary/60 z-10"
 					>
 						<path
 							d="M4 20 Q 30 4, 60 20 T 74 22"
