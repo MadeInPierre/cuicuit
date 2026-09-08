@@ -2,6 +2,7 @@ import { version } from '$app/env';
 import type { Database, Json } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { EnrichedRecipeOutput } from '../recipe-enrich/enrich-recipe.remote';
+import { sanitizeEnrichedRecipeOutput } from '../recipe-enrich/enrich-recipe';
 import type {
 	ScrapeFormat,
 	ScrapeSource,
@@ -142,5 +143,8 @@ export function getScrapeStats(row: CacheRow | null): ImportScrapeStats | null {
 }
 
 export function getLlmOutput(row: CacheRow | null): EnrichedRecipeOutput | null {
-	return row?.llm_output as EnrichedRecipeOutput | null;
+	const raw = row?.llm_output as EnrichedRecipeOutput | null;
+	// Re-sanitize cached output: caches written before the sanitizer was added
+	// may still contain null/empty fields for NOT NULL columns.
+	return raw ? sanitizeEnrichedRecipeOutput(raw) : null;
 }
