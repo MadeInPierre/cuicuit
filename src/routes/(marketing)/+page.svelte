@@ -40,14 +40,14 @@
 			icon: CalendarDays,
 			step: '02',
 			title: 'Drop it in your plan',
-			body: 'Drag meals into a flexible plan. Scale servings, tweak, or swap ingredients easily.',
+			body: 'Drag meals and items into a plan. Scale servings, tweak, or swap ingredients.',
 			image: '/hero/mockups/iphone_plan.png'
 		},
 		{
 			icon: ShoppingBasket,
 			step: '03',
 			title: 'Just go shopping!',
-			body: 'An aisle-aware list appears. Check things off as you cruise the store.',
+			body: 'An aisle-aware list appears, with suggestions and linked meals.',
 			image: '/hero/mockups/iphone_list.png'
 		}
 	];
@@ -75,7 +75,7 @@
 			icon: Users,
 			title: 'Shared households',
 			body: 'Cook together. Invite family or roommates into shared spaces that stay in sync.',
-			mobile: true
+			mobile: false
 		},
 		{
 			icon: Smartphone,
@@ -455,6 +455,11 @@
 </section>
 
 <section class="relative mx-auto max-w-6xl px-6 mt-28">
+	<div
+		aria-hidden={true}
+		class="hidden md:block pointer-events-none absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-100 w-250 rounded-full bg-primary/5 blur-[120px]"
+	></div>
+
 	<div class="text-center max-w-2xl mx-auto">
 		<span class="font-hand text-2xl text-primary">how it works</span>
 		<h2 class="mt-1 font-display text-3xl md:text-4xl font-semibold tracking-tight">
@@ -479,7 +484,7 @@
 						</div>
 					{/if} -->
 
-					<div class="flex items-center justify-center space-x-4">
+					<div class="md:mt-3 flex items-center justify-center space-x-4">
 						<div class="font-hand text-4xl text-primary/70 leading-none">{step}</div>
 						<h3 class="mt-1 font-display text-xl font-semibold">{title}</h3>
 						<!-- <div
