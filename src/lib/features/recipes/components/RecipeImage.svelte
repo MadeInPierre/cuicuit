@@ -3,17 +3,32 @@
 	import { page } from '$app/state';
 	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
 	import { cn, youtubeUrlToThumbnailUrl } from '$lib/utils';
-	import type { Recipe } from '../queries/get-recipe-detailed';
+	import { ChefHat } from '@lucide/svelte';
+	import type { Recipe, RecipeIngredientDetailed } from '../queries/get-recipe-detailed';
+	import IngredientImage from './IngredientImage.svelte';
 
 	interface Props {
 		recipe?: Recipe | null; // null for loading state
+		ingredients?: RecipeIngredientDetailed[] | null; // Used for the no-image fallback
 		class?: string;
 	}
 
-	let { recipe = null, class: className = '' }: Props = $props();
+	let { recipe = null, ingredients = null, class: className = '' }: Props = $props();
 
 	let error = $state(false);
 	let triedFallbackUrl = $state(false);
+
+	const displayIngredients = $derived(
+		(ingredients || [])
+			.filter((i) => !i.is_optional && i.ingredient?.id)
+			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+			.slice(0, 6)
+	);
+
+	const ingredientName = (ing: RecipeIngredientDetailed) =>
+		ing.ingredient.translations?.[0]?.name_singular ||
+		ing.ingredient.translations?.[0]?.name_plural ||
+		null;
 </script>
 
 {#if recipe && recipe.image_ids && recipe.image_ids.length > 0}
@@ -48,7 +63,33 @@
 			class={cn('w-full aspect-[1.618] object-cover rounded-md cursor-pointer', className)}
 			alt="Youtube Thumbnail"
 		/>
+	{:else if displayIngredients.length > 0}
+		<div
+			class={cn(
+				'bg-white rounded-md grid space-x-2 p-2 place-content-center justify-items-center',
+				displayIngredients.length >= 5 && 'grid-cols-3',
+				displayIngredients.length == 4 && 'grid-cols-4',
+				displayIngredients.length == 3 && 'grid-cols-3',
+				displayIngredients.length == 2 && 'grid-cols-2',
+				className
+			)}
+		>
+			{#each displayIngredients as ing (ing.ingredient_id)}
+				<IngredientImage
+					id={ing.ingredient.id}
+					name={ingredientName(ing)}
+					class="rounded-none max-w-14"
+				/>
+			{/each}
+		</div>
 	{:else}
-		<div class={cn('aspect-square size-11 bg-gray-200 rounded-md', className)}></div>
+		<div
+			class={cn(
+				'aspect-square size-11 bg-muted rounded-md flex items-center justify-center',
+				className
+			)}
+		>
+			<ChefHat class="w-1/4 min-w-4 text-muted-foreground" />
+		</div>
 	{/if}
 {/if}

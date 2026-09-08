@@ -1,7 +1,7 @@
 <script lang="ts" module>
 	export type SearchResults = {
 		processedIngredient: IngredientProcessed | null;
-		recipes: Recipe[] | undefined;
+		recipes: RecipeDetailed[] | undefined;
 	};
 </script>
 
@@ -12,7 +12,7 @@
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
 	import {
 		getRecipesDetailed,
-		type Recipe
+		type RecipeDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
@@ -53,7 +53,7 @@
 			}
 
 			let processedIngredient: IngredientProcessed | undefined = undefined;
-			let recipes: Recipe[] | undefined = undefined;
+			let recipes: RecipeDetailed[] | undefined = undefined;
 
 			// Process the ingredient string into a structured format matched to the database
 			processedIngredient = await processIngredientString(
