@@ -6,6 +6,7 @@ import type { LlmProvider } from '$lib/shared/llm/providers';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import z from 'zod';
 import { parsedSearchInputSchema } from '../parse-ingredients/parse';
+import { sanitizeEnrichedRecipeOutput } from './enrich-recipe';
 
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe parser. The user will provide you with a draft or incomplete recipe.
 
@@ -145,7 +146,7 @@ async function enrichRecipeLlm(recipeInput: object): Promise<EnrichedRecipeResul
 			JSON.stringify(value.output)
 		);
 		return {
-			output: value.output satisfies EnrichedRecipeOutput,
+			output: sanitizeEnrichedRecipeOutput(value.output satisfies EnrichedRecipeOutput),
 			stats: {
 				provider,
 				fallbackUsed,
