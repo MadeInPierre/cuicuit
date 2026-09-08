@@ -89,6 +89,7 @@
 				{#each searchResults.recipes.slice(0, 2) as recipe (recipe.id)}
 					<RecipeCard
 						{recipe}
+						ingredients={recipe.ingredients}
 						onclick={() => {
 							onSelectRecipe(recipe);
 						}}

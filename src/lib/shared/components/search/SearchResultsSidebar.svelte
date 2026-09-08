@@ -230,6 +230,7 @@
 				{#each searchResults.recipes as recipe (recipe.id)}
 					<RecipeCard
 						{recipe}
+						ingredients={recipe.ingredients}
 						onclick={() => {
 							onSelectRecipe(recipe);
 						}}

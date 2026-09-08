@@ -21,6 +21,7 @@
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
 	import { capitalize, youtubeUrlToThumbnailUrl } from '$lib/utils';
@@ -92,6 +93,8 @@
 			servings: displayServings
 		});
 	}
+
+	const media = useMedia();
 </script>
 
 {#if recipe}
@@ -145,6 +148,7 @@
 										<Carousel.Item>
 											<RecipeImage
 												{recipe}
+												ingredients={recipe.ingredients}
 												class="w-full aspect-[1.618] object-cover rounded-md size-auto"
 											/>
 										</Carousel.Item>
@@ -301,7 +305,12 @@
 							</div>
 
 							{#each (space.activePlanMeals || []).filter((m) => recipe && m.recipe_id === recipe.id) as meal (meal.id)}
-								<MealCard {meal} showExpandedButtons expandable={false}>
+								<MealCard
+									{meal}
+									showExpandedButtons
+									expandable={false}
+									size={media.md ? 'md' : 'lg'}
+								>
 									{#snippet cardEndSnippet()}
 										<ServingsPlusMinus
 											value={meal.servings}

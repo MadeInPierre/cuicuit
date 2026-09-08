@@ -10,7 +10,6 @@
 	import { type Enums } from '$lib/shared/db/supabase.types';
 	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
 	import { cn } from '$lib/utils';
-	import NumberFlow from '@number-flow/svelte';
 	import {
 		ChevronRight,
 		CircleSlash,
@@ -19,6 +18,7 @@
 		ShoppingCart,
 		Trash
 	} from '@lucide/svelte';
+	import NumberFlow from '@number-flow/svelte';
 	import posthog from 'posthog-js';
 	import type { Snippet } from 'svelte';
 	import { toast } from 'svelte-sonner';
