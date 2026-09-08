@@ -38,7 +38,7 @@ Requirements:
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({
 	title: publicRecipesRowSchema.shape.title.describe(
-		'Original title, but without useless SEO text, e.g. "the best".'
+		'Original title but without useless SEO text, e.g. "the best", "easy", etc.'
 	),
 	short_title: publicRecipesRowSchema.shape.short_title.describe(
 		'Shortest possible title for this recipe in 1 word.'
@@ -211,6 +211,7 @@ async function enrichRecipeWithProvider(
 		};
 	} catch (error) {
 		if (error instanceof NoObjectGeneratedError) {
+			console.error('LLM call failed due to:', error);
 			console.error(`${provider.id}: no object generated, malformed LLM output:`, error.text);
 
 			// Attempt to repair the malformed JSON
@@ -218,7 +219,7 @@ async function enrichRecipeWithProvider(
 				const repaired = repairLlmOutput(error.text);
 				if (repaired) {
 					console.log(`[llm] ${provider.id}: malformed output repaired successfully.`);
-					return { output: repaired, usage: null };
+					return { output: repaired, usage: error.usage || null };
 				}
 			}
 		} else {
@@ -356,6 +357,17 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 					`✓ Recovered ${recoveredIngredients.length} valid ingredients (full or partial)`
 				);
 				recovered.ingredients = recoveredIngredients;
+			}
+		}
+
+		// Recover the image URL if present
+		if (parsed && typeof parsed === 'object' && 'image' in parsed) {
+			const imageResult = outputSchema.shape.image.safeParse(parsed.image);
+			if (imageResult.success) {
+				recovered.image = imageResult.data;
+				console.log(`Recovered image: ${recovered.image}`);
+			} else {
+				console.warn('Failed to recover image:', imageResult.error);
 			}
 		}
 
