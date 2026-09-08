@@ -69,7 +69,11 @@ const outputSchema = z.object({
 	),
 	ingredients: z
 		.array(parsedSearchInputSchema)
-		.describe('The list of ingredients, cleaned and enriched with inferred details.')
+		.describe('The list of ingredients, cleaned and enriched with inferred details.'),
+	image: z
+		.string()
+		.nullable()
+		.describe('The primary image URL in the raw content, or null if none found.')
 });
 
 export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;

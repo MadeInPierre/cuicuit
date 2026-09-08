@@ -423,6 +423,10 @@ export async function* importRecipeFromUrlCore(
 		}
 	}
 
+	// The LLM may have extracted an image URL from the raw content when the
+	// scraper couldn't (e.g. Geonode/Firecrawl returning raw markdown).
+	imageUrl = imageUrl || llmOutput.image || null;
+
 	// Step 2: Recognizing ingredients & units — create the template recipe and
 	// its ingredients once, then duplicate everything for the user.
 	yield 2;
