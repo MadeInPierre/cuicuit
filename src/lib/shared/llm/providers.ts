@@ -74,7 +74,7 @@ function mistralFactory({ env, id, suffix, identity }: ProviderContext): LlmProv
 		warnMissing(id, apiKeyVar);
 		return null;
 	}
-	const model = createMistral({ apiKey })(env[`MISTRAL_MODEL${suffix}`] || 'mistral-medium-latest');
+	const model = createMistral({ apiKey })(env[`MISTRAL_MODEL${suffix}`] || 'mistral-small-latest');
 	return { id, model: withObservability(model, identity) };
 }
 

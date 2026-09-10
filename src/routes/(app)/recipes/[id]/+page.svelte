@@ -467,7 +467,7 @@
 	<div class="grid space-y-6">
 		<h2 class="text-xl font-semibold">Steps</h2>
 
-		{#each recipe?.steps || [] as step, i (step)}
+		{#each recipe?.steps || [] as step, i (i)}
 			<div class="flex items-start min-h-12">
 				<span
 					class="text-md font-semibold text-primary bg-muted rounded-lg size-8 min-w-8 flex justify-center items-center"
