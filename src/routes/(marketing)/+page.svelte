@@ -152,11 +152,11 @@
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste any recipe URL (food blog, magazine, or personal site) and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it then uses AI to guess filters, ingredient substitutions, and more.'
+			a: 'Paste any recipe URL (food blog, magazine, or personal site) and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it then uses AI (only low-CO2 inference locations) to guess filters, ingredient substitutions, and more.'
 		},
 		{
 			q: 'Can I self-host Cuicuit with Docker?',
-			a: "Yes. Cuicuit ships with a docker-compose setup. Clone the repo, run 'docker compose up -d', and you'll have your own instance running in minutes. Your recipes and data stay on your hardware."
+			a: "Yes. Cuicuit ships with a docker-compose setup. Clone the repo, run 'docker compose up -d', and you'll have your own instance running in minutes. Your recipes and data stay on your hardware, using your own API keys."
 		},
 		{
 			q: 'Where does the name Cuicuit come from?',
@@ -746,7 +746,7 @@
 	<div class="mt-12 grid gap-6 md:grid-cols-3">
 		<!-- Self-hosted -->
 		<div
-			class="rounded-2xl order-2 md:order-1 bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900 flex flex-col"
+			class="h-90 rounded-2xl order-2 md:order-1 bg-neutral-950 text-neutral-100 p-8 shadow-(--shadow-soft) border border-neutral-900 flex flex-col"
 		>
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2 text-sm font-semibold text-white">
@@ -782,7 +782,7 @@
 
 		<!-- Supporter -->
 		<div
-			class="relative rounded-2xl order-3 md:order-2 border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3 flex flex-col"
+			class="h-90 relative rounded-2xl order-3 md:order-2 border-2 border-pink-500 bg-card p-8 shadow-(--shadow-lift) md:-translate-y-3 flex flex-col"
 		>
 			<span
 				class="absolute w-max -top-3 left-1/2 -translate-x-1/2 rounded-full bg-pink-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white"
