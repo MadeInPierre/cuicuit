@@ -733,7 +733,7 @@
 								</Card.Description>
 							</Card.Header>
 							<Card.Content class="grid gap-6">
-								{#each $formData.stepDescriptions as desc, i (desc)}
+								{#each $formData.stepDescriptions as desc, i (i)}
 									<div animate:flip={{ duration: 200 }}>
 										<Form.Field {form} name="stepDescriptions" class="grid">
 											<Form.Control>
