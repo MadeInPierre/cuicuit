@@ -1,9 +1,8 @@
 <script lang="ts">
+	import type { RecipeSearchFilters } from '$lib/features/recipes/state/recipes-search.svelte';
 	import SheetResponsive from '$lib/shared/components/SheetResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import type { RecipeSearchFilters } from '$lib/features/recipes/state/recipes-search.svelte';
-	import { ScrollArea } from '$lib/shared/components/ui/scroll-area';
-	import { FunnelPlus, RotateCcw } from '@lucide/svelte';
+	import { Ellipsis, FunnelPlus, RotateCcw } from '@lucide/svelte';
 	import { cn } from 'tailwind-variants';
 	import FilterList from './FilterList.svelte';
 
@@ -20,10 +19,7 @@
 	let allFiltersOpen = $state(false);
 
 	const hasActiveFilters = $derived(
-		searchInput ||
-			filters.timeOfDay.length > 0 ||
-			filters.course.length > 0 ||
-			filters.cuisine.length > 0
+		searchInput || Object.values(filters).some((values) => values.length > 0)
 	);
 
 	function handleReset() {
@@ -39,27 +35,34 @@
 </script>
 
 <div class={cn('flex gap-2', align === 'end' && 'justify-end')}>
-	<Button
-		size="icon-sm"
-		class="size-7 rounded-md sm:hidden"
-		onclick={() => (allFiltersOpen = true)}
-	>
-		<FunnelPlus />
-	</Button>
-
 	{#if align === 'end' && hasActiveFilters}
 		<Button variant="ghost" class="size-7 px-2 text-muted-foreground" onclick={handleReset}>
 			<RotateCcw class="size-4" />
 		</Button>
 	{/if}
 
-	<FilterList {filters} onFilterChange={handleFilterChange} />
-
-	{#if align === 'start' && hasActiveFilters}
-		<Button variant="ghost" class="size-7 px-2 text-muted-foreground" onclick={handleReset}>
-			<RotateCcw class="size-4" />
-		</Button>
-	{/if}
+	<FilterList {filters} onFilterChange={handleFilterChange} maxVisible={4}>
+		{#snippet trailing()}
+			{#if align === 'start' && hasActiveFilters}
+				<Button
+					variant="ghost"
+					class="size-7 px-2 text-muted-foreground sm:hidden"
+					onclick={handleReset}
+				>
+					<RotateCcw class="size-4" />
+				</Button>
+			{/if}
+			
+			<Button
+				variant="ghost"
+				class="h-7 shrink-0 bg-muted px-2.5 whitespace-nowrap sm:hidden mr-3"
+				onclick={() => (allFiltersOpen = true)}
+			>
+				<Ellipsis class="size-4" />
+				More
+			</Button>
+		{/snippet}
+	</FilterList>
 
 	<Button
 		size="icon-sm"
@@ -76,11 +79,9 @@
 	description="Find your ideal recipe"
 	side="right"
 >
-	<ScrollArea class="flex-1 px-2">
-		<div class="py-4 px-2">
-			<FilterList {filters} onFilterChange={handleFilterChange} layout="vertical" />
-		</div>
-	</ScrollArea>
+	<div class="flex-1 min-h-0 overflow-y-auto px-2 pb-3">
+		<FilterList {filters} onFilterChange={handleFilterChange} layout="vertical" />
+	</div>
 
 	{#if hasActiveFilters}
 		<div class="border-t px-4 py-4 shrink-0">

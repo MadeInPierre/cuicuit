@@ -193,7 +193,7 @@ export const recipeCuisineSectionHeaders = {
 
 export const recipeCoursesSectionHeaders = {
 	main: {
-		title: 'Main Courses',
+		title: 'Main',
 		icon: Pizza,
 		subtitle: 'Savor a hearty main course.',
 		classes: 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-500'
@@ -215,12 +215,6 @@ export const recipeCoursesSectionHeaders = {
 		icon: EggFried,
 		subtitle: 'Complement your meal with a tasty side dish.',
 		classes: 'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-500'
-	},
-	prep: {
-		title: 'Preparations',
-		icon: Blocks,
-		subtitle: 'Small recipes that can be combined with other dishes.',
-		classes: 'bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-500'
 	},
 	salad: {
 		title: 'Salads',
@@ -245,6 +239,12 @@ export const recipeCoursesSectionHeaders = {
 		icon: CupSoda,
 		subtitle: 'Quench your thirst with a refreshing drink.',
 		classes: 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-500'
+	},
+	prep: {
+		title: 'Preparations',
+		icon: Blocks,
+		subtitle: 'Small recipes that can be combined with other dishes.',
+		classes: 'bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-500'
 	},
 	default: {
 		title: 'Other',

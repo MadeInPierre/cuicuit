@@ -86,7 +86,6 @@
 </Button>
 
 <SheetResponsive bind:open title="Shopping view" description="Make it look just right" side="right">
-	<!-- Plain overflow-auto (per vaul-svelte docs) so the drawer content scrolls natively -->
 	<div class="flex-1 min-h-0 overflow-y-auto px-2 pb-3">
 		<div class="py-4 px-2 grid gap-6">
 			<PillSelect

@@ -1,108 +1,59 @@
 <script lang="ts">
-	import {
-		recipeCoursesSectionHeaders,
-		recipeCuisineSectionHeaders,
-		recipeTimesOfDaySectionHeaders
-	} from '$lib/features/recipes/components/consts';
-	import type { RecipeSearchFilters } from '$lib/features/recipes/state/recipes-search.svelte';
+	import { recipeFilterDefs } from '$lib/features/recipes/components/recipe-filter-defs';
+	import type {
+		RecipeFilterKey,
+		RecipeSearchFilters
+	} from '$lib/features/recipes/state/recipes-search.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
+	import type { Snippet } from 'svelte';
 	import FilterExpanded from './FilterExpanded.svelte';
 
 	type Props = {
 		filters: RecipeSearchFilters;
-		onFilterChange: (key: keyof RecipeSearchFilters, values: string[]) => void;
+		onFilterChange: (key: RecipeFilterKey, values: string[]) => void;
 		layout?: 'horizontal' | 'vertical';
+		/** Only show the first N filters (used by the inline ribbon; the sheet shows all). */
+		maxVisible?: number;
+		/** Extra content at the end of the horizontal row, scrolling along with the pills. */
+		trailing?: Snippet;
 	};
 
-	let { filters, onFilterChange, layout = 'horizontal' }: Props = $props();
+	let { filters, onFilterChange, layout = 'horizontal', maxVisible, trailing }: Props = $props();
+
+	const visibleDefs = $derived(
+		maxVisible === undefined ? recipeFilterDefs : recipeFilterDefs.slice(0, maxVisible)
+	);
 </script>
 
 {#if layout === 'horizontal'}
-	<div class="flex gap-2">
-		<SelectResponsive
-			title="Filter by Course"
-			emptyLabel="Course"
-			description="What are we feeling today?"
-			options={Object.entries(recipeCoursesSectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				icon: item.icon
-			}))}
-			values={filters.course}
-			onChange={(values) => onFilterChange('course', values)}
-			displayColumns={2}
-			showReset={filters.course?.length > 0}
-		/>
+	<div
+		class="flex flex-1 min-w-0 flex-nowrap items-center gap-2 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden *:shrink-0"
+	>
+		{#each visibleDefs as def (def.key)}
+			<SelectResponsive
+				title={def.title}
+				emptyLabel={def.emptyLabel}
+				description={def.description}
+				options={def.options}
+				values={filters[def.key]}
+				onChange={(values) => onFilterChange(def.key, values)}
+				displayColumns={2}
+				showReset={filters[def.key]?.length > 0}
+			/>
+		{/each}
 
-		<SelectResponsive
-			title="Filter by Cuisine"
-			emptyLabel="Cuisine"
-			description="Where are we travelling to?"
-			options={Object.entries(recipeCuisineSectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				icon: item.icon
-			}))}
-			values={filters.cuisine}
-			onChange={(values) => onFilterChange('cuisine', values)}
-			displayColumns={2}
-			showReset={filters.cuisine?.length > 0}
-		/>
-
-		<SelectResponsive
-			title="Filter by Time of Day"
-			emptyLabel="Time"
-			description="What are we planning for?"
-			options={Object.entries(recipeTimesOfDaySectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				icon: item.icon
-			}))}
-			values={filters.timeOfDay}
-			onChange={(values) => onFilterChange('timeOfDay', values)}
-			displayColumns={2}
-			showReset={filters.timeOfDay?.length > 0}
-		/>
+		{@render trailing?.()}
 	</div>
 {:else}
-	<div class="grid gap-6">
-		<FilterExpanded
-			title="Filter by Course"
-			description="What are we feeling today?"
-			options={Object.entries(recipeCoursesSectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				icon: item.icon
-				// description: item.subtitle
-			}))}
-			values={filters.course}
-			onChange={(values) => onFilterChange('course', values)}
-		/>
-
-		<FilterExpanded
-			title="Filter by Cuisine"
-			description="Where are we travelling to?"
-			options={Object.entries(recipeCuisineSectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				icon: item.icon
-				// description: item.subtitle
-			}))}
-			values={filters.cuisine}
-			onChange={(values) => onFilterChange('cuisine', values)}
-		/>
-
-		<FilterExpanded
-			title="Filter by Time of Day"
-			description="What are we planning for?"
-			options={Object.entries(recipeTimesOfDaySectionHeaders).map(([key, item]) => ({
-				value: key,
-				label: item.title,
-				icon: item.icon
-				// description: item.subtitle
-			}))}
-			values={filters.timeOfDay}
-			onChange={(values) => onFilterChange('timeOfDay', values)}
-		/>
+	<div class="grid gap-6 pb-6">
+		{#each recipeFilterDefs as def (def.key)}
+			<FilterExpanded
+				title={def.title}
+				description={def.description}
+				options={def.options}
+				values={filters[def.key]}
+				onChange={(values) => onFilterChange(def.key, values)}
+			/>
+		{/each}
 	</div>
 {/if}

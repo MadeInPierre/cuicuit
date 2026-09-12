@@ -8,6 +8,10 @@
 		recipeTimesOfDaySectionHeaders
 	} from '$lib/features/recipes/components/consts';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
+	import {
+		buildTimeRangeOrFilter,
+		recipeFilterDefs
+	} from '$lib/features/recipes/components/recipe-filter-defs';
 	import { EXAMPLE_RECIPE_URLS } from '$lib/features/recipes/consts/example-recipes';
 	import {
 		recipeCourses,
@@ -18,13 +22,13 @@
 		getRecipesDetailed,
 		type RecipeDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
-	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import {
 		recipesSearchState,
 		type RecipeDiscoverKey,
 		type RecipeGroupByKey,
 		type RecipeSearchFilters
 	} from '$lib/features/recipes/state/recipes-search.svelte';
+	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
@@ -64,14 +68,17 @@
 
 		let query = getRecipesDetailed(space.language.id, searchText).limit(100);
 
-		if (filters?.timeOfDay && filters?.timeOfDay.length > 0) {
-			query = query.overlaps('times_of_day', filters.timeOfDay);
-		}
-		if (filters?.course && filters?.course.length > 0) {
-			query = query.overlaps('courses', filters.course);
-		}
-		if (filters?.cuisine && filters?.cuisine.length > 0) {
-			query = query.overlaps('cuisines', filters.cuisine);
+		for (const def of recipeFilterDefs) {
+			const values = filters?.[def.key];
+			if (!values || values.length === 0) continue;
+			if (def.kind === 'array') {
+				query = query.overlaps(def.column, values);
+			} else if (def.kind === 'enum') {
+				query = query.in(def.column, values);
+			} else {
+				const orFilter = buildTimeRangeOrFilter(def.column, values);
+				if (orFilter) query = query.or(orFilter);
+			}
 		}
 
 		// TODO add discover dial
@@ -151,13 +158,10 @@
 	// then the UI will not be interesting (only one category)
 	// So we change the groupBy to the next preference
 	$effect(() => {
-		// All filters have 1 value, do not change groupBy to avoid infinite loop
-		if (
-			Object.keys(parameters.filters).every(
-				(key) => parameters.filters[key as keyof typeof parameters.filters].length === 1
-			)
-		)
-			return;
+		// Only the groupable filters can cause a groupBy switch loop
+		const groupableFilterKeys = ['timeOfDay', 'course', 'cuisine'] as const;
+		// All groupable filters have 1 value, do not change groupBy to avoid infinite loop
+		if (groupableFilterKeys.every((key) => parameters.filters[key].length === 1)) return;
 
 		if (groupBy === 'timeOfDay' && parameters.filters.timeOfDay.length === 1) {
 			setParameters({ ...parameters, groupBy: 'course' });
@@ -326,23 +330,25 @@
 					</ImportRecipeDialog>
 				</div>
 
-				<RecipeFilters
-					align="end"
-					filters={parameters.filters}
-					onFiltersChange={(newFilters) => {
-						setParameters({ ...parameters, filters: newFilters });
-					}}
-					searchInput={recipesSearchState.searchInput}
-					onReset={() => recipesSearchState.reset()}
-				/>
+				<div class="ml-auto">
+					<RecipeFilters
+						align="end"
+						filters={parameters.filters}
+						onFiltersChange={(newFilters) => {
+							setParameters({ ...parameters, filters: newFilters });
+						}}
+						searchInput={recipesSearchState.searchInput}
+						onReset={() => recipesSearchState.reset()}
+					/>
+				</div>
 			</div>
 		</div>
 
 		<SeparatorZigZag />
 
-		<div class="relative max-w-100 sm:hidden overflow-hidden">
+		<div class="relative sm:hidden">
 			<div
-				class="overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+				class="overflow-x-visible whitespace-nowrap scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
 			>
 				<RecipeFilters
 					filters={parameters.filters}
