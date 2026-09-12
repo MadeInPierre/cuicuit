@@ -333,7 +333,7 @@
 			<div
 				class={cn(
 					'w-18 min-h-18 border border-border/60 flex justify-center items-center rounded-[36px] drop-shadow-md/5 bg-primary-foreground/90 dark:bg-background/90 backdrop-blur-md ml-auto transition-all',
-					openChat && 'w-full'
+					openChat ? 'w-full' : ''
 				)}
 			>
 				{#if openChat}

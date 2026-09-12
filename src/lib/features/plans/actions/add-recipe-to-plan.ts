@@ -77,7 +77,7 @@ export async function addRecipeToActivePlan(
 		return;
 	}
 
-	if (!options?.hideToast !== true) {
+	if (options?.hideToast !== true) {
 		toast.success('Added to plan', {
 			description: 'Go to the Plan tab for more',
 			action: {

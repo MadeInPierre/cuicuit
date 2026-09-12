@@ -1,6 +1,10 @@
 <script lang="ts">
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
+	import {
+		formatProcessedIngredientDescription,
+		isPluralProcessed
+	} from '$lib/shared/utils/format-quantity';
 	import { capitalize } from '$lib/utils';
 	import { LoaderCircle } from '@lucide/svelte';
 	import { Bird, Search } from '@lucide/svelte';
@@ -44,13 +48,8 @@
 				{#each searchResults.processedIngredient.matches.slice(0, 3) as ingredient, index (ingredient.id)}
 					<ShoppingItemCard
 						{ingredient}
-						description={(searchResults.processedIngredient.parsed.quantity?.amount || '') +
-							' ' +
-							(searchResults.processedIngredient.parsed.quantity?.unitKey?.replace('whole', '') ||
-								'') +
-							' ' +
-							(searchResults.processedIngredient.parsed.description || '')}
-						plural={(searchResults.processedIngredient.parsed.quantity?.amount || 0) > 1}
+						description={formatProcessedIngredientDescription(searchResults.processedIngredient)}
+						plural={isPluralProcessed(searchResults.processedIngredient)}
 						onclick={(e) => {
 							e.preventDefault(); // Avoid submitting the form
 							onSelectIngredient(index);

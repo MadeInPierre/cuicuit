@@ -2,6 +2,7 @@
 	import MealList from '$lib/features/plans/components/sidebar/MealList.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { formatQuantity, isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import { cn, formatDateAgo } from '$lib/utils';
 	import { Calendar, ClipboardList, ShoppingBasket, Utensils } from '@lucide/svelte';
 	import { flip } from 'svelte/animate';
@@ -123,10 +124,8 @@
 								layout={filterOnIngredientId ? 'list' : 'grid'}
 								ingredient={item.ingredient}
 								name={item.name}
-								description={item.quantity
-									? item.quantity + ' ' + item.unit?.replace('whole', '')
-									: ''}
-								plural={item.quantity ? item.quantity > 1 : false}
+								description={formatQuantity(item.quantity, item.unit)}
+								plural={isPluralAmount(item.quantity)}
 								size="sm"
 								deletable
 								onDelete={async () => {

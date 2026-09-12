@@ -23,7 +23,7 @@
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
+	import { formatQuantity, isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import { capitalize, youtubeUrlToThumbnailUrl } from '$lib/utils';
 	import {
 		ArrowUpRight,
@@ -438,15 +438,12 @@
 			.filter((i) => i.is_optional === optional)
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0)) || [] as ing (ing.ingredient_id)}
 			{@const amount = (ing.quantity || 0) * (displayServings / (recipe?.servings || 1))}
-			{@const displayAmount = amount > 10 ? Math.round(amount).toString() : amount.toString()}
 
 			<ShoppingItemCard
 				layout={view}
 				ingredient={ing.ingredient}
-				plural={!!ing.quantity && ing.quantity > 1}
-				description={displayAmount +
-					' ' +
-					(ing.unit ? unitToUnregionized(ing.unit as UnitRegionized).replace('whole', '') : '')}
+				plural={isPluralAmount(amount)}
+				description={formatQuantity(amount, ing.unit)}
 				checkable={false}
 			>
 				{#if view === 'list'}

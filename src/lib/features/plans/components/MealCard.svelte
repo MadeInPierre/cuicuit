@@ -8,7 +8,7 @@
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { type Enums } from '$lib/shared/db/supabase.types';
-	import { type UnitRegionized, unitToUnregionized } from '$lib/shared/utils/quantity';
+	import { formatQuantity, formatUnit } from '$lib/shared/utils/format-quantity';
 	import { cn } from '$lib/utils';
 	import {
 		ChevronRight,
@@ -24,7 +24,6 @@
 	import { toast } from 'svelte-sonner';
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
-	import { formatQuantityAmount } from '../../../../routes/(app)/shopping-list/generate-shopping-list';
 	import { updatePlanItemChecked, updatePlanItemDeleted } from '../actions/update-item';
 	import { deleteMeal, updateMealServings } from '../actions/update-meal';
 	import {
@@ -163,18 +162,15 @@
 {#if meal}
 	{#snippet defaultEndSnippet()}
 		{#if hovered || selected}
-			<!-- in:fade={{ duration: 75 }} -->
+			{@const activeIngredient = meal.shopping_ingredients.find(
+				(ing) => ing.ingredient_id === activeId
+			)}
+
 			<div class="shrink-0 flex flex-col gap-0 items-center text-xs">
 				<IngredientImage id={activeId} class="size-7 rounded-full" />
 
 				<span>
-					{formatQuantityAmount(
-						meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.quantity ?? 0
-					) || ''}
-
-					{meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit === 'whole'
-						? ''
-						: meal.shopping_ingredients.find((ing) => ing.ingredient_id === activeId)?.unit || ''}
+					{formatQuantity(activeIngredient?.quantity, activeIngredient?.unit, true)}
 				</span>
 			</div>
 		{:else if expanded}
@@ -379,7 +375,7 @@
 						)}
 					>
 						<NumberFlow value={si.quantity || 0} />
-						{si.unit === 'whole' ? '' : unitToUnregionized(si.unit as UnitRegionized)}
+						{formatUnit(si.unit, true)}
 					</span>
 
 					{#if status === 'ignore'}
