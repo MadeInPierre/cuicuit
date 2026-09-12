@@ -837,6 +837,7 @@ export const publicSpacesRelationshipsSchema = z.tuple([
 ]);
 
 export const publicUserPreferencesRowSchema = z.object({
+  aisle_order: z.array(z.string()).nullable(),
   created_at: z.string(),
   first_name: z.string(),
   last_name: z.string(),
@@ -846,6 +847,7 @@ export const publicUserPreferencesRowSchema = z.object({
 });
 
 export const publicUserPreferencesInsertSchema = z.object({
+  aisle_order: z.array(z.string()).optional().nullable(),
   created_at: z.string().optional(),
   first_name: z.string(),
   last_name: z.string(),
@@ -855,6 +857,7 @@ export const publicUserPreferencesInsertSchema = z.object({
 });
 
 export const publicUserPreferencesUpdateSchema = z.object({
+  aisle_order: z.array(z.string()).optional().nullable(),
   created_at: z.string().optional(),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
@@ -892,7 +895,6 @@ export const publicUserPublicProfilesUpdateSchema = z.object({
 
 export const publicRecipesRandomizedRowSchema = z.object({
   author_id: z.string().nullable(),
-  cache_id: z.string().nullable(),
   cleanup_level: publicCleanupLevelSchema.nullable(),
   cost_level: publicCostLevelSchema.nullable(),
   courses: z.array(publicCourseSchema).nullable(),
@@ -925,7 +927,6 @@ export const publicRecipesRandomizedRowSchema = z.object({
 
 export const publicRecipesRandomizedInsertSchema = z.object({
   author_id: z.string().optional().nullable(),
-  cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema.optional().nullable(),
   cost_level: publicCostLevelSchema.optional().nullable(),
   courses: z.array(publicCourseSchema).optional().nullable(),
@@ -958,7 +959,6 @@ export const publicRecipesRandomizedInsertSchema = z.object({
 
 export const publicRecipesRandomizedUpdateSchema = z.object({
   author_id: z.string().optional().nullable(),
-  cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema.optional().nullable(),
   cost_level: publicCostLevelSchema.optional().nullable(),
   courses: z.array(publicCourseSchema).optional().nullable(),
@@ -990,13 +990,6 @@ export const publicRecipesRandomizedUpdateSchema = z.object({
 });
 
 export const publicRecipesRandomizedRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("recipes_cache_id_fkey"),
-    columns: z.tuple([z.literal("cache_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("recipes_cache"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
   z.object({
     foreignKeyName: z.literal("recipes_language_id_fkey"),
     columns: z.tuple([z.literal("language_id")]),
@@ -1073,28 +1066,12 @@ export const publicMatchIngredientReturnsSchema = z.array(
   }),
 );
 
-export const publicShowLimitArgsSchema = z.never();
-
-export const publicShowLimitReturnsSchema = z.number();
-
-export const publicShowTrgmArgsSchema = z.object({
-  "": z.string(),
-});
-
-export const publicShowTrgmReturnsSchema = z.array(z.string());
-
 export const publicSlugifyArgsSchema = z.object({
   max_length: z.number().optional(),
   value: z.string(),
 });
 
 export const publicSlugifyReturnsSchema = z.string();
-
-export const publicUnaccentArgsSchema = z.object({
-  "": z.string(),
-});
-
-export const publicUnaccentReturnsSchema = z.string();
 
 export const publicUsersShareCommonSpaceArgsSchema = z.object({
   _user_a: z.string(),
@@ -1307,16 +1284,8 @@ export type PublicMatchIngredientArgs = z.infer<
 export type PublicMatchIngredientReturns = z.infer<
   typeof publicMatchIngredientReturnsSchema
 >;
-export type PublicShowLimitArgs = z.infer<typeof publicShowLimitArgsSchema>;
-export type PublicShowLimitReturns = z.infer<
-  typeof publicShowLimitReturnsSchema
->;
-export type PublicShowTrgmArgs = z.infer<typeof publicShowTrgmArgsSchema>;
-export type PublicShowTrgmReturns = z.infer<typeof publicShowTrgmReturnsSchema>;
 export type PublicSlugifyArgs = z.infer<typeof publicSlugifyArgsSchema>;
 export type PublicSlugifyReturns = z.infer<typeof publicSlugifyReturnsSchema>;
-export type PublicUnaccentArgs = z.infer<typeof publicUnaccentArgsSchema>;
-export type PublicUnaccentReturns = z.infer<typeof publicUnaccentReturnsSchema>;
 export type PublicUsersShareCommonSpaceArgs = z.infer<
   typeof publicUsersShareCommonSpaceArgsSchema
 >;

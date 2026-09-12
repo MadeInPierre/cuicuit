@@ -1,11 +1,15 @@
 <script lang="ts">
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import {
 		updatePlanItemChecked,
 		updatePlanItemDeleted
 	} from '$lib/features/plans/actions/update-item';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
+	import {
+		resolveSupermarketAisleOrder,
+		supermarketAisleSectionHeaders
+	} from '$lib/features/recipes/components/consts';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
 		getShoppingRecommendations,
@@ -43,6 +47,14 @@
 	import ShoppingViewSettings from './ShoppingViewSettings.svelte';
 
 	const space = getActiveSpaceState();
+	const userState = getUserState();
+
+	// Aisles in the user's preferred order (falls back to the default order)
+	let orderedAisleEntries = $derived(
+		resolveSupermarketAisleOrder(userState.preferences?.aisle_order).map(
+			(aisleKey) => [aisleKey, supermarketAisleSectionHeaders[aisleKey]] as const
+		)
+	);
 
 	let checkedItemsLayout = createPersistentState<'aisle' | 'bottom'>(
 		'view-shopping-list-checked-items-layout',
@@ -190,7 +202,7 @@
 
 			<div class="grid grid-cols-1">
 				<div class={cn('grid space-y-12', itemsLayout.value === 'list' && 'space-y-12')}>
-					{#each Object.entries(supermarketAisleSectionHeaders)
+					{#each orderedAisleEntries
 
 						// Show aisles that have items or recommendations
 						.filter(([aisleKey]) => {

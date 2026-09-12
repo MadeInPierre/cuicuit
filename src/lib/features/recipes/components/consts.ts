@@ -324,3 +324,32 @@ export const supermarketAisleSectionHeaders = {
 } satisfies Record<string, UISectionHeader> & { default: UISectionHeader };
 
 export type SupermarketAisleKey = keyof typeof supermarketAisleSectionHeaders;
+
+export const defaultSupermarketAisleOrder: SupermarketAisleKey[] = Object.keys(
+	supermarketAisleSectionHeaders
+) as SupermarketAisleKey[];
+
+/**
+ * Resolve the display order of supermarket aisles from a stored user preference.
+ * Unknown or duplicated keys are dropped, missing aisles are appended in default
+ * order so newly added aisles still show up for users with a saved preference.
+ */
+export function resolveSupermarketAisleOrder(
+	stored: readonly (string | null | undefined)[] | null | undefined
+): SupermarketAisleKey[] {
+	const known = new Set<string>(defaultSupermarketAisleOrder);
+	const seen = new Set<string>();
+	const ordered: SupermarketAisleKey[] = [];
+
+	for (const key of stored ?? []) {
+		if (typeof key !== 'string' || !known.has(key) || seen.has(key)) continue;
+		seen.add(key);
+		ordered.push(key as SupermarketAisleKey);
+	}
+
+	for (const key of defaultSupermarketAisleOrder) {
+		if (!seen.has(key)) ordered.push(key);
+	}
+
+	return ordered;
+}
