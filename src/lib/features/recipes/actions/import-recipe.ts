@@ -1,4 +1,5 @@
 import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
@@ -145,10 +146,11 @@ export async function insertRecipeIngredients(
 
 	for (const processed of processedIngredients) {
 		const bestMatch = processed.matches?.[0];
-		if (!bestMatch) {
-			console.warn('No match found for ingredient, skipping add to DB:', processed.sourceText);
-			continue;
-		}
+		// No catalog match: keep the ingredient as a custom (free-text) one
+		// instead of dropping it, so imports never silently lose ingredients.
+		const customName = bestMatch
+			? null
+			: buildCustomIngredientName(processed.parsed.ingredientText);
 
 		const { data: ingredientInsertData, error: ingredientInsertError } = await supabase
 			.from('recipe_ingredients')
@@ -156,14 +158,15 @@ export async function insertRecipeIngredients(
 				{
 					recipe_id: recipeId,
 					raw_input: processed.sourceText,
-					ingredient_id: bestMatch.id,
+					ingredient_id: bestMatch?.id ?? null,
+					custom_name: customName,
 					quantity: processed.parsed.quantity?.amount || 1,
 					unit: unitToRegionized(processed.parsed.quantity?.unitKey || 'whole', 'eu'), // TODO region, Store a truely standardized unit (regionized)
 					details: processed.parsed.description || '',
 					preparation: processed.parsed.preparation || '',
 					is_optional: processed.parsed.isOptional || false,
 					notes: ''
-				} satisfies Database['public']['Tables']['recipe_ingredients']['Row']
+				} satisfies Database['public']['Tables']['recipe_ingredients']['Insert']
 			])
 			.select()
 			.single();
@@ -272,7 +275,9 @@ export async function copyRecipeIngredients(
 ): Promise<void> {
 	const { data: ingredients, error } = await supabase
 		.from('recipe_ingredients')
-		.select('ingredient_id, quantity, unit, notes, details, raw_input, is_optional, preparation')
+		.select(
+			'ingredient_id, custom_name, quantity, unit, notes, details, raw_input, is_optional, preparation'
+		)
 		.eq('recipe_id', fromRecipeId);
 
 	if (error || !ingredients?.length) return;

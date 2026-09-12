@@ -52,6 +52,9 @@ export async function addRecipeToActivePlan(
 		return;
 	}
 
+	// Every recipe ingredient (catalog or custom) stays linked to the meal so it
+	// shows up in the MealCard; customs carry their free-text custom_name instead
+	// of an ingredient_id (allowed by the space_items CHECK constraint).
 	const shoppingListItems = recipeIngredients.map(
 		(ingredient) =>
 			({
@@ -62,7 +65,9 @@ export async function addRecipeToActivePlan(
 				meal_origin: 'recipe',
 				ingredient_id: ingredient.ingredient_id,
 				priority: ingredient.is_optional ? 'optional' : 'required',
-				name: ingredient.raw_input,
+				name: ingredient.ingredient_id
+					? ingredient.raw_input
+					: (ingredient.custom_name ?? ingredient.raw_input),
 				quantity: ingredient.quantity ?? 1,
 				unit: ingredient.unit
 			}) satisfies TablesInsert<'space_items'>

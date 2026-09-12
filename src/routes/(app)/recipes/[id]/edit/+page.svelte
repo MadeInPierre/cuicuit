@@ -4,6 +4,10 @@
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import {
+		buildCustomIngredientName,
+		resolveIngredientName
+	} from '$lib/features/ingredients/utils/ingredient-display';
+	import {
 		recipeCourses,
 		recipeCuisines,
 		recipeTimesOfDay,
@@ -32,7 +36,7 @@
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
-	import type { Tables } from '$lib/shared/db/supabase.types';
+	import type { Tables, TablesInsert } from '$lib/shared/db/supabase.types';
 	import type { PublicRecipeSourceType } from '$lib/shared/db/supazod.schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { capitalize, cn } from '$lib/utils';
@@ -146,6 +150,7 @@
 						// Servings & Ingredients
 						f.servings = recipeData.servings || 4;
 						f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
+						f.ingredientCustomNames = recipeData.ingredients.map((ing) => ing.custom_name || null);
 						f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
 						f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
 						f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
@@ -156,13 +161,11 @@
 
 						f.ingredientNames = recipeData.ingredients.map((ing) => {
 							const amount = ing.quantity || 1;
-							const translation = ing.ingredient.translations?.[0];
-							if (!translation) return 'Unknown ingredient';
-							const name =
-								amount > 1
-									? translation.name_plural || translation.name_singular
-									: translation.name_singular || translation.name_plural;
-							return name || 'Unknown ingredient';
+							return resolveIngredientName(ing.ingredient?.translations, {
+								lang: recipeData.language?.lang,
+								plural: amount > 1,
+								customName: ing.custom_name
+							});
 						});
 
 						// Steps
@@ -184,8 +187,46 @@
 			return;
 		}
 
+		const amount = ingredientProcessed.parsed.quantity?.amount ?? 1;
+		const unit = ingredientProcessed.parsed.quantity?.unitKey ?? 'whole';
+		const isOptional = ingredientProcessed.parsed.isOptional ?? false;
+
+		// Custom ingredient (not in the catalog): no match selected
 		if (chosenMatchIndex === null) {
-			toast.error('No match selected.');
+			const customName = buildCustomIngredientName(ingredientProcessed.parsed.ingredientText);
+			if (!customName) {
+				toast.error('Failed to add ingredient. Please try again.');
+				return;
+			}
+
+			// Exit if there is already a custom ingredient with the same name to avoid duplicates
+			if (
+				$formData.ingredientCustomNames.some(
+					(name) => name?.toLowerCase() === customName.toLowerCase()
+				)
+			) {
+				toast.error('Already in the list.', {
+					description: 'Please edit the existing ingredient instead.'
+				});
+				return;
+			}
+
+			formData.update(
+				(f) => {
+					f.ingredientIds.push(null);
+					f.ingredientCustomNames.push(customName);
+					f.ingredientAmounts.push(amount);
+					f.ingredientUnits.push(unit);
+					f.ingredientNames.push(customName);
+					f.ingredientIsOptional.push(isOptional);
+					f.ingredientRawInputs.push('');
+					f.ingredientDetails.push('');
+					f.ingredientNotes.push('');
+					f.ingredientPreparations.push('');
+					return f;
+				},
+				{ taint: true }
+			);
 			return;
 		}
 
@@ -202,9 +243,6 @@
 		const translation =
 			chosenMatch.translations.find((t) => t.language?.lang === $formData.language) ||
 			chosenMatch.translations[0];
-		const amount = ingredientProcessed.parsed.quantity?.amount ?? 1;
-		const unit = ingredientProcessed.parsed.quantity?.unitKey ?? 'whole';
-		const isOptional = ingredientProcessed.parsed.isOptional ?? false;
 		const name =
 			amount > 1
 				? translation.name_plural || translation.name_singular
@@ -218,6 +256,7 @@
 		formData.update(
 			(f) => {
 				f.ingredientIds.push(chosenMatch.id);
+				f.ingredientCustomNames.push(null);
 				f.ingredientAmounts.push(amount);
 				f.ingredientUnits.push(unit);
 				f.ingredientNames.push(name);
@@ -335,13 +374,14 @@
 							raw_input: data.ingredientRawInputs[i],
 							recipe_id: recipeIdData.id,
 							ingredient_id: id,
+							custom_name: data.ingredientCustomNames[i],
 							quantity: data.ingredientAmounts[i],
 							unit: data.ingredientUnits[i],
 							details: data.ingredientDetails[i],
 							notes: data.ingredientNotes[i],
 							preparation: data.ingredientPreparations[i],
 							is_optional: data.ingredientIsOptional[i]
-						}) satisfies Tables<'recipe_ingredients'>
+						}) satisfies TablesInsert<'recipe_ingredients'>
 				)
 			)
 			.select();
@@ -369,21 +409,21 @@
 		);
 	}
 
-	function onDeleteIngredient(id: string) {
+	function onDeleteIngredient(index: number) {
 		formData.update(
 			(f) => {
-				const indexToDelete = $formData.ingredientIds.indexOf(id);
-				if (indexToDelete === -1) return f;
+				if (index < 0 || index >= f.ingredientIds.length) return f;
 
-				f.ingredientIds.splice(indexToDelete, 1);
-				f.ingredientAmounts.splice(indexToDelete, 1);
-				f.ingredientUnits.splice(indexToDelete, 1);
-				f.ingredientNames.splice(indexToDelete, 1);
-				f.ingredientIsOptional.splice(indexToDelete, 1);
-				f.ingredientRawInputs.splice(indexToDelete, 1);
-				f.ingredientDetails.splice(indexToDelete, 1);
-				f.ingredientNotes.splice(indexToDelete, 1);
-				f.ingredientPreparations.splice(indexToDelete, 1);
+				f.ingredientIds.splice(index, 1);
+				f.ingredientCustomNames.splice(index, 1);
+				f.ingredientAmounts.splice(index, 1);
+				f.ingredientUnits.splice(index, 1);
+				f.ingredientNames.splice(index, 1);
+				f.ingredientIsOptional.splice(index, 1);
+				f.ingredientRawInputs.splice(index, 1);
+				f.ingredientDetails.splice(index, 1);
+				f.ingredientNotes.splice(index, 1);
+				f.ingredientPreparations.splice(index, 1);
 				return f;
 			},
 			{ taint: true }
@@ -1285,10 +1325,11 @@
 {#snippet ingredientList(isOptional: boolean)}
 	{#each $formData.ingredientIds
 		.map((id, idx) => ({ id, idx }))
-		.filter(({ idx }) => $formData.ingredientIsOptional?.[idx] === isOptional) as { id, idx } (id)}
+		.filter(({ idx }) => $formData.ingredientIsOptional?.[idx] === isOptional) as { id, idx } (id ?? `custom:${$formData.ingredientCustomNames[idx]}`)}
 		<IngredientEditItem
 			{form}
 			{id}
+			customName={$formData.ingredientCustomNames[idx]}
 			bind:name={$formData.ingredientNames[idx]}
 			bind:amount={$formData.ingredientAmounts[idx]}
 			bind:unit={$formData.ingredientUnits[idx]}
@@ -1296,7 +1337,7 @@
 			disabled={loading}
 			disableDelete={$formData.ingredientIds.length <= 2}
 			onDelete={() => {
-				onDeleteIngredient(id);
+				onDeleteIngredient(idx);
 			}}
 		/>
 	{:else}

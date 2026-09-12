@@ -61,8 +61,10 @@ export const createRecipeFormSchema = z
 			.min(1, { message: 'Please indicate a servings amount.' })
 			.max(30, { message: 'Servings cannot go above 30.' }),
 		ingredientIds: z
-			.array(z.string().min(1, { message: 'Please select an ingredient.' }))
+			.array(z.string().min(1, { message: 'Please select an ingredient.' }).nullable())
 			.min(2, { message: 'Please select at least 2 ingredients.' }),
+		// Free-text name for custom ingredients not in the catalog (ingredientIds entry is null)
+		ingredientCustomNames: z.array(z.string().nullable()).default([]),
 		ingredientAmounts: z
 			.array(
 				z
@@ -119,11 +121,23 @@ export const createRecipeFormSchema = z
 			.default([''])
 	})
 	.refine((data) => {
-		const { ingredientAmounts, ingredientUnits, ingredientNames } = data;
+		const {
+			ingredientIds,
+			ingredientAmounts,
+			ingredientUnits,
+			ingredientNames,
+			ingredientCustomNames
+		} = data;
 		return (
 			ingredientAmounts.length === ingredientUnits.length &&
-			ingredientAmounts.length === ingredientNames.length
+			ingredientAmounts.length === ingredientNames.length &&
+			ingredientAmounts.length === ingredientIds.length &&
+			ingredientAmounts.length === ingredientCustomNames.length
 		);
+	})
+	.refine((data) => {
+		// Every row must reference either a catalog ingredient or a custom name
+		return data.ingredientIds.every((id, i) => id ?? data.ingredientCustomNames[i]);
 	});
 
 export type CreateRecipeFormSchema = typeof createRecipeFormSchema;

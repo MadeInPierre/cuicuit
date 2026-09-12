@@ -1,3 +1,4 @@
+import { resolveIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 
@@ -41,8 +42,8 @@ export type ShoppingIngredient = NonNullable<
 >[number]['shopping_ingredients'][number];
 
 export function formatIngredientDisplayName(si: ShoppingIngredient) {
-	const t = si.ingredient?.translations?.[0];
-	return isPluralAmount(si.quantity)
-		? t?.name_plural || t?.name_singular || si.name
-		: t?.name_singular || t?.name_plural || si.name;
+	return resolveIngredientName(si.ingredient?.translations, {
+		plural: isPluralAmount(si.quantity),
+		customName: si.name
+	});
 }

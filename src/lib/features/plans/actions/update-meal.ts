@@ -23,19 +23,30 @@ export async function updateMealServings(
 
 	// Update every shopping list item related to this meal to reflect the new amounts
 	for (const ing of meal.recipe.recipe_ingredients) {
-		const newAmount = ((ing.quantity ?? 1) * servings) / meal.recipe.servings;
+		// Skip rows that are neither catalog nor custom (rejected by DB constraints,
+		// but guard anyway to avoid touching unrelated shopping items)
+		if (!ing.ingredient_id && !ing.custom_name) continue;
 
-		const { error: itemError } = await supabase.client
+		const newAmount = ((ing.quantity ?? 1) * servings) / meal.recipe.servings;
+		const itemLabel = ing.ingredient_id ?? ing.custom_name ?? 'unknown';
+
+		let query = supabase.client
 			.from('space_items')
 			.update({ quantity: newAmount })
 			.eq('space_id', activeSpace.activeSpace.id)
-			.eq('meal_id', meal.id)
-			.eq('ingredient_id', ing.ingredient_id);
+			.eq('meal_id', meal.id);
+
+		// Customs have no ingredient_id, match them by their free-text name instead
+		query = ing.ingredient_id
+			? query.eq('ingredient_id', ing.ingredient_id)
+			: query.is('ingredient_id', null).eq('name', ing.custom_name ?? '');
+
+		const { error: itemError } = await query;
 
 		// Continue updating other items even if one fails
 		if (itemError) {
 			console.error(
-				`Error updating shopping list item ${ing.ingredient_id} for meal ${meal.id}: ${itemError.message}`
+				`Error updating shopping list item ${itemLabel} for meal ${meal.id}: ${itemError.message}`
 			);
 		}
 	}

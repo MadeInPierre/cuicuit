@@ -1,11 +1,11 @@
 <script lang="ts">
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
+	import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
 	import {
 		formatProcessedIngredientDescription,
 		isPluralProcessed
 	} from '$lib/shared/utils/format-quantity';
-	import { capitalize } from '$lib/utils';
 	import { LoaderCircle } from '@lucide/svelte';
 	import { Bird, Search } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
@@ -60,7 +60,9 @@
 
 				<ShoppingItemCard
 					ingredient={undefined}
-					description={capitalize(searchResults.processedIngredient.parsed.ingredientText)}
+					description={buildCustomIngredientName(
+						searchResults.processedIngredient.parsed.ingredientText
+					)}
 					onclick={(e) => {
 						e.preventDefault(); // Avoid submitting the form
 						onSelectIngredient(null);

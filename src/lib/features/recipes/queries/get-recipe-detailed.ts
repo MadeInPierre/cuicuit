@@ -98,16 +98,23 @@ export type RecipeIngredientDetailed = NonNullable<
 	Awaited<ReturnType<typeof getRecipeDetailed>>['data']
 >['ingredients'][number];
 
-// Basic ingredient without substitutes, used in simpler contexts
+// Basic ingredient without substitutes, used in simpler contexts.
+// Note: the `ingredient` embed is nullable on recipe_ingredients rows
+// (custom ingredients have no catalog match), so NonNullable it here —
+// callers handle the null case via `custom_name`.
 export type RecipeIngredientWithTranslations = Omit<
 	NonNullable<
-		Awaited<ReturnType<typeof getRecipeDetailed>>['data']
-	>['ingredients'][number]['ingredient'],
+		NonNullable<
+			Awaited<ReturnType<typeof getRecipeDetailed>>['data']
+		>['ingredients'][number]['ingredient']
+	>,
 	'substitutes'
 > & {
 	translations: NonNullable<
-		Awaited<ReturnType<typeof getRecipeDetailed>>['data']
-	>['ingredients'][number]['ingredient']['translations'];
+		NonNullable<
+			Awaited<ReturnType<typeof getRecipeDetailed>>['data']
+		>['ingredients'][number]['ingredient']
+	>['translations'];
 };
 
 export type RecipeDetailedWithAuthor = NonNullable<

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
+	import { Badge } from '$lib/shared/components/ui/badge';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
@@ -18,7 +19,8 @@
 
 	type Props = {
 		form: any; // TODO: specify form type
-		id: string;
+		id: string | null; // null for custom ingredients not in the catalog
+		customName?: string | null;
 		name: string;
 		amount?: number;
 		unit?: string;
@@ -30,6 +32,7 @@
 	let {
 		form,
 		id,
+		customName = null,
 		name = $bindable(),
 		amount = $bindable(),
 		unit = $bindable(),
@@ -91,6 +94,9 @@
 			<span class="text-ellipsis line-clamp-1 max-[550px]:hidden">
 				{name}
 			</span>
+			{#if !id}
+				<Badge variant="secondary" class="shrink-0">Custom</Badge>
+			{/if}
 		{:else}
 			<span class="font-medium line-clamp-1">
 				{formatQuantity(amount, unit) || '?'}
@@ -99,6 +105,9 @@
 			<span class="text-ellipsis line-clamp-1">
 				{name}
 			</span>
+			{#if !id}
+				<Badge variant="secondary" class="shrink-0">Custom</Badge>
+			{/if}
 		{/if}
 
 		<!-- <Form.Field {form} name="ingredientNames" class="space-y-0 w-full">

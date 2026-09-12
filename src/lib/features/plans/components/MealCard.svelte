@@ -163,7 +163,7 @@
 	{#snippet defaultEndSnippet()}
 		{#if hovered || selected}
 			{@const activeIngredient = meal.shopping_ingredients.find(
-				(ing) => ing.ingredient_id === activeId
+				(ing) => ing.ingredient_id !== null && ing.ingredient_id === activeId
 			)}
 
 			<div class="shrink-0 flex flex-col gap-0 items-center text-xs">
@@ -236,7 +236,7 @@
 						<p class="text-xs text-muted-foreground">No ingredients found.</p>
 					{/if}
 
-					{#each requiredIngredients as si (si.ingredient_id)}
+					{#each requiredIngredients as si (si.id)}
 						<div animate:flip={{ duration: 200 }}>
 							{@render ingredientRow(si)}
 						</div>
@@ -267,7 +267,7 @@
 
 						{#if showOptional}
 							<div transition:slide={{ duration: 200 }}>
-								{#each optionalIngredients as si (si.ingredient_id)}
+								{#each optionalIngredients as si (si.id)}
 									<div animate:flip={{ duration: 200 }}>
 										{@render ingredientRow(si, 'optional')}
 									</div>
@@ -344,7 +344,9 @@
 	<div
 		class={cn(
 			'grid text-xs rounded-sm duration-75 relative transition-all group/si',
-			activeId === si.ingredient_id && 'bg-primary/10 text-primary dark:bg-primary/20 font-medium'
+			activeId !== null &&
+				activeId === si.ingredient_id &&
+				'bg-primary/10 text-primary dark:bg-primary/20 font-medium'
 		)}
 		onmouseenter={() => {
 			hoveredMealIngredient.value = si.ingredient;

@@ -20,15 +20,15 @@
 
 	const displayIngredients = $derived(
 		(ingredients || [])
-			.filter((i) => !i.is_optional && i.ingredient?.id)
+			.filter((i) => !i.is_optional && (i.ingredient?.id || i.custom_name))
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
 			.slice(0, 6)
 	);
 
 	const ingredientName = (ing: RecipeIngredientDetailed) =>
-		ing.ingredient.translations?.[0]?.name_singular ||
-		ing.ingredient.translations?.[0]?.name_plural ||
-		null;
+		ing.ingredient?.translations?.[0]?.name_singular ||
+		ing.ingredient?.translations?.[0]?.name_plural ||
+		ing.custom_name;
 </script>
 
 {#if recipe && recipe.image_ids && recipe.image_ids.length > 0}
@@ -74,9 +74,9 @@
 				className
 			)}
 		>
-			{#each displayIngredients as ing (ing.ingredient_id)}
+			{#each displayIngredients as ing (ing.id)}
 				<IngredientImage
-					id={ing.ingredient.id}
+					id={ing.ingredient?.id ?? null}
 					name={ingredientName(ing)}
 					class="rounded-none max-w-14"
 				/>

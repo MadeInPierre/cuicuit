@@ -157,7 +157,10 @@ CREATE TABLE IF NOT EXISTS "public"."space_items" (
                 ("type" = 'meal'::"text")
                 AND ("meal_id" IS NOT NULL)
                 AND ("meal_origin" IS NOT NULL)
-                AND ("ingredient_id" IS NOT NULL)
+                AND (
+                    ("ingredient_id" IS NOT NULL)
+                    OR ("name" IS NOT NULL)
+                )
             )
             OR (
                 ("type" = 'independent'::"text")
