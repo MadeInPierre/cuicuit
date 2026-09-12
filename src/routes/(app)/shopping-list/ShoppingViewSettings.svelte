@@ -137,28 +137,26 @@
 						>
 							<header.icon class="size-4 shrink-0 text-muted-foreground mr-2" />
 							<span class="min-w-0 flex-1 truncate text-sm">{header.title}</span>
-							<div class="flex shrink-0 items-center">
-								<Button
-									variant="ghost"
-									size="icon"
-									class="size-6"
-									disabled={index === 0}
-									onclick={() => moveAisle(index, -1)}
-									aria-label={`Move ${header.title} up`}
-								>
-									<ChevronUp class="size-4" />
-								</Button>
-								<Button
-									variant="ghost"
-									size="icon"
-									class="size-6"
-									disabled={index === aisleOrder.length - 1}
-									onclick={() => moveAisle(index, 1)}
-									aria-label={`Move ${header.title} down`}
-								>
-									<ChevronDown class="size-4" />
-								</Button>
-							</div>
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-6"
+								disabled={index === 0}
+								onclick={() => moveAisle(index, -1)}
+								aria-label={`Move ${header.title} up`}
+							>
+								<ChevronUp class="size-4" />
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								class="size-6"
+								disabled={index === aisleOrder.length - 1}
+								onclick={() => moveAisle(index, 1)}
+								aria-label={`Move ${header.title} down`}
+							>
+								<ChevronDown class="size-4" />
+							</Button>
 						</div>
 					{/each}
 				</div>

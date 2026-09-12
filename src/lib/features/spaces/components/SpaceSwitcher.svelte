@@ -9,17 +9,14 @@
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { cn } from '$lib/utils';
 	import { ChevronsUpDown, HousePlus, Share2, UserPlus } from '@lucide/svelte';
-	import Loader2 from '@lucide/svelte/icons/loader-circle';
 	import { onMount } from 'svelte';
 	import { spaceIcons, themeButtonClasses, type SpaceIconKey, type SpaceThemeKey } from '../consts';
+	import ActiveSpaceIcon from './ActiveSpaceIcon.svelte';
 	import JoinSpaceForm from './JoinSpaceForm.svelte';
 
 	const userState = getUserState();
 
 	const activeSpace = getActiveSpaceState();
-	const ActiveTeamIcon = $derived(
-		spaceIcons[activeSpace.activeSpace?.icon as SpaceIconKey] || Loader2
-	);
 
 	let openDialog = $state(false);
 	let activeTab: 'create' | 'join' = $state('create');
@@ -68,16 +65,7 @@
 					size="lg"
 					class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 				>
-					<div
-						class={cn(
-							'bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg transition-colors',
-							activeSpace.activeMember &&
-								themeButtonClasses[activeSpace.activeMember.theme as SpaceThemeKey]
-						)}
-					>
-						<ActiveTeamIcon class={cn('size-4', !activeSpace.id && 'animate-spin')}
-						></ActiveTeamIcon>
-					</div>
+					<ActiveSpaceIcon />
 					<div class="grid flex-1 text-left text-sm leading-tight">
 						<span class="truncate font-semibold">
 							{activeSpace.activeSpace?.name || 'Loading...'}

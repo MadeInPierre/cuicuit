@@ -1,6 +1,6 @@
 import type { UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
-import { Bean } from '@lucide/svelte';
 import {
+	Bean,
 	Beef,
 	Blocks,
 	Cake,
@@ -285,12 +285,6 @@ export const supermarketAisleSectionHeaders = {
 		icon: Wheat,
 		classes: 'bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-500'
 	},
-	'ingredients-spices': {
-		title: 'Ingredients & Spices',
-		subtitle: 'Cooking essentials',
-		icon: Bean,
-		classes: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-500'
-	},
 	beverages: {
 		title: 'Beverages',
 		subtitle: 'Drinks and refreshments',
@@ -308,6 +302,12 @@ export const supermarketAisleSectionHeaders = {
 		subtitle: 'Chips, candy, and treats',
 		icon: Candy,
 		classes: 'bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-500'
+	},
+	'ingredients-spices': {
+		title: 'Ingredients & Spices',
+		subtitle: 'Cooking essentials',
+		icon: Bean,
+		classes: 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-500'
 	},
 	'care-health': {
 		title: 'Care & Health',

@@ -37,7 +37,7 @@
 	<img
 		src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 		alt="Recipe"
-		class={cn('size-11 rounded-md object-cover cursor-pointer', className)}
+		class={cn('size-11 aspect-square rounded-md object-cover cursor-pointer', className)}
 		onclick={(e) => {
 			// Prevent clicks on the image from propagating to parent elements (e.g. RecipeCard)
 			e.stopPropagation();
