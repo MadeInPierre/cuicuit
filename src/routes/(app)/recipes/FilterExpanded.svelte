@@ -24,7 +24,7 @@
 		onChange = () => {},
 		options = [],
 		displayColumns = 2,
-		initialVisibleCount = 4
+		initialVisibleCount = 6
 	}: Props = $props();
 </script>
 

@@ -1,11 +1,28 @@
 import { goto } from '$app/navigation';
 import { page } from '$app/state';
 
-export type RecipeSearchFilters = {
-	timeOfDay: string[];
-	course: string[];
-	cuisine: string[];
-};
+/**
+ * All available recipe search filter keys, in URL encoding order.
+ * To add a new filter, append its key here and add its definition
+ * in `components/recipe-filter-defs.ts` — encode/decode adapt automatically.
+ */
+export const recipeFilterKeys = [
+	'timeOfDay',
+	'course',
+	'cuisine',
+	'effort',
+	'cleanup',
+	'skill',
+	'cost',
+	'prepTime',
+	'cookTime',
+	'restTime',
+	'totalTime'
+] as const;
+
+export type RecipeFilterKey = (typeof recipeFilterKeys)[number];
+
+export type RecipeSearchFilters = Record<RecipeFilterKey, string[]>;
 
 export type RecipeGroupByKey = 'recommended' | 'cookableState' | 'timeOfDay' | 'course' | 'cuisine';
 export type RecipeDiscoverKey = 'familiar' | 'mixed' | 'discover';
@@ -17,25 +34,28 @@ export type RecipesPageParameters = {
 };
 
 export function emptyRecipeFilters(): RecipeSearchFilters {
-	return { timeOfDay: [], course: [], cuisine: [] };
+	const filters = {} as RecipeSearchFilters;
+	for (const key of recipeFilterKeys) {
+		filters[key] = [];
+	}
+	return filters;
 }
 
 // Compact encoding: join arrays with ',' and separate keys with '|'
+// (positions follow `recipeFilterKeys` order; missing trailing parts decode as [])
 export function encodeRecipeFilters(filters: RecipeSearchFilters): string {
-	const timeOfDay = filters.timeOfDay.join(',');
-	const course = filters.course.join(',');
-	const cuisine = filters.cuisine.join(',');
-	return `${timeOfDay}|${course}|${cuisine}`;
+	return recipeFilterKeys.map((key) => filters[key].join(',')).join('|');
 }
 
 export function decodeRecipeFilters(filters: string | null): RecipeSearchFilters {
-	if (!filters) return emptyRecipeFilters();
-	const [timeOfDayStr = '', courseStr = '', cuisineStr = ''] = filters.split('|');
-	return {
-		timeOfDay: timeOfDayStr ? timeOfDayStr.split(',').filter(Boolean) : [],
-		course: courseStr ? courseStr.split(',').filter(Boolean) : [],
-		cuisine: cuisineStr ? cuisineStr.split(',').filter(Boolean) : []
-	};
+	const decoded = emptyRecipeFilters();
+	if (!filters) return decoded;
+	const parts = filters.split('|');
+	recipeFilterKeys.forEach((key, index) => {
+		const part = parts[index];
+		if (part) decoded[key] = part.split(',').filter(Boolean);
+	});
+	return decoded;
 }
 
 class RecipesSearchState {

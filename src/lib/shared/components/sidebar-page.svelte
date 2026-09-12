@@ -46,7 +46,7 @@
 		<SidebarRight />
 	{/if}
 
-	<Sidebar.Inset>
+	<Sidebar.Inset class="min-w-0">
 		<header
 			data-scroll-header
 			data-last-y="0"

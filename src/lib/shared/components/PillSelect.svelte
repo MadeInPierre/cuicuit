@@ -79,14 +79,14 @@
 			<div class="flex items-center justify-between gap-2">
 				<div class="flex-1">
 					{#if title}
-						<Label class="text-base font-semibold">{title}</Label>
+						<Label class="px-2 text-base font-semibold">{title}</Label>
 					{/if}
 					{#if description}
 						<p class="text-sm text-muted-foreground mt-1">{description}</p>
 					{/if}
 				</div>
 
-				{#if hasMore && (!media.md || isExpanded)}
+				<!-- {#if hasMore && (!media.md || isExpanded)}
 					<div in:fade={{ duration: 200 }}>
 						<Button variant="ghost" size="icon-sm" onclick={() => (isExpanded = !isExpanded)}>
 							<ChevronDown
@@ -94,7 +94,7 @@
 							/>
 						</Button>
 					</div>
-				{/if}
+				{/if} -->
 			</div>
 		{/if}
 
@@ -135,7 +135,7 @@
 			<Button
 				variant="ghost"
 				size="sm"
-				class="hidden sm:flex w-full text-muted-foreground"
+				class="flex w-full text-muted-foreground"
 				onclick={() => (isExpanded = true)}
 			>
 				Show {remainingCount} more
