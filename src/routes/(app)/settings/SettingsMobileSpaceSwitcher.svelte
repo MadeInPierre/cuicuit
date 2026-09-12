@@ -66,7 +66,10 @@
 					{space.name}
 
 					{#if activeSpace.id === space.id}
-						<div transition:fade={{ duration: 75 }} class="text-primary font-bold ml-auto">
+						<div
+							transition:fade={{ duration: 75 }}
+							class="text-primary font-bold ml-auto bg-primary/10 px-2.5 py-0.5 rounded-full"
+						>
 							Current
 						</div>
 					{/if}

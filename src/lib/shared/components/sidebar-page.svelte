@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import ActiveSpaceIcon from '$lib/features/spaces/components/ActiveSpaceIcon.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
@@ -10,8 +9,6 @@
 	import SupportBanner from './SupportBanner.svelte';
 	import ThemeButton from './ThemeButton.svelte';
 	import { Button } from './ui/button';
-
-	const userState = getUserState();
 
 	interface Props {
 		children?: import('svelte').Snippet;
@@ -99,7 +96,7 @@
 				<ThemeButton class="md:hidden" />
 
 				<a href="/settings" class="md:hidden">
-					<UserAvatar profile={userState.profile} class="size-10" />
+					<ActiveSpaceIcon variant="muted" class="size-10 rounded-full" iconClass="size-5" />
 				</a>
 			</div>
 		</header>
