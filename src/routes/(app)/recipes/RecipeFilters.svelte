@@ -1,16 +1,11 @@
 <script lang="ts">
 	import SheetResponsive from '$lib/shared/components/SheetResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
+	import type { RecipeSearchFilters } from '$lib/features/recipes/state/recipes-search.svelte';
 	import { ScrollArea } from '$lib/shared/components/ui/scroll-area';
 	import { FunnelPlus, RotateCcw } from '@lucide/svelte';
 	import { cn } from 'tailwind-variants';
 	import FilterList from './FilterList.svelte';
-
-	type RecipeSearchFilters = {
-		timeOfDay: string[];
-		course: string[];
-		cuisine: string[];
-	};
 
 	type Props = {
 		align?: 'start' | 'end';

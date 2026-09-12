@@ -4,14 +4,9 @@
 		recipeCuisineSectionHeaders,
 		recipeTimesOfDaySectionHeaders
 	} from '$lib/features/recipes/components/consts';
+	import type { RecipeSearchFilters } from '$lib/features/recipes/state/recipes-search.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import FilterExpanded from './FilterExpanded.svelte';
-
-	type RecipeSearchFilters = {
-		timeOfDay: string[];
-		course: string[];
-		cuisine: string[];
-	};
 
 	type Props = {
 		filters: RecipeSearchFilters;
