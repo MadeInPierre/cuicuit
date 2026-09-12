@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS "public"."user_preferences" (
     "updated_at" timestamp with time zone DEFAULT "now" () NOT NULL,
     "first_name" "text" NOT NULL,
     "last_name" "text" NOT NULL,
-    "onboarding_status" "text" DEFAULT 'not-started'::"text" NOT NULL
+    "onboarding_status" "text" DEFAULT 'not-started'::"text" NOT NULL,
+    "aisle_order" "text"[]
 );
 
 -- 2. Ownership

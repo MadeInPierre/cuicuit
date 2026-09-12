@@ -18,3 +18,5 @@ The [hosted version](https://cuicuit.laclau.dev) has this additional setup:
 No self-hosted version available yet, the app is in active development and will be released as a docker-compose deployment soon.
 
 Always follow KISS and YAGNI principles, aim for simplicity and a clean & easy-to-understand codebase with no code duplication. If a cleaner code is possible but would break backward compatibility or involve a large refactor, assume the user prefers breaking backward compatibility for a cleaner codebase at the end, but ask them for confirmation before implementing.
+
+Never go deep into node_modules or try to reproduce internal supabase behavior to debug a hard issue. Just refer to the documentation and try your best guess fix.

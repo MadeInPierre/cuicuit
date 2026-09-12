@@ -678,6 +678,7 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          aisle_order: string[] | null
           created_at: string
           first_name: string
           last_name: string
@@ -686,6 +687,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aisle_order?: string[] | null
           created_at?: string
           first_name: string
           last_name: string
@@ -694,6 +696,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aisle_order?: string[] | null
           created_at?: string
           first_name?: string
           last_name?: string
@@ -735,7 +738,6 @@ export type Database = {
       recipes_randomized: {
         Row: {
           author_id: string | null
-          cache_id: string | null
           cleanup_level: Database["public"]["Enums"]["cleanup_level"] | null
           cost_level: Database["public"]["Enums"]["cost_level"] | null
           courses: Database["public"]["Enums"]["course"][] | null
@@ -767,7 +769,6 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
-          cache_id?: string | null
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
           cost_level?: Database["public"]["Enums"]["cost_level"] | null
           courses?: Database["public"]["Enums"]["course"][] | null
@@ -799,7 +800,6 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
-          cache_id?: string | null
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
           cost_level?: Database["public"]["Enums"]["cost_level"] | null
           courses?: Database["public"]["Enums"]["course"][] | null
@@ -830,13 +830,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "recipes_cache_id_fkey"
-            columns: ["cache_id"]
-            isOneToOne: false
-            referencedRelation: "recipes_cache"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "recipes_language_id_fkey"
             columns: ["language_id"]
@@ -909,10 +902,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { max_length?: number; value: string }; Returns: string }
-      unaccent: { Args: { "": string }; Returns: string }
       users_share_common_space: {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean
@@ -1022,12 +1012,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1051,11 +1041,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1076,11 +1066,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1101,11 +1091,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1118,11 +1108,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
