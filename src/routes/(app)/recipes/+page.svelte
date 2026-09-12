@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { addExampleRecipes } from '$lib/features/recipes/actions/add-example-recipes.remote';
@@ -21,6 +19,12 @@
 		type RecipeDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import {
+		recipesSearchState,
+		type RecipeDiscoverKey,
+		type RecipeGroupByKey,
+		type RecipeSearchFilters
+	} from '$lib/features/recipes/state/recipes-search.svelte';
 	import type { LanguageKey } from '$lib/features/user-settings/consts';
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
@@ -37,29 +41,10 @@
 
 	const userState = getUserState();
 
-	type RecipeSearchFilters = {
-		timeOfDay: string[];
-		course: string[];
-		cuisine: string[];
-	};
-
-	type GroupByKey = 'recommended' | 'cookableState' | 'timeOfDay' | 'course' | 'cuisine';
-	type DiscoverKey = 'familiar' | 'mixed' | 'discover';
-	type PageParameters = {
-		groupBy: GroupByKey;
-		discover: DiscoverKey;
-		filters: RecipeSearchFilters;
-	};
-
 	const space = getActiveSpaceState();
 
-	// Use a compact encoding: join arrays with ',' and separate keys with '|'
-	function encodeFilters(filters: RecipeSearchFilters): string {
-		const timeOfDay = filters.timeOfDay.join(',');
-		const course = filters.course.join(',');
-		const cuisine = filters.cuisine.join(',');
-		return `${timeOfDay}|${course}|${cuisine}`;
-	}
+	const parameters = $derived(recipesSearchState.parameters);
+	const setParameters = recipesSearchState.setParameters.bind(recipesSearchState);
 
 	// Return a time-based greeting
 	function getGreeting() {
@@ -69,51 +54,11 @@
 		return 'Good evening';
 	}
 
-	function decodeFilters(filters: string | null): RecipeSearchFilters {
-		if (!filters) return { timeOfDay: [], course: [], cuisine: [] };
-		const [timeOfDayStr = '', courseStr = '', cuisineStr = ''] = filters.split('|');
-		return {
-			timeOfDay: timeOfDayStr ? timeOfDayStr.split(',').filter(Boolean) : [],
-			course: courseStr ? courseStr.split(',').filter(Boolean) : [],
-			cuisine: cuisineStr ? cuisineStr.split(',').filter(Boolean) : []
-		};
-	}
-
-	const parameters: PageParameters = $derived({
-		groupBy: (page.url.searchParams.get('groupBy') as GroupByKey) || 'course',
-		discover: (page.url.searchParams.get('discover') as DiscoverKey) || 'familiar',
-		filters: decodeFilters(page.url.searchParams.get('filters'))
-	});
-
-	function setParameters(newParameters: PageParameters) {
-		let query = new URLSearchParams(page.url.searchParams.toString());
-
-		if (!newParameters.groupBy || newParameters.groupBy === 'course') {
-			query.delete('groupBy');
-		} else {
-			query.set('groupBy', newParameters.groupBy);
-		}
-
-		if (!newParameters.discover || newParameters.discover === 'familiar') {
-			query.delete('discover');
-		} else {
-			query.set('discover', newParameters.discover);
-		}
-
-		if (Object.values(newParameters.filters).some((arr) => arr.length > 0)) {
-			query.set('filters', encodeFilters(newParameters.filters));
-		} else {
-			query.delete('filters');
-		}
-
-		goto(`?${query.toString()}`);
-	}
-
 	// Get all recipes in supabase
 	async function getRecipes(
 		searchText: string = '',
 		filters: RecipeSearchFilters | null = null,
-		discover: DiscoverKey | null = null
+		discover: RecipeDiscoverKey | null = null
 	) {
 		if (!space.language) return [];
 
@@ -150,8 +95,6 @@
 	let searchLoading: boolean = $state(false);
 
 	let groupBy = $derived(parameters.groupBy || 'timeOfDay');
-
-	let searchInput: string = $state('');
 
 	let servingsPref = createPersistentState<number>('global-recipe-page-servings', 2, {
 		toString: (value: number) => value.toString(),
@@ -228,7 +171,11 @@
 	});
 
 	async function fetchRecipes() {
-		const data = await getRecipes(searchInput, parameters.filters, parameters.discover);
+		const data = await getRecipes(
+			recipesSearchState.searchInput,
+			parameters.filters,
+			parameters.discover
+		);
 		recipes = data || [];
 		searchLoading = false;
 		loading = false;
@@ -274,7 +221,7 @@
 	let _firstRun = $state(true);
 	$effect(() => {
 		// Trigger this effect when searchInput or filters change
-		searchInput;
+		recipesSearchState.searchInput;
 		parameters.filters;
 		parameters.discover;
 
@@ -282,7 +229,7 @@
 		if (!space.language) return;
 
 		// Show loading indicator on the search bar
-		if (searchInput) searchLoading = true;
+		if (recipesSearchState.searchInput) searchLoading = true;
 
 		// Fetch recipes with text search and filters
 		let timeout: any;
@@ -327,7 +274,7 @@
 						onChange={(newValues) =>
 							setParameters({
 								...parameters,
-								groupBy: newValues?.[newValues.length - 1] as GroupByKey
+								groupBy: newValues?.[newValues.length - 1] as RecipeGroupByKey
 							})}
 						closeOnSelect
 					/>
@@ -363,7 +310,11 @@
 						onChange={(value) => setParameters({ ...parameters, discover: value })}
 					/> -->
 
-					<SearchBar class="w-40 lg:w-80" bind:value={searchInput} loading={searchLoading} />
+					<SearchBar
+						class="w-40 lg:w-80"
+						bind:value={recipesSearchState.searchInput}
+						loading={searchLoading}
+					/>
 
 					<ImportRecipeDialog>
 						{#snippet trigger({ props })}
@@ -381,18 +332,8 @@
 					onFiltersChange={(newFilters) => {
 						setParameters({ ...parameters, filters: newFilters });
 					}}
-					{searchInput}
-					onReset={() => {
-						searchInput = '';
-						setParameters({
-							...parameters,
-							filters: {
-								timeOfDay: [],
-								course: [],
-								cuisine: []
-							}
-						});
-					}}
+					searchInput={recipesSearchState.searchInput}
+					onReset={() => recipesSearchState.reset()}
 				/>
 			</div>
 		</div>
@@ -408,18 +349,8 @@
 					onFiltersChange={(newFilters) => {
 						setParameters({ ...parameters, filters: newFilters });
 					}}
-					{searchInput}
-					onReset={() => {
-						searchInput = '';
-						setParameters({
-							...parameters,
-							filters: {
-								timeOfDay: [],
-								course: [],
-								cuisine: []
-							}
-						});
-					}}
+					searchInput={recipesSearchState.searchInput}
+					onReset={() => recipesSearchState.reset()}
 				/>
 			</div>
 
@@ -477,7 +408,7 @@
 
 					<RecipeCarousel
 						recipes={sectionRecipes.recipes}
-						expand={(['recommended', 'cookableState'] as GroupByKey[]).includes(
+						expand={(['recommended', 'cookableState'] as RecipeGroupByKey[]).includes(
 							parameters.groupBy
 						) || !media.sm}
 						onSeeAll={() => {
@@ -501,15 +432,7 @@
 			{#if Object.values(parameters.filters).some((value) => value.length > 0)}
 				<p class="w-40 mx-auto mb-6">Try resetting your filters to get more results.</p>
 
-				<Button
-					onclick={() => {
-						searchInput = '';
-						setParameters({
-							...parameters,
-							filters: { course: [], cuisine: [], timeOfDay: [] }
-						});
-					}}
-				>
+				<Button onclick={() => recipesSearchState.reset()}>
 					<RotateCcw class="size-4 mr-2" />
 					Reset filters
 				</Button>
