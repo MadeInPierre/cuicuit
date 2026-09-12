@@ -246,8 +246,10 @@ export type Database = {
       }
       recipe_ingredients: {
         Row: {
+          custom_name: string | null
           details: string | null
-          ingredient_id: string
+          id: string
+          ingredient_id: string | null
           is_optional: boolean
           notes: string | null
           preparation: string | null
@@ -257,8 +259,10 @@ export type Database = {
           unit: string | null
         }
         Insert: {
+          custom_name?: string | null
           details?: string | null
-          ingredient_id: string
+          id?: string
+          ingredient_id?: string | null
           is_optional?: boolean
           notes?: string | null
           preparation?: string | null
@@ -268,8 +272,10 @@ export type Database = {
           unit?: string | null
         }
         Update: {
+          custom_name?: string | null
           details?: string | null
-          ingredient_id?: string
+          id?: string
+          ingredient_id?: string | null
           is_optional?: boolean
           notes?: string | null
           preparation?: string | null

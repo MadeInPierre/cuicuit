@@ -1,6 +1,6 @@
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
-import { capitalize } from '$lib/utils';
 
 export async function addShoppingItem(
 	space: ActiveSpaceState,
@@ -22,7 +22,7 @@ export async function addShoppingItem(
 		ingredient_id: ingredientId,
 		quantity: quantity,
 		unit: unit,
-		name: capitalize(name).trim(),
+		name: buildCustomIngredientName(name),
 		priority: 'required'
 	});
 

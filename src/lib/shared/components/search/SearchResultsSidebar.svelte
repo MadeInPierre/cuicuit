@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
+	import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { type IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
@@ -9,7 +10,7 @@
 		formatProcessedIngredientDescription,
 		isPluralProcessed
 	} from '$lib/shared/utils/format-quantity';
-	import { capitalize, cn } from '$lib/utils';
+	import { cn } from '$lib/utils';
 	import { Bird, LoaderCircle, Search } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import { slide } from 'svelte/transition';
@@ -190,7 +191,9 @@
 					{#if allowCustom}
 						<ShoppingItemCard
 							ingredient={undefined}
-							name={capitalize(searchResults.processedIngredient.parsed.ingredientText)}
+							name={buildCustomIngredientName(
+								searchResults.processedIngredient.parsed.ingredientText
+							)}
 							description={formatProcessedIngredientDescription(searchResults.processedIngredient)}
 							onclick={(e) => {
 								e.preventDefault(); // Avoid submitting the form

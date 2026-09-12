@@ -318,8 +318,10 @@ GRANT ALL ON TABLE "public"."recipes_randomized" TO "service_role";
 -------------------
 -- 1. Definition
 CREATE TABLE IF NOT EXISTS "public"."recipe_ingredients" (
+    "id" "uuid" DEFAULT "gen_random_uuid" () NOT NULL,
     "recipe_id" "uuid" NOT NULL,
-    "ingredient_id" "uuid" NOT NULL,
+    "ingredient_id" "uuid",
+    "custom_name" "text",
     "quantity" numeric(10, 2),
     "unit" character varying(50),
     "notes" "text",
@@ -328,7 +330,16 @@ CREATE TABLE IF NOT EXISTS "public"."recipe_ingredients" (
     "is_optional" boolean DEFAULT false NOT NULL,
     "preparation" "text",
     CONSTRAINT "recipe_ingredients_details_check" CHECK (("length" ("details") <= 60)),
-    CONSTRAINT "recipe_ingredients_raw_input_check" CHECK (("length" ("raw_input") <= 120))
+    CONSTRAINT "recipe_ingredients_raw_input_check" CHECK (("length" ("raw_input") <= 120)),
+    CONSTRAINT "recipe_ingredients_custom_name_check" CHECK (
+        (("custom_name" IS NULL) OR (("length" ("custom_name") <= 100)))
+    ),
+    CONSTRAINT "recipe_ingredients_custom_check" CHECK (
+        (
+            ("ingredient_id" IS NOT NULL)
+            OR (("custom_name" IS NOT NULL) AND ("custom_name" <> ''::"text"))
+        )
+    )
 );
 
 -- 2. Ownership
@@ -336,7 +347,7 @@ ALTER TABLE "public"."recipe_ingredients" OWNER TO "postgres";
 
 -- 3. Constraints
 ALTER TABLE ONLY "public"."recipe_ingredients"
-ADD CONSTRAINT "recipe_ingredients_pkey" PRIMARY KEY ("recipe_id", "ingredient_id");
+ADD CONSTRAINT "recipe_ingredients_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."recipe_ingredients"
 ADD CONSTRAINT "recipe_ingredients_recipe_id_fkey" FOREIGN KEY ("recipe_id") REFERENCES "public"."recipes" ("id") ON DELETE CASCADE;
@@ -354,6 +365,12 @@ GRANT ALL ON TABLE "public"."recipe_ingredients" TO "service_role";
 
 -- 6. Indexes
 CREATE INDEX "idx_recipe_ingredients_ingredient_id" ON "public"."recipe_ingredients" USING "btree" ("ingredient_id");
+
+-- Preserve the old (recipe_id, ingredient_id) uniqueness for catalog ingredients
+CREATE UNIQUE INDEX "recipe_ingredients_recipe_ingredient_uniq" ON "public"."recipe_ingredients" USING "btree" ("recipe_id", "ingredient_id") WHERE ("ingredient_id" IS NOT NULL);
+
+-- Avoid duplicate custom ingredients within a recipe (case-insensitive)
+CREATE UNIQUE INDEX "recipe_ingredients_recipe_custom_uniq" ON "public"."recipe_ingredients" USING "btree" ("recipe_id", ("lower" ("custom_name"))) WHERE ("ingredient_id" IS NULL);
 
 --
 -- ==================================================
