@@ -39,6 +39,7 @@
 		type CombinedShoppingListItem,
 		formatCombinedItemQuantity
 	} from './generate-shopping-list';
+	import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import ItemDrawer from './ItemDrawer.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
@@ -387,8 +388,8 @@
 					ingredient={item.ingredient}
 					name={item.name}
 					description={formatCombinedItemQuantity(item)}
-					plural={Object.entries(item.mergedQuantity).some(
-						([_, quantities]) => quantities.withOptionals > 1
+					plural={Object.values(item.mergedQuantity).some((quantities) =>
+						isPluralAmount(quantities.withOptionals)
 					)}
 					size="md"
 					selectable

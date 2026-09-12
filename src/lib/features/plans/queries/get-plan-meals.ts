@@ -1,4 +1,5 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 
 export function getPlanMeals(spaceId: string, languageId: number) {
 	if (!supabase.client) throw new Error('Supabase client not available');
@@ -41,7 +42,7 @@ export type ShoppingIngredient = NonNullable<
 
 export function formatIngredientDisplayName(si: ShoppingIngredient) {
 	const t = si.ingredient?.translations?.[0];
-	return si.quantity && si.quantity > 1
+	return isPluralAmount(si.quantity)
 		? t?.name_plural || t?.name_singular || si.name
 		: t?.name_singular || t?.name_plural || si.name;
 }

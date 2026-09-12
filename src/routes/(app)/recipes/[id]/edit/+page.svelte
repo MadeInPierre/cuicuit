@@ -34,9 +34,10 @@
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import type { Tables } from '$lib/shared/db/supabase.types';
 	import type { PublicRecipeSourceType } from '$lib/shared/db/supazod.schemas';
+	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { capitalize, cn } from '$lib/utils';
-	import { ArrowUpDown } from '@lucide/svelte';
 	import {
+		ArrowUpDown,
 		ChevronDown,
 		ChevronUp,
 		LoaderCircle,
@@ -396,6 +397,8 @@
 		website: 'Website',
 		'user-manual': 'Manual'
 	} satisfies Record<PublicRecipeSourceType, string>;
+
+	const media = useMedia();
 </script>
 
 <form method="POST" use:enhance class="space-y-8">
@@ -677,9 +680,10 @@
 								<SearchResultsSidebar
 									onSelect={onAddIngredient}
 									class="mb-3"
-									displayColumns={5}
-									displayRows={1}
+									displayColumns={media.sm ? 5 : 3}
+									displayRows={media.sm ? 1 : 2}
 									display="ingredients"
+									allowCustom
 								/>
 
 								<Label>Required</Label>

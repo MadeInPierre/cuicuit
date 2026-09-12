@@ -5,6 +5,7 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { formatQuantity } from '$lib/shared/utils/format-quantity';
 	import {
 		unitLabels,
 		unitToRegionized,
@@ -14,7 +15,6 @@
 	} from '$lib/shared/utils/quantity';
 	import { Pencil, Trash } from '@lucide/svelte';
 	import { ArrowUpDown, PencilOff } from '@lucide/svelte';
-	import { formatQuantityAmount } from '../../../shopping-list/generate-shopping-list';
 
 	type Props = {
 		form: any; // TODO: specify form type
@@ -92,12 +92,8 @@
 				{name}
 			</span>
 		{:else}
-			<span class="font-semi line-clamp-1">
-				{amount ? formatQuantityAmount(amount) : ''}
-
-				{unit && Object.keys(unitLabels).includes(unitToUnregionized(unit as UnitRegionized))
-					? unitLabels[unitToUnregionized(unit as UnitRegionized)]
-					: '?'}
+			<span class="font-medium line-clamp-1">
+				{formatQuantity(amount, unit) || '?'}
 			</span>
 
 			<span class="text-ellipsis line-clamp-1">

@@ -4,8 +4,9 @@ import type {
 	ShoppingIngredient
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
+import { formatQuantityAmount, formatUnit } from '$lib/shared/utils/format-quantity';
 import { mergeQuantities } from '$lib/shared/utils/merge-quantities';
-import { unitToUnregionized, type UnitRegionized } from '$lib/shared/utils/quantity';
+import { type UnitRegionized } from '$lib/shared/utils/quantity';
 
 export type CombinedShoppingListItem = {
 	name: string;
@@ -184,18 +185,18 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 	const parts: string[] = [];
 
 	for (const [unit, qty] of Object.entries(item.mergedQuantity)) {
-		const unitStr = unit === 'whole' ? '' : unitToUnregionized(unit as UnitRegionized) || unit;
+		const unitStr = formatUnit(unit);
 
 		if (qty.optionalOnly > 0) {
 			if (qty.requiredOnly > 0) {
 				parts.push(
-					`${formatQuantityAmount(qty.requiredOnly)} to ${formatQuantityAmount(qty.withOptionals)} ${unitStr}`
+					`${formatQuantityAmount(qty.requiredOnly)} to ${formatQuantityAmount(qty.withOptionals)}${unitStr ? ` ${unitStr}` : ''}`
 				);
 			} else {
-				parts.push(`${formatQuantityAmount(qty.optionalOnly)} ${unitStr}`);
+				parts.push(`${formatQuantityAmount(qty.optionalOnly)}${unitStr ? ` ${unitStr}` : ''}`);
 			}
 		} else {
-			parts.push(`${formatQuantityAmount(qty.withOptionals)} ${unitStr}`);
+			parts.push(`${formatQuantityAmount(qty.withOptionals)}${unitStr ? ` ${unitStr}` : ''}`);
 		}
 	}
 
@@ -214,54 +215,4 @@ export function formatCombinedItemQuantity(item: CombinedShoppingListItem): stri
 		optText = ' (has opt)';
 	}
 	return parts.join(' + ') + optText;
-}
-
-export function formatQuantityAmount(amount: number) {
-	const commonFractions = [
-		[0.0625, '⅟₁₆'],
-		[0.125, '⅛'],
-		[0.1875, '⅜'],
-		[0.25, '¼'],
-		[0.3125, '⅝'],
-		[0.375, '⅜'],
-		[0.4375, '⅞'],
-		[0.5, '½'],
-		[0.5625, '⅞'],
-		[0.625, '⅝'],
-		[0.6875, '⅞'],
-		[0.75, '¾'],
-		[0.8125, '⅞'],
-		[0.875, '⅞'],
-		[0.9375, '⅞'],
-		[0.2, '⅕'],
-		[0.4, '⅖'],
-		[0.6, '⅗'],
-		[0.8, '⅘'],
-		[1 / 3, '⅓'],
-		[0.33, '⅓'],
-		[0.34, '⅓'],
-		[2 / 3, '⅔'],
-		[0.66, '⅔'],
-		[0.67, '⅔']
-	] as const;
-
-	if (Number.isInteger(amount)) {
-		return String(amount);
-	}
-
-	const wholePart = Math.trunc(amount);
-	const decimalPart = Math.abs(amount - wholePart);
-	const matchingFraction = commonFractions.find(([value]) => Math.abs(decimalPart - value) < 1e-6);
-
-	if (matchingFraction) {
-		const [, fractionText] = matchingFraction;
-		const sign = amount < 0 ? '-' : '';
-		const scaledWhole = Math.abs(wholePart);
-		return `${sign}${scaledWhole > 0 ? `${scaledWhole} ${fractionText}` : fractionText}`;
-	}
-
-	return amount
-		.toFixed(1)
-		.replace(/\.00$/, '')
-		.replace(/(\.\d)0$/, '$1');
 }

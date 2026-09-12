@@ -5,9 +5,12 @@
 	import { type IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import {
+		formatProcessedIngredientDescription,
+		isPluralProcessed
+	} from '$lib/shared/utils/format-quantity';
 	import { capitalize, cn } from '$lib/utils';
-	import { LoaderCircle } from '@lucide/svelte';
-	import { Bird, Search } from '@lucide/svelte';
+	import { Bird, LoaderCircle, Search } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import { slide } from 'svelte/transition';
 	import { Input } from '../ui/input';
@@ -174,13 +177,8 @@
 					{#each searchResults.processedIngredient.matches.slice(0, displayRows * displayColumns - (allowCustom ? 1 : 0)) as ingredient, index (ingredient.id)}
 						<ShoppingItemCard
 							{ingredient}
-							description={(searchResults.processedIngredient.parsed.quantity?.amount || '') +
-								' ' +
-								(searchResults.processedIngredient.parsed.quantity?.unitKey?.replace('whole', '') ||
-									'') +
-								' ' +
-								(searchResults.processedIngredient.parsed.description || '')}
-							plural={(searchResults.processedIngredient.parsed.quantity?.amount || 0) > 1}
+							description={formatProcessedIngredientDescription(searchResults.processedIngredient)}
+							plural={isPluralProcessed(searchResults.processedIngredient)}
 							onclick={(e) => {
 								e.preventDefault(); // Avoid submitting the form
 								onSelectIngredient(index);
@@ -192,7 +190,8 @@
 					{#if allowCustom}
 						<ShoppingItemCard
 							ingredient={undefined}
-							description={capitalize(searchResults.processedIngredient.parsed.ingredientText)}
+							name={capitalize(searchResults.processedIngredient.parsed.ingredientText)}
+							description={formatProcessedIngredientDescription(searchResults.processedIngredient)}
 							onclick={(e) => {
 								e.preventDefault(); // Avoid submitting the form
 								onSelectIngredient(null);
