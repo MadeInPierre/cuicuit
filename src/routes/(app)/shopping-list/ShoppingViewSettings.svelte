@@ -14,14 +14,14 @@
 	import type { PersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import {
 		BetweenHorizonalEnd,
+		ChevronDown,
+		ChevronUp,
 		Grid3x3,
-		GripVertical,
 		List,
 		PanelBottom,
 		Settings2
 	} from '@lucide/svelte';
 	import { flip } from 'svelte/animate';
-	import { dragHandle, dragHandleZone } from 'svelte-dnd-action';
 
 	type Props = {
 		itemsLayout: PersistentState<string>;
@@ -40,38 +40,27 @@
 
 	const userState = getUserState();
 
-	type AisleDndItem = { id: SupermarketAisleKey };
-	// svelte-dnd-action needs `{ id }` items, the aisle key doubles as the id.
-	// Single writable array: the same reference feeds both the zone and the
-	// each-block, and the handlers assign `e.detail.items` back directly
-	// (preserving object identities) so the library can track the dragged element.
-	let dndItems = $state<AisleDndItem[]>(
-		resolveSupermarketAisleOrder(userState.preferences?.aisle_order).map((key) => ({ id: key }))
+	let aisleOrder = $state<SupermarketAisleKey[]>(
+		resolveSupermarketAisleOrder(userState.preferences?.aisle_order)
 	);
 
 	// Keep local order in sync with the saved preference (initial load, refresh
-	// after save). Keyed on the saved order so in-progress drags are untouched.
+	// after save).
 	let lastSyncedAisleOrder = $state<string | null>(null);
 	$effect(() => {
 		const saved = resolveSupermarketAisleOrder(userState.preferences?.aisle_order);
 		if (saved.join() === lastSyncedAisleOrder) return;
 		lastSyncedAisleOrder = saved.join();
-		dndItems = saved.map((key) => ({ id: key }));
+		aisleOrder = saved;
 	});
 
-	function handleDndConsider(e: { detail: { items: AisleDndItem[] } }) {
-		if (e.detail.items.length < 2) return;
-		dndItems = e.detail.items;
-	}
+	async function moveAisle(index: number, direction: -1 | 1) {
+		const nextIndex = index + direction;
+		if (nextIndex < 0 || nextIndex >= aisleOrder.length) return;
 
-	async function handleDndFinalize(e: { detail: { items: AisleDndItem[] } }) {
-		if (e.detail.items.length < 2) return;
-		dndItems = e.detail.items;
-
-		// Skip the write when the order didn't change
-		const next = dndItems.map((item) => item.id);
-		const saved = resolveSupermarketAisleOrder(userState.preferences?.aisle_order);
-		if (next.join() === saved.join()) return;
+		const next = [...aisleOrder];
+		[next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+		aisleOrder = next;
 
 		const userId = userState.user?.id;
 		if (!userId) return;
@@ -81,7 +70,7 @@
 			await userState.refresh();
 		} catch {
 			// Error already toasted in the action; revert to the saved order
-			dndItems = saved.map((key) => ({ id: key }));
+			aisleOrder = resolveSupermarketAisleOrder(userState.preferences?.aisle_order);
 		}
 	}
 </script>
@@ -139,35 +128,36 @@
 			<div class="grid space-y-3">
 				<Label class="text-base font-semibold">Aisle order</Label>
 
-				<!-- Opt out of the drawer's drag-to-close gesture so aisle drags don't move the drawer -->
-				<div
-					class="grid gap-1"
-					data-vaul-no-drag
-					use:dragHandleZone={{
-						items: dndItems,
-						flipDurationMs: 200,
-						delayTouchStart: 300,
-						dropTargetStyle: {
-							'outline-width': '0px',
-							'background-color': '#c9644210',
-							outline: 'rgba(201, 100, 66, 0.4) solid 4px'
-						},
-						type: 'shopping-aisles'
-					}}
-					onconsider={handleDndConsider}
-					onfinalize={handleDndFinalize}
-				>
-					{#each dndItems as item (item.id)}
-						{@const header = supermarketAisleSectionHeaders[item.id]}
-						<div animate:flip={{ duration: 200 }}>
-							<div
-								class="flex items-center gap-1 rounded-xl border border-border/60 bg-card p-1.5 pl-4 shadow-xs"
-							>
-								<header.icon class="size-5 shrink-0 text-muted-foreground mr-2" />
-								<span class="min-w-0 flex-1 truncate text-sm">{header.title}</span>
-								<div use:dragHandle class="flex shrink-0 cursor-grab active:cursor-grabbing p-1">
-									<GripVertical class="size-4 text-muted-foreground" />
-								</div>
+				<div class="grid gap-1">
+					{#each aisleOrder as aisleKey, index (aisleKey)}
+						{@const header = supermarketAisleSectionHeaders[aisleKey]}
+						<div
+							class="flex items-center gap-1 rounded-xl border border-border/60 bg-card p-1.5 pl-4 shadow-xs"
+							animate:flip={{ duration: 150 }}
+						>
+							<header.icon class="size-4 shrink-0 text-muted-foreground mr-2" />
+							<span class="min-w-0 flex-1 truncate text-sm">{header.title}</span>
+							<div class="flex shrink-0 items-center">
+								<Button
+									variant="ghost"
+									size="icon"
+									class="size-6"
+									disabled={index === 0}
+									onclick={() => moveAisle(index, -1)}
+									aria-label={`Move ${header.title} up`}
+								>
+									<ChevronUp class="size-4" />
+								</Button>
+								<Button
+									variant="ghost"
+									size="icon"
+									class="size-6"
+									disabled={index === aisleOrder.length - 1}
+									onclick={() => moveAisle(index, 1)}
+									aria-label={`Move ${header.title} down`}
+								>
+									<ChevronDown class="size-4" />
+								</Button>
 							</div>
 						</div>
 					{/each}
