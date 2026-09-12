@@ -27,7 +27,15 @@
 </script>
 
 {#if searchResults}
-	<div class="grid space-y-3" transition:slide={{ duration: 200 }}>
+	<!-- Prevent the input blur (and keyboard hide) when tapping a result: the
+		default mousedown action would move focus to the tapped button, while
+		the click still fires normally. -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="grid space-y-3"
+		transition:slide={{ duration: 200 }}
+		onmousedown={(e) => e.preventDefault()}
+	>
 		{#if searchResults.processedIngredient}
 			<div
 				class="grid w-full gap-2 self-start content-start auto-rows-min"
