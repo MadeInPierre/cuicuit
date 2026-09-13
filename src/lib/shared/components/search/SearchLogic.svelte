@@ -66,8 +66,9 @@
 			if (display === 'recipes' || display === 'both') {
 				const { data, error } = await getRecipesDetailed(
 					space.activeSpace.language_id,
-					inputValue
-				).limit(3);
+					inputValue,
+					{ limit: 3 }
+				);
 				if (error) {
 					toast.error('Error fetching recipes');
 				} else recipes = data ?? undefined;

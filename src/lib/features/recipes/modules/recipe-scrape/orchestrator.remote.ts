@@ -1,3 +1,6 @@
+// M2: internal helper, not an op (decision: plain server helper — pure
+// scraping + console logging, no UI-callable DB writes; called server-side by
+// the `recipes.import-from-url` op via the co-located import helpers).
 /**
  * Multi-strategy recipe scraper.
  *
@@ -22,89 +25,89 @@ import { firecrawlStrategy } from './strategies/saas/firecrawl';
  * strategy declares a `urlPriority` for the URL, in which case it jumps ahead.
  */
 const strategies: ScrapeStrategy[] = [
-    directLdJsonStrategy, // 0 · free · direct fetch + JSON-LD
-    recipeScrapersStrategy, // 1 · free · Python recipe-scrapers (optional)
-    geonodeStrategy, // 2 · paid · Geonode
-    firecrawlStrategy // 3 · paid · Firecrawl (fallback)
+	directLdJsonStrategy, // 0 · free · direct fetch + JSON-LD
+	recipeScrapersStrategy, // 1 · free · Python recipe-scrapers (optional)
+	geonodeStrategy, // 2 · paid · Geonode
+	firecrawlStrategy // 3 · paid · Firecrawl (fallback)
 ];
 
 export const scrapeRecipeUrl = query(importRecipeUrlSchema, async ({ url }) => {
-    const ordered = [...strategies].sort((a, b) => {
-        const aPriority = a.urlPriority?.(url) ? 0 : 1;
-        const bPriority = b.urlPriority?.(url) ? 0 : 1;
-        return aPriority - bPriority || a.costRank - b.costRank;
-    });
+	const ordered = [...strategies].sort((a, b) => {
+		const aPriority = a.urlPriority?.(url) ? 0 : 1;
+		const bPriority = b.urlPriority?.(url) ? 0 : 1;
+		return aPriority - bPriority || a.costRank - b.costRank;
+	});
 
-    const attempts: StrategyAttempt[] = [];
+	const attempts: StrategyAttempt[] = [];
 
-    for (const strategy of ordered) {
-        if (!strategy.enabled()) {
-            attempts.push({ strategy: strategy.name, status: 'skipped', latencyMs: 0 });
-            continue;
-        }
+	for (const strategy of ordered) {
+		if (!strategy.enabled()) {
+			attempts.push({ strategy: strategy.name, status: 'skipped', latencyMs: 0 });
+			continue;
+		}
 
-        const startedAt = performance.now();
-        const result = await strategy.scrape(url);
-        const latencyMs = Math.round(performance.now() - startedAt);
+		const startedAt = performance.now();
+		const result = await strategy.scrape(url);
+		const latencyMs = Math.round(performance.now() - startedAt);
 
-        // Failed / empty attempt → record and move on to the next strategy.
-        if (result.status !== 'ok' || !result.format || !result.content) {
-            attempts.push({
-                strategy: strategy.name,
-                status: result.status,
-                latencyMs,
-                errorKind: result.errorKind,
-                error: result.error
-            });
-            continue;
-        }
+		// Failed / empty attempt → record and move on to the next strategy.
+		if (result.status !== 'ok' || !result.format || !result.content) {
+			attempts.push({
+				strategy: strategy.name,
+				status: result.status,
+				latencyMs,
+				errorKind: result.errorKind,
+				error: result.error
+			});
+			continue;
+		}
 
-        // Quality gate: reject content that doesn't look like a recipe so we
-        // fall through to the next (more expensive) strategy.
-        if (!passesQualityGate(result.format, result.content)) {
-            attempts.push({
-                strategy: strategy.name,
-                status: 'not_found',
-                latencyMs,
-                errorKind: 'low_quality',
-                error: `Content did not pass the ${result.format} quality gate`
-            });
-            continue;
-        }
+		// Quality gate: reject content that doesn't look like a recipe so we
+		// fall through to the next (more expensive) strategy.
+		if (!passesQualityGate(result.format, result.content)) {
+			attempts.push({
+				strategy: strategy.name,
+				status: 'not_found',
+				latencyMs,
+				errorKind: 'low_quality',
+				error: `Content did not pass the ${result.format} quality gate`
+			});
+			continue;
+		}
 
-        attempts.push({
-            strategy: strategy.name,
-            status: 'ok',
-            latencyMs,
-            format: result.format
-        });
+		attempts.push({
+			strategy: strategy.name,
+			status: 'ok',
+			latencyMs,
+			format: result.format
+		});
 
-        const scrapeResult: ScrapeResult = {
-            format: result.format,
-            content: result.content,
-            image: result.image,
-            source: result.source,
-            strategy: strategy.name,
-            attempts
-        };
+		const scrapeResult: ScrapeResult = {
+			format: result.format,
+			content: result.content,
+			image: result.image,
+			source: result.source,
+			strategy: strategy.name,
+			attempts
+		};
 
-        logScrapeOutcome({
-            url,
-            success: true,
-            strategy: scrapeResult.strategy,
-            format: scrapeResult.format,
-            contentLength: scrapeResult.content.length,
-            attempts
-        });
+		logScrapeOutcome({
+			url,
+			success: true,
+			strategy: scrapeResult.strategy,
+			format: scrapeResult.format,
+			contentLength: scrapeResult.content.length,
+			attempts
+		});
 
-        return scrapeResult;
-    }
+		return scrapeResult;
+	}
 
-    logScrapeOutcome({ url, success: false, attempts });
+	logScrapeOutcome({ url, success: false, attempts });
 
-    throw new Error(
-        `Could not scrape a recipe from ${url}. Tried: ${attempts
-            .map((attempt) => `${attempt.strategy} (${attempt.status})`)
-            .join(', ')}`
-    );
+	throw new Error(
+		`Could not scrape a recipe from ${url}. Tried: ${attempts
+			.map((attempt) => `${attempt.strategy} (${attempt.status})`)
+			.join(', ')}`
+	);
 });

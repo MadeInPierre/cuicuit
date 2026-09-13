@@ -1,43 +1,18 @@
-import { command, getRequestEvent } from '$app/server';
-import { serverIsUserAuthenticated } from '$lib/features/billing/server/utils/is-user-authenticated';
-import { languageKeySchema, type LanguageKey } from '$lib/features/user-settings/consts';
-import z from 'zod';
-import { EXAMPLE_RECIPE_URLS } from '../consts/example-recipes';
-import { importRecipeFromUrlCore, type ImportUrlResult } from './import-recipe';
+import { command } from '$app/server';
 
-/**
- * Imports the curated example recipes into the user's space. Reuses the exact
- * same cache-backed import logic as a normal URL import, but never charges
- * credits — the recipes are already cached, so it only duplicates them.
- */
-export const addExampleRecipes = command(
-	z.object({
-		fallbackLang: languageKeySchema
-	}),
-	async ({ fallbackLang }) => {
-		console.log('Adding example recipes');
+import { requireCtx } from '$lib/core/operations/context.js';
+import {
+	addExampleRecipesInput,
+	type AddExampleRecipesInput
+} from '$lib/core/operations/recipes/add-examples.js';
+import type { ImportUrlResult } from '$lib/core/operations/recipes/import-from-url-helpers.js';
+import { runOp } from '$lib/core/operations/registry.js';
 
-		const event = getRequestEvent();
-		const { userId, isValid } = await serverIsUserAuthenticated(event.locals.supabase);
-		if (!isValid) throw new Error('User must be confirmed with a valid email.');
-
-		const results: ImportUrlResult[] = [];
-
-		const urls = EXAMPLE_RECIPE_URLS[fallbackLang as LanguageKey] ?? EXAMPLE_RECIPE_URLS['fr-FR']!;
-		for (const url of urls) {
-			let result: ImportUrlResult | undefined;
-			for await (const value of importRecipeFromUrlCore({
-				supabase: event.locals.supabase,
-				admin: event.locals.supabaseAdmin,
-				userId,
-				url,
-				fallbackLang: fallbackLang as LanguageKey
-			})) {
-				if (typeof value !== 'number') result = value;
-			}
-			if (result) results.push(result);
-		}
-
-		return results;
-	}
+// M2: thinned to a `recipes.add-examples` op call (logic lives in core).
+export const addExampleRecipes = command(addExampleRecipesInput, async (input) =>
+	runOp<AddExampleRecipesInput, ImportUrlResult[]>(
+		'recipes.add-examples',
+		await requireCtx('app'),
+		input
+	)
 );

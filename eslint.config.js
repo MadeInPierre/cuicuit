@@ -30,44 +30,12 @@ export default tseslint.config(
 		ignores: ['build/', '.svelte-kit/', 'dist/']
 	},
 	{
-		// M1 (warn-only): direct DB access belongs in `src/lib/core/` (or `src/lib/sync/`
-		// from M5). Existing call sites are grandfathered below — do NOT extend the list;
-		// new code must go through `defineOp`. Promoted to error in M6.
+		// M2: all feature/route call sites now go through `defineOp` in `src/lib/core/`.
+		// The rule stays warn-only until M6 promotes it to error; the per-file
+		// grandfather list from M1 is gone (verified empty via eslint, 2026-09-13).
+		// Do NOT add new direct DB access outside core/sync/shared-db.
 		files: ['src/**/*.{ts,svelte}'],
-		ignores: [
-			'src/lib/core/**',
-			'src/lib/sync/**',
-			'src/lib/shared/db/**',
-			'src/lib/features/auth/queries/get-user-credit-logs.ts',
-			'src/lib/features/auth/queries/get-user-public-profile.ts',
-			'src/lib/features/billing/server/consume-credits.remote.ts',
-			'src/lib/features/billing/server/create-stripe-checkout-session.remote.ts',
-			'src/lib/features/plans/actions/add-recipe-to-plan.ts',
-			'src/lib/features/plans/actions/add-shopping-item.ts',
-			'src/lib/features/plans/actions/update-item.ts',
-			'src/lib/features/plans/actions/update-meal.ts',
-			'src/lib/features/plans/queries/get-plan-items.ts',
-			'src/lib/features/plans/queries/get-plan-meals.ts',
-			'src/lib/features/recipes/actions/create-draft-recipe.remote.ts',
-			'src/lib/features/recipes/actions/delete-recipe.ts',
-			'src/lib/features/recipes/queries/get-recipe-detailed.ts',
-			'src/lib/features/spaces/actions/create-space.ts',
-			'src/lib/features/spaces/actions/edit-space.ts',
-			'src/lib/features/spaces/actions/join-space.ts',
-			'src/lib/features/spaces/actions/leave-space.ts',
-			'src/lib/features/spaces/queries/get-shopping-recommendations.ts',
-			'src/lib/features/spaces/queries/get-user-spaces-with-members.ts',
-			'src/lib/features/user-settings/actions/delete-user-picture.ts',
-			'src/lib/features/user-settings/actions/update-aisle-order.ts',
-			'src/lib/features/user-settings/actions/update-user-avatar.ts',
-			'src/lib/features/user-settings/actions/update-user-preferences.ts',
-			'src/lib/features/user-settings/actions/update-user-profile.ts',
-			'src/lib/features/user-settings/actions/upload-profile-picture.ts',
-			'src/routes/(app)/admin/ingredients/+page.svelte',
-			'src/routes/(app)/recipes/[id]/edit/+page.svelte',
-			'src/routes/(auth)/welcome/+page.svelte',
-			'src/routes/(marketing)/supporter/success/+page.svelte'
-		],
+		ignores: ['src/lib/core/**', 'src/lib/sync/**', 'src/lib/shared/db/**'],
 		rules: {
 			'no-restricted-syntax': [
 				'warn',

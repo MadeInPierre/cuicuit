@@ -5,17 +5,61 @@
  * re-exports the runner + context + auth + credits surface adapters need:
  *
  *   import { runOp, requireCtx } from '$lib/core/operations';
+ *
+ * NOTE: client actions / components must NOT import this index (it pulls
+ * `$app/server` via `context.ts` and breaks the client build). They import
+ * `runOp` from `./registry.js` and `getClientCtx` from `./context.client.js`.
  */
+import './billing/balance.js';
+import './billing/checkout.js';
+import './billing/consume.js';
+import './billing/logs.js';
 import './ingredients/list.js';
+import './ingredients/match.js';
+import './plans/add-item.js';
+import './plans/add-recipe.js';
+import './plans/check-item.js';
+import './plans/delete-item.js';
+import './plans/delete-meal.js';
+import './plans/list-items.js';
+import './plans/list-meals.js';
+import './plans/move-meal.js';
+import './plans/recommendations.js';
+import './plans/update-servings.js';
+import './profile/complete-onboarding.js';
+import './profile/delete-picture.js';
+import './profile/get.js';
+import './profile/update-aisle-order.js';
+import './profile/update-avatar.js';
+import './profile/update-preferences.js';
+import './profile/update-profile.js';
+import './profile/upload-picture.js';
+import './recipes/add-examples.js';
+import './recipes/create-draft.js';
+import './recipes/delete-image.js';
+import './recipes/delete.js';
+import './recipes/edit.js';
+import './recipes/get.js';
+import './recipes/import-from-text.js';
+import './recipes/import-from-url.js';
+import './recipes/list.js';
+import './recipes/upload-image.js';
+import './spaces/create.js';
+import './spaces/edit.js';
+import './spaces/join.js';
+import './spaces/leave.js';
+import './spaces/list.js';
 
 export { requireUserId, resolvePatToken, serverIsUserAuthenticated } from './auth.js';
 export { requireCtx } from './context.js';
-export { withCredits } from './credits.js';
+export { getClientCtx } from './context.client.js';
+export { canAfford, withCredits, type CreditUsage } from './credits.js';
 export { OpError, toStatus, type OpErrorCode } from './errors.js';
 export {
 	defineOp,
 	registry,
 	runOp,
+	runOpStream,
 	type OpCtx,
 	type OpDef,
 	type OpKind,

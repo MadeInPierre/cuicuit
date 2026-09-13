@@ -1,8 +1,12 @@
 import { goto } from '$app/navigation';
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import { addRecipeToPlanOp } from '$lib/core/operations/plans/add-recipe.js';
 import { type ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
-import type { TablesInsert } from '$lib/shared/db/supabase.types';
 import { toast } from 'svelte-sonner';
+
+// Thin adapter over the `plans.add-recipe` op. DB work lives in core;
+// toast/goto/refresh stay here so callers don't change.
 
 export async function addRecipeToActivePlan(
 	space: ActiveSpaceState,
@@ -21,64 +25,16 @@ export async function addRecipeToActivePlan(
 
 	const activeSpaceId = space.activeSpace.id;
 
-	// Add the recipe to the active plan in Supabase and get the generated meal id
-	const { data, error } = await supabase.client
-		.from('space_meals')
-		.insert({
-			space_id: activeSpaceId,
-			created_by: space.activeMember.user_id,
-			recipe_id: recipeId,
-			servings: servings,
+	try {
+		await runOp(addRecipeToPlanOp.name, await getClientCtx(), {
+			spaceId: activeSpaceId,
+			createdBy: space.activeMember.user_id,
+			recipeId,
+			servings,
 			position: space.activePlanMeals.length // Append to the end of the plan
-		})
-		.select('id')
-		.single();
-
-	if (error) {
+		});
+	} catch (error) {
 		console.error('Error adding recipe to active plan:', error);
-		return;
-	}
-
-	const mealId = data?.id;
-
-	// Add the recipe's ingredients to the active plan's shopping list
-	const { data: recipeIngredients, error: ingredientsError } = await supabase.client
-		.from('recipe_ingredients')
-		.select('*')
-		.eq('recipe_id', recipeId);
-
-	if (ingredientsError) {
-		console.error('Error fetching recipe ingredients:', ingredientsError);
-		return;
-	}
-
-	// Every recipe ingredient (catalog or custom) stays linked to the meal so it
-	// shows up in the MealCard; customs carry their free-text custom_name instead
-	// of an ingredient_id (allowed by the space_items CHECK constraint).
-	const shoppingListItems = recipeIngredients.map(
-		(ingredient) =>
-			({
-				space_id: activeSpaceId,
-				created_by: space.activeMember!.user_id,
-				type: 'meal',
-				meal_id: mealId,
-				meal_origin: 'recipe',
-				ingredient_id: ingredient.ingredient_id,
-				priority: ingredient.is_optional ? 'optional' : 'required',
-				name: ingredient.ingredient_id
-					? ingredient.raw_input
-					: (ingredient.custom_name ?? ingredient.raw_input),
-				quantity: ingredient.quantity ?? 1,
-				unit: ingredient.unit
-			}) satisfies TablesInsert<'space_items'>
-	);
-
-	const { error: shoppingListError } = await supabase.client
-		.from('space_items')
-		.insert(shoppingListItems);
-
-	if (shoppingListError) {
-		console.error('Error adding ingredients to shopping list:', shoppingListError);
 		return;
 	}
 

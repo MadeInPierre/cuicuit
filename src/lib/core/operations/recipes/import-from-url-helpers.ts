@@ -1,33 +1,186 @@
-import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
-import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
-import type { Database } from '$lib/shared/db/supabase.types';
-import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
-import { unitToRegionized } from '$lib/shared/utils/quantity';
+import { version } from '$app/env';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { matchIngredients } from '../modules/parse-ingredients/match';
-import type { ParsedSearchInput } from '../modules/parse-ingredients/parse';
-import type { IngredientProcessed } from '../modules/parse-ingredients/process';
-import {
-	buildImportCacheKey,
-	getCachedImport,
-	getLlmOutput,
-	getScrapeStats,
-	normalizeImportUrl,
-	saveImportLlm,
-	saveImportScrape
-} from '../modules/recipe-cache/import-cache';
+
+import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
+import { matchIngredients } from '$lib/features/recipes/modules/parse-ingredients/match';
+import type { ParsedSearchInput } from '$lib/features/recipes/modules/parse-ingredients/parse';
+import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
+import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
 import {
 	enrichRawRecipe,
 	enrichTextRecipe,
 	type EnrichedRecipeOutput
-} from '../modules/recipe-enrich/enrich-recipe.remote';
-import { scrapeRecipeUrl } from '../modules/recipe-scrape/orchestrator.remote';
-import { getLanguageId } from '../queries/get-language-id';
-import { createDraftRecipe } from './create-draft-recipe.remote';
-import { uploadRecipeImage } from './upload-recipe-image';
+} from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe.remote';
+import { scrapeRecipeUrl } from '$lib/features/recipes/modules/recipe-scrape/orchestrator.remote';
+import type {
+	ScrapeFormat,
+	ScrapeSource,
+	ScrapeStrategyName,
+	StrategyAttempt
+} from '$lib/features/recipes/modules/recipe-scrape/types';
+import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+import type { Database, Json } from '$lib/shared/db/supabase.types';
+import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
+import { unitToRegionized } from '$lib/shared/utils/quantity';
 
-// Zod validation is only needed for the remote boundaries, which live in the
-// *.remote.ts files. This shared module holds the reusable, credit-free logic.
+import { runOp, type OpCtx } from '../registry.js';
+import { getLanguageId } from './get-language-id-helper.js';
+import { uploadImageToRecipe } from './upload-image-helper.js';
+
+// M2: co-located helpers for the `recipes.import-from-url` /
+// `recipes.import-from-text` / `recipes.add-examples` ops. Contents:
+// 1. a COPY of `features/recipes/modules/recipe-cache/import-cache.ts` (the original
+//    stays in place — other importers may use it);
+// 2. the credit-free import logic moved from `features/recipes/actions/import-recipe.ts`
+//    (that module is deleted once the remotes are thinned — verified zero importers).
+// Server-only (scrape/enrich remotes, admin writes). Not an op.
+
+// ==========================================
+// 1. Import cache (copy of recipe-cache/import-cache.ts)
+// ==========================================
+
+/**
+ * Bump this whenever scrape or enrichment logic changes, so a future cache
+ * invalidation pass can tell which version produced each cached entry.
+ */
+const IMPORT_CACHE_VERSION = version;
+
+/**
+ * Everything worth keeping from a scrape, enough to resume the import without
+ * re-calling any external scraper.
+ */
+export type ImportScrapeStats = {
+	strategy: ScrapeStrategyName;
+	format: ScrapeFormat;
+	attempts: StrategyAttempt[];
+	source?: ScrapeSource | null;
+	image_url?: string | null;
+	content_length: number;
+};
+
+/** How the recipe was enriched by the LLM (provider + token usage). */
+export type ImportLlmStats = {
+	provider: string;
+	fallback_used: boolean;
+	usage: { input_tokens: number | null; output_tokens: number | null } | null;
+};
+
+type CacheRow = Database['public']['Tables']['recipes_cache']['Row'];
+
+/**
+ * Canonicalizes a URL so the same recipe maps to the same cache key no matter
+ * how it's pasted (tracking params, fragments, trailing slash, casing, ports).
+ */
+export function normalizeImportUrl(url: string): string {
+	const parsed = new URL(url);
+	parsed.hash = '';
+	parsed.username = '';
+	parsed.password = '';
+	parsed.protocol = parsed.protocol.toLowerCase();
+	parsed.hostname = parsed.hostname.toLowerCase();
+	if (
+		(parsed.protocol === 'http:' && parsed.port === '80') ||
+		(parsed.protocol === 'https:' && parsed.port === '443')
+	) {
+		parsed.port = '';
+	}
+	parsed.searchParams.forEach((_value, key) => {
+		const lowercase = key.toLowerCase();
+		if (
+			lowercase.startsWith('utm_') ||
+			lowercase.startsWith('mtm_') ||
+			['gclid', 'fbclid', 'ref', 'source', 'spm'].includes(lowercase)
+		) {
+			parsed.searchParams.delete(key);
+		}
+	});
+	return parsed.toString().replace(/\/+$/, '');
+}
+
+/** Stable cache key for a URL: sha256 of its canonical form. */
+export async function buildImportCacheKey(url: string): Promise<string> {
+	const digest = await crypto.subtle.digest(
+		'SHA-256',
+		new TextEncoder().encode(normalizeImportUrl(url))
+	);
+	return Array.from(new Uint8Array(digest))
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('');
+}
+
+/** Fetches a previously saved import state, if any. */
+export async function getCachedImport(
+	supabase: SupabaseClient<Database>,
+	cacheKey: string
+): Promise<CacheRow | null> {
+	const { data } = await supabase
+		.from('recipes_cache')
+		.select('*')
+		.eq('cache_key', cacheKey)
+		.maybeSingle();
+	return data;
+}
+
+/** Persists the scrape output so the parser stage is never repeated. */
+export async function saveImportScrape(
+	supabase: SupabaseClient<Database>,
+	input: {
+		cacheKey: string;
+		sourceUrl: string;
+		scrapeOutput: string;
+		scrapeStats: ImportScrapeStats;
+	}
+): Promise<string> {
+	const { data, error } = await supabase
+		.from('recipes_cache')
+		.upsert(
+			{
+				cache_key: input.cacheKey,
+				source_url: input.sourceUrl,
+				app_version: IMPORT_CACHE_VERSION,
+				scrape_output: input.scrapeOutput,
+				scrape_stats: input.scrapeStats as unknown as Json
+			},
+			{ onConflict: 'cache_key' }
+		)
+		.select('id')
+		.single();
+	if (error || !data) throw new Error('Failed to cache the scraped recipe.');
+	return data.id;
+}
+
+/** Persists the LLM enrichment output so the LLM is never re-called for a cached recipe. */
+export async function saveImportLlm(
+	supabase: SupabaseClient<Database>,
+	cacheId: string,
+	llmOutput: EnrichedRecipeOutput,
+	llmStats: ImportLlmStats
+): Promise<void> {
+	const { error } = await supabase
+		.from('recipes_cache')
+		.update({
+			llm_output: llmOutput as unknown as Json,
+			llm_stats: llmStats as unknown as Json
+		})
+		.eq('id', cacheId);
+	if (error) throw error;
+}
+
+/** Typed accessors for the JSONB columns. */
+export function getScrapeStats(row: CacheRow | null): ImportScrapeStats | null {
+	return row?.scrape_stats as ImportScrapeStats | null;
+}
+
+export function getLlmOutput(row: CacheRow | null): EnrichedRecipeOutput | null {
+	const raw = row?.llm_output as EnrichedRecipeOutput | null;
+	// Re-sanitize cached output: caches written before the sanitizer was added
+	// may still contain null/empty fields for NOT NULL columns.
+	return raw ? sanitizeEnrichedRecipeOutput(raw) : null;
+}
+
+// ==========================================
+// 2. Reusable import helpers (moved from import-recipe.ts)
+// ==========================================
 
 export type ImportUrlResult = { id: string; isComplete: boolean };
 
@@ -46,10 +199,6 @@ export type ImportTextContext = {
 	text: string;
 	fallbackLang: LanguageKey;
 };
-
-// ==========================================
-// Reusable Helper Functions
-// ==========================================
 
 /**
  * Enriches and matches a raw list of ingredients against the database matches.
@@ -344,11 +493,12 @@ export async function duplicateRecipeForUser(
 }
 
 // ==========================================
-// Core Import Logic (credit-free)
+// 3. Core import logic (credit-free)
 //
-// These do the actual scraping/enriching/duplicating work but never touch
-// credits (no `canUserAfford` check, no `consumeCredits` call). The *.remote.ts
-// wrappers are responsible for authenticating and (when applicable) charging.
+// The actual scraping/enriching/duplicating work. Never touches credits
+// (no afford check, no `consume_credits` call) — the import ops apply the
+// credit gate around these generators, and `recipes.add-examples` reuses the
+// URL core without charging.
 // ==========================================
 
 /**
@@ -464,7 +614,7 @@ export async function* importRecipeFromUrlCore(
 			const imgResponse = await fetch(imageUrl);
 			const blob = await imgResponse.blob();
 			const file = new File([blob], 'imported-image.jpg', { type: blob.type });
-			await uploadRecipeImage(admin, file, userRecipeId, []);
+			await uploadImageToRecipe(admin, file, userRecipeId, []);
 		} catch (error) {
 			console.warn('Failed to download & upload the image, skipping:', error);
 		}
@@ -491,12 +641,20 @@ export async function* importRecipeFromTextCore(
 	const { data: languageData } = await getLanguageId(supabase, fallbackLang as LanguageKey);
 	if (!languageData) throw new Error('Could not retrieve language ID.');
 
-	const recipeId = await createDraftRecipe({
+	// Draft creation goes through the core op (same validation + confirmed-email
+	// gate as the manual flow).
+	const opCtx: OpCtx = {
+		supabase,
+		admin,
+		userId: context.userId,
+		source: 'app'
+	};
+	const recipeId = await runOp('recipes.create-draft', opCtx, {
 		sourceType: 'user-manual',
-		lang: languageData.lang,
+		lang: languageData.lang as LanguageKey,
 		title: 'Creating recipe...'
 	});
-	if (!recipeId) {
+	if (!recipeId || typeof recipeId !== 'string') {
 		throw new Error('Failed to create draft recipe.');
 	}
 
@@ -522,5 +680,6 @@ export async function* importRecipeFromTextCore(
 	await saveEnrichedRecipe(admin, recipeId, enrichedRecipe);
 	await insertRecipeIngredients(admin, recipeId, processedIngredients);
 
-	yield { id: recipeId, isComplete: false };
+	// TODO Complete is true hoping the recipe is good, but should do a last zod check
+	yield { id: recipeId, isComplete: true };
 }

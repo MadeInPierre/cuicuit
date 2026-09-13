@@ -1,25 +1,22 @@
 <script lang="ts">
+	import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+	import '$lib/core/operations/ingredients/list.js';
+	import type {
+		ListIngredientsInput,
+		ListIngredientsResult
+	} from '$lib/core/operations/ingredients/list.js';
 	import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
-	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { capitalize } from '$lib/utils';
 	import { onMount } from 'svelte';
 
 	async function fetchIngredients({ start = 0, end = 1000 } = { start: 0, end: 1000 }) {
-		if(!supabase.client) throw new Error("No supabase client");
-		
 		try {
-			const { data, error } = await supabase.client
-				.from('ingredients')
-				.select('*, translations:ingredient_translations(*, language:languages!inner(*))')
-				.range(start, end);
-
-			if (error) {
-				console.error('Error fetching ingredients:', error);
-				return [];
-			}
-
-			return data;
+			return await runOp<ListIngredientsInput, ListIngredientsResult>(
+				'ingredients.list',
+				await getClientCtx(),
+				{ start, end }
+			);
 		} catch (err) {
 			error = 'Failed to load ingredients';
 			console.error(err);

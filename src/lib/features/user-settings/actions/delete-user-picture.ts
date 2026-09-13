@@ -1,27 +1,26 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import { getClientCtx, OpError, runOp } from '$lib/core/operations/client.js';
+import '$lib/core/operations/profile/delete-picture.js';
+import type { ProfileDeletePictureInput } from '$lib/core/operations/profile/delete-picture.js';
 import { toast } from 'svelte-sonner';
-import { updateUserAvatar } from './update-user-avatar';
 
 /**
+ * Thin client adapter over the `profile.delete-picture` op (M2 core migration).
+ * Same name and signature — `AvatarForm` unchanged. Toasts preserved.
+ *
  * Remove the picture from the storage and update the userDoc avatar
  */
-export async function deleteUserPicture(userId: string) {
-	if(!supabase.client) throw new Error("No supabase client"); 
-	if (!userId) throw new Error('No user to delete the picture for');
+export async function deleteUserPicture(userId: string): Promise<void> {
+	if (!userId) throw new OpError('VALIDATION', 'No user to delete the picture for');
 
-	// Delete the image from Supabase storage
-	const { error: deleteError } = await supabase.client.storage
-		.from('users')
-		.remove([`public/${userId}/avatar.png`]);
-
-	if (deleteError) {
-		console.error('Error deleting avatar image:', deleteError);
+	try {
+		await runOp<ProfileDeletePictureInput, void>('profile.delete-picture', await getClientCtx(), {
+			userId
+		});
+	} catch (error) {
+		console.error('Error deleting avatar image:', error);
 		toast.error('Failed to delete profile picture. Please try again later.');
-		throw deleteError;
+		throw error;
 	}
-
-	// Update the user's profile row in the database
-	await updateUserAvatar(userId, undefined, null);
 
 	// Notify the user
 	toast.success('Profile picture deleted.');

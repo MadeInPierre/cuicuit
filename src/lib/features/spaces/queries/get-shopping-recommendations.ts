@@ -1,31 +1,22 @@
-import { supermarketAisleSectionHeaders } from '$lib/features/recipes/components/consts';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import {
+	shoppingRecommendationsOp,
+	type ShoppingRecommendation as OpShoppingRecommendation,
+	type ShoppingRecommendationsInput,
+	type ShoppingRecommendationsOutput
+} from '$lib/core/operations/plans/recommendations.js';
 
-const MAX_RECOMMENDATIONS = 600;
-const PER_AISLE_LIMIT = Math.floor(
-	MAX_RECOMMENDATIONS / Object.keys(supermarketAisleSectionHeaders).length
-);
+// Thin adapter over the `plans.recommendations` op. NOTE: the canonical operation
+// lives in `core/operations/plans/recommendations.ts` (plans domain); this file
+// stays in the spaces folder for history and re-exports its shape.
 
 export async function getShoppingRecommendations(spaceId: string, lang: string) {
-	if(!supabase.client) throw new Error("No supabase client");
 	if (!spaceId) return [];
-
-	const { data, error } = await supabase.client.rpc('get_shopping_recommendations', {
-		space_id: spaceId,
-		per_aisle_limit: PER_AISLE_LIMIT,
-		limit: MAX_RECOMMENDATIONS,
-		lang: lang,
-		seed: Math.random()
-		// aisle: null // No aisle filter for now, but we can add it later if needed
-	});
-	if (error) throw error;
-
-	return data || [];
+	return runOp<ShoppingRecommendationsInput, ShoppingRecommendationsOutput>(
+		shoppingRecommendationsOp.name,
+		await getClientCtx(),
+		{ spaceId, lang }
+	);
 }
 
-export type ShoppingRecommendation =
-	ReturnType<typeof getShoppingRecommendations> extends Promise<infer T>
-		? T extends Array<infer U>
-			? U
-			: never
-		: never;
+export type ShoppingRecommendation = OpShoppingRecommendation;
