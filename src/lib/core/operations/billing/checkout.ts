@@ -48,6 +48,14 @@ export const checkoutOp = defineOp({
 	domain: 'billing',
 	kind: 'write',
 	sync: 'server-only',
+	docs: {
+		title: 'Create checkout session',
+		description:
+			'Creates a Stripe checkout session for a one-time payment or subscription.',
+		hints: [
+			'Returns a payment `url` — hand it to the user and stop. Agents cannot complete the payment; seeds land in the balance afterwards (verify with seeds_balance).'
+		]
+	},
 	input: checkoutInput,
 	handler: async (ctx, { amountChosen, currency, interval, origin }): Promise<CheckoutResult> => {
 		console.log(amountChosen, currency, interval);

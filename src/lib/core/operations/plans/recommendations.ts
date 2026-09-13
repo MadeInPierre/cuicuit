@@ -35,6 +35,10 @@ export const shoppingRecommendationsOp = defineOp({
 	domain: 'plans',
 	kind: 'rpc',
 	sync: 'server-only',
+	docs: {
+		title: 'Get shopping recommendations',
+		description: 'Fetches shopping recommendations for a space via RPC.'
+	},
 	input: shoppingRecommendationsInput,
 	handler: async (ctx, { spaceId, lang }) => {
 		const { data, error } = await ctx.supabase.rpc('get_shopping_recommendations', {

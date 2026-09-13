@@ -29,6 +29,14 @@ export const deleteMealOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Delete meal',
+		description:
+			'Soft-deletes a meal and its linked shopping items, restores them via `undo`, or marks the meal cooked via `cooked`.',
+		hints: [
+			'Deletes are soft (`deleted_at`): the meal vanishes from plan_list but is restorable with `undo: true`. `cooked: true` only flags the meal as cooked — it does not delete it.'
+		]
+	},
 	input: deleteMealInput,
 	handler: async (ctx, { mealId, undo, cooked: cookedInput }) => {
 		// TODO update meal positions as they may not go from 1 to N anymore

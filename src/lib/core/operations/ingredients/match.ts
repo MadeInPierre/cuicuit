@@ -42,6 +42,10 @@ export const matchIngredientsOp = defineOp({
 	domain: 'ingredients',
 	kind: 'rpc',
 	sync: 'server-only',
+	docs: {
+		title: 'Match ingredients',
+		description: 'Fuzzy-matches raw ingredient strings against the ingredients catalog via RPC.'
+	},
 	input: matchIngredientsInput,
 	handler: async (ctx, { ingredientStrings, lang }): Promise<MatchIngredientsResult> => {
 		const matchPromises = ingredientStrings.map(async (originalText: string) => {

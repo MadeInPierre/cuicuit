@@ -51,6 +51,10 @@ export const profileUpdatePreferencesOp = defineOp({
 	domain: 'profile',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Update preferences',
+		description: 'Updates the user private preferences row with names and onboarding status.'
+	},
 	input: profileUpdatePreferencesInput,
 	handler: profileUpdatePreferencesHandler
 });

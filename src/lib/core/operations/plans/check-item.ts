@@ -29,6 +29,15 @@ export const checkItemOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Check/uncheck a shopping item',
+		description:
+			'Sets the checked state of a shopping item by `itemId`. Pass `checked: true/false`; `undo: true` reverts to the previous state (restores the prior `checked_at`).',
+		tool: 'shopping_check',
+		hints: [
+			'Checking is not deleting: checked items stay in shopping_list with `checked_at` set. Use the delete tool to remove an item.'
+		]
+	},
 	input: checkItemInput,
 	handler: async (ctx, { itemId, checked, undo }) => {
 		const effective = undo ? !checked : checked;

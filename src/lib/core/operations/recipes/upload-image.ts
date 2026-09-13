@@ -24,6 +24,11 @@ export const uploadRecipeImageOp = defineOp({
 	domain: 'recipes',
 	kind: 'storage',
 	sync: 'synced',
+	docs: {
+		title: 'Upload recipe image',
+		description: 'Uploads a recipe image to storage and appends its id to the recipe.',
+		mcp: false
+	},
 	input: uploadRecipeImageInput,
 	handler: async (ctx, { recipeId, currentImageIds, file }) => {
 		try {

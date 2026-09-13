@@ -24,6 +24,35 @@ export type OpKind = 'read' | 'write' | 'rpc' | 'storage';
 /** `synced` = offline-capable (M5) · `server-only` = never synced · `later` = deferred past M5. */
 export type OpSync = 'synced' | 'server-only' | 'later';
 
+/** MCP tool-name annotations (spec hints). Plain data — no MCP/SDK types in core. */
+export interface OpToolAnnotations {
+	readOnly?: boolean;
+	destructive?: boolean;
+	openWorld?: boolean;
+}
+
+/**
+ * Presentation metadata for an op — the single source rendered by every
+ * surface: OpenAPI summaries, MCP tool names/descriptions/annotations, logs.
+ * Adapters translate; core holds only transport-agnostic plain data.
+ */
+export interface OpDocs {
+	/** Short label, e.g. 'Add a shopping item'. */
+	title: string;
+	/** 1–3 sentence agent-facing description (Markdown ok). */
+	description: string;
+	/**
+	 * MCP tool name override, e.g. `plans.add-item` → `shopping_add`.
+	 * Defaults to the op name with `.` → `_` (dots are illegal in MCP names).
+	 */
+	tool?: string;
+	/** Extra agent notes appended to the tool description (flows, caveats). */
+	hints?: string[];
+	/** Set `false` to hide a public op from MCP (`auth.*` token ops: PATs must not mint PATs). */
+	mcp?: false;
+	annotations?: OpToolAnnotations;
+}
+
 export interface OpDef<TIn, TOut> {
 	/** Unique name, e.g. `plans.add-recipe` — used by API/MCP/sync adapters. */
 	name: string;
@@ -32,6 +61,8 @@ export interface OpDef<TIn, TOut> {
 	sync: OpSync;
 	/** Set ONLY on `recipes.import-from-url` / `recipes.import-from-text`. */
 	credits?: { feature: string; seeds: number };
+	/** Presentation metadata (required): rendered by OpenAPI + MCP adapters. */
+	docs: OpDocs;
 	input: z.ZodType<TIn>;
 	handler: (ctx: OpCtx, input: TIn) => Promise<TOut> | AsyncGenerator<unknown, TOut>;
 	/** True → core-only (scrape, enrich, `billing.consume`): hidden from API/MCP. */

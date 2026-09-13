@@ -58,6 +58,7 @@ export const spacesLeaveOp = defineOp({
 	domain: 'spaces',
 	kind: 'write',
 	sync: 'later',
+	docs: { title: 'Leave space', description: 'Removes the user from a space members list.' },
 	input: spacesLeaveInput,
 	handler: spacesLeaveHandler
 });

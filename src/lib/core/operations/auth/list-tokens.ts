@@ -27,6 +27,11 @@ export const listTokensOp = defineOp({
 	domain: 'auth',
 	kind: 'read',
 	sync: 'server-only',
+	docs: {
+		title: 'List API tokens',
+		description: 'Lists the caller API tokens metadata without secrets.',
+		mcp: false
+	},
 	input: listTokensInput,
 	handler: async (ctx): Promise<ListTokensOutput> => {
 		const { data, error } = await ctx.supabase

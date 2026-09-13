@@ -22,6 +22,10 @@ export const deleteRecipeImageOp = defineOp({
 	domain: 'recipes',
 	kind: 'storage',
 	sync: 'synced',
+	docs: {
+		title: 'Delete recipe image',
+		description: 'Deletes a recipe image from storage and removes its id from the recipe.'
+	},
 	input: deleteRecipeImageInput,
 	handler: async (ctx, { recipeId, imageId, currentImageIds }) => {
 		try {

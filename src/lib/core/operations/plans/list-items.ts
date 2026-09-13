@@ -46,6 +46,12 @@ export const listItemsOp = defineOp({
 	domain: 'plans',
 	kind: 'read',
 	sync: 'synced',
+	docs: {
+		title: 'List shopping items',
+		description:
+			'Lists the non-deleted shopping items of a space, newest first. `languageId` is an integer id (see languages_list). Items have `type`: `"meal"` (created by plan_add_recipe, linked to a meal) or `"independent"` (standalone, from shopping_add). Combine with plan_list (meals) for the full picture.',
+		tool: 'shopping_list'
+	},
 	input: listItemsInput,
 	handler: async (ctx, { spaceId, languageId }) => {
 		const { data, error } = await itemsQuery(ctx.supabase, spaceId, languageId);

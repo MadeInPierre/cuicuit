@@ -76,6 +76,11 @@ export const profileUploadPictureOp = defineOp({
 	domain: 'profile',
 	kind: 'storage',
 	sync: 'later',
+	docs: {
+		title: 'Upload profile picture',
+		description: 'Uploads the user avatar file to storage and points the profile at its public URL.',
+		mcp: false
+	},
 	input: profileUploadPictureInput,
 	handler: profileUploadPictureHandler
 });

@@ -51,6 +51,7 @@ export const spacesJoinOp = defineOp({
 	domain: 'spaces',
 	kind: 'write',
 	sync: 'later',
+	docs: { title: 'Join space', description: 'Adds the user to a space members list.' },
 	input: spacesJoinInput,
 	handler: spacesJoinHandler
 });

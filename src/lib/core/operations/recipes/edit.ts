@@ -28,6 +28,10 @@ export const editRecipeOp = defineOp({
 	domain: 'recipes',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Edit recipe',
+		description: 'Creates or updates a recipe and replaces its ingredients.'
+	},
 	input: editRecipeInput,
 	handler: async (ctx, { recipeId, data }) => {
 		const { data: langData, error: langError } = await getLanguageId(

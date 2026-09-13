@@ -23,6 +23,11 @@ export const revokeTokenOp = defineOp({
 	domain: 'auth',
 	kind: 'write',
 	sync: 'server-only',
+	docs: {
+		title: 'Revoke API token',
+		description: 'Revokes one of the caller API tokens by id.',
+		mcp: false
+	},
 	input: revokeTokenInput,
 	handler: async (ctx, { id }): Promise<RevokeTokenOutput> => {
 		const revokedAt = new Date().toISOString();

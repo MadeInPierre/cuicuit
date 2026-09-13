@@ -32,6 +32,13 @@ export const deleteItemOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Delete shopping item',
+		description: 'Soft-deletes a shopping item or restores it via `undo`.',
+		hints: [
+			'Deletes are soft (`deleted_at`): the item vanishes from shopping_list but is restorable with `undo: true`.'
+		]
+	},
 	input: deleteItemInput,
 	handler: async (ctx, { itemId, spaceId, deleted, undo, expectedDeletedAt }) => {
 		if (undo) {

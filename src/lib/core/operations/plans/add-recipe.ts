@@ -10,8 +10,10 @@ export const addRecipeToPlanInput = z.object({
 	createdBy: z.string().min(1),
 	recipeId: z.string().min(1),
 	servings: z.number(),
-	// Append position, computed by the caller from its meal list (local-first friendly).
-	position: z.number().int().min(0)
+	// Append position. Omit (or pass a negative) to append at the end — the
+	// server counts the space's non-deleted meals, exactly what callers did
+	// client-side before. Explicit positions behave as before.
+	position: z.number().int().optional()
 });
 
 export type AddRecipeToPlanInput = z.infer<typeof addRecipeToPlanInput>;
@@ -32,8 +34,31 @@ export const addRecipeToPlanOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Add recipe to plan',
+		description:
+			'Adds a recipe to a space plan as a meal with linked shopping items. Needs `spaceId` (from spaces_list), `recipeId` (from recipes_list) and `servings`; omit `position` (or pass -1) to append at the end.',
+		tool: 'plan_add_recipe',
+		hints: [
+			'Meal-linked vs standalone: this creates a meal plus its ingredient items (`type: "meal"`). For loose items like milk or eggs, use shopping_add instead (`type: "independent"`). Review the plan via plan_list (meals) and shopping_list (items).'
+		]
+	},
 	input: addRecipeToPlanInput,
 	handler: async (ctx, { spaceId, createdBy, recipeId, servings, position }) => {
+		// Omitted/negative position = append: same "meal list length" the UI
+		// computed client-side (no uniqueness guarantee under races — same as before).
+		let resolvedPosition = position;
+		if (resolvedPosition === undefined || resolvedPosition < 0) {
+			const { count, error: countError } = await ctx.supabase
+				.from('space_meals')
+				.select('id', { count: 'exact', head: true })
+				.eq('space_id', spaceId)
+				.is('deleted_at', null);
+			if (countError) {
+				throw new OpError('INTERNAL', 'Failed to count plan meals.', countError);
+			}
+			resolvedPosition = count ?? 0;
+		}
 		// Add the recipe to the plan and get the generated meal id
 		const { data, error } = await ctx.supabase
 			.from('space_meals')
@@ -42,7 +67,7 @@ export const addRecipeToPlanOp = defineOp({
 				created_by: createdBy,
 				recipe_id: recipeId,
 				servings,
-				position
+				position: resolvedPosition
 			})
 			.select('id')
 			.single();

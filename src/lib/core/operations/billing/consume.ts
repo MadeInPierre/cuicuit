@@ -35,6 +35,10 @@ export const consumeOp = defineOp({
 	domain: 'billing',
 	kind: 'rpc',
 	sync: 'server-only',
+	docs: {
+		title: 'Consume credits',
+		description: 'Charges seeds via the consume_credits RPC for a feature.'
+	},
 	input: consumeCreditsInput,
 	internal: true,
 	handler: async (ctx, { amount, feature, metadata }): Promise<ConsumeCreditsResult> => {

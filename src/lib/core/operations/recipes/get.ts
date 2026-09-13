@@ -32,6 +32,10 @@ export const getRecipeOp = defineOp({
 	domain: 'recipes',
 	kind: 'read',
 	sync: 'synced',
+	docs: {
+		title: 'Get recipe',
+		description: 'Fetches a single detailed recipe plus its author public profile.'
+	},
 	input: getRecipeInput,
 	handler: async (ctx, { recipeId, languageId }) => {
 		// Get the recipe

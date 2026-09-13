@@ -28,6 +28,10 @@ export const listIngredientsOp = defineOp({
 	domain: 'ingredients',
 	kind: 'read',
 	sync: 'synced',
+	docs: {
+		title: 'List ingredients',
+		description: 'Lists ingredients with translations in a paginated range.'
+	},
 	input: listIngredientsInput,
 	handler: listIngredientsHandler
 });

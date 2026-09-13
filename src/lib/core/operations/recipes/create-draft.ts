@@ -26,6 +26,10 @@ export const createDraftRecipeOp = defineOp({
 	domain: 'recipes',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Create draft recipe',
+		description: 'Creates an empty draft recipe owned by the caller.'
+	},
 	input: createDraftRecipeInput,
 	handler: async (ctx, { sourceType, lang, title }) => {
 		// The remote required a confirmed (non-anonymous) email. Server remotes

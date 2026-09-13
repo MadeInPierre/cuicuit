@@ -21,6 +21,7 @@ export const deleteRecipeOp = defineOp({
 	domain: 'recipes',
 	kind: 'write',
 	sync: 'synced',
+	docs: { title: 'Delete recipe', description: 'Soft-deletes a recipe or restores it.' },
 	input: deleteRecipeInput,
 	handler: async (ctx, { recipeId, restore }) => {
 		const now = new Date().toISOString();

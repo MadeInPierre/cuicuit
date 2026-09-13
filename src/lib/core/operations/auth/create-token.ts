@@ -30,6 +30,11 @@ export const createTokenOp = defineOp({
 	domain: 'auth',
 	kind: 'write',
 	sync: 'server-only',
+	docs: {
+		title: 'Create API token',
+		description: 'Mints a personal access token for the caller and returns its secret once.',
+		mcp: false
+	},
 	input: createTokenInput,
 	handler: async (ctx, { name }): Promise<CreateTokenOutput> => {
 		const { count, error: countError } = await ctx.supabase

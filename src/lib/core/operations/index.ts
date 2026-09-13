@@ -19,6 +19,7 @@ import './billing/consume.js';
 import './billing/logs.js';
 import './ingredients/list.js';
 import './ingredients/match.js';
+import './languages/list.js';
 import './plans/add-item.js';
 import './plans/add-recipe.js';
 import './plans/check-item.js';
@@ -62,6 +63,7 @@ export {
 export type { PatSession } from './auth.js';
 export { requireApiCtx, requireCtx, type ApiAuthMethod } from './context.js';
 export { getClientCtx } from './context.client.js';
+export { opInputJsonSchema } from './json-schema.js';
 export { canAfford, withCredits, type CreditUsage } from './credits.js';
 export { OpError, toStatus, type OpErrorCode } from './errors.js';
 export {
@@ -71,7 +73,9 @@ export {
 	runOpStream,
 	type OpCtx,
 	type OpDef,
+	type OpDocs,
 	type OpKind,
 	type OpSource,
-	type OpSync
+	type OpSync,
+	type OpToolAnnotations
 } from './registry.js';

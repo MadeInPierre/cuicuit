@@ -69,6 +69,10 @@ export const spacesCreateOp = defineOp({
 	domain: 'spaces',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Create space',
+		description: 'Creates a new space plus its author membership and returns the space id.'
+	},
 	input: spacesCreateInput,
 	handler: spacesCreateHandler
 });

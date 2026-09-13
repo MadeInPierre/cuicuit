@@ -36,6 +36,16 @@ export const updateServingsOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Update servings',
+		description:
+			'Rescales a meal and its linked shopping items to a new servings count. You do NOT need to compute quantities — just pass the snapshot below and the server scales everything.',
+		tool: 'plan_update',
+		hints: [
+			'Build `ingredients[]` from the meal as returned by plan_list: for each entry of `recipe.recipe_ingredients`, map `ingredient_id` → `ingredientId`, `custom_name` → `customName`, `quantity` → `quantity`; take `recipeServings` from `recipe.servings`.',
+			'Example: {"spaceId":"<uuid>","mealId":"<uuid>","servings":6,"recipeServings":4,"ingredients":[{"ingredientId":"<uuid>","customName":null,"quantity":200},{"ingredientId":null,"customName":"Salt","quantity":null}]}'
+		]
+	},
 	input: updateServingsInput,
 	handler: async (ctx, { spaceId, mealId, servings, recipeServings, ingredients }) => {
 		// Update the meal servings
