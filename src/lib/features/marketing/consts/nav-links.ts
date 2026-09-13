@@ -25,7 +25,7 @@ export const navLinksMarketing: NavLink[] = [
 
 export const navLinksApp: NavLink[] = [
 	{
-		href: '/dashboard',
+		href: '/admin/dashboard',
 		title: 'Dashboard',
 		icon: LayoutDashboard
 	},

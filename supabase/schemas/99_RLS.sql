@@ -99,6 +99,45 @@ using (
 
 -- DELETE: User cannot delete their own public profile row, managed by the server
 
+alter table "public"."user_permissions" enable row level security;
+
+create or replace function public.is_admin(_user_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.user_permissions
+    where user_id = _user_id
+      and role = 'admin'
+  );
+$$;
+
+-- SECURITY DEFINER RLS helper: needed for RLS policy evaluation (authenticated),
+-- but must not be PUBLIC/anon callable.
+revoke all on function public.is_admin(uuid) from public, anon;
+grant execute on function public.is_admin(uuid) to authenticated;
+
+create policy "User can view their own permissions row" on "public"."user_permissions" as PERMISSIVE
+for SELECT
+to authenticated
+using (
+  (select auth.uid()) = user_id
+);
+
+create policy "Admins can view all permissions rows" on "public"."user_permissions" as PERMISSIVE
+for SELECT
+to authenticated
+using (
+  public.is_admin((select auth.uid()))
+);
+
+-- INSERT, UPDATE, DELETE: permissions are managed by the server (signup trigger),
+-- users must not be able to grant themselves roles.
+
 ----------------------
 -- SPACES
 ----------------------

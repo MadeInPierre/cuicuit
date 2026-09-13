@@ -845,6 +845,27 @@ export const publicSpacesRelationshipsSchema = z.tuple([
   }),
 ]);
 
+export const publicUserPermissionsRowSchema = z.object({
+  created_at: z.string(),
+  role: z.string(),
+  updated_at: z.string(),
+  user_id: z.string(),
+});
+
+export const publicUserPermissionsInsertSchema = z.object({
+  created_at: z.string().optional(),
+  role: z.string().optional(),
+  updated_at: z.string().optional(),
+  user_id: z.string(),
+});
+
+export const publicUserPermissionsUpdateSchema = z.object({
+  created_at: z.string().optional(),
+  role: z.string().optional(),
+  updated_at: z.string().optional(),
+  user_id: z.string().optional(),
+});
+
 export const publicUserPreferencesRowSchema = z.object({
   aisle_order: z.array(z.string()).nullable(),
   created_at: z.string(),
@@ -1046,6 +1067,12 @@ export const publicGetShoppingRecommendationsReturnsSchema = z.array(
   }),
 );
 
+export const publicIsAdminArgsSchema = z.object({
+  _user_id: z.string(),
+});
+
+export const publicIsAdminReturnsSchema = z.boolean();
+
 export const publicIsSpaceMemberArgsSchema = z.object({
   _space_id: z.string(),
   _user_id: z.string(),
@@ -1233,6 +1260,15 @@ export type PublicSpacesUpdate = z.infer<typeof publicSpacesUpdateSchema>;
 export type PublicSpacesRelationships = z.infer<
   typeof publicSpacesRelationshipsSchema
 >;
+export type PublicUserPermissionsRow = z.infer<
+  typeof publicUserPermissionsRowSchema
+>;
+export type PublicUserPermissionsInsert = z.infer<
+  typeof publicUserPermissionsInsertSchema
+>;
+export type PublicUserPermissionsUpdate = z.infer<
+  typeof publicUserPermissionsUpdateSchema
+>;
 export type PublicUserPreferencesRow = z.infer<
   typeof publicUserPreferencesRowSchema
 >;
@@ -1281,6 +1317,8 @@ export type PublicGetShoppingRecommendationsArgs = z.infer<
 export type PublicGetShoppingRecommendationsReturns = z.infer<
   typeof publicGetShoppingRecommendationsReturnsSchema
 >;
+export type PublicIsAdminArgs = z.infer<typeof publicIsAdminArgsSchema>;
+export type PublicIsAdminReturns = z.infer<typeof publicIsAdminReturnsSchema>;
 export type PublicIsSpaceMemberArgs = z.infer<
   typeof publicIsSpaceMemberArgsSchema
 >;

@@ -134988,3 +134988,13 @@ SELECT
 -- PostgreSQL database dump complete
 --
 RESET ALL;
+
+--
+-- Manual addition (not part of the dump): backfill user_permissions for seeded
+-- auth users as 'user'. Seed data loads with session_replication_role=replica,
+-- so the on_auth_user_created trigger does not fire for these rows.
+-- Idempotent: safe to re-run.
+--
+INSERT INTO "public"."user_permissions" ("user_id", "role")
+SELECT "id", 'user' FROM "auth"."users"
+ON CONFLICT ("user_id") DO NOTHING;
