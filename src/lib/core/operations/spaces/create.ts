@@ -28,23 +28,21 @@ async function spacesCreateHandler(ctx: OpCtx, input: SpacesCreateInput): Promis
 		throw new OpError('CONFLICT', 'space-already-exists');
 	}
 
-	// Insert into spaces table
-	const { data: spaceInsert, error: spaceError } = await ctx.supabase
-		.from('spaces')
-		.insert([
-			{
-				name,
-				icon,
-				initial_theme: theme,
-				author_id: userId
-				// TODO add language preference?
-			}
-		])
-		.select('id')
-		.single();
+	// The id is generated here (not `.select()`-ed back): the `spaces` SELECT
+	// policy is membership-gated, so reading the row back in the same statement
+	// fails RLS before the membership below exists.
+	const spaceId = crypto.randomUUID();
+	const { error: spaceError } = await ctx.supabase.from('spaces').insert([
+		{
+			id: spaceId,
+			name,
+			icon,
+			initial_theme: theme,
+			author_id: userId
+			// TODO add language preference?
+		}
+	]);
 	if (spaceError) throw new OpError('INTERNAL', 'Failed to create space.', spaceError);
-	const spaceId = spaceInsert?.id;
-	if (!spaceId) throw new OpError('INTERNAL', 'Failed to create space');
 
 	// Insert into space_members table
 	const { error: memberError } = await ctx.supabase.from('space_members').insert([

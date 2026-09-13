@@ -11,7 +11,6 @@ import type { OpCtx } from './registry.js';
  *
  * Adapters must NEVER call credit consumption directly — the two import ops
  * (`recipes.import-from-url`, `recipes.import-from-text`) apply this internally.
- * NOTE: signature changed from the M1 stub `(feature, seeds, fn)` to `(ctx, opts, fn)`.
  */
 export interface CreditUsage {
 	privateCreditsUsed: number;

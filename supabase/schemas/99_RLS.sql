@@ -498,3 +498,116 @@ using (
           and r.author_id = auth.uid()
     )
 );
+
+----------------------
+-- USER API TOKENS
+----------------------
+--
+alter table "public"."user_api_tokens" enable row level security;
+
+-- Tokens are owner-only: a user manages exactly their own rows.
+-- (PAT authentication itself goes through service_role lookup by token hash;
+-- per-request data access still uses the user's JWT, so RLS on data tables holds.)
+
+create policy "Users can view their own API tokens" on "public"."user_api_tokens" as PERMISSIVE
+for SELECT
+to authenticated
+using (
+  (select auth.uid()) = user_id
+);
+
+create policy "Users can create their own API tokens" on "public"."user_api_tokens" as PERMISSIVE
+for INSERT
+to authenticated
+with check (
+  (select auth.uid()) = user_id
+);
+
+create policy "Users can update their own API tokens" on "public"."user_api_tokens" as PERMISSIVE
+for UPDATE
+to authenticated
+using (
+  (select auth.uid()) = user_id
+)
+with check (
+  (select auth.uid()) = user_id
+);
+
+create policy "Users can delete their own API tokens" on "public"."user_api_tokens" as PERMISSIVE
+for DELETE
+to authenticated
+using (
+  (select auth.uid()) = user_id
+);
+
+
+----------------------
+-- USER AVATARS (storage.objects, `users` bucket)
+----------------------
+-- NOTE: the `users` bucket itself is created by migration
+-- `20260913184605_user_avatars_bucket.sql` (buckets live outside the
+-- declarative scope, like the `recipes` bucket). Public bucket — avatars load
+-- via direct public URLs, so no SELECT policy; writes are owner-only.
+
+create policy "Users can upload their own avatar"
+on storage.objects for insert
+to authenticated
+with check (
+    bucket_id = 'users'
+    and (storage.foldername(name))[1] = 'public'
+    and (storage.foldername(name))[2] = (select auth.uid())::text
+);
+
+create policy "Users can update their own avatar"
+on storage.objects for update
+to authenticated
+using (
+    bucket_id = 'users'
+    and (storage.foldername(name))[1] = 'public'
+    and (storage.foldername(name))[2] = (select auth.uid())::text
+)
+with check (
+    bucket_id = 'users'
+    and (storage.foldername(name))[1] = 'public'
+    and (storage.foldername(name))[2] = (select auth.uid())::text
+);
+
+create policy "Users can delete their own avatar"
+on storage.objects for delete
+to authenticated
+using (
+    bucket_id = 'users'
+    and (storage.foldername(name))[1] = 'public'
+    and (storage.foldername(name))[2] = (select auth.uid())::text
+);
+
+
+----------------------
+-- STORAGE OWNER LISTING (needed for user-scoped deletes)
+----------------------
+-- `remove()` must SELECT the objects it deletes; without these, deletes are
+-- silent no-ops. Scoped to the caller's own rows — buckets stay
+-- non-enumerable (see `20260913190000_storage_owner_list_policies.sql`).
+
+create policy "Recipe authors can list their images"
+on storage.objects for select
+to authenticated
+using (
+    bucket_id = 'recipes'
+    and (storage.foldername(name))[1] = 'images'
+    and (storage.foldername(name))[2] ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    and exists (
+        select 1 from public.recipes r
+        where r.id = cast((storage.foldername(name))[2] as uuid)
+          and r.author_id = auth.uid()
+    )
+);
+
+create policy "Users can list their own avatar"
+on storage.objects for select
+to authenticated
+using (
+    bucket_id = 'users'
+    and (storage.foldername(name))[1] = 'public'
+    and (storage.foldername(name))[2] = (select auth.uid())::text
+);

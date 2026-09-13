@@ -845,6 +845,39 @@ export const publicSpacesRelationshipsSchema = z.tuple([
   }),
 ]);
 
+export const publicUserApiTokensRowSchema = z.object({
+  created_at: z.string(),
+  id: z.string(),
+  last_used_at: z.string().nullable(),
+  name: z.string(),
+  prefix: z.string(),
+  revoked_at: z.string().nullable(),
+  token_hash: z.string(),
+  user_id: z.string(),
+});
+
+export const publicUserApiTokensInsertSchema = z.object({
+  created_at: z.string().optional(),
+  id: z.string().optional(),
+  last_used_at: z.string().optional().nullable(),
+  name: z.string(),
+  prefix: z.string(),
+  revoked_at: z.string().optional().nullable(),
+  token_hash: z.string(),
+  user_id: z.string(),
+});
+
+export const publicUserApiTokensUpdateSchema = z.object({
+  created_at: z.string().optional(),
+  id: z.string().optional(),
+  last_used_at: z.string().optional().nullable(),
+  name: z.string().optional(),
+  prefix: z.string().optional(),
+  revoked_at: z.string().optional().nullable(),
+  token_hash: z.string().optional(),
+  user_id: z.string().optional(),
+});
+
 export const publicUserPermissionsRowSchema = z.object({
   created_at: z.string(),
   role: z.string(),
@@ -1259,6 +1292,15 @@ export type PublicSpacesInsert = z.infer<typeof publicSpacesInsertSchema>;
 export type PublicSpacesUpdate = z.infer<typeof publicSpacesUpdateSchema>;
 export type PublicSpacesRelationships = z.infer<
   typeof publicSpacesRelationshipsSchema
+>;
+export type PublicUserApiTokensRow = z.infer<
+  typeof publicUserApiTokensRowSchema
+>;
+export type PublicUserApiTokensInsert = z.infer<
+  typeof publicUserApiTokensInsertSchema
+>;
+export type PublicUserApiTokensUpdate = z.infer<
+  typeof publicUserApiTokensUpdateSchema
 >;
 export type PublicUserPermissionsRow = z.infer<
   typeof publicUserPermissionsRowSchema

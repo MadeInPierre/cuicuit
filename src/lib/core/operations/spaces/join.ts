@@ -17,8 +17,10 @@ async function spacesJoinHandler(ctx: OpCtx, input: SpacesJoinInput): Promise<vo
 	if (!spaceId) throw new OpError('VALIDATION', 'Space ID not provided');
 	if (!theme) throw new OpError('VALIDATION', 'Theme not provided');
 
-	// Check if the space exists and get its row
-	const { data, error: fetchError } = await ctx.supabase
+	// Check if the space exists and get its row. The `spaces` SELECT policy is
+	// membership-gated, so a joining non-member cannot read the row through
+	// `ctx.supabase`.
+	const { data, error: fetchError } = await (ctx.admin ?? ctx.supabase)
 		.from('spaces')
 		.select('id, name, icon')
 		.eq('id', spaceId)

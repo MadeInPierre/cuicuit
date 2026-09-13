@@ -10,6 +10,9 @@
  * `$app/server` via `context.ts` and breaks the client build). They import
  * `runOp` from `./registry.js` and `getClientCtx` from `./context.client.js`.
  */
+import './auth/create-token.js';
+import './auth/list-tokens.js';
+import './auth/revoke-token.js';
 import './billing/balance.js';
 import './billing/checkout.js';
 import './billing/consume.js';
@@ -50,8 +53,14 @@ import './spaces/join.js';
 import './spaces/leave.js';
 import './spaces/list.js';
 
-export { requireUserId, resolvePatToken, serverIsUserAuthenticated } from './auth.js';
-export { requireCtx } from './context.js';
+export {
+	requireUserId,
+	resolvePatToken,
+	exchangePatForUserJwt,
+	serverIsUserAuthenticated
+} from './auth.js';
+export type { PatSession } from './auth.js';
+export { requireApiCtx, requireCtx, type ApiAuthMethod } from './context.js';
 export { getClientCtx } from './context.client.js';
 export { canAfford, withCredits, type CreditUsage } from './credits.js';
 export { OpError, toStatus, type OpErrorCode } from './errors.js';

@@ -1,8 +1,5 @@
 /**
  * Canonical error for all `defineOp` operations.
- *
- * NOTE (M1 decision): `OpError` lives in this file, not in `registry.ts`.
- * `registry.ts` re-exports it so adapters can import everything from one place.
  */
 export type OpErrorCode =
 	| 'UNAUTHENTICATED'
@@ -25,7 +22,7 @@ export class OpError extends Error {
 	}
 }
 
-/** Map an `OpErrorCode` to an HTTP status for future API (`M3`) / MCP (`M4`) adapters. */
+/** Map an `OpErrorCode` to an HTTP status for API / MCP adapters. */
 export function toStatus(code: OpErrorCode): number {
 	switch (code) {
 		case 'UNAUTHENTICATED':
