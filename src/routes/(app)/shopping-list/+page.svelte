@@ -21,6 +21,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import { cn } from '$lib/utils';
 	import {
 		Apple,
@@ -39,7 +40,6 @@
 		type CombinedShoppingListItem,
 		formatCombinedItemQuantity
 	} from './generate-shopping-list';
-	import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import ItemDrawer from './ItemDrawer.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
@@ -317,7 +317,7 @@
 								</div>
 							{/if}
 
-							{#if shoppingRecommendations.length > 0}
+							{#if suggestionsLayout.value === 'bottom' && shoppingRecommendations.length > 0}
 								<div class="grid space-y-2 xl:space-y-4" transition:fade={{ duration: 200 }}>
 									<h3 class="pt-8 text-md font-medium">You might also need:</h3>
 									<div class="overflow-hidden max-h-44 xl:max-h-26">

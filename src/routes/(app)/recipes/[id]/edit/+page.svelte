@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import {
 		buildCustomIngredientName,
 		resolveIngredientName
 	} from '$lib/features/ingredients/utils/ingredient-display';
+	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import {
 		recipeCourses,
 		recipeCuisines,
@@ -535,7 +535,7 @@
 
 				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-						<Card.Root>
+						<Card.Root class="bg-primary-foreground">
 							<Card.Header class="flex-row items-center">
 								<div class="grid space-y-1.5">
 									<Card.Title>Recipe Details</Card.Title>

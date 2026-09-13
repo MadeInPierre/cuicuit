@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { deleteMeal, updateMealServings } from '$lib/features/plans/actions/update-meal';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
@@ -36,6 +37,7 @@
 		Grid3x3,
 		HandCoins,
 		List,
+		Pencil,
 		Plus,
 		RotateCcw,
 		Salad,
@@ -46,6 +48,7 @@
 
 	const pageRecipeId = $derived(page.params.id);
 	const space = getActiveSpaceState();
+	const userState = getUserState();
 
 	let ingredientsView = createPersistentState<'grid' | 'list'>(
 		'view-recipe-ingredients-layout',
@@ -408,8 +411,18 @@
 						</div>
 
 						<div class="grid space-y-4">
-							<Button variant="outline" href={'/recipes/' + pageRecipeId + '/edit'} class="w-full">
-								Edit
+							<Button
+								variant="outline"
+								href={'/recipes/' + pageRecipeId + '/edit'}
+								class="w-full"
+								disabled={recipe.author_id !== userState.user?.id}
+							>
+								<Pencil class="size-4" />
+								{#if recipe.author_id === userState.user?.id}
+									Edit
+								{:else}
+									Editable by @{recipe.author.user_name}
+								{/if}
 							</Button>
 						</div>
 
