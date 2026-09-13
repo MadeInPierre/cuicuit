@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS "public"."space_meals" (
     "recipe_id" "uuid" NOT NULL,
     "servings" integer DEFAULT 1 NOT NULL,
     "position" integer DEFAULT 0 NOT NULL,
+    "cooked" boolean DEFAULT false NOT NULL,
     "deleted_at" timestamp with time zone
 );
 

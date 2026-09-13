@@ -546,6 +546,7 @@ export type Database = {
       }
       space_meals: {
         Row: {
+          cooked: boolean
           created_at: string | null
           created_by: string
           deleted_at: string | null
@@ -557,6 +558,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          cooked?: boolean
           created_at?: string | null
           created_by: string
           deleted_at?: string | null
@@ -568,6 +570,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          cooked?: boolean
           created_at?: string | null
           created_by?: string
           deleted_at?: string | null

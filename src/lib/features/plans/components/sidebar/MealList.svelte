@@ -77,12 +77,8 @@
 	async function swipeend(e: CustomEvent<SwipeEndEventDetail>, mealId: string) {
 		const { passThreshold, direction } = e.detail;
 		if (passThreshold) {
-			if (direction === 'left') await deleteMeal(space, mealId);
-			else {
-				// TODO implement marked as cooked
-				await deleteMeal(space, mealId, { hideToast: true });
-				toast.success('Marked as cooked', { description: 'Bon appétit !' });
-			}
+			if (direction === 'left') await deleteMeal(space, mealId, { cooked: false });
+			else await deleteMeal(space, mealId, { cooked: true });
 		}
 	}
 </script>
