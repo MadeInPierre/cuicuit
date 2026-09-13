@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { dev } from '$app/environment';
 	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
-	import NavFavorites from '$lib/shared/components/nav-favorites.svelte';
+	import NavAdmin from '$lib/shared/components/nav-admin.svelte';
 	import NavMain from '$lib/shared/components/nav-main.svelte';
 	import NavSecondary from '$lib/shared/components/nav-secondary.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
@@ -25,7 +24,7 @@
 			showUpTo?: keyof typeof TAILWIND_BREAKPOINTS;
 		}[];
 		navSecondary: { title: string; url: string; icon: any }[];
-		favorites: { name: string; url: string; emoji: string }[];
+		admin: { name: string; url: string; emoji: string }[];
 		workspaces: {
 			name: string;
 			emoji: string;
@@ -89,72 +88,22 @@
 			// 	badge: '2'
 			// }
 		],
-		favorites: [
+		admin: [
 			{
 				name: 'Dashboard',
-				url: '/dashboard',
+				url: '/admin/dashboard',
 				emoji: '📊'
 			},
 			{
 				name: 'Ingredients',
-				url: '/ingredients',
+				url: '/admin/ingredients',
 				emoji: '🍏'
 			},
 			{
 				name: 'Match',
-				url: '/match',
+				url: '/admin/match',
 				emoji: '🔍'
 			}
-			// {
-			// 	name: 'Project Management & Task Tracking',
-			// 	url: '#',
-			// 	emoji: '📊'
-			// },
-			// {
-			// 	name: 'Family Recipe Collection & Meal Planning',
-			// 	url: '#',
-			// 	emoji: '🍳'
-			// },
-			// {
-			// 	name: 'Fitness Tracker & Workout Routines',
-			// 	url: '#',
-			// 	emoji: '💪'
-			// },
-			// {
-			// 	name: 'Book Notes & Reading List',
-			// 	url: '#',
-			// 	emoji: '📚'
-			// },
-			// {
-			// 	name: 'Sustainable Gardening Tips & Plant Care',
-			// 	url: '#',
-			// 	emoji: '🌱'
-			// },
-			// {
-			// 	name: 'Language Learning Progress & Resources',
-			// 	url: '#',
-			// 	emoji: '🗣️'
-			// },
-			// {
-			// 	name: 'Home Renovation Ideas & Budget Tracker',
-			// 	url: '#',
-			// 	emoji: '🏠'
-			// },
-			// {
-			// 	name: 'Personal Finance & Investment Portfolio',
-			// 	url: '#',
-			// 	emoji: '💰'
-			// },
-			// {
-			// 	name: 'Movie & TV Show Watchlist with Reviews',
-			// 	url: '#',
-			// 	emoji: '🎬'
-			// },
-			// {
-			// 	name: 'Daily Habit Tracker & Goal Setting',
-			// 	url: '#',
-			// 	emoji: '✅'
-			// }
 		],
 		workspaces: [
 			// {
@@ -178,90 +127,6 @@
 			// 		}
 			// 	]
 			// },
-			// {
-			// 	name: 'Professional Development',
-			// 	emoji: '💼',
-			// 	pages: [
-			// 		{
-			// 			name: 'Career Objectives & Milestones',
-			// 			url: '#',
-			// 			emoji: '🎯'
-			// 		},
-			// 		{
-			// 			name: 'Skill Acquisition & Training Log',
-			// 			url: '#',
-			// 			emoji: '🧠'
-			// 		},
-			// 		{
-			// 			name: 'Networking Contacts & Events',
-			// 			url: '#',
-			// 			emoji: '🤝'
-			// 		}
-			// 	]
-			// },
-			// {
-			// 	name: 'Creative Projects',
-			// 	emoji: '🎨',
-			// 	pages: [
-			// 		{
-			// 			name: 'Writing Ideas & Story Outlines',
-			// 			url: '#',
-			// 			emoji: '✍️'
-			// 		},
-			// 		{
-			// 			name: 'Art & Design Portfolio',
-			// 			url: '#',
-			// 			emoji: '🖼️'
-			// 		},
-			// 		{
-			// 			name: 'Music Composition & Practice Log',
-			// 			url: '#',
-			// 			emoji: '🎵'
-			// 		}
-			// 	]
-			// },
-			// {
-			// 	name: 'Home Management',
-			// 	emoji: '🏡',
-			// 	pages: [
-			// 		{
-			// 			name: 'Household Budget & Expense Tracking',
-			// 			url: '#',
-			// 			emoji: '💰'
-			// 		},
-			// 		{
-			// 			name: 'Home Maintenance Schedule & Tasks',
-			// 			url: '#',
-			// 			emoji: '🔧'
-			// 		},
-			// 		{
-			// 			name: 'Family Calendar & Event Planning',
-			// 			url: '#',
-			// 			emoji: '📅'
-			// 		}
-			// 	]
-			// },
-			// {
-			// 	name: 'Travel & Adventure',
-			// 	emoji: '🧳',
-			// 	pages: [
-			// 		{
-			// 			name: 'Trip Planning & Itineraries',
-			// 			url: '#',
-			// 			emoji: '🗺️'
-			// 		},
-			// 		{
-			// 			name: 'Travel Bucket List & Inspiration',
-			// 			url: '#',
-			// 			emoji: '🌎'
-			// 		},
-			// 		{
-			// 			name: 'Travel Journal & Photo Gallery',
-			// 			url: '#',
-			// 			emoji: '📸'
-			// 		}
-			// 	]
-			// }
 		]
 	});
 
@@ -275,8 +140,8 @@
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<!-- <NavWorkspaces workspaces={data.workspaces} /> -->
-		{#if dev}
-			<NavFavorites favorites={data.favorites} />
+		{#if userState.isAdmin}
+			<NavAdmin items={data.admin} />
 		{/if}
 		<NavSecondary items={data.navSecondary} class="mt-auto" />
 	</Sidebar.Content>

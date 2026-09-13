@@ -3,17 +3,17 @@
 	import { useSidebar } from '$lib/shared/components/ui/sidebar/index.js';
 	import { useMedia } from '../hooks/use-media.svelte';
 
-	let { favorites }: { favorites: { name: string; url: string; emoji: string }[] } = $props();
+	let { items }: { items: { name: string; url: string; emoji: string }[] } = $props();
 
 	const sidebar = useSidebar();
 	const media = useMedia();
 </script>
 
 <Sidebar.Group class="group-data-[collapsible=icon]:hidden">
-	<Sidebar.GroupLabel>Development</Sidebar.GroupLabel>
+	<Sidebar.GroupLabel>Admin</Sidebar.GroupLabel>
 
 	<Sidebar.Menu>
-		{#each favorites as item (item.name)}
+		{#each items as item (item.name)}
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton>
 					{#snippet child({ props })}

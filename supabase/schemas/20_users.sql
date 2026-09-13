@@ -47,7 +47,17 @@ SET search_path = public, auth
 AS $$
 DECLARE
     v_space_id uuid;
+    v_role text;
 BEGIN
+    -- First ever user becomes admin (self-hostable instances), all others are regular users.
+    -- NOTE: concurrent first signups could both see an empty table; acceptable for this app scale.
+    SELECT CASE WHEN EXISTS (SELECT 1 FROM public.user_permissions) THEN 'user' ELSE 'admin' END
+    INTO v_role;
+
+    INSERT INTO public.user_permissions (user_id, role)
+    VALUES (NEW.id, v_role)
+    ON CONFLICT (user_id) DO NOTHING;
+
     INSERT INTO public.user_preferences (user_id, first_name, last_name, onboarding_status)
     VALUES (
         NEW.id,
@@ -128,5 +138,41 @@ GRANT ALL ON TABLE "public"."user_public_profiles" TO "anon";
 GRANT ALL ON TABLE "public"."user_public_profiles" TO "authenticated";
 
 GRANT ALL ON TABLE "public"."user_public_profiles" TO "service_role";
+
+-- 6. Indexes
+
+-- =================================================
+-- Table: User Permissions
+-- =================================================
+-- 1. Definition
+CREATE TABLE IF NOT EXISTS "public"."user_permissions" (
+    "user_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now" () NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now" () NOT NULL,
+    "role" "text" DEFAULT 'user'::"text" NOT NULL,
+    CONSTRAINT "user_permissions_role_check" CHECK ("role" IN ('admin', 'user'))
+);
+
+-- 2. Ownership
+ALTER TABLE "public"."user_permissions" OWNER TO "postgres";
+
+-- 3. Constraints (primary key, foreign keys, checks, unique, etc.)
+ALTER TABLE ONLY "public"."user_permissions"
+ADD CONSTRAINT "user_permissions_pkey" PRIMARY KEY ("user_id");
+
+ALTER TABLE ONLY "public"."user_permissions"
+ADD CONSTRAINT "user_permissions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users" ("id") ON DELETE CASCADE;
+
+-- 4. Triggers
+CREATE OR REPLACE TRIGGER "update_user_permissions_updated_at" BEFORE
+UPDATE ON "public"."user_permissions" FOR EACH ROW
+EXECUTE FUNCTION "public"."update_updated_at_column" ();
+
+-- 5. Grants
+GRANT ALL ON TABLE "public"."user_permissions" TO "anon";
+
+GRANT ALL ON TABLE "public"."user_permissions" TO "authenticated";
+
+GRANT ALL ON TABLE "public"."user_permissions" TO "service_role";
 
 -- 6. Indexes

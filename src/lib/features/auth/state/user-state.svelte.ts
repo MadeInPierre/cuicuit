@@ -3,6 +3,7 @@ import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { getUserCreditBalance, type UserCreditBalance } from '../queries/get-user-credit-balance';
 import { getUserCreditLogs, type UserCreditLogs } from '../queries/get-user-credit-logs';
+import { getUserPermissions, type UserPermissions } from '../queries/get-user-permissions';
 import { getUserPreferences, type UserPreferences } from '../queries/get-user-preferences';
 import { getUserPublicProfile, type UserPublicProfile } from '../queries/get-user-public-profile';
 
@@ -10,6 +11,7 @@ export class UserState {
 	#userState = $state<User | undefined | null>(undefined);
 	#userPublicProfile = $state<UserPublicProfile | undefined | null>(undefined);
 	#userPreferences = $state<UserPreferences | undefined | null>(undefined);
+	#userPermissions = $state<UserPermissions | undefined | null>(undefined);
 	#userCreditLogs = $state<UserCreditLogs | undefined | null>(undefined);
 	#userCreditBalance = $state<UserCreditBalance | undefined | null>(undefined);
 
@@ -34,6 +36,11 @@ export class UserState {
 					// Fetch user preferences
 					getUserPreferences(supabase.client, session.user.id).then((result) => {
 						this.#userPreferences = result.preferences;
+					});
+
+					// Fetch user permissions (role)
+					getUserPermissions(supabase.client, session.user.id).then((result) => {
+						this.#userPermissions = result.permissions;
 					});
 
 					// Fetch credit logs
@@ -66,6 +73,14 @@ export class UserState {
 		return this.#userPreferences;
 	}
 
+	get permissions() {
+		return this.#userPermissions;
+	}
+
+	get isAdmin() {
+		return this.#userPermissions?.role === 'admin';
+	}
+
 	get creditLogs() {
 		return this.#userCreditLogs;
 	}
@@ -79,6 +94,7 @@ export class UserState {
 			this.#userState === undefined ||
 			this.#userPublicProfile === undefined ||
 			this.#userPreferences === undefined ||
+			this.#userPermissions === undefined ||
 			this.#userCreditLogs === undefined ||
 			this.#userCreditBalance === undefined
 		);
@@ -88,7 +104,8 @@ export class UserState {
 		return (
 			this.#userState &&
 			this.#userPublicProfile &&
-			this.#userPreferences
+			this.#userPreferences &&
+			this.#userPermissions !== undefined
 		); // Neither null nor undefined
 	}
 
@@ -104,6 +121,11 @@ export class UserState {
 
 		// Refresh user preferences
 		this.#userPreferences = (await getUserPreferences(supabase.client, this.#userState.id)).preferences;
+
+		// Refresh user permissions
+		this.#userPermissions = (
+			await getUserPermissions(supabase.client, this.#userState.id)
+		).permissions;
 
 		// Refresh user credit logs
 		this.#userCreditLogs = (await getUserCreditLogs(this.#userState.id)).logs;

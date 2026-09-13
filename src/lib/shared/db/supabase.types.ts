@@ -685,6 +685,27 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          created_at: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           aisle_order: string[] | null
@@ -881,6 +902,7 @@ export type Database = {
           slug_general: string
         }[]
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_space_member: {
         Args: { _space_id: string; _user_id: string }
         Returns: boolean
