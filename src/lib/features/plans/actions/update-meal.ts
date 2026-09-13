@@ -87,6 +87,7 @@ export async function deleteMeal(
 		undo?: boolean;
 		toastId?: string | number;
 		hideToast?: boolean;
+		cooked?: boolean;
 	}
 ) {
 	if (!supabase.client) throw new Error('Supabase client not available');
@@ -113,24 +114,38 @@ export async function deleteMeal(
 		throw new Error('Error soft-deleting shopping list items: ' + shoppingListError.message);
 	}
 
-	// Now set the deleted_at timestamp for the meal
+	// Now set the deleted_at timestamp for the meal, plus its cooked status.
+	// Both swipes soft-delete the meal (deleted_at), but only a right swipe
+	// marks it as cooked so past cooked meals can feed a timeline later.
+	const cooked = options?.undo ? false : (options?.cooked ?? false);
 	const { error } = await supabase.client
 		.from('space_meals')
-		.update({ deleted_at: options?.undo ? null : now })
+		.update({ deleted_at: options?.undo ? null : now, cooked })
 		.eq('id', mealId);
 	if (error) throw new Error('Error soft-deleting meal: ' + error.message);
 
 	if (options?.undo) {
 		toast.success('Meal restored', { description: 'We got it back!', id: options?.toastId });
 	} else if (!options?.hideToast) {
-		const id = toast.success('Meal deleted', {
-			description: 'It looked yummy though',
-			action: {
-				label: 'Undo',
-				onClick: () =>
-					deleteMeal(activeSpace, mealId, { skipRefresh: false, undo: true, toastId: id })
-			}
-		});
+		if (cooked) {
+			const id = toast.success('Marked as cooked', {
+				description: 'Bon appétit !',
+				action: {
+					label: 'Undo',
+					onClick: () =>
+						deleteMeal(activeSpace, mealId, { skipRefresh: false, undo: true, toastId: id })
+				}
+			});
+		} else {
+			const id = toast.success('Meal deleted', {
+				description: 'It looked yummy though',
+				action: {
+					label: 'Undo',
+					onClick: () =>
+						deleteMeal(activeSpace, mealId, { skipRefresh: false, undo: true, toastId: id })
+				}
+			});
+		}
 	}
 
 	if (options?.skipRefresh) return;

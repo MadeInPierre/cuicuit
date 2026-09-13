@@ -699,6 +699,7 @@ export const publicSpaceItemsRelationshipsSchema = z.tuple([
 ]);
 
 export const publicSpaceMealsRowSchema = z.object({
+  cooked: z.boolean(),
   created_at: z.string().nullable(),
   created_by: z.string(),
   deleted_at: z.string().nullable(),
@@ -711,6 +712,7 @@ export const publicSpaceMealsRowSchema = z.object({
 });
 
 export const publicSpaceMealsInsertSchema = z.object({
+  cooked: z.boolean().optional(),
   created_at: z.string().optional().nullable(),
   created_by: z.string(),
   deleted_at: z.string().optional().nullable(),
@@ -723,6 +725,7 @@ export const publicSpaceMealsInsertSchema = z.object({
 });
 
 export const publicSpaceMealsUpdateSchema = z.object({
+  cooked: z.boolean().optional(),
   created_at: z.string().optional().nullable(),
   created_by: z.string().optional(),
   deleted_at: z.string().optional().nullable(),
