@@ -54,6 +54,12 @@ export const listMealsOp = defineOp({
 	domain: 'plans',
 	kind: 'read',
 	sync: 'synced',
+	docs: {
+		title: 'List meals',
+		description:
+			'Lists the non-deleted meals of a space with recipes and shopping ingredients. `languageId` is an integer id (see languages_list). Each meal carries its `recipe` (with `servings` and `recipe_ingredients`) plus its linked `shopping_ingredients` items.',
+		tool: 'plan_list'
+	},
 	input: listMealsInput,
 	handler: async (ctx, { spaceId, languageId }) => {
 		const { data, error } = await mealsQuery(ctx.supabase, spaceId, languageId);

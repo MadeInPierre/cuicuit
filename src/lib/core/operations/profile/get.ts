@@ -69,6 +69,10 @@ export const profileGetOp = defineOp({
 	domain: 'profile',
 	kind: 'read',
 	sync: 'later',
+	docs: {
+		title: 'Get profiles',
+		description: 'Fetches user public profiles, optionally with own preferences.'
+	},
 	input: profileGetInput,
 	handler: profileGetHandler
 });

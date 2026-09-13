@@ -1,6 +1,4 @@
-import { z } from 'zod';
-
-import { registry } from '$lib/core/operations/registry.js';
+import { opInputJsonSchema as inputJsonSchema } from '$lib/core/operations/json-schema.js';
 
 /**
  * Static route map: the single source of truth binding REST endpoints to ops.
@@ -124,6 +122,12 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		body: 'json'
 	},
 	// ---- Ingredients ----
+	{
+		method: 'GET',
+		path: '/api/v1/languages',
+		op: 'languages.list',
+		summary: 'List supported languages (ids and codes)'
+	},
 	{
 		method: 'GET',
 		path: '/api/v1/ingredients',
@@ -381,17 +385,6 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		body: 'none'
 	}
 ];
-
-/** JSON Schema for an op's zod input (request bodies). Never throws — falls back to `{}`. */
-function inputJsonSchema(opName: string): Record<string, unknown> {
-	try {
-		const def = registry.get(opName);
-		if (!def) return {};
-		return z.toJSONSchema(def.input) as unknown as Record<string, unknown>;
-	} catch {
-		return {};
-	}
-}
 
 const ERROR_SCHEMA = {
 	type: 'object',

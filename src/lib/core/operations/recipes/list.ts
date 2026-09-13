@@ -77,6 +77,12 @@ export const listRecipesOp = defineOp({
 	domain: 'recipes',
 	kind: 'read',
 	sync: 'synced',
+	docs: {
+		title: 'List recipes',
+		description:
+			'Lists detailed recipes with language-filtered translations and ingredients. `languageId` is an integer id — call languages_list once to map names to ids.',
+		tool: 'recipes_list'
+	},
 	input: listRecipesInput,
 	handler: async (
 		ctx,

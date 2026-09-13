@@ -24,6 +24,12 @@ export const addExampleRecipesOp = defineOp({
 	domain: 'recipes',
 	kind: 'write',
 	sync: 'server-only',
+	docs: {
+		title: 'Add example recipes',
+		description:
+			'Imports the curated example recipes into the user library without charging credits. The fastest way to get plannable recipes; `fallbackLang` is a language key like `en-US` or `fr-FR` (see languages_list).',
+		tool: 'recipes_add_examples'
+	},
 	input: addExampleRecipesInput,
 	handler: async (ctx, { fallbackLang }) => {
 		if (!ctx.admin) {

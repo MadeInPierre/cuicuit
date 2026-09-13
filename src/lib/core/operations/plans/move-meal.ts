@@ -25,6 +25,7 @@ export const moveMealOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: { title: 'Move meal', description: 'Moves a meal to a new position in the plan.' },
 	input: moveMealInput,
 	handler: async (ctx, { mealId, position }) => {
 		const { error } = await ctx.supabase.from('space_meals').update({ position }).eq('id', mealId);

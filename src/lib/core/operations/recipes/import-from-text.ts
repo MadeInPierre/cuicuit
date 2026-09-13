@@ -31,6 +31,13 @@ export const importRecipeFromTextOp = defineOp({
 	domain: 'recipes',
 	kind: 'write',
 	sync: 'server-only',
+	docs: {
+		title: 'Import recipe from text',
+		description: 'Imports a recipe from free-form text, charging 1 seed.',
+		hints: [
+			'On INSUFFICIENT_SEEDS nothing is created — check seeds_balance and ask the user to top up in the app billing section (agents cannot pay).'
+		]
+	},
 	credits: { feature: 'import_recipe_from_text', seeds: 1 },
 	input: importRecipeFromTextInput,
 	handler: async function* (ctx, { text, fallbackLang }) {

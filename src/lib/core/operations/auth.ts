@@ -82,7 +82,13 @@ export async function exchangePatForUserJwt(
 	const { data: userData, error: userError } = await admin.auth.admin.getUserById(userId);
 	const email = userData?.user?.email;
 	if (userError || !email) {
-		throw new OpError('UNAUTHENTICATED', 'Invalid API token.');
+		// Downstream failure, NOT a bad token — keep the message distinct so
+		// callers don't revoke a healthy token on transient errors.
+		console.warn('[api] PAT exchange: getUserById failed:', userError?.message ?? 'no email');
+		throw new OpError(
+			'UNAUTHENTICATED',
+			'API token session could not be established (transient — retry).'
+		);
 	}
 	// `generateLink` mints the login token WITHOUT sending any email.
 	const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
@@ -91,7 +97,11 @@ export async function exchangePatForUserJwt(
 	});
 	const tokenHash = linkData?.properties?.hashed_token;
 	if (linkError || !tokenHash) {
-		throw new OpError('UNAUTHENTICATED', 'Invalid API token.');
+		console.warn('[api] PAT exchange: generateLink failed:', linkError?.message ?? 'no token');
+		throw new OpError(
+			'UNAUTHENTICATED',
+			'API token session could not be established (transient — retry).'
+		);
 	}
 	// Throwaway client: exchanging the token here must not touch the shared
 	// admin client's auth state.
@@ -104,7 +114,11 @@ export async function exchangePatForUserJwt(
 	});
 	const jwt = sessionData?.session?.access_token;
 	if (sessionError || !jwt) {
-		throw new OpError('UNAUTHENTICATED', 'Invalid API token.');
+		console.warn('[api] PAT exchange: verifyOtp failed:', sessionError?.message ?? 'no session');
+		throw new OpError(
+			'UNAUTHENTICATED',
+			'API token session could not be established (transient — retry).'
+		);
 	}
 	let cleaned = false;
 	const cleanup = () => {

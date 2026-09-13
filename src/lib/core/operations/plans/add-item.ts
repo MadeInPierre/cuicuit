@@ -38,6 +38,15 @@ export const addItemOp = defineOp({
 	domain: 'plans',
 	kind: 'write',
 	sync: 'synced',
+	docs: {
+		title: 'Add a shopping item',
+		description:
+			'Adds a standalone free-text item to a space shopping list. Needs `spaceId`, `name`, and optionally `quantity`, `unit`, `ingredientId`. Caller identity is forced from the credential — never pass `createdBy`.',
+		tool: 'shopping_add',
+		hints: [
+			'Standalone vs meal-linked: this creates `type: "independent"` items (milk, eggs). To plan a recipe with its ingredients, use plan_add_recipe instead.'
+		]
+	},
 	input: addItemInput,
 	handler: async (ctx, { spaceId, createdBy, ingredientId, name, quantity, unit }) => {
 		const { data, error } = await ctx.supabase

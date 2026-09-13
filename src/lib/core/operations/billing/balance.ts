@@ -38,6 +38,12 @@ export const balanceOp = defineOp({
 	name: 'billing.balance',
 	domain: 'billing',
 	kind: 'read',
+	docs: {
+		title: 'Seed balance',
+		description:
+			'Read-only seed balance for the caller plus community pool health. Takes no input. Seeds are the app currency: recipe imports cost 1 seed each (charged only after success). Out of seeds? Top up with a one-time or recurring payment in the app billing section — agents cannot pay, so hand the user off instead of retrying imports.',
+		tool: 'seeds_balance'
+	},
 	sync: 'server-only',
 	input: balanceInput,
 	handler: async (ctx): Promise<BalanceResult> => {

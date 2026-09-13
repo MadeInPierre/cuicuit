@@ -41,6 +41,11 @@ export const profileUpdateAvatarOp = defineOp({
 	domain: 'profile',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Update avatar',
+		description:
+			'Sets the user avatar icon and/or image URL, deleting the storage file when cleared.'
+	},
 	input: profileUpdateAvatarInput,
 	handler: profileUpdateAvatarHandler
 });

@@ -23,8 +23,8 @@ export async function requireCtx(
 	source: OpSource,
 	opts?: { signal?: AbortSignal; event?: RequestEvent }
 ): Promise<OpCtx> {
-	if (source === 'api') {
-		return (await requireApiCtx(opts?.event ?? getRequestEvent())).ctx;
+	if (source === 'api' || source === 'mcp') {
+		return (await requireApiCtx(opts?.event ?? getRequestEvent(), source)).ctx;
 	}
 	if (source !== 'app') {
 		throw new OpError(
@@ -57,7 +57,8 @@ export async function requireCtx(
  * JWT callers).
  */
 export async function requireApiCtx(
-	event: RequestEvent
+	event: RequestEvent,
+	source: Extract<OpSource, 'api' | 'mcp'> = 'api'
 ): Promise<{ ctx: OpCtx; authMethod: ApiAuthMethod; cleanup: () => void }> {
 	const header = event.request.headers.get('authorization');
 	const match = /^Bearer (.+)$/.exec(header?.trim() ?? '');
@@ -99,7 +100,7 @@ export async function requireApiCtx(
 			supabase,
 			admin: event.locals.supabaseAdmin,
 			userId: user.id,
-			source: 'api',
+			source,
 			signal: event.request.signal
 		},
 		authMethod,

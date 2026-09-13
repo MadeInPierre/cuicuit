@@ -48,6 +48,15 @@ export const spacesListOp = defineOp({
 	domain: 'spaces',
 	kind: 'read',
 	sync: 'later',
+	docs: {
+		title: 'List spaces',
+		description:
+			'Lists the user spaces with members and language. Start here: every plan and shopping tool needs a `spaceId` from this list.',
+		tool: 'spaces_list',
+		hints: [
+			'Typical agent flow: spaces_list → recipes_add_examples (free starter recipes) or recipes_list → plan_add_recipe → shopping_check.'
+		]
+	},
 	input: spacesListInput,
 	handler: spacesListHandler
 });

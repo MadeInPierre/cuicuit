@@ -76,6 +76,10 @@ export const spacesEditOp = defineOp({
 	domain: 'spaces',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Edit space',
+		description: 'Updates a space name, icon, language, and the member theme.'
+	},
 	input: spacesEditInput,
 	handler: spacesEditHandler
 });

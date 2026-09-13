@@ -34,6 +34,11 @@ export const logsOp = defineOp({
 	domain: 'billing',
 	kind: 'read',
 	sync: 'server-only',
+	docs: {
+		title: 'List credit logs',
+		description:
+			'Reads the current user seed ledger, newest first. Shows seed grants (top-ups) and charges (1 seed per successful recipe import).'
+	},
 	input: logsInput,
 	handler: async (ctx, { limit }): Promise<LogsResult> => {
 		const { data: dataLogs, error } = await ctx.supabase

@@ -48,6 +48,10 @@ export const profileUpdateProfileOp = defineOp({
 	domain: 'profile',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Update profile',
+		description: 'Updates the user public profile row with a new user name and optional icon.'
+	},
 	input: profileUpdateProfileInput,
 	handler: profileUpdateProfileHandler
 });

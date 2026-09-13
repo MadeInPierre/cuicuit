@@ -39,6 +39,13 @@ export const importRecipeFromUrlOp = defineOp({
 	domain: 'recipes',
 	kind: 'write',
 	sync: 'server-only',
+	docs: {
+		title: 'Import recipe from URL',
+		description: 'Imports a recipe from a URL, charging 1 seed.',
+		hints: [
+			'On INSUFFICIENT_SEEDS nothing is created — check seeds_balance and ask the user to top up in the app billing section (agents cannot pay).'
+		]
+	},
 	credits: { feature: 'import_recipe_from_website', seeds: 1 },
 	input: importRecipeFromUrlInput,
 	handler: async function* (ctx, { url, fallbackLang }) {

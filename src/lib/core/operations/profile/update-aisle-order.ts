@@ -42,6 +42,10 @@ export const profileUpdateAisleOrderOp = defineOp({
 	domain: 'profile',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Update aisle order',
+		description: 'Persists the supermarket aisle display order for a user.'
+	},
 	input: profileUpdateAisleOrderInput,
 	handler: profileUpdateAisleOrderHandler
 });

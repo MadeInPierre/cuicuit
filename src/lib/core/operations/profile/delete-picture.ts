@@ -38,6 +38,10 @@ export const profileDeletePictureOp = defineOp({
 	domain: 'profile',
 	kind: 'storage',
 	sync: 'later',
+	docs: {
+		title: 'Delete profile picture',
+		description: 'Removes the user avatar file from storage and clears the profile image URL.'
+	},
 	input: profileDeletePictureInput,
 	handler: profileDeletePictureHandler
 });

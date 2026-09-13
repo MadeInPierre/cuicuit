@@ -75,6 +75,10 @@ export const profileCompleteOnboardingOp = defineOp({
 	domain: 'profile',
 	kind: 'write',
 	sync: 'later',
+	docs: {
+		title: 'Complete onboarding',
+		description: 'Completes user onboarding by writing profile, preferences, and space language.'
+	},
 	input: profileCompleteOnboardingInput,
 	handler: profileCompleteOnboardingHandler
 });
