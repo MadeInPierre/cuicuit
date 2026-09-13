@@ -41,12 +41,22 @@ export interface OpDef<TIn, TOut> {
 export const registry = new Map<string, OpDef<unknown, unknown>>();
 
 /**
- * Define and register an operation. Throws on duplicate names — op names are
- * the contract between core and every adapter, so collisions fail fast.
+ * Define and register an operation.
+ *
+ * Re-registering an existing name OVERWRITES (with a server-log warning) instead
+ * of throwing. Rationale: under `vite dev`, editing any op file
+ * re-evaluates it (and the side-effect `index.ts`) against the surviving
+ * `registry` singleton — the SSR module runner does not expose
+ * `import.meta.hot`, so HMR cannot be detected and a strict throw poisoned
+ * every adapter until a full server restart. Production evaluates each module
+ * once, so an overwrite there means a genuine copy-paste name collision — loud
+ * in the startup logs via the warning, without taking the server down.
  */
 export function defineOp<TIn, TOut>(def: OpDef<TIn, TOut>): OpDef<TIn, TOut> {
 	if (registry.has(def.name)) {
-		throw new OpError('INTERNAL', `Duplicate operation name: ${def.name}`);
+		console.warn(
+			`[ops] Duplicate operation name '${def.name}' — overwriting previous registration.`
+		);
 	}
 	registry.set(def.name, def as OpDef<unknown, unknown>);
 	return def;
@@ -54,9 +64,6 @@ export function defineOp<TIn, TOut>(def: OpDef<TIn, TOut>): OpDef<TIn, TOut> {
 
 /**
  * Run an op by name: validates input against the op's zod schema, then calls the handler.
- *
- * M1 note: async-generator (streaming) handlers are NOT supported by `runOp` yet —
- * M2 adds a streaming runner for the import ops. Streaming defs fail fast here.
  */
 export async function runOp<TIn, TOut>(name: string, ctx: OpCtx, input: TIn): Promise<TOut> {
 	const def = registry.get(name) as OpDef<TIn, TOut> | undefined;

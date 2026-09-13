@@ -8,7 +8,8 @@ import { defineOp } from '../registry.js';
 export const addItemInput = z.object({
 	spaceId: z.string().min(1),
 	createdBy: z.string().min(1),
-	ingredientId: z.string().nullable(),
+	// Optional ingredient id (CLI callers omit it for free-text items; `undefined` serializes to the column default `null`, same as explicit `null`).
+	ingredientId: z.string().nullable().optional(),
 	name: z.string(),
 	quantity: z.number().nullable().optional(),
 	unit: z.string().nullable().optional()

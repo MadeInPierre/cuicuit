@@ -1,29 +1,38 @@
 import { getRequestEvent } from '$app/server';
+import { createClient } from '@supabase/supabase-js';
+import type { RequestEvent } from '@sveltejs/kit';
 
-import { requireUserId } from './auth.js';
+import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+
+import type { Database } from '$lib/shared/db/supabase.types';
+
+import { exchangePatForUserJwt, requireUserId, resolvePatToken } from './auth.js';
 import { OpError } from './errors.js';
 import type { OpCtx, OpSource } from './registry.js';
+import { PAT_PREFIX } from './auth/pats.js';
+
+export type ApiAuthMethod = 'jwt' | 'pat';
 
 /**
  * Build an `OpCtx` for the given source.
  *
  * SERVER-ONLY module: imports `$app/server`. Never import from client components —
- * only `*.remote.ts` / `+server.ts` / future API-MCP-sync adapters.
- *
- * M1 implements `'app'` only (from `getRequestEvent().locals`, as today's remotes do).
- * `'api' | 'mcp' | 'sync'` throw until M3/M4/M5 wire JWT/PAT/sync auth.
+ * only `*.remote.ts` / `+server.ts` / future MCP-sync adapters.
  */
 export async function requireCtx(
 	source: OpSource,
-	opts?: { signal?: AbortSignal }
+	opts?: { signal?: AbortSignal; event?: RequestEvent }
 ): Promise<OpCtx> {
+	if (source === 'api') {
+		return (await requireApiCtx(opts?.event ?? getRequestEvent())).ctx;
+	}
 	if (source !== 'app') {
 		throw new OpError(
 			'INTERNAL',
 			`TODO(auth-tokens): OpCtx for source '${source}' not implemented yet.`
 		);
 	}
-	const event = getRequestEvent();
+	const event = opts?.event ?? getRequestEvent();
 	const userId = await requireUserId(event.locals.supabase);
 	return {
 		supabase: event.locals.supabase,
@@ -31,5 +40,69 @@ export async function requireCtx(
 		userId,
 		source,
 		signal: opts?.signal
+	};
+}
+
+/**
+ * API/MCP auth: `Authorization: Bearer <supabaseJWT|cui_...>`.
+ *
+ * - Supabase JWT → forwarded to PostgREST (same RLS as the app).
+ * - PAT → hash lookup via service-role, then a real short-lived GoTrue session
+ *   for the token owner, so RLS still applies per-request (the PAT itself
+ *   never touches PostgREST).
+ *
+ * Returns the ctx, which credential type was used (token management routes
+ * are JWT-only and reject `'pat'`), and a `cleanup` that revokes the minted
+ * PAT session — the caller MUST run it when the request is done (no-op for
+ * JWT callers).
+ */
+export async function requireApiCtx(
+	event: RequestEvent
+): Promise<{ ctx: OpCtx; authMethod: ApiAuthMethod; cleanup: () => void }> {
+	const header = event.request.headers.get('authorization');
+	const match = /^Bearer (.+)$/.exec(header?.trim() ?? '');
+	if (!match) {
+		throw new OpError(
+			'UNAUTHENTICATED',
+			'Missing Authorization header. Use: Authorization: Bearer <supabaseJWT|cui_...>.'
+		);
+	}
+	const token = match[1];
+	let authMethod: ApiAuthMethod;
+	let jwt: string;
+	let cleanup: () => void = () => {};
+	if (token.startsWith(PAT_PREFIX)) {
+		authMethod = 'pat';
+		const userId = await resolvePatToken(token, event.locals.supabaseAdmin);
+		const session = await exchangePatForUserJwt(event.locals.supabaseAdmin, userId);
+		jwt = session.jwt;
+		cleanup = session.cleanup;
+	} else {
+		authMethod = 'jwt';
+		jwt = token;
+	}
+	// Short-lived, non-persisted client bound to the JWT: every PostgREST call
+	// carries it, so RLS enforces the caller's identity on all data tables.
+	const supabase = createClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+		auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+		global: { headers: { Authorization: `Bearer ${jwt}` } }
+	});
+	const {
+		data: { user },
+		error
+	} = await supabase.auth.getUser(jwt);
+	if (error || !user) {
+		throw new OpError('UNAUTHENTICATED', 'Invalid or expired credentials.');
+	}
+	return {
+		ctx: {
+			supabase,
+			admin: event.locals.supabaseAdmin,
+			userId: user.id,
+			source: 'api',
+			signal: event.request.signal
+		},
+		authMethod,
+		cleanup
 	};
 }

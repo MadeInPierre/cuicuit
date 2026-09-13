@@ -1,5 +1,15 @@
 import { Sprout } from '@lucide/svelte';
-import { House, LayoutDashboard, Lock, LogOut, ScanLine, Scroll, User, Users } from '@lucide/svelte';
+import {
+	House,
+	KeyRound,
+	LayoutDashboard,
+	Lock,
+	LogOut,
+	ScanLine,
+	Scroll,
+	User,
+	Users
+} from '@lucide/svelte';
 
 export type NavLink = {
 	href?: string; // Link to the page
@@ -75,6 +85,11 @@ export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = 
 				title: 'Account',
 				href: '/settings/account',
 				icon: Lock
+			},
+			{
+				title: 'API tokens',
+				href: '/settings/api-tokens',
+				icon: KeyRound
 			},
 			{
 				title: 'Sign out',

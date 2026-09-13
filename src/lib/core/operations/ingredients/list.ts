@@ -10,14 +10,6 @@ export const listIngredientsInput = z.object({
 
 export type ListIngredientsInput = z.infer<typeof listIngredientsInput>;
 
-/**
- * M1 example op proving the `defineOp` pattern end-to-end.
- * Mirrors the admin ingredients browser query
- * (`src/routes/(app)/admin/ingredients/+page.svelte:fetchIngredients`) 1:1 —
- * same select with translations+language join, same `.range(start, end)`.
- * M2 migrates the page to call this op (the page keeps its catch-and-return-[]
- * behavior; the op itself throws `OpError` on failure per the core contract).
- */
 async function listIngredientsHandler(ctx: OpCtx, { start, end }: ListIngredientsInput) {
 	const { data, error } = await ctx.supabase
 		.from('ingredients')

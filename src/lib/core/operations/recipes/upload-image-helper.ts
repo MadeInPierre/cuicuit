@@ -38,8 +38,7 @@ export async function uploadImageToRecipe(
 	const { error } = await client.storage
 		.from('recipes')
 		.upload(`images/${recipeId}/${imageId}`, file, {
-			contentType: file.type,
-			upsert: true
+			contentType: file.type
 		});
 
 	if (error) {

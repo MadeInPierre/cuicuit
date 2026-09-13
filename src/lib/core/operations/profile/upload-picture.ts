@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { OpError } from '../errors.js';
 import { defineOp, type OpCtx } from '../registry.js';
-import { updateAvatarRow } from './avatar-helpers.js';
+import { removeAvatarFile, updateAvatarRow } from './avatar-helpers.js';
 
 const MAX_PICTURE_BYTES = 5 * 1024 * 1024;
 
@@ -33,12 +33,14 @@ async function profileUploadPictureHandler(
 		throw new OpError('VALIDATION', 'File size exceeds limit');
 	}
 
+	// Avatar path is fixed per user, so overwrite by removing first.
+	await removeAvatarFile(ctx, userId);
+
 	// Upload the file to Supabase storage
 	const { error } = await ctx.supabase.storage
 		.from('users')
 		.upload(`public/${userId}/avatar.png`, file, {
-			contentType: file.type,
-			upsert: true // Overwrite if the file already exists
+			contentType: file.type
 		});
 
 	if (error) {
