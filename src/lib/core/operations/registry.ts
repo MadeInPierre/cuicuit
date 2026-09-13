@@ -74,6 +74,32 @@ export async function runOp<TIn, TOut>(name: string, ctx: OpCtx, input: TIn): Pr
 	return result as TOut;
 }
 
+/**
+ * Streaming runner for ops whose handler is an async generator (the two import ops).
+ * Validates input, then re-yields everything the handler yields (progress steps
+ * followed by the final result object). Non-generator handlers yield once.
+ *
+ * M2 addition: `runOp` intentionally still rejects generators (fail-fast for
+ * non-streaming adapters); streaming adapters (`query.live`, SSE, MCP) use this.
+ */
+export async function* runOpStream<TIn>(
+	name: string,
+	ctx: OpCtx,
+	input: TIn
+): AsyncGenerator<unknown, void, unknown> {
+	const def = registry.get(name) as OpDef<TIn, unknown> | undefined;
+	if (!def) {
+		throw new OpError('NOT_FOUND', `Unknown operation: ${name}`);
+	}
+	const parsed = def.input.parse(input) as TIn;
+	const result: unknown = await def.handler(ctx, parsed);
+	if (isAsyncIterable(result)) {
+		yield* result;
+	} else {
+		yield result;
+	}
+}
+
 function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
 	return typeof value === 'object' && value !== null && Symbol.asyncIterator in value;
 }

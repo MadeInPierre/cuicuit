@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+	import '$lib/core/operations/billing/balance.js';
+	import type { BalanceInput, BalanceResult } from '$lib/core/operations/billing/balance.js';
+	import '$lib/core/operations/billing/logs.js';
+	import type { LogsInput, LogsResult } from '$lib/core/operations/billing/logs.js';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { cn } from '$lib/utils';
 	import { ArrowRight, Check, Home, Loader2, Pause, RotateCcw } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { Confetti } from 'svelte-confetti';
 	import SeparatorZigZag from '../../../(app)/shopping-list/SeparatorZigZag.svelte';
-
-	const { data } = $props();
 
 	type PaymentStatus = 'confirming' | 'success' | 'failure';
 
@@ -56,36 +58,34 @@
 
 	async function getUserLatestCredits() {
 		status = 'confirming';
-		if (!supabase.client) throw new Error('No supabase client');
-		if (!data.claims?.sub) throw new Error('User not logged in');
+		const ctx = await getClientCtx();
+		if (!ctx.userId) throw new Error('User not logged in');
 
-		const { data: balanceData, error: balanceError } = await supabase.client
-			?.from('credit_balances')
-			.select('*')
-			.eq('user_id', data.claims?.sub)
-			.single();
+		const { balance: balanceData, error: balanceError } = await runOp<BalanceInput, BalanceResult>(
+			'billing.balance',
+			ctx,
+			{}
+		);
 
 		if (balanceError)
 			throw new Error('Error getting balance: ' + JSON.stringify(balanceError, null, 2));
 
-		if (!balanceData.balance || balanceData.balance <= 0)
+		if (!balanceData?.balance || balanceData.balance <= 0)
 			throw new Error('Balance is zero, negative, or invalid');
 
-		const { data: logData, error: logError } = await supabase.client
-			?.from('credit_logs')
-			.select('*')
-			.eq('user_id', data.claims?.sub)
-			.eq('source', 'stripe_charge')
-			.gt('amount', 0)
-			.order('created_at', {
-				ascending: false
-			})
-			.limit(1);
+		const { logs: logData, error: logError } = await runOp<LogsInput, LogsResult>(
+			'billing.logs',
+			ctx,
+			{ limit: 100 }
+		);
 
 		if (logError)
 			throw new Error('Error getting latest credit log: ' + JSON.stringify(logError, null, 2));
 
-		const log = logData?.[0]; // Pick the latest operation
+		// Same pick as the original query (latest `stripe_charge` log with amount > 0).
+		const log = (logData ?? []).find((l) => l.source === 'stripe_charge' && l.amount > 0);
+
+		if (!log) throw new Error('No recent stripe payment found.');
 
 		console.log(
 			'Balance:',

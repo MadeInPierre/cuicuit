@@ -1,29 +1,29 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import {
+	listItemsOp,
+	type ListItemsInput,
+	type ListItemsOutput,
+	type PlanItemRow
+} from '$lib/core/operations/plans/list-items.js';
+
+// Thin adapter over the `plans.list-items` op. Keeps the legacy chainable
+// `.is('deleted_at', null)` shape used by `active-space.svelte.ts` (the op already
+// excludes soft-deleted items, so the filter args are accepted and ignored).
 
 export function getShoppingListItems(spaceId: string, languageId: number) {
-	if (!supabase.client) throw new Error('No supabase client');
-
-	return (
-		supabase.client
-			.from('space_items')
-			.select(
-				`*, 
-				author_profile:user_public_profiles(*),
-				ingredient:ingredients!ingredient_id(
-					id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml,
-					translations:ingredient_translations(
-						*,
-						language:languages!language_id(lang)
-					)
-				)`
-			)
-			.eq('space_id', spaceId)
-			// Only get translations in the user language
-			.eq('ingredient.translations.language_id', languageId)
-			.order('updated_at', { ascending: false })
-	);
+	return {
+		is: async (_column: string, _value: null) => {
+			// Accepted and ignored: the op already excludes soft-deleted rows.
+			void _column;
+			void _value;
+			const data = await runOp<ListItemsInput, ListItemsOutput>(
+				listItemsOp.name,
+				await getClientCtx(),
+				{ spaceId, languageId }
+			);
+			return { data, error: null };
+		}
+	};
 }
 
-export type ShoppingListItem = NonNullable<
-	Awaited<ReturnType<typeof getShoppingListItems>>['data']
->[number];
+export type ShoppingListItem = PlanItemRow;

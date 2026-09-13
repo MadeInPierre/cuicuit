@@ -5,10 +5,12 @@
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+	import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+	import '$lib/core/operations/profile/complete-onboarding.js';
+	import type { ProfileCompleteOnboardingInput } from '$lib/core/operations/profile/complete-onboarding.js';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
-	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { cn } from '$lib/utils';
 	import { Check } from '@lucide/svelte';
 	import posthog from 'posthog-js';
@@ -39,59 +41,27 @@
 		resetForm: false,
 		async onUpdate({ form }) {
 			if (form.valid) {
-				if (!supabase.client) {
-					console.error('No supabase');
-					return;
-				}
 				if (!userState.user?.id) {
 					console.error('User is not logged in, cannot update profile.');
 					return;
 				}
 
-				// Update the user profile in the database
-				const { error: profileError } = await supabase.client
-					.from('user_public_profiles')
-					.update({
-						user_name: String($formData.userName ?? ''),
-						icon: String($formData.iconKey ?? '')
-					})
-					.eq('user_id', userState.user.id);
-
-				// Update the user preferences in the database
-				const { error: prefError } = await supabase.client
-					.from('user_preferences')
-					.update({
-						first_name: $formData.firstName,
-						last_name: $formData.lastName,
-						onboarding_status: 'finished' // Mark the onboarding as finished
-					})
-					.eq('user_id', userState.user.id);
-
-				// Fetch the language id for the chosen language
-				const { data: languageData, error: languageError } = await supabase.client
-					.from('languages')
-					.select('id')
-					.eq('lang', $formData.lang)
-					.single();
-
-				// Set the language on all the user's spaces
-				const spaceUpdate =
-					languageData && !languageError
-						? supabase.client
-								.from('spaces')
-								.update({ language_id: languageData.id })
-								.eq('author_id', userState.user.id)
-						: null;
-				const { error: spaceError } = spaceUpdate ? await spaceUpdate : { error: null };
-
-				if (profileError || prefError || languageError || spaceError) {
-					console.error(
-						'Error updating user data:',
-						profileError,
-						prefError,
-						languageError,
-						spaceError
+				// Persist onboarding in one op (profile + preferences + spaces language)
+				try {
+					await runOp<ProfileCompleteOnboardingInput, void>(
+						'profile.complete-onboarding',
+						await getClientCtx(),
+						{
+							userId: userState.user.id,
+							userName: String($formData.userName ?? ''),
+							icon: String($formData.iconKey ?? ''),
+							firstName: $formData.firstName,
+							lastName: $formData.lastName,
+							lang: $formData.lang
+						}
 					);
+				} catch (error) {
+					console.error('Error updating user data:', error);
 					toast.error('Failed to update your profile. Please try again later.');
 					return;
 				}

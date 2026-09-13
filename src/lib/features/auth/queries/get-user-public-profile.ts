@@ -1,46 +1,35 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
-import type { PostgrestError } from '@supabase/supabase-js';
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import '$lib/core/operations/profile/get.js';
+import type { ProfileGetInput, ProfileGetOutput } from '$lib/core/operations/profile/get.js';
 
+/**
+ * Thin client adapters over the `profile.get` op (M2 core migration).
+ * Same names, same signatures, same return shapes — `UserState` and
+ * `ActiveSpaceState` are unchanged.
+ */
 export async function getUserPublicProfile(userId: string) {
-	if (!supabase.client) throw new Error('Supabase client not available');
-	if (!userId) throw new Error('User ID not provided');
-
-	const { data: profile, error } = await supabase.client
-		.from('user_public_profiles')
-		.select('*')
-		.eq('user_id', userId)
-		.single();
-
-	if (error) {
-		if (error?.code === 'PGRST116') return { profile: null, error: null };
-
+	try {
+		const { profiles } = await runOp<ProfileGetInput, ProfileGetOutput>(
+			'profile.get',
+			await getClientCtx(),
+			{ userIds: [userId], includePreferences: false }
+		);
+		return { profile: profiles[0] ?? null, error: null };
+	} catch (error) {
 		console.error('Error fetching user public profile:', error);
+		return { profile: null, error };
 	}
-
-	return { profile, error };
 }
 
 type UserPublicProfileResponse =
 	ReturnType<typeof getUserPublicProfile> extends Promise<infer T> ? T : never;
 export type UserPublicProfile = UserPublicProfileResponse['profile'];
 
-export async function getUserPublicProfiles(
-	userIds: string[]
-): Promise<{ profiles: UserPublicProfile[]; error: PostgrestError | null }> {
-	if (!supabase.client) throw new Error('Supabase client not available');
-
-	const { data, error } = await supabase.client
-		.from('user_public_profiles')
-		.select('*')
-		.in('user_id', userIds); // Duplicates are fine
-
-	if (error) {
-		// No results
-		if (error?.code === 'PGRST116') return { profiles: [], error: null };
-
-		console.error('Error fetching member profiles:', error);
-		throw error;
-	}
-
-	return { profiles: data, error };
+export async function getUserPublicProfiles(userIds: string[]) {
+	const { profiles } = await runOp<ProfileGetInput, ProfileGetOutput>(
+		'profile.get',
+		await getClientCtx(),
+		{ userIds, includePreferences: false }
+	);
+	return { profiles, error: null };
 }

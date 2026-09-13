@@ -66,25 +66,32 @@
 	) {
 		if (!space.language) return [];
 
-		let query = getRecipesDetailed(space.language.id, searchText).limit(100);
+		const overlaps: { column: string; values: string[] }[] = [];
+		const inFilters: { column: string; values: string[] }[] = [];
+		let orFilter: string | null = null;
 
 		for (const def of recipeFilterDefs) {
 			const values = filters?.[def.key];
 			if (!values || values.length === 0) continue;
 			if (def.kind === 'array') {
-				query = query.overlaps(def.column, values);
+				overlaps.push({ column: def.column, values });
 			} else if (def.kind === 'enum') {
-				query = query.in(def.column, values);
+				inFilters.push({ column: def.column, values });
 			} else {
-				const orFilter = buildTimeRangeOrFilter(def.column, values);
-				if (orFilter) query = query.or(orFilter);
+				const orPart = buildTimeRangeOrFilter(def.column, values);
+				if (orPart) orFilter = orFilter ? `${orFilter},${orPart}` : orPart;
 			}
 		}
 
 		// TODO add discover dial
 
 		// Fetch all recipes from Supabase
-		const { data, error } = await query;
+		const { data, error } = await getRecipesDetailed(space.language.id, searchText, {
+			limit: 100,
+			overlaps,
+			in: inFilters,
+			or: orFilter
+		});
 
 		if (error) {
 			console.error('Error fetching recipes:', error);

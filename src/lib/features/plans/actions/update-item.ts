@@ -1,6 +1,16 @@
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import { checkItemOp } from '$lib/core/operations/plans/check-item.js';
+import {
+	deleteItemOp,
+	type DeleteItemInput,
+	type DeleteItemOutput
+} from '$lib/core/operations/plans/delete-item.js';
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
+
+// Thin adapters over the `plans.check-item` / `plans.delete-item` ops.
+// DB work lives in core; toast and refresh stay here so callers don't change.
 
 export async function updatePlanItemChecked(
 	activeSpace: ActiveSpaceState,
@@ -13,36 +23,26 @@ export async function updatePlanItemChecked(
 		throw new Error('No active space or active plan found');
 	if (!itemId) throw new Error('Item ID not provided');
 
-	// Update the plan item in Supabase
-	const { error } = await supabase.client
-		.from('space_items')
-		.update({
-			checked_at: checked ? new Date().toISOString() : null
-		})
-		.eq('id', itemId);
-	if (error) throw new Error('Error updating plan item: ' + error.message);
+	await runOp(checkItemOp.name, await getClientCtx(), { itemId, checked });
 
 	const undoFn = async (toastId?: string | number) => {
-		if (!supabase.client) throw new Error('No supabase client');
-
-		const { error: undoError } = await supabase.client
-			.from('space_items')
-			.update({
-				checked_at: checked ? null : new Date().toISOString()
-			})
-			.eq('id', itemId);
-
-		if (undoError) {
-			toast.error('Error undoing check: ' + undoError.message);
-		} else {
-			toast.success('Restored item', {
-				description: 'We got it back!',
-				id: toastId,
-				duration: 5000
-			});
-			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-			await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
+		const ctx = await getClientCtx();
+		try {
+			await runOp(checkItemOp.name, ctx, { itemId, checked, undo: true });
+		} catch (undoError) {
+			toast.error(
+				'Error undoing check: ' +
+					(undoError instanceof Error ? undoError.message : String(undoError))
+			);
+			return;
 		}
+		toast.success('Restored item', {
+			description: 'We got it back!',
+			id: toastId,
+			duration: 5000
+		});
+		await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+		await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 	};
 
 	if (options?.showToast) {
@@ -75,37 +75,35 @@ export async function updatePlanItemDeleted(
 		throw new Error('No active space or active plan found');
 	if (!itemId) throw new Error('Item ID not provided');
 
-	const now = new Date().toISOString();
-
-	// Soft delete the plan item
-	const { error } = await supabase.client
-		.from('space_items')
-		.update({ deleted_at: deleted ? now : null })
-		.eq('space_id', activeSpace.activeSpace.id)
-		.eq('id', itemId);
-
-	if (error) throw new Error('Error deleting plan item: ' + error.message);
+	const result = await runOp<DeleteItemInput, DeleteItemOutput>(
+		deleteItemOp.name,
+		await getClientCtx(),
+		{ itemId, spaceId: activeSpace.activeSpace.id, deleted, undo: false }
+	);
 
 	const undoFn = async (toastId?: string | number) => {
-		if (!supabase.client) throw new Error('No supabase client');
-
-		const { error: undoError } = await supabase.client
-			.from('space_items')
-			.update({ deleted_at: deleted ? null : now })
-			.eq('id', itemId)
-			.eq('deleted_at', now); // Only undo if it was deleted at the expected time
-
-		if (undoError) {
-			toast.error('Error undoing delete: ' + undoError.message);
-		} else {
-			toast.success('Restored item', {
-				description: 'We got it back!',
-				id: toastId,
-				duration: 5000
+		const ctx = await getClientCtx();
+		try {
+			await runOp<DeleteItemInput, DeleteItemOutput>(deleteItemOp.name, ctx, {
+				itemId,
+				deleted,
+				undo: true,
+				expectedDeletedAt: result.deletedAt
 			});
-			await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
-			await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
+		} catch (undoError) {
+			toast.error(
+				'Error undoing delete: ' +
+					(undoError instanceof Error ? undoError.message : String(undoError))
+			);
+			return;
 		}
+		toast.success('Restored item', {
+			description: 'We got it back!',
+			id: toastId,
+			duration: 5000
+		});
+		await activeSpace.refreshActivePlanItems({ refreshShoppingList: false });
+		await activeSpace.refreshActivePlanMeals({ refreshShoppingList: true });
 	};
 
 	if (!options?.hideToast) {

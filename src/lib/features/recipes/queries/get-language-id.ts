@@ -1,11 +1,5 @@
-import type { LanguageKey } from '$lib/features/user-settings/consts';
-import type { Database } from '$lib/shared/db/supabase.types';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { getLanguageId } from '$lib/core/operations/recipes/get-language-id-helper';
 
-export function getLanguageId(supabase: SupabaseClient<Database>, lang: LanguageKey) {
-	return supabase
-		.from('languages')
-		.select('*')
-		.or(`code.eq.${lang}, lang.eq.${lang}`)
-		.single();
-}
+// M2: canonical implementation moved to core (co-located helper, not an op).
+// Kept as a re-export so existing importers don't change.
+export { getLanguageId };

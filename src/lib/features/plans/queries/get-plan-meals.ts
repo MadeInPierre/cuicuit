@@ -1,45 +1,36 @@
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import {
+	listMealsOp,
+	type ListMealsInput,
+	type ListMealsOutput,
+	type PlanMealRow,
+	type ShoppingIngredient as ShoppingIngredientRow
+} from '$lib/core/operations/plans/list-meals.js';
 import { resolveIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 
-export function getPlanMeals(spaceId: string, languageId: number) {
-	if (!supabase.client) throw new Error('Supabase client not available');
-	if (!spaceId) throw new Error('Space ID not provided');
+// Thin adapter over the `plans.list-meals` op. Keeps the legacy chainable
+// `.is('deleted_at', null)` shape used by `active-space.svelte.ts` (the op already
+// excludes soft-deleted meals, so the filter args are accepted and ignored).
 
-	return (
-		supabase.client
-			.from('space_meals')
-			.select(
-				`*, 
-				recipe:recipes(
-					*,
-					language:languages(*),
-					recipe_ingredients(*)
-				),
-				shopping_ingredients:space_items(
-					*,
-					author_profile:user_public_profiles(*),
-					ingredient:ingredients(
-						id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml,
-						translations:ingredient_translations(
-							*,
-							language:languages(lang)
-						)
-					)
-				)`
-			)
-			.eq('space_id', spaceId)
-			// Only get translations in the user language
-			.eq('shopping_ingredients.ingredient.translations.language_id', languageId)
-	);
+export function getPlanMeals(spaceId: string, languageId: number) {
+	return {
+		is: async (_column: string, _value: null) => {
+			// Accepted and ignored: the op already excludes soft-deleted rows.
+			void _column;
+			void _value;
+			const data = await runOp<ListMealsInput, ListMealsOutput>(
+				listMealsOp.name,
+				await getClientCtx(),
+				{ spaceId, languageId }
+			);
+			return { data, error: null };
+		}
+	};
 }
 
-export type MealWithRecipeAndIngredients = NonNullable<
-	Awaited<ReturnType<typeof getPlanMeals>>['data']
->[number];
-export type ShoppingIngredient = NonNullable<
-	Awaited<ReturnType<typeof getPlanMeals>>['data']
->[number]['shopping_ingredients'][number];
+export type MealWithRecipeAndIngredients = PlanMealRow;
+export type ShoppingIngredient = ShoppingIngredientRow;
 
 export function formatIngredientDisplayName(si: ShoppingIngredient) {
 	return resolveIngredientName(si.ingredient?.translations, {

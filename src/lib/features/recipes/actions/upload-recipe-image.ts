@@ -1,23 +1,17 @@
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import type { DeleteRecipeImageInput } from '$lib/core/operations/recipes/delete-image.js';
+import type { UploadRecipeImageInput } from '$lib/core/operations/recipes/upload-image.js';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
 
-function generateUuid() {
-	const c = globalThis.crypto;
-	if (c && typeof c.randomUUID === 'function') {
-		return c.randomUUID();
-	}
-
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-		const r = (Math.random() * 16) | 0;
-		const v = char === 'x' ? r : (r & 0x3) | 0x8;
-		return v.toString(16);
-	});
-}
-
 /**
- * Upload a new recipe image to the storage and add the image url to the recipeDoc urls list
+ * M2: thin client wrappers over the `recipes.upload-image` /
+ * `recipes.delete-image` core ops (toast stays here).
  */
+
+// NOTE: the `supabase` param is kept for signature compatibility (callers pass
+// their client); the op builds its own ctx via getClientCtx().
 export async function uploadRecipeImage(
 	supabase: SupabaseClient<Database>,
 	file: File,
@@ -26,41 +20,19 @@ export async function uploadRecipeImage(
 ) {
 	if (!file) throw new Error('No file to upload');
 
-	// Get the file extension
-	const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-	const uuid = generateUuid();
-	const imageId = `${uuid}.${ext}`;
-
-	// Upload the image to Supabase storage
-	const { data, error } = await supabase.storage
-		.from('recipes')
-		.upload(`images/${recipeId}/${imageId}`, file, {
-			contentType: file.type,
-			upsert: true
-		});
-
-	if (error) {
+	try {
+		const imageId = await runOp<UploadRecipeImageInput, string>(
+			'recipes.upload-image',
+			await getClientCtx(),
+			{ file, recipeId, currentImageIds }
+		);
+		toast.success('Image uploaded successfully.');
+		return imageId;
+	} catch (error) {
 		console.error('Error uploading image:', error);
 		toast.error('Failed to upload image.', { description: 'Please try again later.' });
 		return;
 	}
-
-	toast.success('Image uploaded successfully.');
-
-	// Update the recipe row in supabase with the new image ID
-	const { error: updateError } = await supabase
-		.from('recipes')
-		.update({ image_ids: [...(currentImageIds || []), imageId] })
-		.eq('id', recipeId);
-
-	if (updateError) {
-		console.error('Error updating recipe with new image ID:', updateError);
-		toast.error('Failed to update recipe with new image ID.');
-		return;
-	}
-
-	console.log('Recipe updated with new image ID.');
-	return imageId;
 }
 
 /**
@@ -72,22 +44,17 @@ export async function deleteRecipeImage(
 	recipeId: string,
 	currentImageIds: string[]
 ) {
-	// Delete the image from Supabase storage
-	await supabase.storage.from('recipes').remove([`images/${recipeId}/${imgId}`]);
-
-	// Remove the image ID from the recipe's image_ids array
-	const updatedImageIds = currentImageIds.filter((id) => id !== imgId);
-	const { error } = await supabase
-		.from('recipes')
-		.update({ image_ids: updatedImageIds })
-		.eq('id', recipeId);
-
-	if (error) {
+	try {
+		const updatedImageIds = await runOp<DeleteRecipeImageInput, string[]>(
+			'recipes.delete-image',
+			await getClientCtx(),
+			{ imageId: imgId, recipeId, currentImageIds }
+		);
+		toast.success('Image deleted successfully.');
+		return updatedImageIds;
+	} catch (error) {
 		console.error('Error updating recipe after image deletion:', error);
 		toast.error('Failed to update recipe after image deletion.');
 		return;
 	}
-
-	toast.success('Image deleted successfully.');
-	return updatedImageIds;
 }

@@ -1,24 +1,15 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import '$lib/core/operations/spaces/list.js';
+import type { SpacesListInput, SpacesListOutput } from '$lib/core/operations/spaces/list.js';
 
-export async function getUserSpacesWithMembers(userId: string) {
-	if (!supabase.client) throw new Error('No supabase');
-
-	let { data: userSpaces, error } = await supabase.client
-		.from('space_members')
-		.select(
-			`
-		...space_id(
-			*, 
-			members:space_members(*),
-			language:languages(*)
-            )`
-		)
-		.eq('user_id', userId);
-
-	if (error) throw error;
-	if (!userSpaces) return [];
-
-	return userSpaces;
+/**
+ * Thin client adapter over the `spaces.list` op (M2 core migration).
+ * Same name, same signature, same return — `ActiveSpaceState` unchanged.
+ */
+export async function getUserSpacesWithMembers(userId: string): Promise<SpacesListOutput> {
+	return runOp<SpacesListInput, SpacesListOutput>('spaces.list', await getClientCtx(), {
+		userId
+	});
 }
 
 export type ActiveSpaceWithMembers =

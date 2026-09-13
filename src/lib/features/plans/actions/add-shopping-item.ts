@@ -1,6 +1,10 @@
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import { addItemOp } from '$lib/core/operations/plans/add-item.js';
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
+
+// Thin adapter over the `plans.add-item` op. DB work lives in core;
+// refresh stays here so callers don't change.
 
 export async function addShoppingItem(
 	space: ActiveSpaceState,
@@ -15,16 +19,18 @@ export async function addShoppingItem(
 		return;
 	}
 
-	await supabase.client.from('space_items').insert({
-		space_id: space.activeSpace.id,
-		created_by: space.activeMember.user_id,
-		type: 'independent',
-		ingredient_id: ingredientId,
-		quantity: quantity,
-		unit: unit,
-		name: buildCustomIngredientName(name),
-		priority: 'required'
-	});
+	try {
+		await runOp(addItemOp.name, await getClientCtx(), {
+			spaceId: space.activeSpace.id,
+			createdBy: space.activeMember.user_id,
+			ingredientId,
+			name,
+			quantity,
+			unit
+		});
+	} catch (error) {
+		console.error('Error adding shopping item:', error);
+	}
 
 	// Update UI
 	await space.refreshActivePlanItems();

@@ -1,3 +1,6 @@
+// M2: internal helper, not an op (decision: plain server helper — LLM calls
+// only, no UI-callable DB writes; called server-side by the import ops via the
+// co-located import helpers).
 import { getRequestEvent, query } from '$app/server';
 import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';

@@ -1,26 +1,16 @@
+import { runOp, type OpCtx } from '$lib/core/operations/client.js';
+import '$lib/core/operations/billing/logs.js';
+import type { LogsInput, LogsResult, UserCreditLogs } from '$lib/core/operations/billing/logs.js';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 
+export type { UserCreditLogs };
+
+/** Thin client-safe wrapper over `billing.logs` — same export, same shape. */
 export async function getUserCreditLogs(userId: string, limit: number = 100) {
-	if (!supabase.client) throw new Error('No supabase client');
+	const client = supabase.client;
+	if (!client) throw new Error('No supabase client');
 	if (!userId) throw new Error('User ID not provided');
 
-	const { data: dataLogs, error } = await supabase.client
-		.from('credit_logs')
-		.select('*')
-		.eq('user_id', userId)
-		.order('created_at', { ascending: false })
-		.limit(limit);
-
-	if (error) {
-		// No results
-		if (error?.code === 'PGRST116') return { logs: null, error: null };
-
-		console.error('Error fetching credit log:', error);
-	}
-
-	return { logs: dataLogs || null, error };
+	const ctx: OpCtx = { supabase: client, userId, source: 'app' };
+	return runOp<LogsInput, LogsResult>('billing.logs', ctx, { limit });
 }
-
-type UserCreditLogsReturn =
-	ReturnType<typeof getUserCreditLogs> extends Promise<infer T> ? T : never;
-export type UserCreditLogs = UserCreditLogsReturn['logs'];

@@ -1,30 +1,20 @@
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
+import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import '$lib/core/operations/spaces/join.js';
+import type { SpacesJoinInput } from '$lib/core/operations/spaces/join.js';
 import type { SpaceThemeKey } from '../consts';
 
-export async function joinSpace(userId: string, spaceId: string, theme: SpaceThemeKey) {
-	if(!supabase.client) throw new Error("No supabase client");
-	if (!userId) throw new Error('User ID not provided');
-	if (!spaceId) throw new Error('Space ID not provided');
-	if (!theme) throw new Error('Theme not provided');
-
-	console.log('Joining space:', spaceId, theme);
-
-	// Check if the space exists and get its row
-	const { data, error: fetchError } = await supabase.client
-		.from('spaces')
-		.select('id, name, icon')
-		.eq('id', spaceId)
-		.single();
-
-	if (fetchError || !data) throw new Error('space-not-found');
-
-	// Add the space id and theme to the user's space_members
-	const { error: memberError } = await supabase.client.from('space_members').insert([
-		{
-			space_id: spaceId,
-			user_id: userId,
-			theme
-		}
-	]);
-	if (memberError) throw new Error('already-joined-space');
+/**
+ * Thin client adapter over the `spaces.join` op (M2 core migration).
+ * Same name and signature — components unchanged.
+ */
+export async function joinSpace(
+	userId: string,
+	spaceId: string,
+	theme: SpaceThemeKey
+): Promise<void> {
+	await runOp<SpacesJoinInput, void>('spaces.join', await getClientCtx(), {
+		userId,
+		spaceId,
+		theme
+	});
 }
