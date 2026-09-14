@@ -1,4 +1,4 @@
-import { languageKeys } from '$lib/features/user-settings/consts';
+import { DEFAULT_LANGUAGE, languageCodeSchema } from '$lib/shared/language.js';
 import { z } from 'zod';
 
 export const createSpaceFormSchema = z.object({
@@ -8,7 +8,7 @@ export const createSpaceFormSchema = z.object({
 		.max(20, 'Name must be at most 20 characters long'),
 	iconSlug: z.string().default('house'),
 	theme: z.string().default('slate'),
-	lang: z.enum(languageKeys).default('en-US')
+	lang: languageCodeSchema.default(DEFAULT_LANGUAGE)
 });
 
 export const joinSpaceFormSchema = z.object({

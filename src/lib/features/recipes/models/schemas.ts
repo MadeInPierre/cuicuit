@@ -1,11 +1,11 @@
-import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
+import { DEFAULT_LANGUAGE, languageCodeSchema } from '$lib/shared/language.js';
 import { z } from 'zod';
 
 export const createRecipeFormSchema = z
 	.object({
 		// General info
-		language: languageKeySchema.default('fr-FR'),
+		lang: languageCodeSchema.default(DEFAULT_LANGUAGE),
 		title: z
 			.string()
 			.min(3, 'Title must be at least 3 characters long.')

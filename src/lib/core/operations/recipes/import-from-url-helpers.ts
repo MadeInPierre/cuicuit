@@ -18,13 +18,17 @@ import type {
 	ScrapeStrategyName,
 	StrategyAttempt
 } from '$lib/features/recipes/modules/recipe-scrape/types';
-import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
 import type { Database, Json } from '$lib/shared/db/supabase.types';
 import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
+import {
+	DEFAULT_LANGUAGE,
+	normalizeLanguageCode,
+	type LanguageCode
+} from '$lib/shared/language.js';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
 
+import { resolveLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
-import { getLanguageId } from './get-language-id-helper.js';
 import { uploadImageToRecipe } from './upload-image-helper.js';
 
 // M2: co-located helpers for the `recipes.import-from-url` /
@@ -189,7 +193,7 @@ export type ImportUrlContext = {
 	admin: SupabaseClient<Database>;
 	userId: string;
 	url: string;
-	fallbackLang: LanguageKey;
+	lang: LanguageCode;
 };
 
 export type ImportTextContext = {
@@ -197,7 +201,7 @@ export type ImportTextContext = {
 	admin: SupabaseClient<Database>;
 	userId: string;
 	text: string;
-	fallbackLang: LanguageKey;
+	lang: LanguageCode;
 };
 
 /**
@@ -206,14 +210,14 @@ export type ImportTextContext = {
 export async function processAndMatchIngredients(
 	supabase: SupabaseClient<Database>,
 	enrichedIngredients: ParsedSearchInput[],
-	lang: LanguageKey
+	lang: LanguageCode
 ): Promise<IngredientProcessed[]> {
 	const { data: matchData, error: matchError } = await matchIngredients(
 		supabase,
 		enrichedIngredients
 			.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
 			.map((p) => p.ingredientText || 'Unknown'),
-		lang || 'fr-FR'
+		lang || DEFAULT_LANGUAGE
 	);
 
 	if (matchError) throw matchError;
@@ -237,8 +241,10 @@ export async function saveEnrichedRecipe(
 	enrichedRecipe: EnrichedRecipeOutput
 ): Promise<void> {
 	// Get the recipe's language database ID
-	const langId =
-		Object.entries(languages).find(([key]) => key === enrichedRecipe.lang)?.[1].id || 1;
+	const { id: langId } = await resolveLanguageId(
+		supabase,
+		normalizeLanguageCode(enrichedRecipe.lang) ?? DEFAULT_LANGUAGE
+	);
 
 	const title =
 		enrichedRecipe.recipe.title.length >= 47
@@ -344,8 +350,10 @@ export async function insertImportedRecipe(
 	}
 ): Promise<string> {
 	// Get the recipe's language database ID
-	const langId =
-		Object.entries(languages).find(([key]) => key === input.enriched.lang)?.[1].id || 1;
+	const { id: langId } = await resolveLanguageId(
+		supabase,
+		normalizeLanguageCode(input.enriched.lang) ?? DEFAULT_LANGUAGE
+	);
 
 	const title =
 		input.enriched.recipe.title.length >= 47
@@ -509,7 +517,7 @@ export async function duplicateRecipeForUser(
 export async function* importRecipeFromUrlCore(
 	context: ImportUrlContext
 ): AsyncGenerator<number | ImportUrlResult> {
-	const { admin, userId, url, fallbackLang } = context;
+	const { admin, userId, url, lang } = context;
 
 	// Cached/template rows (author-less) live outside the user's RLS reach, so
 	// all cache & template writes go through the server-side admin client.
@@ -597,7 +605,7 @@ export async function* importRecipeFromUrlCore(
 		const processedIngredients = await processAndMatchIngredients(
 			admin,
 			llmOutput.ingredients,
-			(llmOutput.lang as LanguageKey) || fallbackLang
+			normalizeLanguageCode(llmOutput.lang) ?? lang
 		);
 		await insertRecipeIngredients(admin, templateId, processedIngredients);
 	}
@@ -632,14 +640,13 @@ export async function* importRecipeFromUrlCore(
 export async function* importRecipeFromTextCore(
 	context: ImportTextContext
 ): AsyncGenerator<number | ImportUrlResult> {
-	const { supabase, admin, text, fallbackLang } = context;
+	const { supabase, admin, text, lang } = context;
 
 	// The draft recipe and its data are written through the admin client so that
 	// consume_credits (only callable by service_role) can be used and the recipe
 	// writes don't depend on client-side RLS.
 	yield 0;
-	const { data: languageData } = await getLanguageId(supabase, fallbackLang as LanguageKey);
-	if (!languageData) throw new Error('Could not retrieve language ID.');
+	const { lang: normalizedLang } = await resolveLanguageId(supabase, lang);
 
 	// Draft creation goes through the core op (same validation + confirmed-email
 	// gate as the manual flow).
@@ -651,7 +658,7 @@ export async function* importRecipeFromTextCore(
 	};
 	const recipeId = await runOp('recipes.create-draft', opCtx, {
 		sourceType: 'user-manual',
-		lang: languageData.lang as LanguageKey,
+		lang: normalizedLang,
 		title: 'Creating recipe...'
 	});
 	if (!recipeId || typeof recipeId !== 'string') {
@@ -673,7 +680,7 @@ export async function* importRecipeFromTextCore(
 	const processedIngredients = await processAndMatchIngredients(
 		admin,
 		enrichedRecipe.ingredients,
-		(enrichedRecipe.lang as LanguageKey) || languageData.lang || 'fr-FR'
+		normalizeLanguageCode(enrichedRecipe.lang) ?? normalizedLang
 	);
 	console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 

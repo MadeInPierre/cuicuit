@@ -36,7 +36,7 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		description:
 			'`in`/`overlaps` accept URL-encoded JSON arrays of {column, values}; `or` accepts a PostgREST or-filter restricted to time columns.',
 		query: [
-			q('languageId', 'Language id (required).', true, 'integer'),
+			q('lang', 'Language code, e.g. en-US (required).', true),
 			q('searchText', 'Accent-insensitive title search.'),
 			q('limit', 'Max rows (1-500, default 100).', false, 'integer'),
 			q('in', 'JSON array of {column, values} enum filters.'),
@@ -49,7 +49,7 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		path: '/api/v1/recipes/{id}',
 		op: 'recipes.get',
 		summary: 'Get one recipe',
-		query: [q('languageId', 'Language id (required).', true, 'integer')]
+		query: [q('lang', 'Language code, e.g. en-US (required).', true)]
 	},
 	{
 		method: 'POST',
@@ -201,7 +201,7 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		path: '/api/v1/spaces/{id}/meals',
 		op: 'plans.list-meals',
 		summary: 'List planned meals',
-		query: [q('languageId', 'Language id (required).', true, 'integer')]
+		query: [q('lang', 'Language code, e.g. en-US (required).', true)]
 	},
 	{
 		method: 'POST',
@@ -241,7 +241,7 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		path: '/api/v1/spaces/{id}/items',
 		op: 'plans.list-items',
 		summary: 'List shopping items',
-		query: [q('languageId', 'Language id (required).', true, 'integer')]
+		query: [q('lang', 'Language code, e.g. en-US (required).', true)]
 	},
 	{
 		method: 'POST',
@@ -280,14 +280,14 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		summary: 'Combined shopping list (derived)',
 		description:
 			'Runs `plans.list-meals` + `plans.list-items`, then the pure `generateShoppingList`. Returns `{ meals, items, combined }`.',
-		query: [q('languageId', 'Language id (required).', true, 'integer')]
+		query: [q('lang', 'Language code, e.g. en-US (required).', true)]
 	},
 	{
 		method: 'GET',
 		path: '/api/v1/spaces/{id}/recommendations',
 		op: 'plans.recommendations',
 		summary: 'Shopping recommendations (RPC)',
-		query: [q('lang', 'Language key, e.g. en (required).', true)]
+		query: [q('lang', 'Language code, e.g. en-US (required).', true)]
 	},
 	// ---- Me / profile ----
 	{ method: 'GET', path: '/api/v1/me', op: 'profile.get', summary: 'Get my profile + preferences' },

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+	import { CURATED_LANGUAGES, type LanguageCode } from '$lib/shared/language.js';
+	const languages = CURATED_LANGUAGES;
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
@@ -54,7 +55,7 @@
 		$formData.name = activeSpace.activeSpace.name;
 		$formData.iconSlug = activeSpace.activeSpace.icon;
 		$formData.theme = activeSpace.activeMember.theme;
-		$formData.lang = activeSpace.activeSpace.language.lang as LanguageKey;
+		$formData.lang = activeSpace.activeSpace.language.lang as LanguageCode;
 	}
 
 	// Disable the submit button if the form is loading or the data is the same as the current space
@@ -67,7 +68,7 @@
 			($formData.name === activeSpace.activeSpace.name &&
 				$formData.iconSlug === activeSpace.activeSpace.icon &&
 				$formData.theme === activeSpace.activeMember.theme &&
-				$formData.lang === (activeSpace.language?.lang as LanguageKey))
+				$formData.lang === (activeSpace.language?.lang as LanguageCode))
 	);
 
 	function onSubmit() {
@@ -88,7 +89,7 @@
 			$formData.name,
 			$formData.theme as SpaceThemeKey,
 			$formData.iconSlug as SpaceIconKey,
-			$formData.lang as LanguageKey
+			$formData.lang as LanguageCode
 		)
 			.then(() => {
 				loading = false;
@@ -135,7 +136,7 @@
 					<Form.Label>Language</Form.Label>
 
 					<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 items-center w-full">
-						{#each Object.keys(languages) as LanguageKey[] as l}
+						{#each Object.keys(languages) as LanguageCode[] as l}
 							<Button
 								{...props}
 								size="sm"

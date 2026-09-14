@@ -19,6 +19,7 @@
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
+	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
@@ -56,12 +57,13 @@
 	);
 
 	async function getRecipe(id: string) {
-		if (!space.language) {
+		const lang = normalizeLanguageCode(space.language?.lang);
+		if (!lang) {
 			console.error('No active space found');
 			return null;
 		}
 
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id, space.language.id);
+		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id, lang);
 
 		if (recipeError) {
 			console.error('Error fetching recipe:', recipeError);

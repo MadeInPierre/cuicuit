@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
-import { languageKeySchema, type LanguageKey } from '$lib/features/user-settings/consts';
 import { EXAMPLE_RECIPE_URLS } from '$lib/features/recipes/consts/example-recipes';
+import { DEFAULT_LANGUAGE, languageCodeSchema, type LanguageCode } from '$lib/shared/language.js';
 
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
 import { importRecipeFromUrlCore, type ImportUrlResult } from './import-from-url-helpers.js';
 
 export const addExampleRecipesInput = z.object({
-	fallbackLang: languageKeySchema
+	lang: languageCodeSchema
 });
 
 export type AddExampleRecipesInput = z.infer<typeof addExampleRecipesInput>;
@@ -27,18 +27,19 @@ export const addExampleRecipesOp = defineOp({
 	docs: {
 		title: 'Add example recipes',
 		description:
-			'Imports the curated example recipes into the user library without charging credits. The fastest way to get plannable recipes; `fallbackLang` is a language key like `en-US` or `fr-FR` (see languages_list).',
+			'Imports the curated example recipes into the user library without charging credits. The fastest way to get plannable recipes; takes `lang` like `en-US` or `fr-FR`.',
 		tool: 'recipes_add_examples'
 	},
 	input: addExampleRecipesInput,
-	handler: async (ctx, { fallbackLang }) => {
+	handler: async (ctx, { lang }) => {
 		if (!ctx.admin) {
 			throw new OpError('INTERNAL', 'Adding example recipes requires a server context.');
 		}
 
 		const results: ImportUrlResult[] = [];
 
-		const urls = EXAMPLE_RECIPE_URLS[fallbackLang as LanguageKey] ?? EXAMPLE_RECIPE_URLS['fr-FR']!;
+		const urls =
+			EXAMPLE_RECIPE_URLS[lang as LanguageCode] ?? EXAMPLE_RECIPE_URLS[DEFAULT_LANGUAGE]!;
 		for (const url of urls) {
 			let result: ImportUrlResult | undefined;
 			for await (const value of importRecipeFromUrlCore({
@@ -46,7 +47,7 @@ export const addExampleRecipesOp = defineOp({
 				admin: ctx.admin,
 				userId: ctx.userId,
 				url,
-				fallbackLang: fallbackLang as LanguageKey
+				lang: lang as LanguageCode
 			})) {
 				if (typeof value !== 'number') result = value;
 			}

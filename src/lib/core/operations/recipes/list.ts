@@ -2,8 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 import type { Database } from '$lib/shared/db/supabase.types';
+import { languageCodeSchema } from '$lib/shared/language.js';
 
 import { OpError } from '../errors.js';
+import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp } from '../registry.js';
 
 const listFilterSchema = z.object({
@@ -14,7 +16,7 @@ const listFilterSchema = z.object({
 export type ListRecipesFilter = z.infer<typeof listFilterSchema>;
 
 export const listRecipesInput = z.object({
-	languageId: z.number().int(),
+	lang: languageCodeSchema,
 	searchText: z.string().default(''),
 	limit: z.number().int().min(1).max(500).default(100),
 	overlaps: z.array(listFilterSchema).default([]),
@@ -80,14 +82,12 @@ export const listRecipesOp = defineOp({
 	docs: {
 		title: 'List recipes',
 		description:
-			'Lists detailed recipes with language-filtered translations and ingredients. `languageId` is an integer id — call languages_list once to map names to ids.',
+			'Lists detailed recipes with language-filtered translations and ingredients. Takes `lang` (e.g. `en-US`).',
 		tool: 'recipes_list'
 	},
 	input: listRecipesInput,
-	handler: async (
-		ctx,
-		{ languageId, searchText, limit, overlaps, in: inFilters, or: orFilter }
-	) => {
+	handler: async (ctx, { lang, searchText, limit, overlaps, in: inFilters, or: orFilter }) => {
+		const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
 		let query = recipesDetailedQuery(ctx.supabase, languageId, searchText).limit(limit);
 
 		for (const filter of overlaps) {

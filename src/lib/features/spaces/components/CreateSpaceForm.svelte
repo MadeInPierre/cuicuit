@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import type { LanguageCode } from '$lib/shared/language.js';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
 	import * as Form from '$lib/shared/components/ui/form';
@@ -61,7 +62,8 @@
 			userState.user.id,
 			$formData.name,
 			$formData.theme as SpaceThemeKey,
-			$formData.iconSlug as SpaceIconKey
+			$formData.iconSlug as SpaceIconKey,
+			$formData.lang as LanguageCode
 		)
 			.then(async (newSpaceId: string) => {
 				posthog.capture('space_created', {

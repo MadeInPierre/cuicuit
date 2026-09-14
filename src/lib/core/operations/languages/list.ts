@@ -16,9 +16,9 @@ export type LanguagesListOutput = {
 }[];
 
 /**
- * Lists the supported languages (ids ↔ codes) backing every language-flavored
- * input (`languageId`, `lang`, `fallbackLang`). Any logged-in user can read
- * the `languages` table, so this is a plain RLS read.
+ * Lists the supported languages. The canonical public identifier is `lang`
+ * (BCP47, e.g. `en-US`); integer `id` is DB-internal and informational only.
+ * Every language-flavored op input takes `lang: LanguageCode`.
  */
 export const languagesListOp = defineOp({
 	name: 'languages.list',
@@ -27,12 +27,9 @@ export const languagesListOp = defineOp({
 	sync: 'synced',
 	docs: {
 		title: 'List languages',
-		description:
-			'Lists the supported languages with their integer `id`. Call once before any tool needing a language.',
+		description: 'Lists the supported languages (`lang` codes like `en-US`).',
 		tool: 'languages_list',
-		hints: [
-			'Language inputs across tools: `languageId` = integer `id`; `lang` = 2-letter `code` (e.g. `en`); `fallbackLang` = full `lang` key (e.g. `en-US`).'
-		]
+		hints: ['Every language input is `lang` (BCP47, e.g. `en-US`).']
 	},
 	input: languagesListInput,
 	handler: async (ctx): Promise<LanguagesListOutput> => {

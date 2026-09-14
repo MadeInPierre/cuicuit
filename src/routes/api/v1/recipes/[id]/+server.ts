@@ -5,11 +5,9 @@ import { queryParam, readJson, requireApi, runApiOp, toResponse } from '../../_l
 export async function GET(event: RequestEvent): Promise<Response> {
 	try {
 		const auth = await requireApi(event);
-		const languageRaw = queryParam(event, 'languageId', { required: true });
-		const languageId = Number(languageRaw);
-		if (!Number.isInteger(languageId))
-			throw new OpError('VALIDATION', 'Invalid query parameter: languageId.');
-		return await runApiOp('recipes.get', auth, { recipeId: event.params.id, languageId });
+		const lang = queryParam(event, 'lang', { required: true });
+		if (!lang) throw new OpError('VALIDATION', 'Invalid query parameter: lang.');
+		return await runApiOp('recipes.get', auth, { recipeId: event.params.id, lang });
 	} catch (error) {
 		return toResponse(error);
 	}

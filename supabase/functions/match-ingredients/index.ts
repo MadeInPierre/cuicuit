@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
 			const { data, error } = await supabaseClient.rpc('match_ingredient', {
 				query_text: cleanedText, // Renamed to avoid SQL reserved word conflicts
-				lang_code: lang || 'fr-FR',
+				lang_code: lang || 'en-US',
 				n_matches: 10
 			});
 

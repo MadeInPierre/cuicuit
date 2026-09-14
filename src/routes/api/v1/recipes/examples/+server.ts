@@ -5,7 +5,7 @@ export async function POST(event: RequestEvent): Promise<Response> {
 	try {
 		const auth = await requireApi(event);
 		const body = await readJson(event);
-		return await runApiOp('recipes.add-examples', auth, { fallbackLang: body.fallbackLang });
+		return await runApiOp('recipes.add-examples', auth, { lang: body.lang });
 	} catch (error) {
 		return toResponse(error);
 	}

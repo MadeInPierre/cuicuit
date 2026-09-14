@@ -1,21 +1,26 @@
 import { z } from 'zod';
 
+import { DEFAULT_LANGUAGE, languageCodeSchema } from '$lib/shared/language.js';
+
 import { OpError } from '../errors.js';
+import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp, type OpCtx } from '../registry.js';
 
 export const spacesCreateInput = z.object({
 	userId: z.string(),
 	name: z.string(),
 	theme: z.string(),
-	icon: z.string()
+	icon: z.string(),
+	lang: languageCodeSchema.default(DEFAULT_LANGUAGE)
 });
 
 export type SpacesCreateInput = z.infer<typeof spacesCreateInput>;
 
 async function spacesCreateHandler(ctx: OpCtx, input: SpacesCreateInput): Promise<string> {
-	const { userId, name, theme, icon } = input;
+	const { userId, name, theme, icon, lang } = input;
 	if (!userId) throw new OpError('VALIDATION', 'User ID not provided');
 	if (!name || !theme || !icon) throw new OpError('VALIDATION', 'Missing required parameters');
+	const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
 
 	// Check if the user already has a space with the same name
 	const { data: existingSpaces, error: fetchError } = await ctx.supabase
@@ -38,8 +43,8 @@ async function spacesCreateHandler(ctx: OpCtx, input: SpacesCreateInput): Promis
 			name,
 			icon,
 			initial_theme: theme,
-			author_id: userId
-			// TODO add language preference?
+			author_id: userId,
+			language_id: languageId
 		}
 	]);
 	if (spaceError) throw new OpError('INTERNAL', 'Failed to create space.', spaceError);

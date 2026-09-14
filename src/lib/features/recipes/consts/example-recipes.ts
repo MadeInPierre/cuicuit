@@ -1,11 +1,11 @@
-import type { LanguageKey } from '$lib/features/user-settings/consts';
+import { DEFAULT_LANGUAGE, type LanguageCode } from '$lib/shared/language.js';
 
 // Hard-coded, well-known recipe URLs whose scrape + enrichment results are
 // already stored in the shared cache, so adding them to a user's space is free
 // (no scraping, no LLM call, no credits). Keyed by language so each locale gets
-// its own curated set; a space falls back to 'fr-FR' when its language has no
-// dedicated list yet.
-export const EXAMPLE_RECIPE_URLS: Partial<Record<LanguageKey, readonly string[]>> = {
+// its own curated set; a space falls back to DEFAULT_LANGUAGE when its language
+// has no dedicated list yet.
+export const EXAMPLE_RECIPE_URLS: Partial<Record<LanguageCode, readonly string[]>> = {
 	'fr-FR': [
 		'https://www.marmiton.org/recettes/recette_salade-grecque_34399.aspx',
 		'https://www.cuisineaz.com/recettes/ramen-au-poulet-105611.aspx',

@@ -2,8 +2,8 @@
 // only, no UI-callable DB writes; called server-side by the import ops via the
 // co-located import helpers).
 import { getRequestEvent, query } from '$app/server';
-import { languageKeySchema } from '$lib/features/user-settings/consts';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
+import { languageCodeSchema } from '$lib/shared/language.js';
 import { withLlmFailover } from '$lib/shared/llm/fallback';
 import type { LlmProvider } from '$lib/shared/llm/providers';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
@@ -64,7 +64,7 @@ const relevantRecipeFieldsSchema = z.object({
 }) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
 
 const outputSchema = z.object({
-	lang: languageKeySchema.describe(
+	lang: languageCodeSchema.describe(
 		"The input recipe's written language, e.g. en-US, fr-FR, pt-BR, es-ES."
 	),
 	recipe: relevantRecipeFieldsSchema.describe(
@@ -376,7 +376,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 		// Recover the language if present
 		if (parsed.lang && typeof parsed.lang === 'string') {
-			const langResult = languageKeySchema.safeParse(parsed.lang);
+			const langResult = languageCodeSchema.safeParse(parsed.lang);
 			recovered.lang = langResult.data;
 			console.log(`Recovered language: ${recovered.lang}`);
 		}
