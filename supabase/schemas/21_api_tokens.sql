@@ -27,8 +27,8 @@ ALTER TABLE ONLY "public"."user_api_tokens"
 ADD CONSTRAINT "user_api_tokens_token_hash_key" UNIQUE ("token_hash");
 
 -- 4. Grants
-GRANT ALL ON TABLE "public"."user_api_tokens" TO "anon";
-
+-- Owner-only RLS policies live in 99_RLS.sql (authenticated); the PAT hash
+-- lookup uses service_role (bypasses RLS). No anon access.
 GRANT ALL ON TABLE "public"."user_api_tokens" TO "authenticated";
 
 GRANT ALL ON TABLE "public"."user_api_tokens" TO "service_role";

@@ -54,13 +54,7 @@ import './spaces/join.js';
 import './spaces/leave.js';
 import './spaces/list.js';
 
-export {
-	requireUserId,
-	resolvePatToken,
-	exchangePatForUserJwt,
-	serverIsUserAuthenticated
-} from './auth.js';
-export type { PatSession } from './auth.js';
+export { requireUserId, resolvePatToken, signPatJwt, serverIsUserAuthenticated } from './auth.js';
 export { requireApiCtx, requireCtx, type ApiAuthMethod } from './context.js';
 export { getClientCtx } from './context.client.js';
 export { opInputJsonSchema } from './json-schema.js';

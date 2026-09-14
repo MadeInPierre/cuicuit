@@ -1,6 +1,6 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
-import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/private';
+import { importJWK, SignJWT } from 'jose';
 
 import { serverIsUserAuthenticated as serverIsUserAuthenticatedBase } from '$lib/features/billing/server/utils/is-user-authenticated';
 import type { Database } from '$lib/shared/db/supabase.types';
@@ -46,92 +46,67 @@ export async function resolvePatToken(
 	if (data.revoked_at) {
 		throw new OpError('UNAUTHENTICATED', 'API token has been revoked.');
 	}
-	const tokenHash = await hashPat(token);
 	void admin
 		.from('user_api_tokens')
 		.update({ last_used_at: new Date().toISOString() })
-		.eq('token_hash', tokenHash);
+		.eq('token_hash', await hashPat(token));
 	return data.user_id;
 }
 
 /**
- * A real GoTrue user session minted for a PAT-authenticated request, so
- * PostgREST enforces exactly the same RLS as a normal user session
+ * Sign a short-lived user JWT for a PAT-authenticated request, so PostgREST
+ * enforces exactly the same RLS as a normal user session
  * (`auth.uid()` = token owner).
  *
- * Why a real session instead of a hand-signed JWT: Supabase's new JWT signing
- * keys are asymmetric and the private key never leaves Supabase, so there is
- * no secret we could sign with (the legacy `SUPABASE_JWT_SECRET` is revoked).
- * Instead we ask GoTrue itself — via service-role admin APIs — to create a
- * session for the token owner and hand us its access token. This works
- * identically on local Supabase and on Cloud, with zero key management.
- *
- * `cleanup` revokes the session (fire-and-forget, never throws). Callers must
- * run it when the request is done — otherwise every PAT request leaks one
- * session row into `auth.sessions`. Idempotent.
+ * The private ES256 key is ours: generated once via
+ * `supabase gen signing-key --algorithm ES256`, imported into Supabase as a
+ * JWT signing key (Dashboard → JWT signing keys → new standby key → Rotate),
+ * and stored in `SUPABASE_PAT_JWT_PRIVATE_KEY` (full JWK JSON, including `d`
+ * and `kid`). Supabase never reveals its own private keys, so bringing our
+ * own is the only way to sign locally. No GoTrue calls, no sessions, no
+ * cleanup, nothing to rate-limit — one DB lookup (`resolvePatToken`) + pure
+ * local signing per request.
  */
-export interface PatSession {
-	jwt: string;
-	cleanup: () => void;
-}
-
-export async function exchangePatForUserJwt(
-	admin: SupabaseClient<Database>,
-	userId: string
-): Promise<PatSession> {
-	const { data: userData, error: userError } = await admin.auth.admin.getUserById(userId);
-	const email = userData?.user?.email;
-	if (userError || !email) {
-		// Downstream failure, NOT a bad token — keep the message distinct so
-		// callers don't revoke a healthy token on transient errors.
-		console.warn('[api] PAT exchange: getUserById failed:', userError?.message ?? 'no email');
+export async function signPatJwt(userId: string, keyJson?: string): Promise<string> {
+	const raw = keyJson ?? env.SUPABASE_PAT_JWT_PRIVATE_KEY;
+	if (!raw) {
 		throw new OpError(
-			'UNAUTHENTICATED',
-			'API token session could not be established (transient — retry).'
+			'INTERNAL',
+			'PAT signing key not configured. Set SUPABASE_PAT_JWT_PRIVATE_KEY (full ES256 JWK JSON from `supabase gen signing-key`) and import it as a JWT signing key. See .env.example.'
 		);
 	}
-	// `generateLink` mints the login token WITHOUT sending any email.
-	const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-		type: 'magiclink',
-		email
-	});
-	const tokenHash = linkData?.properties?.hashed_token;
-	if (linkError || !tokenHash) {
-		console.warn('[api] PAT exchange: generateLink failed:', linkError?.message ?? 'no token');
+	let jwk: Record<string, unknown>;
+	try {
+		jwk = JSON.parse(raw) as Record<string, unknown>;
+	} catch {
+		throw new OpError('INTERNAL', 'SUPABASE_PAT_JWT_PRIVATE_KEY is not valid JSON.');
+	}
+	if (
+		jwk.kty !== 'EC' ||
+		typeof jwk.kid !== 'string' ||
+		typeof jwk.d !== 'string' ||
+		typeof jwk.x !== 'string' ||
+		typeof jwk.y !== 'string'
+	) {
 		throw new OpError(
-			'UNAUTHENTICATED',
-			'API token session could not be established (transient — retry).'
+			'INTERNAL',
+			'SUPABASE_PAT_JWT_PRIVATE_KEY must be a full ES256 private JWK (needs `kty: "EC"`, `kid`, `d`, `x`, `y`).'
 		);
 	}
-	// Throwaway client: exchanging the token here must not touch the shared
-	// admin client's auth state.
-	const probe = createClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-		auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-	});
-	const { data: sessionData, error: sessionError } = await probe.auth.verifyOtp({
-		type: 'magiclink',
-		token_hash: tokenHash
-	});
-	const jwt = sessionData?.session?.access_token;
-	if (sessionError || !jwt) {
-		console.warn('[api] PAT exchange: verifyOtp failed:', sessionError?.message ?? 'no session');
-		throw new OpError(
-			'UNAUTHENTICATED',
-			'API token session could not be established (transient — retry).'
-		);
+	let key;
+	try {
+		// Rebuild a minimal JWK: stored keys may carry `key_ops: ["sign","verify"]`
+		// (e.g. extracted from GOTRUE_JWT_KEYS), which WebCrypto rejects on
+		// private-key import — `verify` is a public-key operation.
+		const { crv, x, y, d } = jwk as Record<string, string>;
+		key = await importJWK({ kty: 'EC', crv, x, y, d }, 'ES256');
+	} catch (error) {
+		throw new OpError('INTERNAL', 'SUPABASE_PAT_JWT_PRIVATE_KEY could not be imported.', error);
 	}
-	let cleaned = false;
-	const cleanup = () => {
-		if (cleaned) return;
-		cleaned = true;
-		// Scope 'local': revoke ONLY this minted session. The default ('global')
-		// would sign the user out everywhere, including their browser session.
-		void admin.auth.admin
-			.signOut(jwt, 'local')
-			.then(({ error }) => {
-				if (error) console.warn('[api] PAT session cleanup failed:', error.message);
-			})
-			.catch((error) => console.warn('[api] PAT session cleanup failed:', error));
-	};
-	return { jwt, cleanup };
+	return await new SignJWT({ role: 'authenticated', aud: 'authenticated' })
+		.setProtectedHeader({ alg: 'ES256', kid: jwk.kid, typ: 'JWT' })
+		.setSubject(userId)
+		.setIssuedAt()
+		.setExpirationTime('15m')
+		.sign(key);
 }

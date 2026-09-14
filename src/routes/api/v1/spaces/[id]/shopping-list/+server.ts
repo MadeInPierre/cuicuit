@@ -8,25 +8,21 @@ import { queryParam, requireApi, toResponse } from '../../../_lib.js';
 export async function GET(event: RequestEvent): Promise<Response> {
 	try {
 		const auth = await requireApi(event);
-		try {
-			const { ctx } = auth;
-			const lang = queryParam(event, 'lang', { required: true });
-			if (!lang) {
-				throw new OpError('VALIDATION', 'Query parameter `lang` is required (e.g. `en-US`).');
-			}
-			const spaceId = event.params.id as string;
-			const meals = await runOp<unknown, PlanMealRow[]>('plans.list-meals', ctx, {
-				spaceId,
-				lang
-			});
-			const items = await runOp<unknown, ShoppingIngredient[]>('plans.list-items', ctx, {
-				spaceId,
-				lang
-			});
-			return json({ meals, items, combined: generateShoppingList(meals, items) });
-		} finally {
-			auth.cleanup();
+		const { ctx } = auth;
+		const lang = queryParam(event, 'lang', { required: true });
+		if (!lang) {
+			throw new OpError('VALIDATION', 'Query parameter `lang` is required (e.g. `en-US`).');
 		}
+		const spaceId = event.params.id as string;
+		const meals = await runOp<unknown, PlanMealRow[]>('plans.list-meals', ctx, {
+			spaceId,
+			lang
+		});
+		const items = await runOp<unknown, ShoppingIngredient[]>('plans.list-items', ctx, {
+			spaceId,
+			lang
+		});
+		return json({ meals, items, combined: generateShoppingList(meals, items) });
 	} catch (error) {
 		return toResponse(error);
 	}

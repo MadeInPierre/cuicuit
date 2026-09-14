@@ -93,13 +93,12 @@ export async function POST(event: RequestEvent): Promise<Response> {
 					`Unknown tool: ${typeof params.name === 'string' ? params.name : '(missing name)'}. Call tools/list first.`
 				);
 			}
-			let auth;
+			let ctx;
 			try {
-				auth = await requireApiCtx(event, 'mcp');
+				ctx = (await requireApiCtx(event, 'mcp')).ctx;
 			} catch (error) {
 				if (error instanceof OpError && error.code === 'UNAUTHENTICATED') {
-					// Log tool + message (never the credential) — intermittent exchange
-					// failures look identical to bad tokens from the outside.
+					// Log tool + message (never the credential).
 					console.warn(`[mcp] auth failed for tool '${tool.name}': ${error.message}`);
 					return rpcError(id, -32000, `Unauthorized: ${error.message}`, 401);
 				}
@@ -109,7 +108,7 @@ export async function POST(event: RequestEvent): Promise<Response> {
 			try {
 				let input = prepareMcpInput(
 					tool.op,
-					auth.ctx.userId,
+					ctx.userId,
 					params.arguments === undefined ? {} : params.arguments
 				);
 				// billing.checkout needs `origin` (the REST adapter injects it from the
@@ -118,7 +117,7 @@ export async function POST(event: RequestEvent): Promise<Response> {
 					input = { ...input, origin: event.url.origin };
 				}
 				let output: unknown;
-				for await (const value of runOpStream(tool.op, auth.ctx, input)) output = value;
+				for await (const value of runOpStream(tool.op, ctx, input)) output = value;
 				return rpcResult(id, {
 					content: [{ type: 'text', text: JSON.stringify(compactMcpOutput(output)) }]
 				});
@@ -127,8 +126,6 @@ export async function POST(event: RequestEvent): Promise<Response> {
 					content: [{ type: 'text', text: mcpErrorText(error) }],
 					isError: true
 				});
-			} finally {
-				auth.cleanup();
 			}
 		}
 		default:
