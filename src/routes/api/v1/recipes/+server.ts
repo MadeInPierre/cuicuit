@@ -64,10 +64,8 @@ function parseOr(raw: string | null): string | null {
 export async function GET(event: RequestEvent): Promise<Response> {
 	try {
 		const auth = await requireApi(event);
-		const languageRaw = queryParam(event, 'languageId', { required: true });
-		const languageId = Number(languageRaw);
-		if (!Number.isInteger(languageId))
-			throw new OpError('VALIDATION', 'Invalid query parameter: languageId.');
+		const lang = queryParam(event, 'lang', { required: true });
+		if (!lang) throw new OpError('VALIDATION', 'Invalid query parameter: lang.');
 		const searchText = queryParam(event, 'searchText') ?? undefined;
 		const limitRaw = queryParam(event, 'limit');
 		const limit = limitRaw === null || limitRaw === '' ? undefined : Number(limitRaw);
@@ -75,7 +73,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 			throw new OpError('VALIDATION', 'Invalid query parameter: limit.');
 		}
 		return await runApiOp('recipes.list', auth, {
-			languageId,
+			lang,
 			searchText,
 			limit,
 			in: parseFilter(queryParam(event, 'in'), 'in'),

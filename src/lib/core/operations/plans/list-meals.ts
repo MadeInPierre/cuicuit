@@ -2,13 +2,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 import type { Database } from '$lib/shared/db/supabase.types';
+import { languageCodeSchema } from '$lib/shared/language.js';
 
 import { OpError } from '../errors.js';
+import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp } from '../registry.js';
 
 export const listMealsInput = z.object({
 	spaceId: z.string().min(1),
-	languageId: z.number().int()
+	lang: languageCodeSchema
 });
 
 export type ListMealsInput = z.infer<typeof listMealsInput>;
@@ -57,11 +59,12 @@ export const listMealsOp = defineOp({
 	docs: {
 		title: 'List meals',
 		description:
-			'Lists the non-deleted meals of a space with recipes and shopping ingredients. `languageId` is an integer id (see languages_list). Each meal carries its `recipe` (with `servings` and `recipe_ingredients`) plus its linked `shopping_ingredients` items.',
+			'Lists the non-deleted meals of a space with recipes and shopping ingredients. Takes `lang` (e.g. `en-US`). Each meal carries its `recipe` (with `servings` and `recipe_ingredients`) plus its linked `shopping_ingredients` items.',
 		tool: 'plan_list'
 	},
 	input: listMealsInput,
-	handler: async (ctx, { spaceId, languageId }) => {
+	handler: async (ctx, { spaceId, lang }) => {
+		const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
 		const { data, error } = await mealsQuery(ctx.supabase, spaceId, languageId);
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to list plan meals.', error);

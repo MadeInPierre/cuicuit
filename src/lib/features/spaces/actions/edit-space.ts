@@ -1,7 +1,7 @@
 import { getClientCtx, OpError, runOp } from '$lib/core/operations/client.js';
 import '$lib/core/operations/spaces/edit.js';
 import type { SpacesEditInput } from '$lib/core/operations/spaces/edit.js';
-import type { LanguageKey } from '$lib/features/user-settings/consts';
+import type { LanguageCode } from '$lib/shared/language.js';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
 import type { ActiveSpaceState } from '../state/active-space.svelte';
 
@@ -16,7 +16,7 @@ export async function editSpace(
 	name: string,
 	theme: SpaceThemeKey,
 	icon: SpaceIconKey,
-	lang: LanguageKey
+	lang: LanguageCode
 ): Promise<void> {
 	const spaceId = space.activeSpace?.id;
 	if (!spaceId) throw new OpError('VALIDATION', 'Space ID not provided');

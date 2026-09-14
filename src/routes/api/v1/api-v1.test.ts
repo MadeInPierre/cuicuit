@@ -119,7 +119,7 @@ describe('buildOpenApiDoc', () => {
 	it('request schemas derive from op zod inputs', () => {
 		const docJson = JSON.stringify(doc);
 		// recipes.list input fields must appear in the spec (proves toJSONSchema works).
-		for (const field of ['languageId', 'searchText', 'overlaps']) {
+		for (const field of ['lang', 'searchText', 'overlaps']) {
 			expect(docJson.includes(field), `spec contains ${field}`).toBe(true);
 		}
 	});
@@ -157,8 +157,8 @@ describe('readJson / queryParam', () => {
 		expect(() => queryParam(event, 'missing', { required: true })).toThrowError(OpError);
 		const withParam = {
 			...event,
-			url: new URL('http://localhost/api/v1/x?languageId=2')
+			url: new URL('http://localhost/api/v1/x?lang=en-US')
 		} as RequestEvent;
-		expect(queryParam(withParam, 'languageId', { required: true })).toBe('2');
+		expect(queryParam(withParam, 'lang', { required: true })).toBe('en-US');
 	});
 });

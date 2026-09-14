@@ -58,7 +58,7 @@
 			for await (const value of importRecipeFromUrl({
 				spaceId: space.activeSpace.id,
 				url,
-				fallbackLang: space.language.lang
+				lang: space.language.lang
 			})) {
 				console.log('Received yield', value);
 				if (typeof value === 'number') {

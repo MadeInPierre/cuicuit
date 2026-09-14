@@ -1,4 +1,5 @@
 import type { Database } from '$lib/shared/db/supabase.types';
+import { DEFAULT_LANGUAGE, type LanguageCode } from '$lib/shared/language.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import type { RecipeIngredientWithTranslations } from '../../queries/get-recipe-detailed';
@@ -16,7 +17,7 @@ export type IngredientProcessed = z.infer<typeof ingredientProcessedSchema>;
 export async function processIngredientStrings(
 	supabase: SupabaseClient<Database>,
 	input: string[],
-	lang: string = 'en-US'
+	lang: LanguageCode = DEFAULT_LANGUAGE
 ): Promise<IngredientProcessed[]> {
 	// Filter out empty or whitespace-only strings
 	const eligibleStrings = input.map((s) => s.trim()).filter((s) => s.length > 0);
@@ -47,7 +48,7 @@ export async function processIngredientStrings(
 export function processIngredientString(
 	supabase: SupabaseClient<Database>,
 	input: string,
-	lang: string = 'en-US'
+	lang: LanguageCode = DEFAULT_LANGUAGE
 ): Promise<IngredientProcessed> {
 	return processIngredientStrings(supabase, [input], lang).then((results) => results[0]);
 }

@@ -9,6 +9,7 @@ import {
 	type MealWithRecipeAndIngredients
 } from '$lib/features/plans/queries/get-plan-meals';
 import type { Tables } from '$lib/shared/db/supabase.types';
+import { normalizeLanguageCode } from '$lib/shared/language.js';
 import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 import { getContext, setContext, untrack } from 'svelte';
 import {
@@ -123,11 +124,12 @@ class ActiveSpaceState {
 
 	/** Fetches the active plan meals for the current active space */
 	async refreshActivePlanMeals(options?: { refreshShoppingList?: boolean }) {
-		if (!this.activeSpace?.id || !this.language) return;
+		const lang = normalizeLanguageCode(this.language?.lang);
+		if (!this.activeSpace?.id || !lang) return;
 
 		try {
 			// Fetch currently active meals for the active space (deleted meals are excluded)
-			const response = await getPlanMeals(this.activeSpace.id, this.language.id).is(
+			const response = await getPlanMeals(this.activeSpace.id, lang).is(
 				'deleted_at',
 				null
 			);
@@ -146,10 +148,11 @@ class ActiveSpaceState {
 
 	/** Fetches the active space's plan's items */
 	async refreshActivePlanItems(options?: { refreshShoppingList?: boolean }) {
-		if (!this.activeSpace?.id || !this.language) return;
+		const lang = normalizeLanguageCode(this.language?.lang);
+		if (!this.activeSpace?.id || !lang) return;
 
 		try {
-			const { data, error } = await getShoppingListItems(this.activeSpace.id, this.language.id).is(
+			const { data, error } = await getShoppingListItems(this.activeSpace.id, lang).is(
 				'deleted_at',
 				null
 			);

@@ -1,6 +1,7 @@
 import { matchIngredientsRPC } from '$lib/features/ingredients/server/match-ingredients.remote';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 import type { Database } from '$lib/shared/db/supabase.types';
+import { DEFAULT_LANGUAGE, type LanguageCode } from '$lib/shared/language.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type MatchIngredientsResponse = {
@@ -14,9 +15,9 @@ export type MatchIngredientsResponse = {
 export async function matchIngredients(
 	supabase: SupabaseClient<Database>,
 	ingredientStrings: string[],
-	lang: string
+	lang: LanguageCode
 ) {
-	const { matches } = await matchIngredientsRPC({ ingredientStrings, lang: lang || 'fr-FR' });
+	const { matches } = await matchIngredientsRPC({ ingredientStrings, lang: lang || DEFAULT_LANGUAGE });
 
 	// Step 2: Get the unique ingredient IDs from the matches and fetch their full details from the database
 	const ingredientIds = Array.from(new Set(matches.flatMap((m) => m.bestMatches.map((i) => i.id))));

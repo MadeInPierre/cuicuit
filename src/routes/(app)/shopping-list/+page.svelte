@@ -16,6 +16,7 @@
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -93,8 +94,9 @@
 	let recentRecommendations = $state<Record<string, ShoppingRecommendation[]>>({});
 
 	async function refreshRecommendations() {
-		if (!space.id || !space.language) return;
-		const recommendations = await getShoppingRecommendations(space.id, space.language.lang);
+		const lang = normalizeLanguageCode(space.language?.lang);
+		if (!space.id || !lang) return;
+		const recommendations = await getShoppingRecommendations(space.id, lang);
 		rawShoppingRecommendations = recommendations;
 	}
 

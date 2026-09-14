@@ -10,7 +10,9 @@ import {
 // lives in `core/operations/plans/recommendations.ts` (plans domain); this file
 // stays in the spaces folder for history and re-exports its shape.
 
-export async function getShoppingRecommendations(spaceId: string, lang: string) {
+import type { LanguageCode } from '$lib/shared/language.js';
+
+export async function getShoppingRecommendations(spaceId: string, lang: LanguageCode) {
 	if (!spaceId) return [];
 	return runOp<ShoppingRecommendationsInput, ShoppingRecommendationsOutput>(
 		shoppingRecommendationsOp.name,

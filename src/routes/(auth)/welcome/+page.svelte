@@ -4,7 +4,12 @@
 	import { generateRandomProfileDraft } from '$lib/features/auth/actions/create-user-data';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+	import {
+		CURATED_LANGUAGES,
+		DEFAULT_LANGUAGE,
+		type LanguageCode
+	} from '$lib/shared/language.js';
+	const languages = CURATED_LANGUAGES;
 	import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 	import '$lib/core/operations/profile/complete-onboarding.js';
 	import type { ProfileCompleteOnboardingInput } from '$lib/core/operations/profile/complete-onboarding.js';
@@ -92,7 +97,7 @@
 		$formData.lastName = userState.preferences?.last_name;
 		$formData.userName = userState.profile?.user_name;
 		$formData.iconKey = userState.profile?.icon;
-		$formData.lang ??= 'en-US';
+		$formData.lang ??= DEFAULT_LANGUAGE;
 	});
 </script>
 
@@ -173,7 +178,7 @@
 						<Form.Label>Language</Form.Label>
 
 						<div class="grid grid-cols-2 gap-2 items-center w-full pt-1">
-							{#each Object.keys(languages) as LanguageKey[] as l}
+							{#each Object.keys(languages) as LanguageCode[] as l}
 								<Button
 									{...props}
 									type="button"

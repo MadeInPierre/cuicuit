@@ -25,7 +25,7 @@ curl -s -X POST $BASE -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params"
 # 2. List tools (pre-auth)
 curl -s -X POST $BASE -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | head -c 300
 
-# 3. Map language names to ids (do once: id for languageId, code for lang, lang for fallbackLang)
+# 3. List language codes (every language input is `lang`, e.g. `en-US`)
 curl -s -X POST $BASE -H "Authorization: Bearer $PAT" -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"languages_list","arguments":{}}}'
 
 # 3. Seed balance

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { languageKeySchema, type LanguageKey } from '$lib/features/user-settings/consts';
+import { languageCodeSchema, type LanguageCode } from '$lib/shared/language.js';
 
 import { canAfford, type CreditUsage } from '../credits.js';
 import { OpError } from '../errors.js';
@@ -10,7 +10,7 @@ import { importRecipeFromTextCore, type ImportUrlResult } from './import-from-ur
 export const importRecipeFromTextInput = z.object({
 	spaceId: z.string(),
 	text: z.string().min(10),
-	fallbackLang: languageKeySchema
+	lang: languageCodeSchema
 });
 
 export type ImportRecipeFromTextInput = z.infer<typeof importRecipeFromTextInput>;
@@ -40,7 +40,7 @@ export const importRecipeFromTextOp = defineOp({
 	},
 	credits: { feature: 'import_recipe_from_text', seeds: 1 },
 	input: importRecipeFromTextInput,
-	handler: async function* (ctx, { text, fallbackLang }) {
+	handler: async function* (ctx, { text, lang }) {
 		if (!(await canAfford(ctx, 1))) {
 			throw new OpError('INSUFFICIENT_SEEDS', 'User cannot afford the feature.');
 		}
@@ -55,7 +55,7 @@ export const importRecipeFromTextOp = defineOp({
 			admin: ctx.admin,
 			userId: ctx.userId,
 			text,
-			fallbackLang: fallbackLang as LanguageKey
+			lang: lang as LanguageCode
 		})) {
 			if (typeof value === 'number') {
 				yield value;

@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
+import { languageCodeSchema } from '$lib/shared/language.js';
+
 import { OpError } from '../errors.js';
+import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp, type OpCtx } from '../registry.js';
 
 export const profileCompleteOnboardingInput = z.object({
@@ -9,9 +12,7 @@ export const profileCompleteOnboardingInput = z.object({
 	icon: z.string(),
 	firstName: z.string(),
 	lastName: z.string(),
-	// Language key (mirrors `languageKeys` in `features/user-settings/consts.ts`,
-	// hardcoded nowhere — validated by the welcome form before reaching this op).
-	lang: z.string()
+	lang: languageCodeSchema
 });
 
 export type ProfileCompleteOnboardingInput = z.infer<typeof profileCompleteOnboardingInput>;
@@ -41,21 +42,17 @@ async function profileCompleteOnboardingHandler(
 		.eq('user_id', userId);
 	if (prefError) failures.push({ step: 'preferences', error: prefError });
 
-	// Fetch the language id for the chosen language
-	const { data: languageData, error: languageError } = await ctx.supabase
-		.from('languages')
-		.select('id')
-		.eq('lang', lang)
-		.single();
-	if (languageError || !languageData) {
-		failures.push({ step: 'language', error: languageError });
-	} else {
+	// Resolve the public `lang` code to the internal `languages.id`
+	try {
+		const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
 		// Set the language on all the user's spaces
 		const { error: spaceError } = await ctx.supabase
 			.from('spaces')
-			.update({ language_id: languageData.id })
+			.update({ language_id: languageId })
 			.eq('author_id', userId);
 		if (spaceError) failures.push({ step: 'spaces', error: spaceError });
+	} catch (error) {
+		failures.push({ step: 'language', error });
 	}
 
 	if (failures.length > 0) {

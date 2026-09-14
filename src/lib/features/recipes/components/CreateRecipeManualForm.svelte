@@ -29,7 +29,7 @@
 	async function onSubmit() {
 		loading = true;
 		try {
-			if (!space.language?.id) {
+			if (!space.language?.lang) {
 				toast.error(
 					'Active space does not have a language set. Please set a language before creating a recipe.'
 				);

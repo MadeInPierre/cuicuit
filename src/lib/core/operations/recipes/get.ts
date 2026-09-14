@@ -3,13 +3,16 @@ import { z } from 'zod';
 
 import type { Database } from '$lib/shared/db/supabase.types';
 
+import { languageCodeSchema } from '$lib/shared/language.js';
+
 import { OpError } from '../errors.js';
+import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp } from '../registry.js';
 import { recipesDetailedQuery, type RecipeDetailedRow } from './list.js';
 
 export const getRecipeInput = z.object({
 	recipeId: z.string().min(1),
-	languageId: z.number().int()
+	lang: languageCodeSchema
 });
 
 export type GetRecipeInput = z.infer<typeof getRecipeInput>;
@@ -37,7 +40,8 @@ export const getRecipeOp = defineOp({
 		description: 'Fetches a single detailed recipe plus its author public profile.'
 	},
 	input: getRecipeInput,
-	handler: async (ctx, { recipeId, languageId }) => {
+	handler: async (ctx, { recipeId, lang }) => {
+		const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
 		// Get the recipe
 		const { data, error } = await recipesDetailedQuery(ctx.supabase, languageId)
 			.eq('id', recipeId)

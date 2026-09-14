@@ -23,7 +23,13 @@
 	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { languages, type LanguageKey } from '$lib/features/user-settings/consts';
+	import {
+		CURATED_LANGUAGES,
+		DEFAULT_LANGUAGE,
+		normalizeLanguageCode,
+		type LanguageCode
+	} from '$lib/shared/language.js';
+	const languages = CURATED_LANGUAGES;
 	import SearchResultsSidebar from '$lib/shared/components/search/SearchResultsSidebar.svelte';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
@@ -97,10 +103,11 @@
 
 	$effect(() => {
 		// If it's a new recipe, we don't need to fetch the recipe data
-		if (isNewRecipe || !activeSpace.language) return;
+		const lang = normalizeLanguageCode(activeSpace.language?.lang);
+		if (isNewRecipe || !lang) return;
 
 		// Fetch the recipe from Supabase
-		getRecipeDetailed(pageRecipeId, activeSpace.language.id).then(
+		getRecipeDetailed(pageRecipeId, lang).then(
 			({ data: recipeData, error: recipeError }) => {
 				console.log('Fetched recipe data:', recipeData, 'Error:', recipeError);
 
@@ -112,7 +119,7 @@
 				formData.update(
 					(f) => {
 						// General info
-						f.language = (recipeData.language?.lang as LanguageKey) || 'fr-FR';
+						f.lang = normalizeLanguageCode(recipeData.language?.lang) ?? DEFAULT_LANGUAGE;
 						f.title = recipeData.title || 'New recipe';
 						f.short_title = recipeData.short_title || 'New';
 						f.description = recipeData.description || 'Delicious new recipe';
@@ -236,7 +243,7 @@
 		}
 
 		const translation =
-			chosenMatch.translations.find((t) => t.language?.lang === $formData.language) ||
+			chosenMatch.translations.find((t) => t.language?.lang === $formData.lang) ||
 			chosenMatch.translations[0];
 		const name =
 			amount > 1
@@ -451,7 +458,7 @@
 											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
-										<Form.Field {form} name="language" class="grid">
+										<Form.Field {form} name="lang" class="grid">
 											<Form.Control>
 												{#snippet children({ props })}
 													<Form.Label>Language</Form.Label>
@@ -459,11 +466,11 @@
 													<Select.Root
 														{...props}
 														type="single"
-														name="language"
-														bind:value={$formData.language}
+														name="lang"
+														bind:value={$formData.lang}
 													>
 														<Select.Trigger class="w-20 h-9">
-															{languages[$formData.language as LanguageKey]?.emoji || '?'}
+															{languages[$formData.lang as keyof typeof languages]?.emoji || '?'}
 														</Select.Trigger>
 														<Select.Content>
 															<Select.Group>
@@ -504,7 +511,7 @@
 									</Form.Field>
 
 									<div class="flex gap-4">
-										<Form.Field {form} name="language" class="grid">
+										<Form.Field {form} name="source_type" class="grid">
 											<Form.Control>
 												{#snippet children({ props })}
 													<Form.Label>Source</Form.Label>

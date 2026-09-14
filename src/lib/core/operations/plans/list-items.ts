@@ -2,13 +2,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 import type { Database } from '$lib/shared/db/supabase.types';
+import { languageCodeSchema } from '$lib/shared/language.js';
 
 import { OpError } from '../errors.js';
+import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp } from '../registry.js';
 
 export const listItemsInput = z.object({
 	spaceId: z.string().min(1),
-	languageId: z.number().int()
+	lang: languageCodeSchema
 });
 
 export type ListItemsInput = z.infer<typeof listItemsInput>;
@@ -49,11 +51,12 @@ export const listItemsOp = defineOp({
 	docs: {
 		title: 'List shopping items',
 		description:
-			'Lists the non-deleted shopping items of a space, newest first. `languageId` is an integer id (see languages_list). Items have `type`: `"meal"` (created by plan_add_recipe, linked to a meal) or `"independent"` (standalone, from shopping_add). Combine with plan_list (meals) for the full picture.',
+			'Lists the non-deleted shopping items of a space, newest first. Takes `lang` (e.g. `en-US`). Items have `type`: `"meal"` (created by plan_add_recipe, linked to a meal) or `"independent"` (standalone, from shopping_add). Combine with plan_list (meals) for the full picture.',
 		tool: 'shopping_list'
 	},
 	input: listItemsInput,
-	handler: async (ctx, { spaceId, languageId }) => {
+	handler: async (ctx, { spaceId, lang }) => {
+		const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
 		const { data, error } = await itemsQuery(ctx.supabase, spaceId, languageId);
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to list shopping items.', error);

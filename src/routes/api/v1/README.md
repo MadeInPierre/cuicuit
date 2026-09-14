@@ -82,8 +82,8 @@ SPACE=$(curl -s -X POST $BASE/spaces -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' -d '{"name":"Weekend Trip"}' \
   | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
 
-# Find a recipe (languageId=1 is English, required on recipe endpoints)
-curl "$BASE/recipes?languageId=1&searchText=pasta&limit=5" \
+# Find a recipe (lang is required on recipe endpoints, e.g. en-US)
+curl "$BASE/recipes?lang=en-US&searchText=pasta&limit=5" \
   -H "Authorization: Bearer $TOKEN"
 
 # Plan a recipe (grab a recipe id from the search above)
@@ -96,7 +96,7 @@ curl -X POST $BASE/spaces/$SPACE/items -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' -d '{"name":"Olive oil"}'
 
 # The combined shopping list for the space
-curl "$BASE/spaces/$SPACE/shopping-list?languageId=1" \
+curl "$BASE/spaces/$SPACE/shopping-list?lang=en-US" \
   -H "Authorization: Bearer $TOKEN"
 ```
 

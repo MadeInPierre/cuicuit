@@ -10,7 +10,9 @@ import {
 // `.is('deleted_at', null)` shape used by `active-space.svelte.ts` (the op already
 // excludes soft-deleted items, so the filter args are accepted and ignored).
 
-export function getShoppingListItems(spaceId: string, languageId: number) {
+import type { LanguageCode } from '$lib/shared/language.js';
+
+export function getShoppingListItems(spaceId: string, lang: LanguageCode) {
 	return {
 		is: async (_column: string, _value: null) => {
 			// Accepted and ignored: the op already excludes soft-deleted rows.
@@ -19,7 +21,7 @@ export function getShoppingListItems(spaceId: string, languageId: number) {
 			const data = await runOp<ListItemsInput, ListItemsOutput>(
 				listItemsOp.name,
 				await getClientCtx(),
-				{ spaceId, languageId }
+				{ spaceId, lang }
 			);
 			return { data, error: null };
 		}

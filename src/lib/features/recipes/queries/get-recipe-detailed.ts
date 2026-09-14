@@ -5,6 +5,7 @@ import type {
 	ListRecipesInput,
 	ListRecipesOutput
 } from '$lib/core/operations/recipes/list.js';
+import type { LanguageCode } from '$lib/shared/language.js';
 
 /**
  * M2: thin client adapters over the `recipes.list` / `recipes.get` core ops.
@@ -14,7 +15,7 @@ import type {
  * pass those filters through `opts` instead (see `ListRecipesInput`).
  */
 export async function getRecipesDetailed(
-	languageId: number,
+	lang: LanguageCode,
 	searchText?: string,
 	opts?: {
 		limit?: number;
@@ -28,7 +29,7 @@ export async function getRecipesDetailed(
 			'recipes.list',
 			await getClientCtx(),
 			{
-				languageId,
+				lang,
 				searchText: searchText ?? '',
 				limit: opts?.limit ?? 100,
 				overlaps: opts?.overlaps ?? [],
@@ -54,12 +55,12 @@ export async function getRecipesDetailed(
  */
 export async function getRecipeDetailed(
 	recipeId: string,
-	languageId: number
+	lang: LanguageCode
 ): Promise<{ data: GetRecipeOutput | null; error: unknown }> {
 	try {
 		const data = await runOp<GetRecipeInput, GetRecipeOutput>('recipes.get', await getClientCtx(), {
 			recipeId,
-			languageId
+			lang
 		});
 		return { data, error: null };
 	} catch (error) {

@@ -1,13 +1,14 @@
 import { z } from 'zod';
 
 import type { Database } from '$lib/shared/db/supabase.types';
+import { languageCodeSchema } from '$lib/shared/language.js';
 
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
 
 export const shoppingRecommendationsInput = z.object({
 	spaceId: z.string().min(1),
-	lang: z.string().min(1)
+	lang: languageCodeSchema
 });
 
 export type ShoppingRecommendationsInput = z.infer<typeof shoppingRecommendationsInput>;

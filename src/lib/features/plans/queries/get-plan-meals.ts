@@ -13,7 +13,9 @@ import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 // `.is('deleted_at', null)` shape used by `active-space.svelte.ts` (the op already
 // excludes soft-deleted meals, so the filter args are accepted and ignored).
 
-export function getPlanMeals(spaceId: string, languageId: number) {
+import type { LanguageCode } from '$lib/shared/language.js';
+
+export function getPlanMeals(spaceId: string, lang: LanguageCode) {
 	return {
 		is: async (_column: string, _value: null) => {
 			// Accepted and ignored: the op already excludes soft-deleted rows.
@@ -22,7 +24,7 @@ export function getPlanMeals(spaceId: string, languageId: number) {
 			const data = await runOp<ListMealsInput, ListMealsOutput>(
 				listMealsOp.name,
 				await getClientCtx(),
-				{ spaceId, languageId }
+				{ spaceId, lang }
 			);
 			return { data, error: null };
 		}

@@ -1,3 +1,4 @@
+import type { LanguageCode } from '$lib/shared/language.js';
 import { capitalize } from '$lib/utils';
 
 /** Minimal shape of an ingredient translation needed to resolve a display name. */
@@ -23,7 +24,7 @@ export function buildCustomIngredientName(rawText: string | null | undefined): s
 export function resolveIngredientName(
 	translations: IngredientTranslationLike[] | null | undefined,
 	opts?: {
-		lang?: string | null;
+		lang?: LanguageCode | string | null;
 		plural?: boolean;
 		customName?: string | null;
 	}

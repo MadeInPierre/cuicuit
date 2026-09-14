@@ -10,19 +10,18 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		const auth = await requireApi(event);
 		try {
 			const { ctx } = auth;
-			const raw = queryParam(event, 'languageId', { required: true });
-			const languageId = Number(raw);
-			if (!Number.isInteger(languageId)) {
-				throw new OpError('VALIDATION', 'Query parameter `languageId` must be an integer.');
+			const lang = queryParam(event, 'lang', { required: true });
+			if (!lang) {
+				throw new OpError('VALIDATION', 'Query parameter `lang` is required (e.g. `en-US`).');
 			}
 			const spaceId = event.params.id as string;
 			const meals = await runOp<unknown, PlanMealRow[]>('plans.list-meals', ctx, {
 				spaceId,
-				languageId
+				lang
 			});
 			const items = await runOp<unknown, ShoppingIngredient[]>('plans.list-items', ctx, {
 				spaceId,
-				languageId
+				lang
 			});
 			return json({ meals, items, combined: generateShoppingList(meals, items) });
 		} finally {

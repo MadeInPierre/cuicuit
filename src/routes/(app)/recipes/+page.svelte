@@ -29,7 +29,11 @@
 		type RecipeSearchFilters
 	} from '$lib/features/recipes/state/recipes-search.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import type { LanguageKey } from '$lib/features/user-settings/consts';
+	import {
+		DEFAULT_LANGUAGE,
+		normalizeLanguageCode,
+		type LanguageCode
+	} from '$lib/shared/language.js';
 	import SectionHeader, { type UISectionHeader } from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
@@ -64,7 +68,8 @@
 		filters: RecipeSearchFilters | null = null,
 		discover: RecipeDiscoverKey | null = null
 	) {
-		if (!space.language) return [];
+		const lang = normalizeLanguageCode(space.language?.lang);
+		if (!lang) return [];
 
 		const overlaps: { column: string; values: string[] }[] = [];
 		const inFilters: { column: string; values: string[] }[] = [];
@@ -86,7 +91,7 @@
 		// TODO add discover dial
 
 		// Fetch all recipes from Supabase
-		const { data, error } = await getRecipesDetailed(space.language.id, searchText, {
+		const { data, error } = await getRecipesDetailed(lang, searchText, {
 			limit: 100,
 			overlaps,
 			in: inFilters,
@@ -197,15 +202,16 @@
 	let addingExamples = $state(false);
 
 	async function onAddExampleRecipes() {
-		if (addingExamples || !space.language) return;
+		if (addingExamples || !space.language?.lang) return;
 		addingExamples = true;
 		try {
-			const results = await addExampleRecipes({ fallbackLang: space.language.lang });
+			const results = await addExampleRecipes({ lang: space.language.lang });
 			await fetchRecipes();
 
 			// The choice is deterministic: the first two recipes of the list
 			const urls =
-				EXAMPLE_RECIPE_URLS[space.language.lang as LanguageKey] ?? EXAMPLE_RECIPE_URLS['fr-FR']!;
+				EXAMPLE_RECIPE_URLS[space.language.lang as LanguageCode] ??
+				EXAMPLE_RECIPE_URLS[DEFAULT_LANGUAGE]!;
 
 			// Import results come back in URL order, so add the first two to the plan
 			for (const result of results.slice(0, Math.min(2, urls.length))) {
@@ -237,7 +243,7 @@
 		parameters.discover;
 
 		// Can't load if the active space hasn't loaded yet
-		if (!space.language) return;
+		if (!space.language?.lang) return;
 
 		// Show loading indicator on the search bar
 		if (recipesSearchState.searchInput) searchLoading = true;

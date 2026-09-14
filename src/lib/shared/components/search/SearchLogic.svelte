@@ -15,7 +15,7 @@
 		type RecipeDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import type { LanguageKey } from '$lib/features/user-settings/consts';
+	import type { LanguageCode } from '$lib/shared/language.js';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -43,7 +43,8 @@
 
 		clearTimeout(debounceTimeout);
 		debounceTimeout = setTimeout(async () => {
-			if (!space.activeSpace?.language_id) return;
+			const lang = space.activeSpace?.language?.lang as LanguageCode | undefined;
+			if (!lang) return;
 			if (!supabase.client) return;
 
 			// Reset processed input
@@ -56,19 +57,11 @@
 			let recipes: RecipeDetailed[] | undefined = undefined;
 
 			// Process the ingredient string into a structured format matched to the database
-			processedIngredient = await processIngredientString(
-				supabase.client,
-				inputValue,
-				space.activeSpace.language.lang as LanguageKey
-			);
+			processedIngredient = await processIngredientString(supabase.client, inputValue, lang);
 
 			// Also search for recipes
 			if (display === 'recipes' || display === 'both') {
-				const { data, error } = await getRecipesDetailed(
-					space.activeSpace.language_id,
-					inputValue,
-					{ limit: 3 }
-				);
+				const { data, error } = await getRecipesDetailed(lang, inputValue, { limit: 3 });
 				if (error) {
 					toast.error('Error fetching recipes');
 				} else recipes = data ?? undefined;

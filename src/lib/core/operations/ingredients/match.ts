@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
-import { languageKeySchema } from '$lib/features/user-settings/consts.js';
 import type { Database } from '$lib/shared/db/supabase.types';
+import { DEFAULT_LANGUAGE, languageCodeSchema } from '$lib/shared/language.js';
 
 import { defineOp } from '../registry.js';
 import { preprocessIngredient } from './match-helpers.js';
 
 export const matchIngredientsInput = z.object({
 	ingredientStrings: z.array(z.string()).min(1),
-	lang: languageKeySchema
+	lang: languageCodeSchema
 });
 
 export type MatchIngredientsInput = z.infer<typeof matchIngredientsInput>;
@@ -57,7 +57,7 @@ export const matchIngredientsOp = defineOp({
 
 			const { data, error } = await ctx.supabase.rpc('match_ingredient', {
 				query_text: cleanedText,
-				lang_code: lang || 'fr-FR',
+				lang_code: lang || DEFAULT_LANGUAGE,
 				n_matches: 10
 			});
 

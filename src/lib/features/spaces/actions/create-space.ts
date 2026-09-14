@@ -1,6 +1,7 @@
 import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 import '$lib/core/operations/spaces/create.js';
 import type { SpacesCreateInput } from '$lib/core/operations/spaces/create.js';
+import { DEFAULT_LANGUAGE, type LanguageCode } from '$lib/shared/language.js';
 import type { SpaceIconKey, SpaceThemeKey } from '../consts';
 
 /**
@@ -11,12 +12,14 @@ export async function createSpace(
 	userId: string,
 	name: string,
 	theme: SpaceThemeKey,
-	icon: SpaceIconKey
+	icon: SpaceIconKey,
+	lang?: LanguageCode
 ): Promise<string> {
 	return runOp<SpacesCreateInput, string>('spaces.create', await getClientCtx(), {
 		userId,
 		name,
 		theme,
-		icon
+		icon,
+		lang: lang ?? DEFAULT_LANGUAGE
 	});
 }
