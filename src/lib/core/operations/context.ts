@@ -6,7 +6,7 @@ import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/stati
 
 import type { Database } from '$lib/shared/db/supabase.types';
 
-import { exchangePatForUserJwt, requireUserId, resolvePatToken } from './auth.js';
+import { requireUserId, resolvePatToken, signPatJwt } from './auth.js';
 import { OpError } from './errors.js';
 import type { OpCtx, OpSource } from './registry.js';
 import { PAT_PREFIX } from './auth/pats.js';
@@ -47,19 +47,17 @@ export async function requireCtx(
  * API/MCP auth: `Authorization: Bearer <supabaseJWT|cui_...>`.
  *
  * - Supabase JWT → forwarded to PostgREST (same RLS as the app).
- * - PAT → hash lookup via service-role, then a real short-lived GoTrue session
- *   for the token owner, so RLS still applies per-request (the PAT itself
- *   never touches PostgREST).
+ * - PAT → hash lookup via service-role, then a locally-signed short-lived
+ *   JWT for the token owner, so RLS still applies per-request (the PAT
+ *   itself never touches PostgREST). No GoTrue calls, nothing to clean up.
  *
- * Returns the ctx, which credential type was used (token management routes
- * are JWT-only and reject `'pat'`), and a `cleanup` that revokes the minted
- * PAT session — the caller MUST run it when the request is done (no-op for
- * JWT callers).
+ * Returns the ctx plus which credential type was used (token management
+ * routes are JWT-only and reject `'pat'`).
  */
 export async function requireApiCtx(
 	event: RequestEvent,
 	source: Extract<OpSource, 'api' | 'mcp'> = 'api'
-): Promise<{ ctx: OpCtx; authMethod: ApiAuthMethod; cleanup: () => void }> {
+): Promise<{ ctx: OpCtx; authMethod: ApiAuthMethod }> {
 	const header = event.request.headers.get('authorization');
 	const match = /^Bearer (.+)$/.exec(header?.trim() ?? '');
 	if (!match) {
@@ -71,13 +69,10 @@ export async function requireApiCtx(
 	const token = match[1];
 	let authMethod: ApiAuthMethod;
 	let jwt: string;
-	let cleanup: () => void = () => {};
 	if (token.startsWith(PAT_PREFIX)) {
 		authMethod = 'pat';
 		const userId = await resolvePatToken(token, event.locals.supabaseAdmin);
-		const session = await exchangePatForUserJwt(event.locals.supabaseAdmin, userId);
-		jwt = session.jwt;
-		cleanup = session.cleanup;
+		jwt = await signPatJwt(userId);
 	} else {
 		authMethod = 'jwt';
 		jwt = token;
@@ -103,7 +98,6 @@ export async function requireApiCtx(
 			source,
 			signal: event.request.signal
 		},
-		authMethod,
-		cleanup
+		authMethod
 	};
 }

@@ -85,6 +85,7 @@
 		"ai": "^6.0.38",
 		"dotenv": "^16.4.7",
 		"fuse.js": "^7.1.0",
+		"jose": "^6.2.12",
 		"paneforge": "^1.0.0-next.6",
 		"posthog-js": "^1.418.10",
 		"posthog-node": "^5.51.6",

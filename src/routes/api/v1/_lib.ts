@@ -19,8 +19,6 @@ import { runOp, runOpStream, type OpCtx } from '$lib/core/operations/registry.js
 export interface ApiAuth {
 	ctx: OpCtx;
 	authMethod: ApiAuthMethod;
-	/** Revokes the minted PAT session — runs after the request (no-op for JWT). */
-	cleanup: () => void;
 }
 
 /** Authenticate `Authorization: Bearer <supabaseJWT|cui_...>` → ctx + method. */
@@ -83,16 +81,13 @@ export function toResponse(error: unknown): Response {
 
 /**
  * Run an op and return its output as JSON. `runOp` validates `input` against
- * the op's zod schema — `ZodError` becomes 400 via `toResponse`. The minted
- * PAT session (if any) is revoked once the op has run.
+ * the op's zod schema — `ZodError` becomes 400 via `toResponse`.
  */
 export async function runApiOp(name: string, auth: ApiAuth, input: unknown): Promise<Response> {
 	try {
 		return json(await runOp(name, auth.ctx, input));
 	} catch (error) {
 		return toResponse(error);
-	} finally {
-		auth.cleanup();
 	}
 }
 
@@ -100,8 +95,6 @@ export async function runApiOp(name: string, auth: ApiAuth, input: unknown): Pro
  * Stream a generator op as `text/event-stream`: every yield becomes
  * `data: <json>`, then the stream ends. A mid-stream `OpError` becomes an
  * `event: error` frame (status is already 200 — CLI clients must watch for it).
- * The minted PAT session (if any) is revoked when the stream ends or the
- * consumer disconnects.
  */
 export function streamApiOp(name: string, auth: ApiAuth, input: unknown): Response {
 	const { ctx } = auth;
@@ -128,12 +121,7 @@ export function streamApiOp(name: string, auth: ApiAuth, input: unknown): Respon
 				}
 			} finally {
 				controller.close();
-				auth.cleanup();
 			}
-		},
-		cancel() {
-			// Consumer disconnected — the op keeps `ctx.signal` for abort checks.
-			auth.cleanup();
 		}
 	});
 	return new Response(stream, {

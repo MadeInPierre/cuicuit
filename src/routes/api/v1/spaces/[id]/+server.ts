@@ -6,18 +6,14 @@ import { readJson, requireApi, runApiOp, toResponse } from '../../_lib.js';
 export async function GET(event: RequestEvent): Promise<Response> {
 	try {
 		const auth = await requireApi(event);
-		try {
-			const { ctx } = auth;
-			const spaceId = event.params.id as string;
-			const rows = await runOp<unknown, Array<{ id: string }>>('spaces.list', ctx, {
-				userId: ctx.userId
-			});
-			const row = rows.find((r) => r.id === spaceId);
-			if (!row) throw new OpError('NOT_FOUND', 'Space not found.');
-			return json(row);
-		} finally {
-			auth.cleanup();
-		}
+		const { ctx } = auth;
+		const spaceId = event.params.id as string;
+		const rows = await runOp<unknown, Array<{ id: string }>>('spaces.list', ctx, {
+			userId: ctx.userId
+		});
+		const row = rows.find((r) => r.id === spaceId);
+		if (!row) throw new OpError('NOT_FOUND', 'Space not found.');
+		return json(row);
 	} catch (error) {
 		return toResponse(error);
 	}

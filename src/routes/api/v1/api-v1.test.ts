@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, z } from 'zod';
 
 // Server-only import ops pull `*.remote.ts` modules (LLM/scrape/RPC
@@ -16,8 +16,23 @@ vi.mock('$lib/features/ingredients/server/match-ingredients.remote', () => ({
 	matchIngredientsRPC: () => Promise.reject(new Error('test stub'))
 }));
 
+import { decodeJwt, decodeProtectedHeader, exportJWK, generateKeyPair, jwtVerify } from 'jose';
+
+import { signPatJwt } from '$lib/core/operations/auth.js';
 import { OpError } from '$lib/core/operations/errors.js';
 import { registry } from '$lib/core/operations/registry.js';
+
+// `$env/dynamic/private` snapshots the real `.env` at load, so ambient keys
+// (e.g. a locally configured PAT signing key) would leak into tests —
+// redirect it at a mutable holder we control per test.
+const patEnvHolder: { keyJson?: string } = {};
+vi.mock('$env/dynamic/private', () => ({
+	get env() {
+		return patEnvHolder.keyJson === undefined
+			? {}
+			: { SUPABASE_PAT_JWT_PRIVATE_KEY: patEnvHolder.keyJson };
+	}
+}));
 
 import { generatePat, hashPat, isPatFormat } from '$lib/core/operations/auth/pats.js';
 import { queryParam, readJson, toResponse } from './_lib.js';
@@ -139,6 +154,51 @@ describe('PAT helpers', () => {
 		expect(isPatFormat('')).toBe(false);
 		expect(isPatFormat('jwt.jwt.jwt')).toBe(false);
 		expect(isPatFormat('cui_short')).toBe(false);
+	});
+});
+
+describe('signPatJwt', () => {
+	beforeEach(() => {
+		patEnvHolder.keyJson = undefined;
+	});
+	async function ephemeralKey() {
+		const { privateKey, publicKey } = await generateKeyPair('ES256', { extractable: true });
+		const jwk = await exportJWK(privateKey);
+		jwk.kid = 'test-kid';
+		// Mimic keys extracted from GOTRUE_JWT_KEYS, which carry key_ops that
+		// WebCrypto rejects on private-key import (must be stripped).
+		return {
+			keyJson: JSON.stringify({ ...jwk, use: 'sig', key_ops: ['sign', 'verify'] }),
+			publicKey
+		};
+	}
+
+	it('mints a locally-verifiable ES256 JWT with sub/role/exp', async () => {
+		const { keyJson, publicKey } = await ephemeralKey();
+		const userId = '123e4567-e89b-12d3-a456-426614174000';
+		const jwt = await signPatJwt(userId, keyJson);
+		// Header carries the key id so PostgREST picks the right JWKS key.
+		expect(decodeProtectedHeader(jwt)).toMatchObject({ alg: 'ES256', kid: 'test-kid' });
+		// Claims PostgREST/RLS needs: sub = owner, role = authenticated.
+		expect(decodeJwt(jwt)).toMatchObject({ sub: userId, role: 'authenticated' });
+		// Signature verifies against the matching public key.
+		const { payload } = await jwtVerify(jwt, publicKey);
+		expect(payload.sub).toBe(userId);
+	});
+	it('falls back to the env key when no key is passed', async () => {
+		const { keyJson } = await ephemeralKey();
+		patEnvHolder.keyJson = keyJson;
+		const jwt = await signPatJwt('123e4567-e89b-12d3-a456-426614174000');
+		expect(decodeProtectedHeader(jwt)).toMatchObject({ alg: 'ES256', kid: 'test-kid' });
+	});
+	it('missing key → INTERNAL with an actionable message', async () => {
+		await expect(signPatJwt('u')).rejects.toMatchObject({ code: 'INTERNAL' });
+	});
+	it('invalid JSON / non-EC key without `d` → INTERNAL', async () => {
+		await expect(signPatJwt('u', 'not-json')).rejects.toMatchObject({ code: 'INTERNAL' });
+		await expect(
+			signPatJwt('u', JSON.stringify({ kty: 'EC', kid: 'x', x: 'y', y: 'z' }))
+		).rejects.toMatchObject({ code: 'INTERNAL' });
 	});
 });
 
