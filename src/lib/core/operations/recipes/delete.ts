@@ -27,10 +27,11 @@ export const deleteRecipeOp = defineOp({
 		const now = new Date().toISOString();
 
 		// Soft delete the recipe
-		const { error } = await ctx.supabase
+		const { data, error } = await ctx.supabase
 			.from('recipes')
 			.update({ deleted_at: restore ? null : now })
-			.eq('id', recipeId);
+			.eq('id', recipeId)
+			.select('id');
 
 		// TODO Soft delete the attached meals
 
@@ -38,6 +39,9 @@ export const deleteRecipeOp = defineOp({
 
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to delete recipe.', error);
+		}
+		if (!data || data.length === 0) {
+			throw new OpError('NOT_FOUND', 'Recipe not found or not accessible.');
 		}
 
 		return true;

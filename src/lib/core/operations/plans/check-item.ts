@@ -42,12 +42,16 @@ export const checkItemOp = defineOp({
 	handler: async (ctx, { itemId, checked, undo }) => {
 		const effective = undo ? !checked : checked;
 		const checkedAt = effective ? new Date().toISOString() : null;
-		const { error } = await ctx.supabase
+		const { data, error } = await ctx.supabase
 			.from('space_items')
 			.update({ checked_at: checkedAt })
-			.eq('id', itemId);
+			.eq('id', itemId)
+			.select('id');
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to update plan item.', error);
+		}
+		if (!data || data.length === 0) {
+			throw new OpError('NOT_FOUND', 'Shopping item not found or not accessible.');
 		}
 
 		const output: CheckItemOutput = { itemId, checked: effective, checkedAt };

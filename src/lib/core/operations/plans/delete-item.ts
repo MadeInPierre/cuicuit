@@ -54,9 +54,15 @@ export const deleteItemOp = defineOp({
 						? query.is('deleted_at', null)
 						: query.eq('deleted_at', expectedDeletedAt);
 			}
-			const { error: undoError } = await query;
+			const { data: restored, error: undoError } = await query.select('id');
 			if (undoError) {
 				throw new OpError('INTERNAL', 'Failed to restore plan item.', undoError);
+			}
+			if (!restored || restored.length === 0) {
+				throw new OpError(
+					'CONFLICT',
+					'Shopping item was modified since deletion; restore refused.'
+				);
 			}
 			const output: DeleteItemOutput = { itemId, deletedAt };
 			return output;
@@ -68,9 +74,12 @@ export const deleteItemOp = defineOp({
 		if (spaceId) {
 			query = query.eq('space_id', spaceId);
 		}
-		const { error } = await query;
+		const { data: deletedRows, error } = await query.select('id');
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to delete plan item.', error);
+		}
+		if (!deletedRows || deletedRows.length === 0) {
+			throw new OpError('NOT_FOUND', 'Shopping item not found or not accessible.');
 		}
 
 		const output: DeleteItemOutput = { itemId, deletedAt };

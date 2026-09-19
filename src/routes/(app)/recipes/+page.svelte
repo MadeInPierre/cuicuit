@@ -22,6 +22,7 @@
 		getRecipesDetailed,
 		type RecipeDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { ListRecipesFilter } from '$lib/core/operations/recipes/list.js';
 	import {
 		recipesSearchState,
 		type RecipeDiscoverKey,
@@ -71,17 +72,20 @@
 		const lang = normalizeLanguageCode(space.language?.lang);
 		if (!lang) return [];
 
-		const overlaps: { column: string; values: string[] }[] = [];
-		const inFilters: { column: string; values: string[] }[] = [];
+		const overlaps: ListRecipesFilter[] = [];
+		const inFilters: ListRecipesFilter[] = [];
 		let orFilter: string | null = null;
 
 		for (const def of recipeFilterDefs) {
 			const values = filters?.[def.key];
 			if (!values || values.length === 0) continue;
+			// `def.column` is the UI-side source of the core allowlist
+			// (`RECIPE_FILTER_COLUMNS`); zod re-validates at the op boundary.
+			const column = def.column as ListRecipesFilter['column'];
 			if (def.kind === 'array') {
-				overlaps.push({ column: def.column, values });
+				overlaps.push({ column, values });
 			} else if (def.kind === 'enum') {
-				inFilters.push({ column: def.column, values });
+				inFilters.push({ column, values });
 			} else {
 				const orPart = buildTimeRangeOrFilter(def.column, values);
 				if (orPart) orFilter = orFilter ? `${orFilter},${orPart}` : orPart;

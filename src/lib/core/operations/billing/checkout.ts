@@ -20,9 +20,11 @@ export const checkoutInput = z.object({
 		),
 	currency: z.string().length(3),
 	interval: z.enum(['month', 'year', 'once']),
-	// Transport-derived (from `event.url.origin` in the remote adapter) — core
-	// must not touch `getRequestEvent`, so the adapter injects it at the boundary.
-	origin: z.string().min(1)
+	// Transport-derived (from the request origin, or the `CHECKOUT_ORIGIN` env
+	// pin when set — core must not touch `getRequestEvent`, so the adapter
+	// injects it at the boundary). Validated as an absolute URL so a spoofed
+	// Host header can never turn `success_url`/`cancel_url` into garbage.
+	origin: z.string().url('Invalid checkout origin.')
 });
 
 export type CheckoutInput = z.infer<typeof checkoutInput>;
@@ -50,8 +52,7 @@ export const checkoutOp = defineOp({
 	sync: 'server-only',
 	docs: {
 		title: 'Create checkout session',
-		description:
-			'Creates a Stripe checkout session for a one-time payment or subscription.',
+		description: 'Creates a Stripe checkout session for a one-time payment or subscription.',
 		hints: [
 			'Returns a payment `url` — hand it to the user and stop. Agents cannot complete the payment; seeds land in the balance afterwards (verify with seeds_balance).'
 		]
@@ -109,8 +110,3 @@ export const checkoutOp = defineOp({
 		}
 	}
 });
-
-// async function userIdSupabaseToStripeCustomer(userId: string) {
-// 	await supabase.client?.from('');
-// }
-// async function userIdStripeCustomerToSupabase(userId: string) {}

@@ -28,9 +28,16 @@ export const moveMealOp = defineOp({
 	docs: { title: 'Move meal', description: 'Moves a meal to a new position in the plan.' },
 	input: moveMealInput,
 	handler: async (ctx, { mealId, position }) => {
-		const { error } = await ctx.supabase.from('space_meals').update({ position }).eq('id', mealId);
+		const { data, error } = await ctx.supabase
+			.from('space_meals')
+			.update({ position })
+			.eq('id', mealId)
+			.select('id');
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to update meal position.', error);
+		}
+		if (!data || data.length === 0) {
+			throw new OpError('NOT_FOUND', 'Meal not found or not accessible.');
 		}
 
 		const output: MoveMealOutput = { mealId, position };

@@ -30,17 +30,21 @@ export default tseslint.config(
 		ignores: ['build/', '.svelte-kit/', 'dist/']
 	},
 	{
-		// all feature/route call sites go through `defineOp` in `src/lib/core/`.
-		// TODO The rule stays warn-only until migration to this new core architecture ends, then promote it to error;
-		// Do NOT add new direct DB access outside core/sync/shared-db.
+		// All feature/route call sites go through `defineOp` in `src/lib/core/`.
+		// Direct DB access outside core/sync/shared-db is an ERROR. The single
+		// exception is `features/auth/queries/get-user-permissions.ts`, which
+		// allowlists itself with a justified file-level eslint-disable (M6).
+		// The selector matches ANY `.from/.rpc/.storage` property access except
+		// `Array.from` — this covers `supabase.client.from`, `ctx.supabase.from`
+		// and bare-param `supabase.from` shapes alike.
 		files: ['src/**/*.{ts,svelte}'],
 		ignores: ['src/lib/core/**', 'src/lib/sync/**', 'src/lib/shared/db/**'],
 		rules: {
 			'no-restricted-syntax': [
-				'warn',
+				'error',
 				{
 					selector:
-						':matches(MemberExpression[object.property.name="client"][property.name=/^(from|rpc|storage)$/], MemberExpression[object.property.name=/^supabase(Admin)?$/][property.name=/^(from|rpc|storage)$/])',
+						'MemberExpression[property.name=/^(from|rpc|storage)$/]:not(MemberExpression[object.name="Array"])',
 					message:
 						'Direct DB access is forbidden outside src/lib/core/. Add a defineOp in src/lib/core/operations/<domain>/<op>.ts instead.'
 				}

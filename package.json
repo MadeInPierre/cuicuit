@@ -16,7 +16,7 @@
 		"format": "prettier --write .",
 		"organize-imports": "npx organize-imports-cli tsconfig[.*].json",
 		"test:integration": "playwright test",
-		"test:unit": "vitest",
+		"test:unit": "vitest run",
 		"db:start": "npx --yes supabase start  # Start supabase locally",
 		"db:stop": "npx --yes supabase stop  # Stop supabase locally",
 		"db:deploy": "npx --yes supabase db push  # Deploy local changes to the database",

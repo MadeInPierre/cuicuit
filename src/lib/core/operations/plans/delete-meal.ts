@@ -60,12 +60,16 @@ export const deleteMealOp = defineOp({
 		// Both swipes soft-delete the meal (deleted_at), but only a right swipe
 		// marks it as cooked so past cooked meals can feed a timeline later.
 		const cooked = undo ? false : (cookedInput ?? false);
-		const { error } = await ctx.supabase
+		const { data, error } = await ctx.supabase
 			.from('space_meals')
 			.update({ deleted_at: undo ? null : now, cooked })
-			.eq('id', mealId);
+			.eq('id', mealId)
+			.select('id');
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to soft-delete meal.', error);
+		}
+		if (!data || data.length === 0) {
+			throw new OpError('NOT_FOUND', 'Meal not found or not accessible.');
 		}
 
 		const output: DeleteMealOutput = { mealId, deletedAt: undo ? null : now, cooked };

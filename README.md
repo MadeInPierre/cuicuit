@@ -23,7 +23,7 @@ Focus on meals, not ingredients. Cuicuit does the thinking for you!
 
 Import recipes from anywhere and get an automatic shopping list from your plan. Coming soon: it will passively learn your habits, and serve up recipe ideas for the week or right before your food expires.
 
-> 🥁 P.S. *cui-cui* is how we write the sound of a bird in French (aka. *chip-chip*) and *cuit* means *to cook*. French people often say *c'est cuit* meaning *it's ready*, now we can all say *c'est cuicuit!*
+> 🥁 P.S. _cui-cui_ is how we write the sound of a bird in French (aka. _chip-chip_) and _cuit_ means _to cook_. French people often say _c'est cuit_ meaning _it's ready_, now we can all say _c'est cuicuit!_
 
 ## 👀 Demo
 
@@ -35,20 +35,20 @@ https://github.com/user-attachments/assets/8f880754-87fd-4342-91ce-7fc59808c708
 
 Here is what Cuicuit aims to be once grown up:
 
-* **Intuitive**: Drag recipes into your plan and watch your shopping list update.
-* **Discreet**: Minimizes clicks by guessing habits and automating things.
-* **Complete**: Recipes, plans, lists, pantry, nutrition, product scanning, sharing, and more.
-* **Self-hostable**: Cuicuit is open-source. Use the hosted version if you prefer.
-* **Open**: Freely export your data & connect to services via APIs, MCP, and CLI.
+- **Intuitive**: Drag recipes into your plan and watch your shopping list update.
+- **Discreet**: Minimizes clicks by guessing habits and automating things.
+- **Complete**: Recipes, plans, lists, pantry, nutrition, product scanning, sharing, and more.
+- **Self-hostable**: Cuicuit is open-source. Use the hosted version if you prefer.
+- **Open**: Freely export your data & connect to services via [APIs](src/routes/api/v1/README.md), [MCP](src/routes/mcp/README.md), and CLI.
 
 ## ✨ Features
 
 Today, Cuicuit is in its early alpha stage. Current features:
 
-* **Recipe gallery**: Import recipes from websites, and AI auto-fills the missing details.
-* **Derived shopping list**: A list appears and suggests you past purchases.
-* **Shared households**: Create spaces and invite your friends.
-* **Mobile-friendly**: Install the PWA web app on your phone.
+- **Recipe gallery**: Import recipes from websites, and AI auto-fills the missing details.
+- **Derived shopping list**: A list appears and suggests you past purchases.
+- **Shared households**: Create spaces and invite your friends.
+- **Mobile-friendly**: Install the PWA web app on your phone.
 
 ## 🗺️ Roadmap
 
@@ -56,107 +56,106 @@ This roadmap presents a rough evolution plan of Cuicuit. Your feedback is very w
 
 Click to expand. Items marked with 🚧 are currently in progress:
 
-
 <details><summary><strong>🥚 Chapter 0: Open source & Project foundations 🚧</strong></summary>
 
-* [ ] **🚧 Hosted version**
-  * [x] Publicly hosted version for testing and feedback
-  * [x] Basic multi-user support with isolated spaces
-  * [ ] Crowd-funded moneypot to share LLM and hosting costs
-  * [ ] ToS, Privacy, Cookies banners, and GDPR compliance
-* [ ] **Self-hosted version**
-  * [ ] Dockerized deployment & documentation
-  * [ ] Automated database migrations on startup
-  * [ ] Embed & update ingredient images in docker
-  * [ ] Automated backup and restore of database and media files
-* [ ] **Documentation**
-  * [ ] Usage documentation for end-users
-  * [ ] Technical architecture documentation for devs
-* [ ] **Technical**
-  * [ ] Translate app & docs
-  * [ ] Real-time & partial offline tolerance with a sync engine (PowerSync/Zero, TBD)
-* [ ] **Open questions**
-  * [ ] How much offline-capable should the app be?
-  * [ ] Is a PWA enough or should we build a native app?
-</details>
+- [ ] **🚧 Hosted version**
+  - [x] Publicly hosted version for testing and feedback
+  - [x] Basic multi-user support with isolated spaces
+  - [ ] Crowd-funded moneypot to share LLM and hosting costs
+  - [ ] ToS, Privacy, Cookies banners, and GDPR compliance
+- [ ] **Self-hosted version**
+  - [ ] Dockerized deployment & documentation
+  - [ ] Automated database migrations on startup
+  - [ ] Embed & update ingredient images in docker
+  - [ ] Automated backup and restore of database and media files
+- [ ] **Documentation**
+  - [ ] Usage documentation for end-users
+  - [ ] Technical architecture documentation for devs
+- [ ] **Technical**
+  - [ ] Translate app & docs
+  - [ ] Real-time & partial offline tolerance with a sync engine (PowerSync/Zero, TBD)
+- [ ] **Open questions**
+  - [ ] How much offline-capable should the app be?
+  - [ ] Is a PWA enough or should we build a native app?
+  </details>
 
 <details><summary><strong>🐣 Chapter 1: Import recipes, plan meals, get shopping lists 🚧</strong></summary>
 
-* [x] **Shared households**
-  * [x] Create one or more isolated "home" spaces (e.g., Home, Parents' house)
-  * [x] Share spaces with other users to collaborate
-  * [x] Invite users to your spaces
-* [ ] **Recipe engine**
-  * [x] Import recipes from common websites or create your own
-  * [ ] Convert ingredient quantities and units
-  * [ ] Organize recipes in shareable cookbooks
-  * [ ] Robust recipe import from social media, photos, text, and other apps.
-* [x] **Basic meal planning**
-  * [x] Simple dateless meal plan
-  * [x] Add additional ingredients & custom items
-* [ ] **Shopping list generation**
-  * [x] Automatically generate a shopping list
-  * [x] Suggest items based on past purchases
-  * [ ] Sort & group items by aisle, meal, or cart status
-* [ ] **Make this foundation great before the next step**
+- [x] **Shared households**
+  - [x] Create one or more isolated "home" spaces (e.g., Home, Parents' house)
+  - [x] Share spaces with other users to collaborate
+  - [x] Invite users to your spaces
+- [ ] **Recipe engine**
+  - [x] Import recipes from common websites or create your own
+  - [ ] Convert ingredient quantities and units
+  - [ ] Organize recipes in shareable cookbooks
+  - [ ] Robust recipe import from social media, photos, text, and other apps.
+- [x] **Basic meal planning**
+  - [x] Simple dateless meal plan
+  - [x] Add additional ingredients & custom items
+- [ ] **Shopping list generation**
+  - [x] Automatically generate a shopping list
+  - [x] Suggest items based on past purchases
+  - [ ] Sort & group items by aisle, meal, or cart status
+- [ ] **Make this foundation great before the next step**
 
-  <!-- * [ ] Interact with recipes: Like, rate, categorize, and clone/customize existing ones -->
-  <!-- * [ ] Discover recipes from the community (random roll, search by name, filter by category) -->
-</details>
+    <!-- * [ ] Interact with recipes: Like, rate, categorize, and clone/customize existing ones -->
+    <!-- * [ ] Discover recipes from the community (random roll, search by name, filter by category) -->
+  </details>
 
 <details><summary><strong>🐥 Chapter 2: Meal recommendations from your pantry</strong></summary>
 
-* [ ] **Pantry management**
-  * [ ] Add pantry items with categories, quantities, expiration dates, and storage locations
-  * [ ] Import pantry items from receipts, supermarket APIs, or smart scales
-  * [ ] Quantity tracking with automatic unit conversions
-  * [ ] Expiration dates estimation and reminders
-* [ ] **Closing the loop: Pantry-Meal-Grocery Reservation Engine**
-  * [ ] Connect pantry directly to planned meals and automatically reserve items for each meal
-  * [ ] Adapt the grocery list based on pantry availability and reserved items
-  * [ ] Show "cookability" state for each recipe
-  * [ ] Suggest substitutions for missing ingredients
-</details>
+- [ ] **Pantry management**
+  - [ ] Add pantry items with categories, quantities, expiration dates, and storage locations
+  - [ ] Import pantry items from receipts, supermarket APIs, or smart scales
+  - [ ] Quantity tracking with automatic unit conversions
+  - [ ] Expiration dates estimation and reminders
+- [ ] **Closing the loop: Pantry-Meal-Grocery Reservation Engine**
+  - [ ] Connect pantry directly to planned meals and automatically reserve items for each meal
+  - [ ] Adapt the grocery list based on pantry availability and reserved items
+  - [ ] Show "cookability" state for each recipe
+  - [ ] Suggest substitutions for missing ingredients
+  </details>
 
 <!-- The next steps are more long-term and depend on your feedback: -->
 
 <details><summary><strong>🐓 Chapter 3: Quality-of-life features to gain time</strong></summary>
 
-* [ ] **Contextual & Predictive Pantry Rules**
-  * [ ] Set "Minimum Quantities" per item to auto-trigger shopping list additions regardless of meal plan
-  * [ ] Consumption habits and pantry probabilities (e.g. assume 100g of cereal daily for breakfast)
-* [ ] **Smart Recipe Recommendations**
-  * [ ] Quick-scale party filters (e.g., "Ideas for `(-)` 2 `(+)` people")
-  * [ ] Contextual badges for recipe matches: *Ready to Cook*, *Change of Plans*, or *Groceries Needed*
-  * [ ] Reason-based suggestion badges (e.g., *"Uses up items about to expire"*)
-  * [ ] Top-of-page interactive assistant recommending tailored search filters
-* [ ] **Timeline & Stats**
-  * [ ] Past: View everything you cooked, bought, and consumed
-  * [ ] Future: Step through your planned timeline to view calculated future pantry states
-  * [ ] Time travel: Select a position between planned meals to see if a cookable meal fits
-  * [ ] Stats: Cooking habits, nutrition, spending, waste, sustainability, ...
-* [ ] TODO History & Undo, LLM Assistant, Nutrition Stats, Sustainability Metrics, Local Producer Sourcing...
+- [ ] **Contextual & Predictive Pantry Rules**
+  - [ ] Set "Minimum Quantities" per item to auto-trigger shopping list additions regardless of meal plan
+  - [ ] Consumption habits and pantry probabilities (e.g. assume 100g of cereal daily for breakfast)
+- [ ] **Smart Recipe Recommendations**
+  - [ ] Quick-scale party filters (e.g., "Ideas for `(-)` 2 `(+)` people")
+  - [ ] Contextual badges for recipe matches: _Ready to Cook_, _Change of Plans_, or _Groceries Needed_
+  - [ ] Reason-based suggestion badges (e.g., _"Uses up items about to expire"_)
+  - [ ] Top-of-page interactive assistant recommending tailored search filters
+- [ ] **Timeline & Stats**
+  - [ ] Past: View everything you cooked, bought, and consumed
+  - [ ] Future: Step through your planned timeline to view calculated future pantry states
+  - [ ] Time travel: Select a position between planned meals to see if a cookable meal fits
+  - [ ] Stats: Cooking habits, nutrition, spending, waste, sustainability, ...
+- [ ] TODO History & Undo, LLM Assistant, Nutrition Stats, Sustainability Metrics, Local Producer Sourcing...
 </details>
 
 <details><summary><strong>🦅 Chapter 4: Future potential and ideas</strong></summary>
 
-* [ ] **Supermarket mode**
-  * [ ] Barcode scanning while shopping: nutrition insights, past purchases, price comparisons
-* [ ] **Streamlined Inventory Inputs**
-  * [ ] Manual slider adjustments
-  * [ ] Text & image-based input processing (Groceries receipt scanning / OCR parsing)
-  * [ ] Direct supermarket API inventory loading
-  * [ ] Explicit "Mark recipe as cooked" triggers to batch-decrement inventory
-* [ ] **Probabilistic Inventory Tracking**
-  * [ ] Support quantity variance ranges (e.g., tracking "1-2 onions" instead of exact grams)
-  * [ ] Habit-based predictive quantity engine derived from historical data
-  * [ ] Periodic low-friction micro-checkins asking users to quickly verify true quantities
-* [ ] **The Autonomous Kitchen Wizard**
-  * [ ] Continuous, algorithmic meal plan pre-filling based on learned user profiles
-  * [ ] Soft-ui states: Display suggestions as half-faded layouts for swift confirm/switch/remove interactions
-  * [ ] Profile toggles: Familiar vs. Discover balancing, Flexitarian settings, and Mood adjustments
-  * [ ] Kill-switch toggle to fully disable auto-filling behaviors
-</details>
+- [ ] **Supermarket mode**
+  - [ ] Barcode scanning while shopping: nutrition insights, past purchases, price comparisons
+- [ ] **Streamlined Inventory Inputs**
+  - [ ] Manual slider adjustments
+  - [ ] Text & image-based input processing (Groceries receipt scanning / OCR parsing)
+  - [ ] Direct supermarket API inventory loading
+  - [ ] Explicit "Mark recipe as cooked" triggers to batch-decrement inventory
+- [ ] **Probabilistic Inventory Tracking**
+  - [ ] Support quantity variance ranges (e.g., tracking "1-2 onions" instead of exact grams)
+  - [ ] Habit-based predictive quantity engine derived from historical data
+  - [ ] Periodic low-friction micro-checkins asking users to quickly verify true quantities
+- [ ] **The Autonomous Kitchen Wizard**
+  - [ ] Continuous, algorithmic meal plan pre-filling based on learned user profiles
+  - [ ] Soft-ui states: Display suggestions as half-faded layouts for swift confirm/switch/remove interactions
+  - [ ] Profile toggles: Familiar vs. Discover balancing, Flexitarian settings, and Mood adjustments
+  - [ ] Kill-switch toggle to fully disable auto-filling behaviors
+  </details>
 
 <!-- <details><summary>🪐 Chapter 5: The Extended Ecosystem (Long-Term Vision)</summary>
 
@@ -178,6 +177,11 @@ Click to expand. Items marked with 🚧 are currently in progress:
   * [ ] Local producer aggregation: Automatically suggest sourcing options from nearby independent farms alongside standard supermarket delivery loops
 </details> -->
 
+## 🛠️ For developers
+
+New here? Start with [`docs/operations.md`](docs/operations.md) — the short, friendly
+0→60 guide to Cuicuit's core: every database operation is defined once and shared
+by the app, the [REST API](src/routes/api/v1/README.md) and [MCP](src/routes/mcp/README.md).
 
 ## 💌 Contributions
 
@@ -215,7 +219,7 @@ Contributors will appear here!
   - [ ] Minimum quantity (e.g. 1L milk) to auto-add to the shopping list even without planned meals
 - [ ] Reserve pantry items to the meals of the meal plan
   - [ ] Reserve from top to bottom of the list, notify the user if there are missing items
-- [ ] Update the pantry quantities: 
+- [ ] Update the pantry quantities:
   - [ ] Manual input
   - [ ] Smart scale
   - [ ] Groceries receipt scan
@@ -234,7 +238,7 @@ Contributors will appear here!
   - [ ] Wizard mode (see below) will use this feature to generate recommendations day-by-day
 
 [Long term features]
-- Supermarket mode: 
+- Supermarket mode:
   - Mark items as bought (i.e. in the cart)
   - Scan barcodes to add items to the cart and get nutrition insights
   - Drive mode: automatically buy items online (e.g. from the supermarket API)
@@ -242,7 +246,7 @@ Contributors will appear here!
   - Define habits for each item (e.g. usually breakfast with 100g cereals or 2 eggs)
   - Algorithm to suggest the quantity based on habits and past updates
   - Ask the user to update the exact quantity from time to time
-- AI suggestions: 
+- AI suggestions:
   - Propose unique recipes or meals (combining recipes or simple ingredients) based on your pantry
   - Radio: input any text that describes your mood, and the AI will suggest recipes based on that
 - Notify other users in the home you're going to groceries, do they need something?
@@ -306,7 +310,7 @@ src/
             recipes/
                 db/
                     models.ts (Recipe model)
-                
+
             pantry/
                 items/
                 categories/

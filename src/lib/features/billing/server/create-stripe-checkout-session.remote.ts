@@ -1,4 +1,5 @@
 import { getRequestEvent, query } from '$app/server';
+import { env } from '$env/dynamic/private';
 
 import { requireCtx, runOp } from '$lib/core/operations';
 import {
@@ -15,6 +16,7 @@ export const createStripeCheckoutSession = query(checkoutRemoteInput, async (inp
 	const event = getRequestEvent();
 	return runOp<CheckoutInput, CheckoutResult>('billing.checkout', await requireCtx('app'), {
 		...input,
-		origin: event.url.origin
+		// Pinned canonical domain when set (see .env.example), else request origin.
+		origin: env.CHECKOUT_ORIGIN || event.url.origin
 	});
 });

@@ -128,7 +128,7 @@
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
 				>
-					{FEATURE_COSTS.import_recipe_from_website.seeds} 🌱
+					{FEATURE_COSTS.import_recipe_from_text.seeds} 🌱
 				</div>
 
 				{#if loading}
@@ -138,7 +138,7 @@
 				{/if}
 			</Button>
 
-			{#if (userState.creditBalance?.balance || 0) < FEATURE_COSTS.import_recipe_from_website.seeds}
+			{#if (userState.creditBalance?.balance || 0) < FEATURE_COSTS.import_recipe_from_text.seeds}
 				<p class="text-xs text-center text-muted-foreground">
 					<strong>Note:</strong>
 					You have {userState.creditBalance?.balance || 0} 🌱. You are using community seeds. Consider

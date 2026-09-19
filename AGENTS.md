@@ -2,14 +2,18 @@ This project is an open-source recipe web app named 'Cuicuit', distributed as bo
 
 Tech stack: Svelte 5, SvelteKit, shadcn-svelte, Supabase, TailwindCSS (avoid raw CSS), TypeScript, Vercel AI SDK.
 
+New to the codebase (human or agent)? Read `docs/operations.md` first — it's the 0→60 guide to the core/operations paradigm: one `defineOp` per database operation, thin app/API/MCP doors, and the rules + checklist for adding a new op. Offline-sync design is in `docs/sync-publication.md`.
+
 The Supabase schema uses the declarative approach defined at `supabase/schema/*.sql`. Follow these steps anytime schema changes are needed:
+
 - Change the schema in the declarative files, do not change the database directly or write migrations manually.
-- Generate the migration using `npx supabase db diff -f my_migration`. 
+- Generate the migration using `npx supabase db diff -f my_migration`.
 - Warning: this automatic migration generation is not perfect, so check the generated migration file. It may introduce noise, especially security-related policies, and probably doesn't handle security policies correctly. Double-check the generated migration and adjust it to fit your intended schema changes. Both the declarative schema and the generated migration should be in sync, so if you change one, you must change the other.
 - Run `npx supabase migration up` to apply the migration on the local dev setup and `npm run db:types:local` to update the TypeScript types and zod schemas.
 - NEVER TOUCH PROD YOURSELF (e.g. AVOID running `npx supabase db push` which would overwride the production database schema), the user will handle it themselves.
 
 The [hosted version](https://cuicuit.laclau.dev) has this additional setup:
+
 - Cloudflare DNS
 - Hosted on Vercel and Supabase Cloud
 - Vercel Analytics & Speed Insights as well as PostHog EU Cloud analytics enabled

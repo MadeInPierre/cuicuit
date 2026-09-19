@@ -38,19 +38,25 @@ async function spacesEditHandler(ctx: OpCtx, input: SpacesEditInput): Promise<vo
 	if (hasSpaceWithSameName) throw new OpError('CONFLICT', 'space-already-exists');
 
 	// Update the space's name & icon in the spaces table
-	const { error: updateError } = await ctx.supabase
+	const { data: updatedSpaces, error: updateError } = await ctx.supabase
 		.from('spaces')
 		.update({ name, icon, language_id: languageId })
-		.eq('id', spaceId);
+		.eq('id', spaceId)
+		.select('id');
 	if (updateError) throw new OpError('INTERNAL', 'Failed to edit space.', updateError);
+	if (!updatedSpaces || updatedSpaces.length === 0)
+		throw new OpError('NOT_FOUND', 'Space not found or not accessible.');
 
 	// Update the user's theme in the space_members table
-	const { error: memberError } = await ctx.supabase
+	const { data: updatedMembers, error: memberError } = await ctx.supabase
 		.from('space_members')
 		.update({ theme })
 		.eq('space_id', spaceId)
-		.eq('user_id', userId);
+		.eq('user_id', userId)
+		.select('id');
 	if (memberError) throw new OpError('INTERNAL', 'Failed to edit space.', memberError);
+	if (!updatedMembers || updatedMembers.length === 0)
+		throw new OpError('NOT_FOUND', 'Space membership not found or not accessible.');
 }
 
 /**

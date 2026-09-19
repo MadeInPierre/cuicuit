@@ -1,4 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 import { requireApiCtx } from '$lib/core/operations/context.js';
 import { OpError } from '$lib/core/operations/errors.js';
@@ -112,9 +113,9 @@ export async function POST(event: RequestEvent): Promise<Response> {
 					params.arguments === undefined ? {} : params.arguments
 				);
 				// billing.checkout needs `origin` (the REST adapter injects it from the
-				// request URL) — same default here so the tool is actually callable.
+				// request URL or the `CHECKOUT_ORIGIN` env pin) — same default here.
 				if (tool.op === 'billing.checkout' && isRecord(input) && typeof input.origin !== 'string') {
-					input = { ...input, origin: event.url.origin };
+					input = { ...input, origin: env.CHECKOUT_ORIGIN || event.url.origin };
 				}
 				let output: unknown;
 				for await (const value of runOpStream(tool.op, ctx, input)) output = value;

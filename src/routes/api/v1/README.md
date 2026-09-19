@@ -1,6 +1,6 @@
 # Cuicuit API v1
 
-Base URL: `<origin>/api/v1`. Machine-readable spec: [`./openapi.json`](./openapi.json).
+Base URL: `<origin>/api/v1`. Machine-readable spec: [`./openapi.json`](./openapi.json) · Human UI: [`./docs`](./docs).
 
 > New here? Start with [Beginner's guide](#beginners-guide) below. The
 > [reference sections](#auth-reference) after it document every auth rule and endpoint.

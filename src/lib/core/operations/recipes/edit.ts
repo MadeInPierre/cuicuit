@@ -35,6 +35,20 @@ export const editRecipeOp = defineOp({
 	handler: async (ctx, { recipeId, data }) => {
 		const { id: languageId } = await resolveLanguageId(ctx.supabase, data.lang);
 
+		// Ownership pre-check on the update path: an upsert against a foreign id
+		// would otherwise fail with a confusing INTERNAL (or silently create for
+		// fresh ids). Use NOT_FOUND uniformly to avoid leaking existence.
+		if (recipeId) {
+			const { data: existing, error: existingError } = await ctx.supabase
+				.from('recipes')
+				.select('id')
+				.eq('id', recipeId)
+				.maybeSingle();
+			if (!existing || existingError) {
+				throw new OpError('NOT_FOUND', 'Recipe not found or not accessible.');
+			}
+		}
+
 		// Create the recipe
 		const { data: recipeIdData, error: recipeIdError } = await ctx.supabase
 			.from('recipes')

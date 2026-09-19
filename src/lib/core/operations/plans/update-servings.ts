@@ -49,9 +49,16 @@ export const updateServingsOp = defineOp({
 	input: updateServingsInput,
 	handler: async (ctx, { spaceId, mealId, servings, recipeServings, ingredients }) => {
 		// Update the meal servings
-		const { error } = await ctx.supabase.from('space_meals').update({ servings }).eq('id', mealId);
+		const { data, error } = await ctx.supabase
+			.from('space_meals')
+			.update({ servings })
+			.eq('id', mealId)
+			.select('id');
 		if (error) {
 			throw new OpError('INTERNAL', 'Failed to update meal servings.', error);
+		}
+		if (!data || data.length === 0) {
+			throw new OpError('NOT_FOUND', 'Meal not found or not accessible.');
 		}
 
 		// Update every shopping list item related to this meal to reflect the new amounts
