@@ -29,3 +29,9 @@ vite.config.ts.timestamp-*
 
 # Service worker
 dev-dist/
+
+# Tests
+test-results/
+
+# Agents
+plan/

@@ -37,6 +37,7 @@ vi.mock('$env/dynamic/private', () => ({
 }));
 
 import { generatePat, hashPat, isPatFormat } from '$lib/core/operations/auth/pats.js';
+import { buildMcpTools } from '$lib/mcp/tools.js';
 import { queryParam, readJson, toResponse } from './_lib.js';
 import { API_ROUTES, buildOpenApiDoc } from './openapi.js';
 
@@ -76,11 +77,18 @@ describe('toResponse error mapping', () => {
 		expect(body.error.code).toBe('VALIDATION');
 	});
 	it('unknown error → 500 without leaking', async () => {
-		const res = toResponse(new Error('db exploded: secret'));
-		expect(res.status).toBe(500);
-		expect(await res.json()).toEqual({
-			error: { code: 'INTERNAL', message: 'Unexpected server error.' }
-		});
+		// The 500 path intentionally logs the error for operators — silence it
+		// here so the test's stderr stays quiet (it's an expected log).
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		try {
+			const res = toResponse(new Error('db exploded: secret'));
+			expect(res.status).toBe(500);
+			expect(await res.json()).toEqual({
+				error: { code: 'INTERNAL', message: 'Unexpected server error.' }
+			});
+		} finally {
+			errorSpy.mockRestore();
+		}
 	});
 });
 
@@ -111,6 +119,28 @@ describe('API_ROUTES ↔ registry consistency', () => {
 	it('all paths are under /api/v1', () => {
 		for (const route of API_ROUTES) {
 			expect(route.path.startsWith('/api/v1/')).toBe(true);
+		}
+	});
+});
+
+describe('API ↔ MCP parity', () => {
+	const mcpOps = new Set(buildMcpTools().map((t) => t.op));
+	const routedOps = new Set(API_ROUTES.map((r) => r.op).filter((o): o is string => !!o));
+
+	it('every MCP tool op has an API route', () => {
+		// Two ops share one discriminated PATCH route (op: null) — same
+		// exception the route↔registry test uses.
+		const coveredIndirectly = new Set(['plans.move-meal', 'plans.update-servings']);
+		for (const op of mcpOps) {
+			if (coveredIndirectly.has(op)) continue;
+			expect(routedOps.has(op), `MCP tool ${op} has no API route`).toBe(true);
+		}
+	});
+
+	it('every public API op is an MCP tool (auth.* and binary-upload excluded by design)', () => {
+		for (const [name, def] of registry) {
+			if (def.internal || def.docs.mcp === false) continue;
+			expect(mcpOps.has(name), `API op ${name} has no MCP tool`).toBe(true);
 		}
 	});
 });

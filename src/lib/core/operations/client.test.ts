@@ -5,8 +5,6 @@ import { OpError } from './errors.js';
 import { registry, runOp, type OpCtx } from './registry.js';
 
 // Every op the browser UI may call must be registered by the client module.
-// (M2 fix: type-only op imports never registered their ops, so `runOp` threw
-// `Unknown operation` at runtime — svelte-check cannot catch this.)
 const CLIENT_OPS = [
 	'billing.balance',
 	'billing.logs',

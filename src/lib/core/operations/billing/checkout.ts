@@ -59,7 +59,6 @@ export const checkoutOp = defineOp({
 	},
 	input: checkoutInput,
 	handler: async (ctx, { amountChosen, currency, interval, origin }): Promise<CheckoutResult> => {
-		console.log(amountChosen, currency, interval);
 		const { data: userData } = await ctx.supabase.auth.getUser();
 		const email = userData.user?.email;
 		const userId = ctx.userId;
@@ -68,8 +67,6 @@ export const checkoutOp = defineOp({
 		if (amountChosen < MINIMUM_PER_PAYMENT_AMOUNT) {
 			throw new OpError('VALIDATION', `Minimum billing amount is ${MINIMUM_PER_PAYMENT_AMOUNT}.`);
 		}
-
-		console.log('Creating new stripe checkout session', userId, amountChosen, currency, interval);
 
 		try {
 			const isSubscription = interval === 'month' || interval === 'year';

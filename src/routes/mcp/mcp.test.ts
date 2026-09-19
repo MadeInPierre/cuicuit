@@ -162,14 +162,21 @@ describe('tools/call auth', () => {
 		expect(json.error).toMatchObject({ code: -32602 });
 	});
 	it('missing credential → HTTP 401', async () => {
-		const { status, json } = await rpc({
-			jsonrpc: '2.0',
-			id: 1,
-			method: 'tools/call',
-			params: { name: 'seeds_balance', arguments: {} }
-		});
-		expect(status).toBe(401);
-		expect(json.error).toMatchObject({ code: -32000 });
+		// The server logs failed auth attempts for operators — silence it here
+		// so this intentional 401 test keeps stderr clean.
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		try {
+			const { status, json } = await rpc({
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'tools/call',
+				params: { name: 'seeds_balance', arguments: {} }
+			});
+			expect(status).toBe(401);
+			expect(json.error).toMatchObject({ code: -32000 });
+		} finally {
+			warnSpy.mockRestore();
+		}
 	});
 	it('tools/list works pre-auth', async () => {
 		const { status, json } = await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
