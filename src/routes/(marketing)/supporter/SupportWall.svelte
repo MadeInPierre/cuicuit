@@ -8,8 +8,8 @@
 	import { Slider } from '$lib/shared/components/ui/slider';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
-	import posthog from 'posthog-js';
 	import { ArrowRight, Check, ExternalLink, Heart } from '@lucide/svelte';
+	import posthog from 'posthog-js';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
@@ -260,7 +260,7 @@
 				</div>
 			</div>
 
-			<div class="mt-4 rounded-2xl bg-accent/50 backdrop-blur p-3 sm:p-4">
+			<div class="mt-6 mb-18 rounded-2xl bg-accent/50 backdrop-blur p-3 sm:p-4">
 				<div
 					class="text-xs uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5"
 				>
@@ -268,9 +268,9 @@
 					What can seeds do?
 					<span class="ml-auto">You get</span>
 				</div>
-				<ul class="relative text-xs sm:text-sm">
+				<ul class="relative text-xs sm:text">
 					<div
-						class="absolute z-10 top-1/2 right-8 w-28 translate-y-4 text-lg font-hand text-primary text-center leading-4 -rotate-2"
+						class="absolute z-10 -bottom-12 left-1/2 -translate-x-1/2 text-lg font-hand text-muted-foreground text-center leading-4 -rotate-2"
 					>
 						More features coming!
 					</div>
@@ -286,11 +286,15 @@
 							<span
 								class="w-18 flex items-center justify-end gap-1 text-right font-semibold text-primary"
 							>
-								<!-- <Repeat class="h-3 w-3" /> -->
 								{canDo.toLocaleString()}×
 							</span>
 						</li>
 					{/each}
+
+					<!-- <li class="flex items-center gap-2 py-1.5">
+						<span class="w-14 text-center font-semibold whitespace-nowrap"> ? 🌱 </span>
+						<span class="col-span-1 w-full">More features coming!</span>
+					</li> -->
 
 					<li class="mt-2 italic text-xs text-muted-foreground w-full text-center">
 						Only costly backend features need seeds, otherwise all free!
@@ -307,7 +311,7 @@
 			>
 				your monthly contributions
 			</div>
-			<ul class="mt-1.5 rounded-2xl p-3 space-y-1">
+			<ul class="mt-1.5 rounded-2xl p-3 space-y-0.5">
 				{#each activeTiers as t (t.at)}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->

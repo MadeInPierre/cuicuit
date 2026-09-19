@@ -52,8 +52,7 @@ async function spacesEditHandler(ctx: OpCtx, input: SpacesEditInput): Promise<vo
 		.from('space_members')
 		.update({ theme })
 		.eq('space_id', spaceId)
-		.eq('user_id', userId)
-		.select('id');
+		.select('space_id');
 	if (memberError) throw new OpError('INTERNAL', 'Failed to edit space.', memberError);
 	if (!updatedMembers || updatedMembers.length === 0)
 		throw new OpError('NOT_FOUND', 'Space membership not found or not accessible.');

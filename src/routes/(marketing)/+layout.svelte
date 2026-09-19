@@ -1,9 +1,19 @@
-<script>
+<script lang="ts">
+	import { getRepoStars } from '$lib/features/marketing/server/get-repo-stars.remote.js';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import Button from '$lib/shared/components/ui/button/button.svelte';
+	import GitHub from '$lib/shared/icons/github.svelte';
 	import { ArrowRight } from '@lucide/svelte';
+	import { onMount } from 'svelte';
 
 	let { children, data } = $props();
+
+	let stars: number | undefined = $state(undefined);
+	onMount(() => {
+		getRepoStars().then((s) => {
+			stars = s;
+		});
+	});
 </script>
 
 <svelte:head>
@@ -30,14 +40,16 @@
 				<a href="/#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
 				<a href="/#pricing" class="hover:text-foreground transition-colors">Pricing</a>
 				<a href="/#faq" class="hover:text-foreground transition-colors">FAQ</a>
-				<a href="/#story" class="hover:text-foreground transition-colors">Story</a>
+				<!-- <a href="/#story" class="hover:text-foreground transition-colors">Story</a> -->
+
 				<a
 					href="https://github.com/MadeInPierre/cuicuit"
 					target="_blank"
 					rel="noreferrer"
-					class="hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+					class="hover:text-foreground transition-colors inline-flex items-center gap-1"
 				>
-					<!-- <Github class="h-4 w-4" /> GitHub -->
+					<GitHub class="h-4 w-4" />
+					{stars}
 				</a>
 			</nav>
 

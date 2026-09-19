@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
+	import { siteConfig } from '$lib/shared/config/site-config';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import GitHub from '$lib/shared/icons/github.svelte';
 	import {
@@ -9,15 +10,14 @@
 		CalendarDays,
 		Camera,
 		Check,
+		CheckCheck,
 		CircleQuestionMark,
 		ExternalLink,
 		Globe,
 		Heart,
-		Server,
 		Share,
 		ShoppingBasket,
 		Sidebar,
-		Smartphone,
 		Sparkles,
 		Terminal,
 		TriangleAlert,
@@ -55,8 +55,14 @@
 	const features = [
 		{
 			icon: Sidebar,
-			title: 'The magic sidebar',
-			body: 'Throw ideas and missing things in the sidebar, and your list gets immediately organized.',
+			title: 'Magic sidebar',
+			body: 'Throw ideas and missing things without planning, and your list gets organized.',
+			mobile: true
+		},
+		{
+			icon: CheckCheck,
+			title: 'Cookability',
+			body: 'See which recipes are missing which items at a glance with real-time status badges.',
 			mobile: true
 		},
 		{
@@ -67,8 +73,8 @@
 		},
 		{
 			icon: Share,
-			title: 'Export, Share & Connect',
-			body: 'Cuicuit ships open connectors: a REST API and AI MCP out of the box, file exporting soon.',
+			title: 'Export & Connect',
+			body: 'Cuicuit is fully extensible: use its REST API and AI MCP to connect with any other tools.',
 			mobile: true
 		},
 		{
@@ -77,18 +83,24 @@
 			body: 'Cook together. Invite family or roommates into shared spaces that stay in sync.',
 			mobile: false
 		},
+		// {
+		// 	icon: Smartphone,
+		// 	title: 'Mobile-friendly',
+		// 	body: 'Install Cuicuit on your phone as a PWA and take your list to the store. No app store (yet).',
+		// 	mobile: false
+		// },
 		{
-			icon: Smartphone,
-			title: 'Mobile-friendly',
-			body: 'Install Cuicuit on your phone as a PWA and take your list to the store. No app store (yet).',
+			icon: Heart,
+			title: 'Community-driven',
+			body: 'Join our Discord and vote for features on GitHub to improve Cuicuit together!',
 			mobile: false
-		},
-		{
-			icon: Server,
-			title: 'Yours to self-host',
-			body: 'Open source and Docker-friendly. Keep your recipes, plans, and data on your own hardware.',
-			mobile: true
 		}
+		// {
+		// 	icon: Server,
+		// 	title: 'Yours to self-host',
+		// 	body: 'Open source and Docker-friendly. Keep your recipes, plans, and data on your own hardware.',
+		// 	mobile: false
+		// }
 	];
 
 	const roadmap = [
@@ -106,10 +118,10 @@
 			label: 'Import → Shop',
 			note: 'The core loop: recipes, meal plan, shopping list.',
 			items: [
-				'Import from websites',
+				'Import from anywhere',
 				'Shared households',
 				'Auto shopping list',
-				'Past purchase suggestions'
+				'Past suggestions'
 			],
 			state: 'In Progress',
 			tone: 'active',
@@ -117,23 +129,18 @@
 		},
 		{
 			emoji: '🐥',
-			label: 'Pantry-Aware',
-			note: "Track what's in your fridge and get smarter suggestions.",
-			items: [
-				'Pantry management',
-				'Recipe "cookability"',
-				'Expiration & Easy imports',
-				'Ingredient substitutions'
-			],
+			label: 'Your choice!',
+			note: 'Join Discord and GitHub to choose features together!',
+			items: ['Nutrition', 'Pantry management', 'Cookbooks & sharing', 'Anything you voted!'],
 			state: 'Planned',
 			tone: 'soon',
 			mobile: true
 		},
 		{
 			emoji: '🐓',
-			label: 'Habits & Smartness',
-			note: 'The app learns your patterns and saves you even more time.',
-			items: ['Consumption habits', 'Smart recommendations', 'Timeline & stats', 'LLM assistant'],
+			label: 'Long-term vision',
+			note: 'Cuicuit wants to be your favorite kitchen companion, with:',
+			items: ['Habits & Timeline', 'Online delivery', 'Timeline & stats', 'Apps & Integrations'],
 			state: 'Planned',
 			tone: 'soon',
 			mobile: false
@@ -470,7 +477,11 @@
 		{#each howToSteps as { icon: Icon, step, title, body, image }, i (step)}
 			<div class="relative">
 				{#if image}
-					<img src={image} class="md:px-6 mx-auto max-w-80 md:max-w-full" alt="Mobile Screenshot" />
+					<img
+						src={image}
+						class="mx-auto max-w-80 md:max-w-full md:px-6 drop-shadow-[0_8px_12px_rgba(15,23,42,0.18)]"
+						alt="Mobile Screenshot"
+					/>
 				{/if}
 
 				<div class="relative transition group max-w-70 mx-auto">
@@ -631,38 +642,47 @@
 					<article
 						class={`relative grid sm:flex sm:gap-6 sm:items-center md:grid md:gap-0 rounded-2xl bg-card p-6 shadow-(--shadow-soft) transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-lift) after:pointer-events-none after:absolute after:right-[1.1rem] after:bottom-[0.7rem] after:h-3 after:w-[4.4rem] after:opacity-40 after:content-[''] after:[background:radial-gradient(circle_at_10%_50%,var(--primary)_0.1rem,transparent_0.12rem)_0_50%/0.66rem_100%_repeat-x] ${media.lg ? (i % 2 === 0 ? 'rotate-[-0.7deg] hover:rotate-0' : 'rotate-[0.7deg] hover:rotate-0') : ''}`}
 					>
+						<span
+							class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
+								(r.tone === 'active'
+									? 'bg-amber-100 text-primary'
+									: 'bg-muted/40 text-muted-foreground')}
+						>
+							{r.tone === 'active' ? '🚧 ' : ''}{r.state}
+						</span>
+
 						<div class="grid w-full">
-							<span
-								class={'absolute top-5 right-5 rounded-full px-2.5 py-1 text-[10px] font-semibold ' +
-									(r.tone === 'active'
-										? 'bg-amber-100 text-primary'
-										: 'bg-muted/40 text-muted-foreground')}
-							>
-								{r.tone === 'active' ? '🚧 ' : ''}{r.state}
-							</span>
-							<div class="text-4xl leading-none select-none">{r.emoji}</div>
-							<div
-								class="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-							>
-								Step {i}
+							<div class="flex items-center gap-4 sm:grid">
+								<div class="text-4xl leading-none select-none">{r.emoji}</div>
+
+								<div class="grid">
+									<div
+										class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+									>
+										Step {i}
+									</div>
+									<div class="mt-1 font-display text-xl font-semibold leading-snug">
+										{r.label}
+									</div>
+								</div>
 							</div>
-							<div class="mt-1 font-display text-xl font-semibold leading-snug">
-								{r.label}
-							</div>
-							<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{r.note}</p>
 						</div>
 
-						<div class="grid min-w-50">
-							<ul class="mt-5 space-y-1.5 text-sm text-foreground/80">
-								{#each r.items as item (item)}
-									<li class="flex items-start gap-2">
-										<span class="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-primary/65"
-										></span>
-										{item}
-									</li>
-								{/each}
-							</ul>
-						</div>
+						<p class="mt-2 text-sm text-muted-foreground leading-relaxed">{r.note}</p>
+
+						{#if media.sm}
+							<div class="grid min-w-50">
+								<ul class="mt-5 space-y-1.5 text-sm text-foreground/80">
+									{#each r.items as item (item)}
+										<li class="flex items-start gap-2">
+											<span class="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-primary/65"
+											></span>
+											{item}
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
 					</article>
 
 					{#if i < roadmap.filter((r) => media.sm || r.mobile).length - 1}
@@ -717,15 +737,38 @@
 		</ol>
 	</div>
 
-	<div class="mt-10 flex justify-center">
+	<div class="mt-10 flex flex-wrap justify-center gap-4">
 		<a
 			href="https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas"
 			target="_blank"
 			rel="noreferrer"
 			class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition"
 		>
-			<span class="mr-1">🙌</span>
-			Vote for features on GitHub <ArrowRight class="h-4 w-4" />
+			<GitHub class="size-4" />
+			Vote on GitHub
+			<ExternalLink class="h-4 w-4" />
+		</a>
+
+		<a
+			href={siteConfig.links.discord}
+			target="_blank"
+			rel="noreferrer"
+			class="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold shadow-(--shadow-soft) hover:bg-secondary transition bg-[#5865F2] text-white"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				fill="currentColor"
+				class="bi bi-discord"
+				viewBox="0 0 16 16"
+			>
+				<path
+					d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"
+				/>
+			</svg>
+			Join Discord
+			<ExternalLink class="h-4 w-4" />
 		</a>
 	</div>
 </section>
@@ -1094,9 +1137,29 @@
 				>
 					<GitHub class="h-4 w-4" /> Star on GitHub
 				</a>
+				<a
+					href={siteConfig.links.discord}
+					target="_blank"
+					rel="noreferrer"
+					class="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-(--shadow-lift) bg-[#5865F2] hover:bg-[#5875F9] text-white hover:-translate-y-0.5 transition"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="16"
+						height="16"
+						fill="currentColor"
+						class="bi bi-discord"
+						viewBox="0 0 16 16"
+					>
+						<path
+							d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"
+						/>
+					</svg>
+					Join Discord
+				</a>
 				<button
 					onclick={openSupportWall}
-					class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold hover:bg-secondary hover:-translate-y-0.5 transition"
+					class="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold hover:-translate-y-0.5 transition bg-primary-foreground shadow-(--shadow-lift)"
 				>
 					Support the project <Heart class="h-4 w-4 text-primary" />
 				</button>
@@ -1177,6 +1240,26 @@
 				class="inline-flex items-center gap-1.5 hover:text-foreground"
 			>
 				<GitHub class="h-4 w-4" /> GitHub
+			</a>
+			<a
+				href={siteConfig.links.discord}
+				target="_blank"
+				rel="noreferrer"
+				class="inline-flex items-center gap-1.5 hover:text-foreground"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					fill="currentColor"
+					class="bi bi-discord"
+					viewBox="0 0 16 16"
+				>
+					<path
+						d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"
+					/>
+				</svg>
+				Discord
 			</a>
 		</div>
 	</div>
