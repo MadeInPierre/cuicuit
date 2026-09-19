@@ -1,8 +1,6 @@
 import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 import type { DeleteRecipeImageInput } from '$lib/core/operations/recipes/delete-image.js';
 import type { UploadRecipeImageInput } from '$lib/core/operations/recipes/upload-image.js';
-import type { Database } from '$lib/shared/db/supabase.types';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'svelte-sonner';
 
 /**
@@ -10,10 +8,7 @@ import { toast } from 'svelte-sonner';
  * `recipes.delete-image` core ops (toast stays here).
  */
 
-// NOTE: the `supabase` param is kept for signature compatibility (callers pass
-// their client); the op builds its own ctx via getClientCtx().
 export async function uploadRecipeImage(
-	supabase: SupabaseClient<Database>,
 	file: File,
 	recipeId: string,
 	currentImageIds: string[] | null
@@ -39,7 +34,6 @@ export async function uploadRecipeImage(
  * Delete the recipe image from the storage and remove the image url from the recipeDoc urls list
  */
 export async function deleteRecipeImage(
-	supabase: SupabaseClient<Database>,
 	imgId: string,
 	recipeId: string,
 	currentImageIds: string[]

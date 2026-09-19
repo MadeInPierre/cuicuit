@@ -30,7 +30,7 @@
 		if (!recipeId || !supabase.client) return;
 
 		loading = true;
-		const imageId = await uploadRecipeImage(supabase.client, file, recipeId, currentImageIds);
+		const imageId = await uploadRecipeImage(file, recipeId, currentImageIds);
 		loading = false;
 
 		// Call the callback if provided
@@ -41,7 +41,7 @@
 		if (!recipeId || !imgId || !supabase.client) return;
 
 		loading = true;
-		const newImageIds = await deleteRecipeImage(supabase.client, imgId, recipeId, currentImageIds);
+		const newImageIds = await deleteRecipeImage(imgId, recipeId, currentImageIds);
 		loading = false;
 
 		// Call the callback if provided

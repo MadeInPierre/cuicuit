@@ -25,7 +25,9 @@ import { registry } from '$lib/core/operations/registry.js';
 // `$env/dynamic/private` snapshots the real `.env` at load, so ambient keys
 // (e.g. a locally configured PAT signing key) would leak into tests —
 // redirect it at a mutable holder we control per test.
-const patEnvHolder: { keyJson?: string } = {};
+// `vi.hoisted` because `vi.mock` factories run before this declaration, and
+// core scrape helpers read `$env/dynamic/private` at import time.
+const patEnvHolder: { keyJson?: string } = vi.hoisted<{ keyJson?: string }>(() => ({}));
 vi.mock('$env/dynamic/private', () => ({
 	get env() {
 		return patEnvHolder.keyJson === undefined

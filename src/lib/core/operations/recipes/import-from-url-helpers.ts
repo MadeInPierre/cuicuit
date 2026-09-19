@@ -2,16 +2,11 @@ import { version } from '$app/env';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
-import { matchIngredients } from '$lib/features/recipes/modules/parse-ingredients/match';
 import type { ParsedSearchInput } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
-import {
-	enrichRawRecipe,
-	enrichTextRecipe,
-	type EnrichedRecipeOutput
-} from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe.remote';
-import { scrapeRecipeUrl } from '$lib/features/recipes/modules/recipe-scrape/orchestrator.remote';
+import { enrichRawRecipe, enrichTextRecipe, type EnrichedRecipeOutput } from './enrich-helpers.js';
+import { scrapeRecipeUrl } from './scrape-helpers.js';
 import type {
 	ScrapeFormat,
 	ScrapeSource,
@@ -29,6 +24,7 @@ import { unitToRegionized } from '$lib/shared/utils/quantity';
 
 import { resolveLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
+import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
 import { uploadImageToRecipe } from './upload-image-helper.js';
 
 // M2: co-located helpers for the `recipes.import-from-url` /
@@ -37,10 +33,14 @@ import { uploadImageToRecipe } from './upload-image-helper.js';
 //    stays in place — other importers may use it);
 // 2. the credit-free import logic moved from `features/recipes/actions/import-recipe.ts`
 //    (that module is deleted once the remotes are thinned — verified zero importers).
-// Server-only (scrape/enrich remotes, admin writes). Not an op.
+// 3. (Phase 1d) the scrape orchestration + LLM enrichment pipeline, folded here
+//    from the `*.remote.ts` modules as `./scrape-helpers.ts` /
+//    `./enrich-helpers.ts` (plain helpers, not ops). Those remotes are now thin
+//    shims delegating to core; this server-only module imports core directly.
+// Server-only (scrape/enrich helpers, admin writes). Not an op.
 
 // ==========================================
-// 1. Import cache (copy of recipe-cache/import-cache.ts)
+// 1. Import cache (canonical implementation; former features/... copy deleted)
 // ==========================================
 
 /**
@@ -210,24 +210,26 @@ export type ImportTextContext = {
 export async function processAndMatchIngredients(
 	supabase: SupabaseClient<Database>,
 	enrichedIngredients: ParsedSearchInput[],
-	lang: LanguageCode
+	lang: LanguageCode,
+	userId: string
 ): Promise<IngredientProcessed[]> {
-	const { data: matchData, error: matchError } = await matchIngredients(
-		supabase,
-		enrichedIngredients
-			.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
-			.map((p) => p.ingredientText || 'Unknown'),
-		lang || DEFAULT_LANGUAGE
+	const matchData = await runOp<MatchIngredientsInput, MatchIngredientsResult>(
+		'ingredients.match',
+		{ supabase, admin: supabase, userId, source: 'app' },
+		{
+			ingredientStrings: enrichedIngredients
+				.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
+				.map((p) => p.ingredientText || 'Unknown'),
+			lang: lang || DEFAULT_LANGUAGE
+		}
 	);
-
-	if (matchError) throw matchError;
 
 	return enrichedIngredients.map(
 		(p, i) =>
 			({
 				sourceText: p.sourceText || 'Unknown',
 				parsed: p,
-				matches: matchData?.matches[i].bestMatches || []
+				matches: (matchData.matches[i].bestMatches || []) as IngredientProcessed['matches']
 			}) satisfies IngredientProcessed
 	);
 }
@@ -562,10 +564,13 @@ export async function* importRecipeFromUrlCore(
 	let llmOutput = getLlmOutput(cache);
 	if (!llmOutput) {
 		try {
-			const enriched = await enrichRawRecipe({
-				content: scrapeOutput,
-				format: scrapeStats.format
-			});
+			const enriched = await enrichRawRecipe(
+				{
+					content: scrapeOutput,
+					format: scrapeStats.format
+				},
+				userId
+			);
 			llmOutput = enriched.output;
 			if (cacheId) {
 				await saveImportLlm(admin, cacheId, llmOutput, {
@@ -605,7 +610,8 @@ export async function* importRecipeFromUrlCore(
 		const processedIngredients = await processAndMatchIngredients(
 			admin,
 			llmOutput.ingredients,
-			normalizeLanguageCode(llmOutput.lang) ?? lang
+			normalizeLanguageCode(llmOutput.lang) ?? lang,
+			userId
 		);
 		await insertRecipeIngredients(admin, templateId, processedIngredients);
 	}
@@ -669,7 +675,7 @@ export async function* importRecipeFromTextCore(
 	yield 1;
 	let enrichedRecipe: EnrichedRecipeOutput;
 	try {
-		const result = await enrichTextRecipe({ text });
+		const result = await enrichTextRecipe({ text }, context.userId);
 		enrichedRecipe = result.output;
 	} catch {
 		throw new Error('LLM errored, cannot import text recipe without LLM');
@@ -680,7 +686,8 @@ export async function* importRecipeFromTextCore(
 	const processedIngredients = await processAndMatchIngredients(
 		admin,
 		enrichedRecipe.ingredients,
-		normalizeLanguageCode(enrichedRecipe.lang) ?? normalizedLang
+		normalizeLanguageCode(enrichedRecipe.lang) ?? normalizedLang,
+		context.userId
 	);
 	console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 

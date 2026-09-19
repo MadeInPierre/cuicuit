@@ -2,7 +2,6 @@ import { goto } from '$app/navigation';
 import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 import { addRecipeToPlanOp } from '$lib/core/operations/plans/add-recipe.js';
 import { type ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 
 // Thin adapter over the `plans.add-recipe` op. DB work lives in core;
@@ -16,10 +15,6 @@ export async function addRecipeToActivePlan(
 ) {
 	if (!space?.activeSpace || !space.activePlanMeals || !space.activeMember?.user_id) {
 		console.error('No active space or active plan found');
-		return;
-	}
-	if (!supabase.client) {
-		console.error('No Supabase client found');
 		return;
 	}
 

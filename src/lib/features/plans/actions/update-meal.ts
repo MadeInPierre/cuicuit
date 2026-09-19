@@ -3,7 +3,6 @@ import { deleteMealOp } from '$lib/core/operations/plans/delete-meal.js';
 import { moveMealOp } from '$lib/core/operations/plans/move-meal.js';
 import { updateServingsOp } from '$lib/core/operations/plans/update-servings.js';
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 import type { MealWithRecipeAndIngredients } from '../queries/get-plan-meals';
 
@@ -17,12 +16,17 @@ export async function updateMealServings(
 	servings: number,
 	options?: { skipRefresh?: boolean }
 ) {
-	if (!supabase.client) throw new Error('Supabase client not available');
+	let ctx;
+	try {
+		ctx = await getClientCtx();
+	} catch {
+		throw new Error('Supabase client not available');
+	}
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (servings < 1) throw new Error('Servings must be at least 1');
 
-	await runOp(updateServingsOp.name, await getClientCtx(), {
+	await runOp(updateServingsOp.name, ctx, {
 		spaceId: activeSpace.activeSpace.id,
 		mealId: meal.id,
 		servings,
@@ -46,13 +50,18 @@ export async function updateMealPosition(
 	position: number,
 	options?: { skipRefresh?: boolean }
 ) {
-	if (!supabase.client) throw new Error('Supabase client not available');
+	let ctx;
+	try {
+		ctx = await getClientCtx();
+	} catch {
+		throw new Error('Supabase client not available');
+	}
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
 	if (position < 0) throw new Error('Position must be a non-negative integer');
 
-	await runOp(moveMealOp.name, await getClientCtx(), { mealId, position });
+	await runOp(moveMealOp.name, ctx, { mealId, position });
 
 	// Refresh the active plan meals after updating
 	if (options?.skipRefresh) return;
@@ -71,7 +80,12 @@ export async function deleteMeal(
 		cooked?: boolean;
 	}
 ) {
-	if (!supabase.client) throw new Error('Supabase client not available');
+	let ctx;
+	try {
+		ctx = await getClientCtx();
+	} catch {
+		throw new Error('Supabase client not available');
+	}
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanMeals)
 		throw new Error('No active space or active plan found');
 	if (!mealId) throw new Error('Meal ID not provided');
@@ -81,7 +95,7 @@ export async function deleteMeal(
 		activeSpace.activePlanMeals = activeSpace.activePlanMeals.filter((meal) => meal.id !== mealId);
 	}
 
-	await runOp(deleteMealOp.name, await getClientCtx(), {
+	await runOp(deleteMealOp.name, ctx, {
 		mealId,
 		undo: options?.undo ?? false,
 		cooked: options?.cooked ?? false

@@ -6,7 +6,6 @@ import {
 	type DeleteItemOutput
 } from '$lib/core/operations/plans/delete-item.js';
 import type { ActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import { toast } from 'svelte-sonner';
 
 // Thin adapters over the `plans.check-item` / `plans.delete-item` ops.
@@ -18,12 +17,17 @@ export async function updatePlanItemChecked(
 	checked: boolean,
 	options?: { skipRefresh?: boolean; showToast?: boolean }
 ): Promise<() => Promise<void>> {
-	if (!supabase.client) throw new Error('Supabase client not available');
+	let ctx;
+	try {
+		ctx = await getClientCtx();
+	} catch {
+		throw new Error('Supabase client not available');
+	}
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanItems)
 		throw new Error('No active space or active plan found');
 	if (!itemId) throw new Error('Item ID not provided');
 
-	await runOp(checkItemOp.name, await getClientCtx(), { itemId, checked });
+	await runOp(checkItemOp.name, ctx, { itemId, checked });
 
 	const undoFn = async (toastId?: string | number) => {
 		const ctx = await getClientCtx();
@@ -70,16 +74,22 @@ export async function updatePlanItemDeleted(
 	deleted: boolean = true,
 	options?: { skipRefresh?: boolean; hideToast?: boolean }
 ): Promise<() => Promise<void>> {
-	if (!supabase.client) throw new Error('Supabase client not available');
+	let ctx;
+	try {
+		ctx = await getClientCtx();
+	} catch {
+		throw new Error('Supabase client not available');
+	}
 	if (!activeSpace || !activeSpace.activeSpace || !activeSpace.activePlanItems)
 		throw new Error('No active space or active plan found');
 	if (!itemId) throw new Error('Item ID not provided');
 
-	const result = await runOp<DeleteItemInput, DeleteItemOutput>(
-		deleteItemOp.name,
-		await getClientCtx(),
-		{ itemId, spaceId: activeSpace.activeSpace.id, deleted, undo: false }
-	);
+	const result = await runOp<DeleteItemInput, DeleteItemOutput>(deleteItemOp.name, ctx, {
+		itemId,
+		spaceId: activeSpace.activeSpace.id,
+		deleted,
+		undo: false
+	});
 
 	const undoFn = async (toastId?: string | number) => {
 		const ctx = await getClientCtx();
