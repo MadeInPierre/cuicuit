@@ -90,10 +90,8 @@
 				await onSubmit(form.data);
 				toast.success('Recipe saved! 👨‍🍳');
 			} else {
-				// Handled failure: the user sees the toast below and inline field
-				// errors, so log a warning for developers instead of a console.error
-				// (posthog captures console.error as an exception, which would open a
-				// high-severity issue for a normal validation failure).
+				// Warn instead of console.error: posthog captures console.error as an
+				// exception, and this failure is already handled by the toast below.
 				console.warn('Form validation failed:', form.errors);
 				toast.error('Please fix the errors in the form.');
 			}

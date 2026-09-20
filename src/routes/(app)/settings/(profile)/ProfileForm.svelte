@@ -25,10 +25,8 @@
 		resetForm: false,
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
-			// Handled failure: inline field errors are shown to the user, so log a
-			// warning for developers instead of a console.error (posthog captures
-			// console.error as an exception, which would open a high-severity issue
-			// for a normal validation failure).
+			// Warn instead of console.error: posthog captures console.error as an
+			// exception, and this failure is already handled by inline field errors.
 			else console.warn('Form invalid', form.errors);
 		}
 	});
