@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
 	BATCH_TASKS,
 	batchTaskIds,
-	decodeCustomId,
-	encodeCustomId,
+	chunkPairs,
+	decodeGroupId,
+	encodeGroupId,
 	getBatchTask,
+	parseGroupPayload,
 	type BatchSource
 } from './batch-tasks.js';
 import {
@@ -64,10 +66,77 @@ describe('batch task registry', () => {
 		expect(BATCH_TASKS['translation.commonly_used'].fields).toEqual(['commonly_used']);
 	});
 
-	it('custom_id round-trips (UUID contains dashes, never a colon)', () => {
-		const id = encodeCustomId(SOURCE.ingredientId, 'pt-BR');
-		expect(decodeCustomId(id)).toEqual({ ingredientId: SOURCE.ingredientId, lang: 'pt-BR' });
-		expect(decodeCustomId('nocolon')).toBeNull();
+	it('group custom_id round-trips', () => {
+		expect(decodeGroupId(encodeGroupId(7))).toBe(7);
+		expect(decodeGroupId('pack:0')).toBe(0);
+		expect(decodeGroupId('a:fr-FR')).toBeNull();
+		expect(decodeGroupId('pack:xx')).toBeNull();
+	});
+});
+
+describe('packing', () => {
+	const twoSources: BatchSource[] = [
+		SOURCE,
+		{ ...SOURCE, ingredientId: '22222222-2222-4222-8222-222222222222', slug: 'banana' }
+	];
+
+	it('chunks monolingually with deterministic indexes', () => {
+		const groups = chunkPairs(twoSources, ['fr-FR', 'es-ES'], 1);
+		expect(groups).toHaveLength(4);
+		expect(groups.map((g) => g.index)).toEqual([0, 1, 2, 3]);
+		// Same language per request, sources in input order.
+		expect(groups[0]).toMatchObject({ lang: 'fr-FR', pairs: [{ lang: 'fr-FR' }] });
+		expect(groups[0].pairs[0].ingredientId).toBe(twoSources[0].ingredientId);
+		expect(groups[2].lang).toBe('es-ES');
+		// Re-chunking rebuilds identical groups (stateless status op).
+		expect(chunkPairs(twoSources, ['fr-FR', 'es-ES'], 1)).toEqual(groups);
+	});
+
+	it('packs several ingredients into one request', () => {
+		const groups = chunkPairs(twoSources, ['fr-FR'], 10);
+		expect(groups).toHaveLength(1);
+		const task = BATCH_TASKS['translation.full'];
+		const msg = task.buildGroupUserMessage(
+			groups[0].pairs.map((p, i) => ({ ref: i, source: p.source })),
+			'fr-FR'
+		);
+		const parsed = JSON.parse(msg) as { ingredients: Array<{ ref: number }> };
+		expect(parsed.ingredients.map((i) => i.ref)).toEqual([0, 1]);
+		// Still compact: shared system prompt amortized over the group.
+		expect(msg.length).toBeLessThan(1000);
+	});
+
+	it('sends enum hints so packed requests keep schema adherence', () => {
+		const task = BATCH_TASKS['translation.full'];
+		const msg = task.buildGroupUserMessage([{ ref: 0, source: SOURCE }], 'fr-FR');
+		const parsed = JSON.parse(msg) as { field_hints?: Record<string, string> };
+		expect(parsed.field_hints?.commonly_used).toContain('daily');
+	});
+
+	it('salvages valid siblings when one item is bad', () => {
+		const task = BATCH_TASKS['translation.full'];
+		const groups = chunkPairs(twoSources, ['fr-FR'], 10);
+		const good = {
+			ref: 0,
+			name_singular: 'pomme rouge',
+			name_plural: 'pommes rouges',
+			name_general: 'pommes rouges',
+			commonly_used: 'common'
+		};
+		const rows = parseGroupPayload({ results: [good, { ref: 1, name_general: '' }] }, task, groups[0]);
+		expect(rows).toHaveLength(2);
+		expect(rows.find((r) => r.ingredientId === twoSources[0].ingredientId)?.error).toBeNull();
+		expect(rows.find((r) => r.ingredientId === twoSources[1].ingredientId)?.error).not.toBeNull();
+	});
+
+	it('reports missing refs and rejects bad envelopes per pair', () => {
+		const task = BATCH_TASKS['translation.names'];
+		const groups = chunkPairs(twoSources, ['fr-FR'], 10);
+		const missing = parseGroupPayload({ results: [] }, task, groups[0]);
+		expect(missing.every((r) => r.error !== null)).toBe(true);
+		const broken = parseGroupPayload({ nope: true }, task, groups[0]);
+		expect(broken).toHaveLength(2);
+		expect(broken.every((r) => r.error !== null)).toBe(true);
 	});
 });
 

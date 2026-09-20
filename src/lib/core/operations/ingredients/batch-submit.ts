@@ -2,12 +2,13 @@ import { z } from 'zod';
 
 import { OpError } from '../errors.js';
 import { defineOp, type OpCtx } from '../registry.js';
-import { batchTargetSchema, encodeCustomId, getBatchTask } from './batch-tasks.js';
+import { batchTargetSchema, chunkPairs, encodeGroupId, getBatchTask } from './batch-tasks.js';
 import { loadBatchSources } from './batch-sources.js';
 import {
 	BATCH_MODEL_DEFAULT,
 	buildChatBody,
 	MAX_BATCH_REQUESTS,
+	maxTokensForGroupSize,
 	submitBatch,
 	type BatchRequestLine
 } from './mistral-batch.js';
@@ -16,15 +17,17 @@ import { requireAdmin } from './require-admin.js';
 /**
  * `ingredients.batch-submit` — admin-only cheap async batch (M4).
  *
- * Builds one Mistral Batch request per ingredient × language (up to 2000
- * total) and submits it to the Mistral Batch API (~50% cheaper than sync).
- * Returns the Mistral `jobId` — poll with `ingredients.batch-status`, then
- * persist reviewed rows with `ingredients.batch-apply`. Nothing is written
- * to the catalog by this op.
+ * Packs up to 2000 ingredient × language pairs into groups of `batchSize`
+ * (default 10, same language per request) and submits them to the Mistral
+ * Batch API (~50% cheaper than sync, plus the shared system prompt is
+ * amortized across the group). Returns the Mistral `jobId` — poll with
+ * `ingredients.batch-status` (passing the same ids/langs/size so it can
+ * rebuild the groups statelessly), then persist reviewed rows with
+ * `ingredients.batch-apply`. Nothing is written to the catalog by this op.
  *
- * Stateless by design (no new table): the UI persists `{ jobId, taskId }`
- * in localStorage; the job payload lives on Mistral's side. A DB-backed job
- * table can be added later without changing this op's contract.
+ * Stateless by design (no new table): the UI persists
+ * `{ jobId, taskId, ingredientIds, targetLangs, batchSize }` in
+ * localStorage; the job payload lives on Mistral's side.
  */
 
 export const batchSubmitInput = batchTargetSchema.extend({
@@ -42,17 +45,17 @@ export const batchSubmitOp = defineOp({
 	docs: {
 		title: 'Submit a cheap Mistral batch job (admin)',
 		description:
-			'Admin-only: submits up to 2000 ingredient × language inferences to the Mistral Batch API. Poll with ingredients.batch-status, apply with ingredients.batch-apply.'
+			'Admin-only: submits up to 2000 ingredient × language pairs (packed batchSize per request) to the Mistral Batch API. Poll with ingredients.batch-status, apply with ingredients.batch-apply.'
 	},
 	input: batchSubmitInput,
 	internal: true,
 	handler: async (ctx: OpCtx, input: BatchSubmitInput) => {
 		const admin = await requireAdmin(ctx);
-		const total = input.ingredientIds.length * input.targetLangs.length;
-		if (total > MAX_BATCH_REQUESTS) {
+		const pairCount = input.ingredientIds.length * input.targetLangs.length;
+		if (pairCount > MAX_BATCH_REQUESTS) {
 			throw new OpError(
 				'VALIDATION',
-				`Batch too large: ${total} requests (ingredients × languages) > ${MAX_BATCH_REQUESTS}. Split it up.`
+				`Batch too large: ${pairCount} pairs (ingredients × languages) > ${MAX_BATCH_REQUESTS}. Split it up.`
 			);
 		}
 		const task = getBatchTask(input.taskId);
@@ -61,15 +64,19 @@ export const batchSubmitOp = defineOp({
 			throw new OpError('VALIDATION', 'No ingredient had source text to translate.');
 		}
 
-		const requests: BatchRequestLine[] = [];
-		for (const source of sources) {
-			for (const lang of input.targetLangs) {
-				requests.push({
-					custom_id: encodeCustomId(source.ingredientId, lang),
-					body: buildChatBody(task.systemPrompt, task.buildUserMessage(source, lang), input.model)
-				});
-			}
-		}
+		const groups = chunkPairs(sources, input.targetLangs, input.batchSize);
+		const requests: BatchRequestLine[] = groups.map((group) => ({
+			custom_id: encodeGroupId(group.index),
+			body: buildChatBody(
+				task.systemPrompt,
+				task.buildGroupUserMessage(
+					group.pairs.map((p, i) => ({ ref: i, source: p.source })),
+					group.lang
+				),
+				input.model,
+				maxTokensForGroupSize(group.pairs.length)
+			)
+		}));
 
 		const { job, via } = await submitBatch(requests, input.model);
 		return {
@@ -78,6 +85,8 @@ export const batchSubmitOp = defineOp({
 			via,
 			model: input.model,
 			taskId: input.taskId,
+			batchSize: input.batchSize,
+			pairCount,
 			requestCount: requests.length,
 			skipped
 		};

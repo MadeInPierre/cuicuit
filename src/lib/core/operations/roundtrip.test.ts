@@ -631,6 +631,7 @@ if ('ok' in dbResult) {
 				runOp('ingredients.batch-run-inline', b.ctx, {
 					taskId: 'translation.full',
 					targetLangs: [LANG],
+					batchSize: 10,
 					ingredientIds: [noAdmin.ingredientId]
 				})
 			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
@@ -638,13 +639,17 @@ if ('ok' in dbResult) {
 				runOp('ingredients.batch-submit', b.ctx, {
 					taskId: 'translation.full',
 					targetLangs: [LANG],
+					batchSize: 10,
 					ingredientIds: [noAdmin.ingredientId]
 				})
 			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
 			await expect(
 				runOp('ingredients.batch-status', b.ctx, {
 					jobId: 'nope',
-					taskId: 'translation.full'
+					taskId: 'translation.full',
+					targetLangs: [LANG],
+					batchSize: 10,
+					ingredientIds: [noAdmin.ingredientId]
 				})
 			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
 			await expect(

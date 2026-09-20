@@ -26,12 +26,16 @@
 	let { ingredients, languages }: Props = $props();
 
 	const TASK_IDS = Object.keys(BATCH_TASKS) as BatchTaskId[];
-	const MAX_REQUESTS = 2000;
-	const INLINE_LIMIT = 50;
-	const JOB_KEY = 'cuicuit-batch-job-v1';
+	const MAX_PAIRS = 2000;
+	const INLINE_PAIR_LIMIT = 50;
+	const BATCH_SIZES = [1, 5, 10, 20];
+	const JOB_KEY = 'cuicuit-batch-job-v2';
 
 	let taskId: BatchTaskId = $state('translation.full');
 	let targetLangs: string[] = $state([]);
+	// bits-ui Select values are strings; the numeric batch size derives from it.
+	let batchSizeStr = $state('10');
+	const batchSize = $derived(Number(batchSizeStr));
 	let missingOnly = $state(true);
 	let search = $state('');
 	let selectedIds: string[] = $state([]);
@@ -52,6 +56,7 @@
 	interface SubmitOut {
 		jobId: string;
 		status: string;
+		pairCount: number;
 		requestCount: number;
 		via: string;
 	}
@@ -59,6 +64,7 @@
 		status: string;
 		done: boolean;
 		results?: ReviewRow[];
+		skipped?: string[];
 		totalRequests?: number | null;
 		completedRequests?: number | null;
 	}
@@ -88,9 +94,10 @@
 		});
 	});
 
-	const requestCount = $derived(selectedIds.length * targetLangs.length);
-	const overLimit = $derived(requestCount > MAX_REQUESTS);
-	const canQuick = $derived(requestCount > 0 && requestCount <= INLINE_LIMIT);
+	const pairCount = $derived(selectedIds.length * targetLangs.length);
+	const requestCount = $derived(Math.ceil(pairCount / batchSize));
+	const overLimit = $derived(pairCount > MAX_PAIRS);
+	const canQuick = $derived(pairCount > 0 && pairCount <= INLINE_PAIR_LIMIT);
 
 	function toggleLang(lang: string) {
 		targetLangs = targetLangs.includes(lang)
@@ -99,7 +106,7 @@
 	}
 
 	function selectAll() {
-		selectedIds = candidates.slice(0, Math.floor(MAX_REQUESTS / Math.max(1, targetLangs.length))).map((i) => i.id);
+		selectedIds = candidates.slice(0, Math.floor(MAX_PAIRS / Math.max(1, targetLangs.length))).map((i) => i.id);
 		toast.info(`Selected ${selectedIds.length} ingredients.`);
 	}
 
@@ -108,9 +115,21 @@
 		results = [];
 	}
 
+	interface SavedJob {
+		jobId: string | null;
+		taskId: BatchTaskId;
+		ingredientIds: string[];
+		targetLangs: string[];
+		batchSize: number;
+	}
+
+	function jobSpec(): SavedJob {
+		return { jobId, taskId, ingredientIds: selectedIds, targetLangs, batchSize };
+	}
+
 	function saveJob() {
 		try {
-			localStorage.setItem(JOB_KEY, JSON.stringify({ jobId, taskId }));
+			localStorage.setItem(JOB_KEY, JSON.stringify(jobSpec()));
 		} catch {
 			// Private mode — polling still works until reload.
 		}
@@ -118,12 +137,17 @@
 
 	onMount(() => {
 		try {
+			// Drop the v1 key (jobId-only, pre-packing) — its groups can't be rebuilt.
+			localStorage.removeItem('cuicuit-batch-job-v1');
 			const raw = localStorage.getItem(JOB_KEY);
 			if (raw) {
-				const saved = JSON.parse(raw) as { jobId: string | null; taskId: BatchTaskId };
+				const saved = JSON.parse(raw) as SavedJob;
 				if (saved.jobId && saved.taskId in BATCH_TASKS) {
 					jobId = saved.jobId;
 					taskId = saved.taskId;
+					selectedIds = saved.ingredientIds ?? [];
+					targetLangs = saved.targetLangs ?? [];
+					batchSizeStr = String(saved.batchSize ?? 10);
 					statusNote = 'Restored pending batch job from last session — press Poll.';
 				}
 			}
@@ -141,7 +165,7 @@
 
 	async function runQuick() {
 		if (!canQuick) {
-			toast.error(`Quick mode handles ≤ ${INLINE_LIMIT} requests — use cheap batch instead.`);
+			toast.error(`Quick mode handles ≤ ${INLINE_PAIR_LIMIT} pairs — use cheap batch instead.`);
 			return;
 		}
 		if (targetLangs.length === 0) {
@@ -154,6 +178,7 @@
 			const out = await batchRunInlineAdmin({
 				taskId,
 				targetLangs,
+				batchSize,
 				ingredientIds: selectedIds
 			});
 			results = out.results.map((r) => ({ ...r, accepted: !r.error }));
@@ -167,8 +192,8 @@
 	}
 
 	async function submitCheap() {
-		if (requestCount === 0 || overLimit) {
-			toast.error(`Pick ingredients × languages totalling 1–${MAX_REQUESTS} requests.`);
+		if (pairCount === 0 || overLimit) {
+			toast.error(`Pick ingredients × languages totalling 1–${MAX_PAIRS} pairs.`);
 			return;
 		}
 		if (targetLangs.length === 0) {
@@ -181,12 +206,13 @@
 			const out = (await batchSubmitAdmin({
 				taskId,
 				targetLangs,
+				batchSize,
 				ingredientIds: selectedIds
 			})) as unknown as SubmitOut;
 			jobId = out.jobId;
 			jobStatus = out.status;
 			saveJob();
-			statusNote = `Job ${jobId} submitted (${out.requestCount} requests via ${out.via}). Poll until done — batch is ~50% cheaper but takes minutes.`;
+			statusNote = `Job ${jobId} submitted (${out.pairCount} pairs in ${out.requestCount} requests via ${out.via}). Poll until done — batch is ~50% cheaper but takes minutes.`;
 			toast.success('Batch submitted.');
 		} catch (err) {
 			console.error(err);
@@ -203,14 +229,21 @@
 		}
 		busy = true;
 		try {
-			const out = (await batchStatusAdmin({ jobId, taskId })) as unknown as StatusOut;
+			const out = (await batchStatusAdmin({
+				jobId,
+				taskId,
+				targetLangs,
+				batchSize,
+				ingredientIds: selectedIds
+			})) as unknown as StatusOut;
 			jobStatus = out.status;
 			if (out.done) {
 				results = (out.results ?? []).map((r) => ({
 					...r,
 					accepted: !r.error
 				}));
-				statusNote = `Job done: ${results.length} rows ready for review.`;
+				const skippedNote = (out.skipped?.length ?? 0) > 0 ? ` (${out.skipped?.length} skipped — no source text)` : '';
+				statusNote = `Job done: ${results.length} rows ready for review${skippedNote}.`;
 			} else {
 				statusNote = `Job ${jobStatus} — ${out.completedRequests ?? 0}/${out.totalRequests ?? '?'} requests. Poll again in a minute.`;
 			}
@@ -310,16 +343,27 @@
 
 	<div class="flex flex-wrap items-center gap-2">
 		<Badge variant="secondary">
-			{selectedIds.length} ingredients × {targetLangs.length} langs = {requestCount} requests
+			{selectedIds.length} ingredients × {targetLangs.length} langs = {pairCount} pairs → {requestCount} requests ({batchSize}/req)
 		</Badge>
 		{#if overLimit}
-			<Badge variant="destructive">Over the {MAX_REQUESTS} limit — narrow the selection</Badge>
+			<Badge variant="destructive">Over the {MAX_PAIRS} limit — narrow the selection</Badge>
 		{/if}
+		<label class="flex items-center gap-1 text-sm">
+			<span class="text-muted-foreground">Per request</span>
+			<Select.Root type="single" bind:value={batchSizeStr}>
+				<Select.Trigger class="w-20">{batchSize}</Select.Trigger>
+				<Select.Content>
+					{#each BATCH_SIZES as size (size)}
+						<Select.Item value={String(size)} label={String(size)} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
+		</label>
 		<div class="ml-auto flex gap-2">
 			<Button size="sm" variant="outline" disabled={busy || !canQuick} onclick={runQuick}>
-				Quick inline (≤{INLINE_LIMIT})
+				Quick inline (≤{INLINE_PAIR_LIMIT} pairs)
 			</Button>
-			<Button size="sm" disabled={busy || requestCount === 0 || overLimit} onclick={submitCheap}>
+			<Button size="sm" disabled={busy || pairCount === 0 || overLimit} onclick={submitCheap}>
 				Submit cheap batch
 			</Button>
 			{#if jobId}

@@ -85,7 +85,8 @@ async function mistralFetch(path: string, init: RequestInit): Promise<unknown> {
 export function buildChatBody(
 	systemPrompt: string,
 	userMessage: string,
-	model: string
+	model: string,
+	maxTokens = 256
 ): Record<string, unknown> {
 	return {
 		model,
@@ -94,9 +95,14 @@ export function buildChatBody(
 			{ role: 'user', content: userMessage }
 		],
 		temperature: 0,
-		max_tokens: 256,
+		max_tokens: maxTokens,
 		response_format: { type: 'json_object' }
 	};
+}
+
+/** Output budget scales with packing: ~256 tokens per ingredient, capped. */
+export function maxTokensForGroupSize(size: number): number {
+	return Math.min(256 * Math.max(1, size), 4000);
 }
 
 export function buildJsonl(requests: BatchRequestLine[]): string {

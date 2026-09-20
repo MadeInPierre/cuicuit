@@ -2,12 +2,9 @@ import { z } from 'zod';
 
 import { OpError } from '../errors.js';
 import { defineOp, type OpCtx } from '../registry.js';
-import {
-	batchTaskIdSchema,
-	decodeCustomId,
-	type BatchResultRow
-} from './batch-tasks.js';
+import { batchTargetSchema, chunkPairs, decodeGroupId, parseGroupPayload } from './batch-tasks.js';
 import { getBatchTask } from './batch-tasks.js';
+import { loadBatchSources } from './batch-sources.js';
 import {
 	downloadBatchFile,
 	extractLineContent,
@@ -19,21 +16,26 @@ import { requireAdmin } from './require-admin.js';
 /**
  * `ingredients.batch-status` — poll a Mistral batch job + parse results (M4).
  *
- * Input is just `{ jobId, taskId }` (both persisted by the UI in
- * localStorage). While the job runs, returns `{ status, done: false }`.
- * On `SUCCESS`, downloads the output file, validates each line against the
- * task's output schema, and returns review-ready rows. Nothing is written —
+ * Input is the full job spec `{ jobId, taskId, ingredientIds, targetLangs,
+ * batchSize }` (persisted by the UI in localStorage): chunking is
+ * deterministic, so the groups are rebuilt exactly as `batch-submit` made
+ * them — no server-side job table needed. While the job runs, returns
+ * `{ status, done: false }`. On `SUCCESS`, downloads the output file and
+ * returns per-item salvaged rows for review. Nothing is written —
  * persisting is `batch-apply`'s job, after human review.
  */
 
-export const batchStatusInput = z.object({
+export const batchStatusInput = batchTargetSchema.extend({
 	jobId: z.string().min(1).max(100),
-	taskId: batchTaskIdSchema
+	ingredientIds: z.array(z.string().uuid()).min(1).max(2000)
 });
 
 export type BatchStatusInput = z.infer<typeof batchStatusInput>;
 
-export interface BatchReviewRow extends BatchResultRow {
+export interface BatchReviewRow {
+	ingredientId: string;
+	lang: string;
+	data: Record<string, unknown>;
 	error: string | null;
 }
 
@@ -50,7 +52,7 @@ export const batchStatusOp = defineOp({
 	input: batchStatusInput,
 	internal: true,
 	handler: async (ctx: OpCtx, input: BatchStatusInput) => {
-		await requireAdmin(ctx);
+		const admin = await requireAdmin(ctx);
 		const task = getBatchTask(input.taskId);
 		const job = await getBatchJob(input.jobId);
 
@@ -64,45 +66,32 @@ export const batchStatusOp = defineOp({
 		};
 
 		if (job.status !== 'SUCCESS') {
-			return { ...base, done: false as const, results: [] as BatchReviewRow[] };
+			return { ...base, done: false as const, results: [] as BatchReviewRow[], skipped: [] as string[] };
 		}
 		if (!job.output_file) {
 			throw new OpError('INTERNAL', 'Batch job succeeded but has no output file.');
 		}
 
+		// Rebuild the groups exactly as batch-submit made them.
+		const { sources, skipped } = await loadBatchSources(admin, input.ingredientIds);
+		const groups = new Map(chunkPairs(sources, input.targetLangs, input.batchSize).map((g) => [g.index, g]));
+
 		const jsonl = await downloadBatchFile(job.output_file);
 		const lines = parseOutputLines(jsonl);
 		const results: BatchReviewRow[] = [];
 		for (const line of lines) {
-			const decoded = decodeCustomId(line.custom_id);
-			if (!decoded) continue;
+			const index = decodeGroupId(line.custom_id);
+			const group = index === null ? undefined : groups.get(index);
+			if (!group) continue;
 			const extracted = extractLineContent(line);
 			if ('error' in extracted) {
-				results.push({
-					ingredientId: decoded.ingredientId,
-					lang: decoded.lang,
-					data: {},
-					error: extracted.error
-				});
+				for (const p of group.pairs) {
+					results.push({ ingredientId: p.ingredientId, lang: p.lang, data: {}, error: extracted.error });
+				}
 				continue;
 			}
-			const parsed = task.outputSchema.safeParse(extracted.json);
-			if (!parsed.success) {
-				results.push({
-					ingredientId: decoded.ingredientId,
-					lang: decoded.lang,
-					data: {},
-					error: 'Model output failed validation.'
-				});
-				continue;
-			}
-			results.push({
-				ingredientId: decoded.ingredientId,
-				lang: decoded.lang,
-				data: parsed.data as Record<string, unknown>,
-				error: null
-			});
+			results.push(...parseGroupPayload(extracted.json, task, group));
 		}
-		return { ...base, done: true as const, results };
+		return { ...base, done: true as const, results, skipped };
 	}
 });

@@ -154,7 +154,9 @@ export const batchSubmitAdmin = command(
 		runOp('ingredients.batch-submit', await requireCtx('app'), input)
 );
 
-export const batchStatusAdmin = query(batchStatusInput, async (input: BatchStatusInput) =>
+export const batchStatusAdmin = command(batchStatusInput, async (input: BatchStatusInput) =>
+	// `command` (POST body), not `query`: the job spec carries up to 2000
+	// ingredient ids, which would overflow a query URL.
 	runOp('ingredients.batch-status', await requireCtx('app'), input)
 );
 
