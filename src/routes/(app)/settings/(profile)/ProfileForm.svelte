@@ -25,7 +25,11 @@
 		resetForm: false,
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
-			else console.error('Form invalid', form.errors);
+			// Handled failure: inline field errors are shown to the user, so log a
+			// warning for developers instead of a console.error (posthog captures
+			// console.error as an exception, which would open a high-severity issue
+			// for a normal validation failure).
+			else console.warn('Form invalid', form.errors);
 		}
 	});
 	const { form: formData, enhance, allErrors } = form;
