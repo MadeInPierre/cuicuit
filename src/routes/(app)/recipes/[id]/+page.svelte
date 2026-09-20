@@ -65,10 +65,9 @@
 
 		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id, lang);
 
-		if (recipeError) {
-			console.error('Error fetching recipe:', recipeError);
-			return null;
-		}
+		// The adapter reports genuine fetch failures; a missing recipe is a normal
+		// 404, so just return null and let the not-found state below handle it.
+		if (recipeError) return null;
 
 		return recipeData;
 	}
@@ -87,6 +86,9 @@
 		getRecipe(pageRecipeId).then((result) => {
 			recipe = result;
 			displayServings = recipe?.servings || 1;
+			if (result === null) {
+				posthog.capture('recipe_not_found', { recipe_id: pageRecipeId });
+			}
 		});
 	});
 
@@ -436,10 +438,16 @@
 			</div>
 		</main>
 	</div>
-{:else}
+{:else if recipe === undefined}
 	<div class="w-full flex flex-col items-center justify-center h-screen">
 		<h1 class="text-2xl font-bold">Loading recipe...</h1>
 		<p class="text-muted-foreground">Please wait while we fetch the recipe details.</p>
+	</div>
+{:else}
+	<div class="w-full flex flex-col items-center justify-center gap-4 h-screen">
+		<h1 class="text-2xl font-bold">Recipe not found</h1>
+		<p class="text-muted-foreground">This recipe was deleted or is not available to you.</p>
+		<Button href="/recipes">Browse recipes</Button>
 	</div>
 {/if}
 

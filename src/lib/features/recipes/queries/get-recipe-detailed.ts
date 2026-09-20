@@ -1,4 +1,4 @@
-import { getClientCtx, runOp } from '$lib/core/operations/client.js';
+import { getClientCtx, OpError, runOp } from '$lib/core/operations/client.js';
 import type { GetRecipeInput, GetRecipeOutput } from '$lib/core/operations/recipes/get.js';
 import type {
 	ListRecipesFilter,
@@ -6,6 +6,7 @@ import type {
 	ListRecipesOutput
 } from '$lib/core/operations/recipes/list.js';
 import type { LanguageCode } from '$lib/shared/language.js';
+import posthog from 'posthog-js';
 
 /**
  * M2: thin client adapters over the `recipes.list` / `recipes.get` core ops.
@@ -64,7 +65,17 @@ export async function getRecipeDetailed(
 		});
 		return { data, error: null };
 	} catch (error) {
-		console.error('Error fetching recipes:', error);
+		// A NOT_FOUND is an ordinary 404 (a deleted or inaccessible recipe) that the
+		// caller handles with its not-found state. posthog captures console.error as
+		// an exception, so warn instead of opening an issue for a normal 404. Genuine
+		// fetch failures still surface as a readable exception.
+		if (error instanceof OpError && error.code === 'NOT_FOUND') {
+			console.warn('Recipe not found:', recipeId);
+		} else if (posthog.__loaded) {
+			posthog.captureException(new Error('Error fetching recipe'), {
+				cause: error instanceof Error ? error.message : error
+			});
+		}
 		return { data: null, error };
 	}
 }
