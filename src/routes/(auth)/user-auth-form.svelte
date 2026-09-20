@@ -129,7 +129,7 @@
 			Continue with Google
 		</Button>
 
-		<Button
+		<!-- <Button
 			variant="outline"
 			type="button"
 			disabled={true}
@@ -143,7 +143,7 @@
 			{/if}
 			Continue with Apple
 			<span class="absolute right-4 top-1/2 -translate-y-1/2 italic text-xs">soon</span>
-		</Button>
+		</Button> -->
 	</div>
 
 	<div class="flex gap-3 items-center mt-2">

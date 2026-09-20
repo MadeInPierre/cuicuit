@@ -72,7 +72,7 @@ export default defineConfig({
 				],
 				screenshots: [
 					{
-						src: '/screenshots/demo_desktop.png',
+						src: '/screenshots/demo_desktop.jpeg',
 						sizes: '1280x720',
 						type: 'image/png',
 						form_factor: 'wide'

@@ -16,14 +16,18 @@ version use its URL instead):
 ```bash
 export BASE="http://localhost:5173/api/v1"   # the app (`npm run dev`)
 export SUPABASE_URL="http://127.0.0.1:54321" # local Supabase (see `.env`: PUBLIC_SUPABASE_URL)
-export ANON_KEY="<PUBLIC_SUPABASE_PUBLISHABLE_KEY from .env>"  # public key, safe to use here
 ```
 
-### 1. Create an account
+### 1. Create an PAT (Personal Access Token)
 
-Sign up in the web app, or with `curl`:
+Sign up in the web app, go to your user settings, and generate an API token (aka. PAT).
+
+<details><summary>Or do it from the command line</summary>
+Start by signing up with Supabase directly (or use the web app for this step):
 
 ```bash
+export ANON_KEY="..." # from .env: PUBLIC_SUPABASE_ANON_KEY
+
 curl -X POST $SUPABASE_URL/auth/v1/signup \
   -H "apikey: $ANON_KEY" -H 'Content-Type: application/json' \
   -d '{"email":"you@example.com","password":"pick-a-strong-password"}'
@@ -34,7 +38,7 @@ no mailer? Open Supabase Studio (usually http://127.0.0.1:54323) →
 Authentication → your user → Confirm email. A personal "Home" space is created
 for you automatically.
 
-### 2. Sign in and get a token (JWT)
+Once you have a confirmed account, get a short-lived JWT:
 
 ```bash
 JWT=$(curl -s -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
@@ -43,31 +47,34 @@ JWT=$(curl -s -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
   | python3 -c "import json,sys; print(json.load(sys.stdin)['access_token'])")
 ```
 
-This short-lived JWT already calls every endpoint. But for daily use, trade it
-for a **Personal Access Token (PAT)** that you can revoke anytime:
+You could already use this short-lived JWT everywhere, but for daily use, trade it
+for a no-expiry **Personal Access Token (PAT)** that you can revoke anytime:
 
 ```bash
 curl -X POST $BASE/auth/tokens -H "Authorization: Bearer $JWT" \
   -H 'Content-Type: application/json' -d '{"name":"my-laptop"}'
 # → {"id":"...","secret":"cui_..."}
 ```
+</details>
 
-**Copy the `secret` now — it is shown only once** and can't be recovered
-(you can always create a new one). Then forget the JWT and use the PAT:
+**Copy the secret now, it is shown only once** and can't be recovered
+(you can always create a new one). Then forget the JWT and use the PAT from now on:
 
 ```bash
 export TOKEN="cui_...paste-yours-here"
-curl $BASE/me -H "Authorization: Bearer $TOKEN"
+curl $BASE/me -H "Authorization: Bearer $TOKEN"  # View your profile
 ```
 
-Token housekeeping (needs the JWT, PATs can't manage themselves):
+<details><summary>Token housekeeping (JWT vs PAT)</summary>
+If you want to manage PATs from the CLI, here is an example (needs the JWT, PATs can't manage themselves):
 
 ```bash
 curl $BASE/auth/tokens -H "Authorization: Bearer $JWT"        # list
 curl -X DELETE $BASE/auth/tokens/<id> -H "Authorization: Bearer $JWT"  # revoke
 ```
+</details>
 
-### 3. Typical usage
+### 3. Typical usage examples
 
 ```bash
 # Who am I, and how many AI seeds do I have?
@@ -100,8 +107,7 @@ curl "$BASE/spaces/$SPACE/shopping-list?lang=en-US" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Import a recipe from a blog URL with AI (costs 1 seed, streams progress —
-note the `-N` flag and the `event: error` failure frame):
+Import a recipe from a blog URL with AI (costs 1 seed, streams progress updates). Note that the `-N` flag keeps the connection open to receive progress frames:
 
 ```bash
 curl -N -X POST $BASE/recipes/import-url -H "Authorization: Bearer $TOKEN" \
@@ -174,7 +180,7 @@ Progress arrives as `data: <json>` frames, then the final result. Failures arriv
 
 ## Errors
 
-Envelope: `{ "error": { "code": "...", "message": "..." } }`.
+Errors follow this shape: `{ "error": { "code": "...", "message": "..." } }`.
 
 | Status | Meaning                                  |
 | ------ | ---------------------------------------- |

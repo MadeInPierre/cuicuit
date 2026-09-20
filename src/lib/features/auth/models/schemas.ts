@@ -40,6 +40,6 @@ export const profileFormSchema = z.object({
 		.max(30, 'Your username cannot be longer than 30 characters.')
 		.refine((s) => !s.includes(' '), 'No spaces allowed in the username.'),
 	iconKey: z.string().trim().min(1, 'You must select an icon for your profile.'),
-	lang: languageCodeSchema
+	lang: languageCodeSchema.default('en-US')
 });
 export type ProfileFormSchema = typeof profileFormSchema;

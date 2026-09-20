@@ -61,8 +61,10 @@ Click to expand. Items marked with 🚧 are currently in progress:
 - [ ] **🚧 Hosted version**
   - [x] Publicly hosted version for testing and feedback
   - [x] Basic multi-user support with isolated spaces
-  - [ ] Crowd-funded moneypot to share LLM and hosting costs
+  - [x] Crowd-funded moneypot to share LLM and hosting costs
   - [ ] ToS, Privacy, Cookies banners, and GDPR compliance
+  - [ ] Fix main bugs, rough UX edges, and stabilize the API a bit before launching self-hosted
+  - [ ] Offline usage & sync engine (PowerSync)
 - [ ] **Self-hosted version**
   - [ ] Dockerized deployment & documentation
   - [ ] Automated database migrations on startup
@@ -71,12 +73,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
 - [ ] **Documentation**
   - [ ] Usage documentation for end-users
   - [ ] Technical architecture documentation for devs
-- [ ] **Technical**
   - [ ] Translate app & docs
-  - [ ] Real-time & partial offline tolerance with a sync engine (PowerSync/Zero, TBD)
-- [ ] **Open questions**
-  - [ ] How much offline-capable should the app be?
-  - [ ] Is a PWA enough or should we build a native app?
   </details>
 
 <details><summary><strong>🐣 Chapter 1: Import recipes, plan meals, get shopping lists 🚧</strong></summary>
@@ -90,6 +87,7 @@ Click to expand. Items marked with 🚧 are currently in progress:
   - [ ] Convert ingredient quantities and units
   - [ ] Organize recipes in shareable cookbooks
   - [ ] Robust recipe import from social media, photos, text, and other apps.
+  - [ ] Recipe variants: plan a meal, switch meal ingredients, save as variant/shortcut
 - [x] **Basic meal planning**
   - [x] Simple dateless meal plan
   - [x] Add additional ingredients & custom items
@@ -157,180 +155,42 @@ Click to expand. Items marked with 🚧 are currently in progress:
   - [ ] Kill-switch toggle to fully disable auto-filling behaviors
   </details>
 
-<!-- <details><summary>🪐 Chapter 5: The Extended Ecosystem (Long-Term Vision)</summary>
-
-*Focus: Deep history, advanced AI, hyper-local networks, and environmental footprint tracking.*
-
-* [ ] **Generative AI Enhancements**
-  * [ ] Fully generative recipe drafting utilizing chaotic or highly specific left-over ingredient bundles
-  * [ ] **Mood Radio:** Natural language interface accepting prompts (e.g., *"Comfort food for a rainy Sunday"*) to spin up targeted meal flows
-* [ ] **History, Audits, & Micro-Reminders**
-  * [ ] Complete chronological tracking of pantry states, meal plans, and old receipts
-  * [ ] Universal "Undo" capability for accidental pantry edits or incorrect cooking logs
-  * [ ] Contextual surface of historic ratings and personal notes directly into main recipe cards and search engines
-  * [ ] High-signal household messaging (e.g., *"Pinging home group: I'm at the store, need anything?"*)
-* [ ] **Sustainability, Wellness, & Local Supply Chains**
-  * [ ] Comprehensive nutritional scoring, analytics, and target adjustments
-  * [ ] Carbon footprint ($CO_2$) and direct water usage approximations per ingredient choice
-  * [ ] Food waste tracking metrics and cost-loss summaries
-  * [ ] Dietitian Portal: let certified nutritionists securely analyze your stats or curate your meal plan
-  * [ ] Local producer aggregation: Automatically suggest sourcing options from nearby independent farms alongside standard supermarket delivery loops
-</details> -->
-
 ## 🛠️ For developers
 
-New here? Start with [`docs/operations.md`](docs/operations.md) — the short, friendly
-0→60 guide to Cuicuit's core: every database operation is defined once and shared
-by the app, the [REST API](src/routes/api/v1/README.md) and [MCP](src/routes/mcp/README.md).
+If you'd like to contribute (thank you!), start with [`docs/operations.md`](docs/operations.md). It's a guide to Cuicuit's core: every database operation is defined once and shared by the web app, the [REST API](src/routes/api/v1/README.md) and [MCP](src/routes/mcp/README.md).
+
+Technical documentation is not complete yet, hop on [Discord](https://discord.gg/yJrPfp2G3y) and I'll help you get started! Here's the in-a-nutshell version:
+
+<details><summary>Local Development Quickstart</summary>
+
+A more complete guide will be written soon, but here is a quickstart for now:
+```bash
+# Clone the repo and install dependencies
+git clone https://github.com/MadeInPierre/cuicuit.git
+cd cuicuit
+npm install
+
+# Setup environment variables (see `.env.example` for reference)
+cp .env.example .env
+# Edit .env to set your own values (e.g., Supabase URL and keys)
+
+# Start the local Supabase dev server (Postgres + Auth + Storage)
+supabase start
+# Open http://localhost:54321 in your browser to access Supabase Studio
+
+npm run db:reset  # Create the database schema and seed it with test data
+
+# Start the dev server (web app + API + MCP)
+npm run dev
+# Open http://localhost:5173 in your browser
+# Log in with the seeded dev user `dev@cuicuit.app` with password `1SouffleAuFromage`
+# Open http://localhost:5173/api/v1/docs for the API docs
+```
+
+</details>
 
 ## 💌 Contributions
 
 Cuicuit is built and maintained in my free time. I’d love to keep improving it and make it useful for more people. If you like the project and want to help it grow, [your support](https://github.com/sponsors/MadeInPierre) makes a real difference ❤️
 
 Contributors will appear here!
-
-<!-- ### Deprecated
-
-<details>
-<summary>Deprecated</summary>
-
-# Features:
-
-- [X] Create one or more "home" spaces (e.g. home, work, parents' house...)
-- [X] Share homes with other users to collaborate in real-time
-- [ ] Create recipes
-- [ ] View recipes from other users (random recipes, search by name, search by category)
-- [ ] Like recipes, organize them in categories, rate them, customize them
-- [ ] Create a meal plan (with no dates for now) by adding recipes into planned meals
-- [ ] Generate a shopping list from the meal plan
-  - [ ] Shopping list page: group by recipe, supermarket aisle, in cart or not, etc.
-  - [ ] Show ingredients generated from the meal plan, from the pantry minimum quantities
-  - [ ] Manually add items (including household items)
-  - [ ] Ask what to do with expired items (e.g. mark as trashed and add to the shopping list, or cook it now?)
-  - [ ] Show the total price of the shopping list
-- [ ] Create a pantry with:
-  - [ ] Items (ingredients, home articles...)
-  - [ ] Categories (fruits, spices...)
-  - [ ] Quantities (amount, unit with conversions)
-  - [ ] Expiration dates
-  - [ ] Location (fridge, freezer, pantry...)
-  - [ ] Tags (opened, to buy...)
-  - [ ] Habits (e.g. 100g cereals or eggs for breakfast) to auto-consume items
-  - [ ] Minimum quantity (e.g. 1L milk) to auto-add to the shopping list even without planned meals
-- [ ] Reserve pantry items to the meals of the meal plan
-  - [ ] Reserve from top to bottom of the list, notify the user if there are missing items
-- [ ] Update the pantry quantities:
-  - [ ] Manual input
-  - [ ] Smart scale
-  - [ ] Groceries receipt scan
-  - [ ] Supermarket API
-  - [ ] Mark recipes as cooked to update the pantry
-- [ ] Recipe smart suggestions: based on your pantry, expiration dates, your meal plan, your liked recipes, etc.
-  - [ ] Button on top as "Ideas for (-) 2 (+)" people
-  - [ ] Give ideas of recipes "ready to cook", "change of plans" or "groceries needed"
-  - [ ] Small badges on the recipe suggestions give the reason (e.g. "This item is about to expire")
-  - [ ] On top of the page, an assistant gives suggestions of filters (e.g. Search with soon-to-expire items?)
-- [ ] View your pantry anytime in the calendar/between planned meals: simulate what your pantry will be
-  - [ ] In the calendar view, hover over a meal to see the pantry status after this meal
-  - [ ] Set any of these pantry states as the current pantry state
-  - [ ] Recipe suggestions will be based on this pantry states
-  - [ ] Useful for changing plans and seeing the consequences on the pantry
-  - [ ] Wizard mode (see below) will use this feature to generate recommendations day-by-day
-
-[Long term features]
-- Supermarket mode:
-  - Mark items as bought (i.e. in the cart)
-  - Scan barcodes to add items to the cart and get nutrition insights
-  - Drive mode: automatically buy items online (e.g. from the supermarket API)
-- Pantry quantity uncertainty: you can specify a quantity with a range (e.g. 1-2 onions)
-  - Define habits for each item (e.g. usually breakfast with 100g cereals or 2 eggs)
-  - Algorithm to suggest the quantity based on habits and past updates
-  - Ask the user to update the exact quantity from time to time
-- AI suggestions:
-  - Propose unique recipes or meals (combining recipes or simple ingredients) based on your pantry
-  - Radio: input any text that describes your mood, and the AI will suggest recipes based on that
-- Notify other users in the home you're going to groceries, do they need something?
-- History mode: see the history of your pantry, meal plans, recipes, etc.
-  - Show past ratings and comments on recipes in the recipe suggestions/search/pages
-  - Undo changes in the pantry/meal plan
-  - View past receipts, log of groceries bought and consumed items/meals, etc.
-- Wizard mode: Cuicuit learns the user's habits and continuously fill the meal plan
-  - For example, if you mostly eat simple meals at dinner, Cuicuit will suggest simple recipes
-  - Suggestions are half-faded in the UI, and the user can click on them to confirm/switch/remove
-  - This will always make the shopping list full of things to buy, should have a setting to disable this?
-  - Settings: Familiar/Mixed/Discover mode, Flexitarian mode, Higher mood than usual, etc.
-- Super long term: Nutrition insights, C02 and water footprint, waste tracking, spending tracking, etc.
-  - Nutritionists can help you generate a meal plan based on your goals (they add recipes to your meal plan or share custom-made cookbooks)
-  - Search for local producers to buy from them, also auto recommended in the shopping list page alongside the supermarket drive mode
-
-# File structure
-
-```
-src/
-    routes/
-        api/
-            +server.ts
-            local-action.ts
-        home/
-            [id]/
-                +page.svelte
-        +layout.svelte
-        +page.svelte
-        LocalComponent.svelte
-
-    lib/
-        shared/
-            components/
-                icons/
-            utils/
-            server/
-
-        features/
-            marketing/
-                components/
-                    MarketingNavbar.svelte
-
-            app-skeleton/
-
-            auth/
-                1. components/
-                2. state/
-                3. actions/
-                5. models/
-                    schemas.ts (zod schemas)
-                    models.ts (ui-only object types)
-                6. db/
-                    models.ts (UserDoc, ...)
-                7. server/
-                    create-user-doc.ts
-                8. constants/
-                    navbar-links.ts
-
-
-            recipes/
-                db/
-                    models.ts (Recipe model)
-
-            pantry/
-                items/
-                categories/
-                ...
-```
-
-This structure is inspired by:
-- The feature-based architecture presented in this [YouTube video](https://www.youtube.com/watch?v=xyxrB2Aa7KE)
-- The Feature Sliced Design pattern presented in this [article](https://dev.to/m_midas/feature-sliced-design-the-best-frontend-architecture-4noj)
-- The Immich app architecture they use, see their [GitHub source tree](https://github.com/immich-app/immich/tree/main/web/src)
-
-At the root of the `src/` folder, we have:
-- `routes/` for the pages of the app
-- `features/` for the different features or domains of the app. Each feature has its own folder with the structure (ordered from most frontend to most backend):
-    - `components/` for the components of the feature
-    - `state/` for the state management of the feature
-    - `actions/` for the actions of the feature
-    - `models/` for the models of the feature
-    - `db/` for the database models of the feature
-    - `server/` for the server-side logic of the feature
-- `shared/` for shared files used globally in the app. This folder uses the same structure as the `features/` folder.
-
-</details> -->
