@@ -20,10 +20,9 @@
 		"db:start": "npx --yes supabase start  # Start supabase locally",
 		"db:stop": "npx --yes supabase stop  # Stop supabase locally",
 		"db:deploy": "npx --yes supabase db push  # Deploy local changes to the database",
-		"db:reset": "npx --yes supabase db reset  # Reset the database to the latest migration",
-		"db:serve": "npx --yes supabase functions serve  # Serve supabase functions locally",
-		"db:types:cloud": "npx --yes supabase gen types typescript --project-id qyeioetcqxvpsqmyqohf > src/lib/shared/db/supabase.types.ts && npm run supazod:update",
-		"db:types:local": "npx --yes supabase gen types typescript --local > src/lib/shared/db/supabase.types.ts && npm run supazod:update",
+		"db:reset": "npx --yes supabase db reset  # Reset the database to the latest migration + seeds (reference + local dev data)",
+		"db:seed:dev": "docker exec -i supabase_db_cuicuit psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/seeds/dev.sql  # (Re)load the local dev@cuicuit.app demo data without a full reset",
+		"db:types": "npx --yes supabase gen types typescript --local > src/lib/shared/db/supabase.types.ts && npm run supazod:update",
 		"supazod:update": "npx supazod -i src/lib/shared/db/supabase.types.ts -o src/lib/shared/db/supazod.schemas.ts --inline-types"
 	},
 	"devDependencies": {

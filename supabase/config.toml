@@ -57,7 +57,9 @@ schema_paths = []
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+# ./seed.sql is reference-only (safe to ship). ./seeds/dev.sql adds the local
+# dev@cuicuit.app demo account. Keep it out of self-hosted deployments.
+sql_paths = ["./seed.sql", "./seeds/dev.sql"]
 
 [realtime]
 enabled = true
