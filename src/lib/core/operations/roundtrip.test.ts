@@ -627,6 +627,43 @@ if ('ok' in dbResult) {
 					file: new File(['x'], 'x.jpg', { type: 'image/jpeg' })
 				})
 			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.batch-run-inline', b.ctx, {
+					taskId: 'translation.full',
+					targetLangs: [LANG],
+					ingredientIds: [noAdmin.ingredientId]
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.batch-submit', b.ctx, {
+					taskId: 'translation.full',
+					targetLangs: [LANG],
+					ingredientIds: [noAdmin.ingredientId]
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.batch-status', b.ctx, {
+					jobId: 'nope',
+					taskId: 'translation.full'
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.batch-apply', b.ctx, {
+					taskId: 'translation.full',
+					rows: [
+						{
+							ingredientId: noAdmin.ingredientId,
+							lang: LANG,
+							data: {
+								name_singular: 'x',
+								name_plural: 'xs',
+								name_general: 'x',
+								commonly_used: 'rare'
+							}
+						}
+					]
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
 		});
 
 		it('admin ingredients: create → get → update → translate → substitute → image', async () => {
@@ -765,6 +802,66 @@ if ('ok' in dbResult) {
 				// Best-effort cleanup, strictly scoped to this run's rows.
 				await admin.from('ingredient_substitutions').delete().eq('original_ingredient_id', ingredientId);
 				await admin.from('ingredients').delete().in('id', [ingredientId, target.id]);
+			} finally {
+				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
+			}
+		});
+
+		it('admin batch-apply: names then usage-only merge (no LLM)', async () => {
+			await admin.from('user_permissions').update({ role: 'admin' }).eq('user_id', a.id);
+			try {
+				const slug = `rt-batch-${RUN}`;
+				const created = (await runOp('ingredients.create', a.ctx, {
+					slug,
+					slugGeneral: slug,
+					aisle: null,
+					hierarchy: [],
+					baseUnit: 'g',
+					initialTranslation: { lang: LANG, nameGeneral: `RT Batch ${RUN}` }
+				})) as { id: string };
+				const ingredientId: string = created.id;
+
+				// New language via names-only task.
+				const names = (await runOp('ingredients.batch-apply', a.ctx, {
+					taskId: 'translation.names',
+					rows: [
+						{
+							ingredientId,
+							lang: 'fr-FR',
+							data: {
+								name_singular: `RT Truc ${RUN}`,
+								name_plural: `RT Trucs ${RUN}`,
+								name_general: `RT Truc ${RUN}`
+							}
+						}
+					]
+				})) as { applied: number; failed: number };
+				expect(names).toMatchObject({ applied: 1, failed: 0 });
+
+				// Usage-only re-run must preserve names (column merge).
+				const usage = (await runOp('ingredients.batch-apply', a.ctx, {
+					taskId: 'translation.commonly_used',
+					rows: [{ ingredientId, lang: 'fr-FR', data: { commonly_used: 'daily' } }]
+				})) as { applied: number };
+				expect(usage.applied).toBe(1);
+				const gotten = (await runOp('ingredients.get', a.ctx, { ingredientId })) as {
+					translations: Array<{
+						language: { lang: string };
+						name_general: string;
+						commonly_used: string;
+					}>;
+				};
+				const fr = gotten.translations.find((t) => t.language.lang === 'fr-FR');
+				expect(fr).toMatchObject({ name_general: `RT Truc ${RUN}`, commonly_used: 'daily' });
+
+				// Invalid row → reported, never throws.
+				const bad = (await runOp('ingredients.batch-apply', a.ctx, {
+					taskId: 'translation.full',
+					rows: [{ ingredientId, lang: 'fr-FR', data: { name_general: '' } }]
+				})) as { applied: number; failed: number };
+				expect(bad).toMatchObject({ applied: 0, failed: 1 });
+
+				await admin.from('ingredients').delete().eq('id', ingredientId);
 			} finally {
 				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
 			}

@@ -44,6 +44,23 @@ import {
 	upsertIngredientTranslationInput,
 	type UpsertIngredientTranslationInput
 } from '$lib/core/operations/ingredients/upsert-translation.js';
+import {
+	batchApplyInput,
+	type BatchApplyInput
+} from '$lib/core/operations/ingredients/batch-apply.js';
+import {
+	batchRunInlineInput,
+	type BatchRunInlineInput,
+	type BatchRunInlineResult
+} from '$lib/core/operations/ingredients/batch-run-inline.js';
+import {
+	batchStatusInput,
+	type BatchStatusInput
+} from '$lib/core/operations/ingredients/batch-status.js';
+import {
+	batchSubmitInput,
+	type BatchSubmitInput
+} from '$lib/core/operations/ingredients/batch-submit.js';
 
 /**
  * Thin adapters over the admin-only ingredient ops — no business logic here.
@@ -115,6 +132,35 @@ export const relinkCustomIngredientAdmin = command(
 			await requireCtx('app'),
 			input
 		)
+);
+
+/**
+ * M4 batch adapters — thin, no business logic. Review-before-save is
+ * enforced by the UI (results are returned for review, never auto-applied).
+ */
+export const batchRunInlineAdmin = command(
+	batchRunInlineInput,
+	async (input: BatchRunInlineInput) =>
+		runOp<BatchRunInlineInput, BatchRunInlineResult>(
+			'ingredients.batch-run-inline',
+			await requireCtx('app'),
+			input
+		)
+);
+
+export const batchSubmitAdmin = command(
+	batchSubmitInput,
+	async (input: BatchSubmitInput) =>
+		runOp('ingredients.batch-submit', await requireCtx('app'), input)
+);
+
+export const batchStatusAdmin = query(batchStatusInput, async (input: BatchStatusInput) =>
+	runOp('ingredients.batch-status', await requireCtx('app'), input)
+);
+
+export const batchApplyAdmin = command(
+	batchApplyInput,
+	async (input: BatchApplyInput) => runOp('ingredients.batch-apply', await requireCtx('app'), input)
 );
 // NOTE: `ingredients.upload-image` has no remote — it runs browser-direct via
 // `runOp` + `getClientCtx` (same as `recipes.upload-image`), because `File`

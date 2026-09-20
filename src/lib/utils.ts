@@ -117,7 +117,7 @@ export function cosineSimilarity(A: number[], B: number[]) {
 export function capitalize(s: string | null | undefined): string {
 	if (typeof s !== 'string') return '';
 	if (s.length === 0) return s;
-	return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+	return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 const accentsMap: Record<string, string> = {

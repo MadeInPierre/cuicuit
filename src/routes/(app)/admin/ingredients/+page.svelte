@@ -18,6 +18,7 @@
 	import { toast } from 'svelte-sonner';
 	import { AISLE_OPTIONS, COMMONLY_USED_OPTIONS } from './consts.js';
 	import CustomItemsTab from './CustomItemsTab.svelte';
+	import BatchTab from './BatchTab.svelte';
 	import IngredientCreateDialog from './IngredientCreateDialog.svelte';
 
 	type Ingredient = ListIngredientsResult[number];
@@ -150,6 +151,7 @@
 		<Tabs.List>
 			<Tabs.Trigger value="catalog">Catalog</Tabs.Trigger>
 			<Tabs.Trigger value="custom">Custom items</Tabs.Trigger>
+			<Tabs.Trigger value="batch">AI Batch</Tabs.Trigger>
 		</Tabs.List>
 
 		<Tabs.Content value="catalog" class="flex flex-col gap-4">
@@ -286,6 +288,12 @@
 		<Tabs.Content value="custom">
 			{#if tab === 'custom'}
 				<CustomItemsTab {languages} />
+			{/if}
+		</Tabs.Content>
+
+		<Tabs.Content value="batch">
+			{#if tab === 'batch'}
+				<BatchTab {ingredients} {languages} />
 			{/if}
 		</Tabs.Content>
 	</Tabs.Root>

@@ -57,8 +57,12 @@ export const languageCodeSchema = z.preprocess(
  * The API itself accepts any language present in the DB `languages` table.
  */
 export const CURATED_LANGUAGES = {
-	'en-US': { label: 'English', emoji: '🇺🇸' },
-	'fr-FR': { label: 'Français', emoji: '🇫🇷' },
-	'es-ES': { label: 'Español', emoji: '🇪🇸' },
-	'pt-BR': { label: 'Português', emoji: '🇧🇷' }
+	'en-US': { id: 1, label: 'English', emoji: '🇺🇸' },
+	'fr-FR': { id: 2, label: 'Français', emoji: '🇫🇷' },
+	'es-ES': { id: 3, label: 'Español', emoji: '🇪🇸' },
+	'pt-BR': { id: 4, label: 'Português', emoji: '🇧🇷' },
+	'de-DE': { id: 5, label: 'Deutsch', emoji: '🇩🇪' },
+	'it-IT': { id: 6, label: 'Italiano', emoji: '🇮🇹' },
+	'nl-NL': { id: 7, label: 'Nederlands', emoji: '🇳🇱' },
+	'pt-PT': { id: 8, label: 'Português', emoji: '🇵🇹' }
 } as const;

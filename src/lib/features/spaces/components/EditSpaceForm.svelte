@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import { CURATED_LANGUAGES, type LanguageCode } from '$lib/shared/language.js';
-	const languages = CURATED_LANGUAGES;
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
+	import { CURATED_LANGUAGES, type LanguageCode } from '$lib/shared/language.js';
 	import { cn } from '$lib/utils';
 	import { Loader2 } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
@@ -136,15 +135,17 @@
 					<Form.Label>Language</Form.Label>
 
 					<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 items-center w-full">
-						{#each Object.keys(languages) as LanguageCode[] as l}
+						{#each Object.keys(CURATED_LANGUAGES) as l}
 							<Button
 								{...props}
 								size="sm"
 								variant={l === $formData.lang ? 'default' : 'secondary'}
 								onclick={() => ($formData.lang = l)}
 							>
-								{languages[l as keyof typeof languages].emoji}
-								{languages[l as keyof typeof languages].label}
+								{CURATED_LANGUAGES[l as keyof typeof CURATED_LANGUAGES].emoji}
+								<span class="ml-1">
+									{CURATED_LANGUAGES[l as keyof typeof CURATED_LANGUAGES].label}
+								</span>
 							</Button>
 						{/each}
 					</div>
