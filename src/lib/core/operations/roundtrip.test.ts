@@ -2,6 +2,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
+import sharp from 'sharp';
+
 // Same boundary stubs as `api/v1/api-v1.test.ts`: server-only import ops pull
 // `*.remote.ts` modules that vitest cannot load (never invoked in these tests).
 vi.mock('$lib/features/recipes/modules/recipe-enrich/enrich-recipe.remote', () => ({
@@ -628,6 +630,24 @@ if ('ok' in dbResult) {
 				})
 			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
 			await expect(
+				runOp('ingredients.generate-image', b.ctx, { ingredientId: noAdmin.ingredientId })
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.list-image-candidates', b.ctx, { ingredientId: noAdmin.ingredientId })
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.promote-image', b.ctx, {
+					ingredientId: noAdmin.ingredientId,
+					candidatePath: `candidates/${noAdmin.ingredientId}/x.png`
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.delete-image-candidate', b.ctx, {
+					ingredientId: noAdmin.ingredientId,
+					candidatePath: `candidates/${noAdmin.ingredientId}/x.png`
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
 				runOp('ingredients.batch-run-inline', b.ctx, {
 					taskId: 'translation.full',
 					targetLangs: [LANG],
@@ -807,6 +827,111 @@ if ('ok' in dbResult) {
 				// Best-effort cleanup, strictly scoped to this run's rows.
 				await admin.from('ingredient_substitutions').delete().eq('original_ingredient_id', ingredientId);
 				await admin.from('ingredients').delete().in('id', [ingredientId, target.id]);
+			} finally {
+				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
+			}
+		});
+
+		it('admin image candidates: list → promote → delete (no AI call)', async () => {
+			await admin.from('user_permissions').update({ role: 'admin' }).eq('user_id', a.id);
+			try {
+				const slug = `rt-img-${RUN}`;
+				const created = (await runOp('ingredients.create', a.ctx, {
+					slug,
+					slugGeneral: slug,
+					aisle: null,
+					hierarchy: [],
+					baseUnit: 'g',
+					initialTranslation: { lang: LANG, nameGeneral: `RT Img ${RUN}` }
+				})) as { id: string };
+				const ingredientId: string = created.id;
+
+				// No key in CI → generate fails cleanly instead of calling the API.
+				// (Skipped when a key exists: that path is a manual spot-check.)
+				if (!env.OPENAI_API_KEY && !env.OPENAI_IMAGE_API_KEY) {
+					await expect(
+						runOp('ingredients.generate-image', a.ctx, { ingredientId })
+					).rejects.toMatchObject({ name: 'OpError', code: 'INTERNAL' });
+				}
+
+				const empty = (await runOp('ingredients.list-image-candidates', a.ctx, {
+					ingredientId
+				})) as { candidates: unknown[] };
+				expect(empty.candidates).toEqual([]);
+
+				// Seed one candidate straight through storage (stands in for a
+				// generated file until OPENAI_API_KEY exists for a live check).
+				// Must be a real PNG: promote runs it through the sharp resizer.
+				const candPath = `candidates/${ingredientId}/rt-${RUN}.png`;
+				const seedBytes = Uint8Array.from(
+					atob(
+						'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+					),
+					(c) => c.charCodeAt(0)
+				);
+				const { error: seedError } = await admin.storage
+					.from('ingredients')
+					.upload(candPath, new File([seedBytes], 'rt.png', { type: 'image/png' }), {
+						contentType: 'image/png',
+						upsert: true
+					});
+				expect(seedError).toBeNull();
+				files.push({ bucket: 'ingredients', path: candPath });
+
+				const listed = (await runOp('ingredients.list-image-candidates', a.ctx, {
+					ingredientId
+				})) as { candidates: Array<{ path: string }> };
+				expect(listed.candidates).toHaveLength(1);
+				expect(listed.candidates[0].path).toBe(candPath);
+
+				// Paths outside candidates/{id}/ are rejected before touching storage.
+				await expect(
+					runOp('ingredients.promote-image', a.ctx, {
+						ingredientId,
+						candidatePath: `images/${ingredientId}.jpg`
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
+				await expect(
+					runOp('ingredients.delete-image-candidate', a.ctx, {
+						ingredientId,
+						candidatePath: `images/${ingredientId}.jpg`
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
+
+				// Promote publishes a 128×128 icon over the active image (candidate kept).
+				const promoted = (await runOp('ingredients.promote-image', a.ctx, {
+					ingredientId,
+					candidatePath: candPath
+				})) as { path: string; iconSize: number };
+				expect(promoted.path).toBe(`images/${ingredientId}.jpg`);
+				expect(promoted.iconSize).toBe(128);
+				files.push({ bucket: 'ingredients', path: promoted.path });
+
+				const { data: activeBlob, error: activeError } = await admin.storage
+					.from('ingredients')
+					.download(promoted.path);
+				expect(activeError).toBeNull();
+				const activeMeta = await sharp(
+					new Uint8Array(await activeBlob!.arrayBuffer())
+				).metadata();
+				expect(activeMeta.width).toBe(128);
+				expect(activeMeta.height).toBe(128);
+				expect(activeMeta.format).toBe('png');
+
+				// Delete removes the candidate; a second delete → NOT_FOUND.
+				const deleted = (await runOp('ingredients.delete-image-candidate', a.ctx, {
+					ingredientId,
+					candidatePath: candPath
+				})) as { removed: boolean };
+				expect(deleted.removed).toBe(true);
+				await expect(
+					runOp('ingredients.delete-image-candidate', a.ctx, {
+						ingredientId,
+						candidatePath: candPath
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'NOT_FOUND' });
+
+				await admin.from('ingredients').delete().eq('id', ingredientId);
 			} finally {
 				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
 			}

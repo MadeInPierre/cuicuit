@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 	import type { GetIngredientResult } from '$lib/core/operations/ingredients/get.js';
+	import { buildImagePrompt } from '$lib/core/operations/ingredients/image-shared.js';
 	import '$lib/core/operations/languages/list.js';
 	import type { LanguagesListOutput } from '$lib/core/operations/languages/list.js';
 	import { getIngredientAdmin } from '$lib/features/ingredients/server/admin-ingredients.remote.js';
@@ -51,6 +52,19 @@
 		const en = detail.translations.find((t) => t.language?.lang === 'en-US');
 		return en?.name_general ?? detail.translations[0]?.name_general ?? detail.ingredient.slug;
 	});
+
+	const defaultPrompt = $derived.by(() => {
+		if (!detail) return '';
+		const en = detail.translations.find((t) => t.language?.lang === 'en-US');
+		const source = en ?? detail.translations[0];
+		if (!source) return '';
+		return buildImagePrompt({
+			nameGeneral: source.name_general,
+			nameSingular: source.name_singular,
+			namePlural: source.name_plural,
+			aisle: detail.ingredient.aisle
+		});
+	});
 </script>
 
 <svelte:head>
@@ -77,7 +91,13 @@
 				<Card.Title>Image</Card.Title>
 			</Card.Header>
 			<Card.Content>
-				<IngredientImageManager ingredientId={detail.ingredient.id} {displayName} />
+				{#key detail.ingredient.id}
+					<IngredientImageManager
+						ingredientId={detail.ingredient.id}
+						{displayName}
+						{defaultPrompt}
+					/>
+				{/key}
 			</Card.Content>
 		</Card.Root>
 

@@ -61,6 +61,23 @@ import {
 	batchSubmitInput,
 	type BatchSubmitInput
 } from '$lib/core/operations/ingredients/batch-submit.js';
+import {
+	deleteImageCandidateInput,
+	type DeleteImageCandidateInput
+} from '$lib/core/operations/ingredients/delete-image-candidate.js';
+import {
+	generateIngredientImageInput,
+	type GenerateIngredientImageInput
+} from '$lib/core/operations/ingredients/generate-image.js';
+import {
+	listImageCandidatesInput,
+	type ListImageCandidatesInput,
+	type ImageCandidate
+} from '$lib/core/operations/ingredients/list-image-candidates.js';
+import {
+	promoteImageCandidateInput,
+	type PromoteImageCandidateInput
+} from '$lib/core/operations/ingredients/promote-image.js';
 
 /**
  * Thin adapters over the admin-only ingredient ops — no business logic here.
@@ -163,6 +180,38 @@ export const batchStatusAdmin = command(batchStatusInput, async (input: BatchSta
 export const batchApplyAdmin = command(
 	batchApplyInput,
 	async (input: BatchApplyInput) => runOp('ingredients.batch-apply', await requireCtx('app'), input)
+);
+
+/**
+ * M5 image-studio adapters — thin, no business logic. Generation never
+ * touches the active image; promotion copies a candidate over it.
+ */
+export const generateIngredientImageAdmin = command(
+	generateIngredientImageInput,
+	async (input: GenerateIngredientImageInput) =>
+		runOp('ingredients.generate-image', await requireCtx('app'), input)
+);
+
+export const listImageCandidatesAdmin = query(
+	listImageCandidatesInput,
+	async (input: ListImageCandidatesInput) =>
+		runOp<ListImageCandidatesInput, { candidates: ImageCandidate[] }>(
+			'ingredients.list-image-candidates',
+			await requireCtx('app'),
+			input
+		)
+);
+
+export const promoteImageCandidateAdmin = command(
+	promoteImageCandidateInput,
+	async (input: PromoteImageCandidateInput) =>
+		runOp('ingredients.promote-image', await requireCtx('app'), input)
+);
+
+export const deleteImageCandidateAdmin = command(
+	deleteImageCandidateInput,
+	async (input: DeleteImageCandidateInput) =>
+		runOp('ingredients.delete-image-candidate', await requireCtx('app'), input)
 );
 // NOTE: `ingredients.upload-image` has no remote — it runs browser-direct via
 // `runOp` + `getClientCtx` (same as `recipes.upload-image`), because `File`

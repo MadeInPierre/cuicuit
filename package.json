@@ -88,6 +88,7 @@
 		"paneforge": "^1.0.0-next.6",
 		"posthog-js": "^1.418.10",
 		"posthog-node": "^5.51.6",
+		"sharp": "^0.35.4",
 		"stripe": "^22.3.1",
 		"svelte-copy": "^2.0.0"
 	}
