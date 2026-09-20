@@ -19,6 +19,16 @@ import {
 	type GetIngredientResult
 } from '$lib/core/operations/ingredients/get.js';
 import {
+	listCustomIngredientsInput,
+	type ListCustomIngredientsInput,
+	type ListCustomIngredientsResult
+} from '$lib/core/operations/ingredients/list-custom.js';
+import {
+	relinkCustomIngredientInput,
+	type RelinkCustomIngredientInput,
+	type RelinkCustomIngredientResult
+} from '$lib/core/operations/ingredients/relink-custom.js';
+import {
 	removeIngredientSubstitutionInput,
 	type RemoveIngredientSubstitutionInput
 } from '$lib/core/operations/ingredients/remove-substitution.js';
@@ -85,6 +95,26 @@ export const removeIngredientSubstitutionAdmin = command(
 	removeIngredientSubstitutionInput,
 	async (input: RemoveIngredientSubstitutionInput) =>
 		runOp('ingredients.remove-substitution', await requireCtx('app'), input)
+);
+
+export const listCustomIngredientsAdmin = query(
+	listCustomIngredientsInput,
+	async (input: ListCustomIngredientsInput) =>
+		runOp<ListCustomIngredientsInput, ListCustomIngredientsResult>(
+			'ingredients.list-custom',
+			await requireCtx('app'),
+			input
+		)
+);
+
+export const relinkCustomIngredientAdmin = command(
+	relinkCustomIngredientInput,
+	async (input: RelinkCustomIngredientInput) =>
+		runOp<RelinkCustomIngredientInput, RelinkCustomIngredientResult>(
+			'ingredients.relink-custom',
+			await requireCtx('app'),
+			input
+		)
 );
 // NOTE: `ingredients.upload-image` has no remote — it runs browser-direct via
 // `runOp` + `getClientCtx` (same as `recipes.upload-image`), because `File`

@@ -25,3 +25,19 @@ export type SubstitutionStrength = (typeof SUBSTITUTION_STRENGTH_OPTIONS)[number
  * strings, so nullable fields need an explicit none-option).
  */
 export const NO_AISLE = '__none';
+
+/**
+ * Suggest a valid `^[a-z0-9-]+$` slug for a free-text custom name
+ * (`" Fleur de Sel "` → `"fleur-de-sel"`). Mirrors the DB slug CHECK so the
+ * promote wizard prefills something the create op accepts.
+ */
+export function slugifyCustomName(name: string): string {
+	return name
+		.trim()
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.replace(/-{2,}/g, '-');
+}

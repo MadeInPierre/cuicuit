@@ -13,9 +13,11 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import * as Table from '$lib/shared/components/ui/table/index.js';
+	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { AISLE_OPTIONS, COMMONLY_USED_OPTIONS } from './consts.js';
+	import CustomItemsTab from './CustomItemsTab.svelte';
 	import IngredientCreateDialog from './IngredientCreateDialog.svelte';
 
 	type Ingredient = ListIngredientsResult[number];
@@ -35,6 +37,7 @@
 	let view: 'table' | 'grid' = $state('table');
 	let page = $state(0);
 	let createOpen = $state(false);
+	let tab = $state('catalog');
 
 	onMount(async () => {
 		try {
@@ -143,6 +146,13 @@
 		</div>
 	</div>
 
+	<Tabs.Root bind:value={tab}>
+		<Tabs.List>
+			<Tabs.Trigger value="catalog">Catalog</Tabs.Trigger>
+			<Tabs.Trigger value="custom">Custom items</Tabs.Trigger>
+		</Tabs.List>
+
+		<Tabs.Content value="catalog" class="flex flex-col gap-4">
 	<div class="flex flex-wrap items-center gap-2">
 		<Input
 			bind:value={search}
@@ -198,10 +208,10 @@
 		<p class="text-muted-foreground">No ingredients match the current filters.</p>
 	{:else if view === 'table'}
 		<div class="rounded-lg border">
-			<Table.Root>
+			<Table.Root class="bg-white dark:bg-muted rounded-lg">
 				<Table.Header>
 					<Table.Row>
-						<Table.Head class="w-12"></Table.Head>
+						<Table.Head class="w-12 min-w-12"></Table.Head>
 						<Table.Head>Name</Table.Head>
 						<Table.Head>Slug</Table.Head>
 						<Table.Head>Aisle</Table.Head>
@@ -215,7 +225,7 @@
 							onclick={() => openDetail(ing.id)}
 						>
 							<Table.Cell>
-								<IngredientImage id={ing.id} name={displayName(ing)} class="h-10 w-10" />
+								<IngredientImage id={ing.id} name={displayName(ing)} class="h-10 w-10 min-w-10" />
 							</Table.Cell>
 							<Table.Cell class="font-medium">{displayName(ing)}</Table.Cell>
 							<Table.Cell class="text-muted-foreground">{ing.slug}</Table.Cell>
@@ -271,6 +281,14 @@
 			</p>
 		{/if}
 	{/if}
+		</Tabs.Content>
+
+		<Tabs.Content value="custom">
+			{#if tab === 'custom'}
+				<CustomItemsTab {languages} />
+			{/if}
+		</Tabs.Content>
+	</Tabs.Root>
 </div>
 
 <Dialog.Root bind:open={createOpen}>

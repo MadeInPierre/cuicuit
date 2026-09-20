@@ -54,6 +54,8 @@ const SERVER_ONLY_OPS = [
 	'ingredients.create',
 	'ingredients.delete-translation',
 	'ingredients.get',
+	'ingredients.list-custom',
+	'ingredients.relink-custom',
 	'ingredients.remove-substitution',
 	'ingredients.update',
 	'ingredients.update-substitution',

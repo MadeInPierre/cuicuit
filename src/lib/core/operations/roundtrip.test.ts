@@ -611,6 +611,16 @@ if ('ok' in dbResult) {
 			await expect(
 				runOp('ingredients.remove-substitution', b.ctx, { substitutionId: noAdmin.ingredientId })
 			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(runOp('ingredients.list-custom', b.ctx, {})).rejects.toMatchObject({
+				name: 'OpError',
+				code: 'FORBIDDEN'
+			});
+			await expect(
+				runOp('ingredients.relink-custom', b.ctx, {
+					key: 'salt',
+					ingredientId: noAdmin.ingredientId
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
 			await expect(
 				runOp('ingredients.upload-image', b.ctx, {
 					ingredientId: noAdmin.ingredientId,
@@ -755,6 +765,273 @@ if ('ok' in dbResult) {
 				// Best-effort cleanup, strictly scoped to this run's rows.
 				await admin.from('ingredient_substitutions').delete().eq('original_ingredient_id', ingredientId);
 				await admin.from('ingredients').delete().in('id', [ingredientId, target.id]);
+			} finally {
+				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
+			}
+		});
+
+		it('admin custom ingredients: list → promote → relink → idempotent', async () => {
+			// Two recipes share one free-text name (same name twice in one recipe
+			// would violate the per-recipe custom uniqueness), plus a clash
+			// recipe for the already-linked skip path.
+			const customName = `RT Custom ${RUN}`;
+			const clashName = `RT Clash ${RUN}`;
+			// `recipes.edit` requires at least 2 ingredients per recipe, so each
+			// host carries the shared custom name plus a unique filler.
+			const recipeData = (custom: string, filler: string) => ({
+				lang: LANG,
+				title: `RT Custom Host ${RUN} ${custom}`,
+				short_title: `RT ${RUN}`,
+				description: 'round-trip custom-ingredient host',
+				source_type: 'user-manual' as const,
+				source_url: '',
+				imageIds: [],
+				effortLevel: 'low',
+				skillLevel: 'beginner',
+				cleanupLevel: 'low',
+				costLevel: 'budget',
+				course_ids: ['main'],
+				cuisine_ids: ['italian'],
+				tag_ids: [],
+				timesofday_ids: ['dinner'],
+				tool_ids: [],
+				timePrep: 5,
+				timeRest: 0,
+				timeCook: 10,
+				servings: 2,
+				ingredientIds: [null, null],
+				ingredientCustomNames: [custom, filler],
+				ingredientAmounts: [100, 10],
+				ingredientUnits: ['g', 'g'],
+				ingredientNames: [custom, filler],
+				ingredientIsOptional: [false, false],
+				ingredientRawInputs: [`100 g ${custom}`, `10 g ${filler}`],
+				ingredientDetails: ['', ''],
+				ingredientNotes: ['', ''],
+				ingredientPreparations: ['', ''],
+				stepDescriptions: ['Stir.']
+			});
+			const hostA = (await runOp('recipes.edit', a.ctx, {
+				recipeId: null,
+				data: recipeData(customName, `RT Filler A ${RUN}`)
+			})) as { id: string };
+			const hostB = (await runOp('recipes.edit', a.ctx, {
+				recipeId: null,
+				data: recipeData(customName, `RT Filler B ${RUN}`)
+			})) as { id: string };
+			const hostClash = (await runOp('recipes.edit', a.ctx, {
+				recipeId: null,
+				data: recipeData(clashName, `RT Filler C ${RUN}`)
+			})) as { id: string };
+			recipeIds.push(hostA.id, hostB.id, hostClash.id);
+
+			// Promote `a` to admin for this test only (restored at the end).
+			await admin.from('user_permissions').update({ role: 'admin' }).eq('user_id', a.id);
+			try {
+				const listed = (await runOp('ingredients.list-custom', a.ctx, { limit: 200 })) as Array<{
+					key: string;
+					sample: string;
+					count: number;
+					rawInputs: string[];
+					recipes: Array<{ recipeId: string; title: string; lang: string | null }>;
+					langs: string[];
+				}>;
+				const group = listed.find((g) => g.key === customName.toLowerCase());
+				expect(group, 'shared custom name grouped').toBeDefined();
+				expect(group!.count).toBe(2);
+				expect(group!.langs).toContain(LANG);
+				expect(group!.recipes.length).toBeGreaterThan(0);
+
+				const slug = `rt-custom-${RUN}`;
+				const created = (await runOp('ingredients.create', a.ctx, {
+					slug,
+					slugGeneral: slug,
+					aisle: null,
+					hierarchy: [],
+					baseUnit: 'g',
+					initialTranslation: { lang: LANG, nameGeneral: customName }
+				})) as { id: string };
+
+				const relinked = (await runOp('ingredients.relink-custom', a.ctx, {
+					key: group!.key,
+					ingredientId: created.id
+				})) as { relinked: number; skipped: number };
+				expect(relinked).toMatchObject({ relinked: 2, skipped: 0 });
+
+				// Promoted rows now link the catalog row, so the key is gone.
+				const relisted = (await runOp('ingredients.list-custom', a.ctx, {
+					limit: 200
+				})) as Array<{ key: string }>;
+				expect(relisted.find((g) => g.key === customName.toLowerCase())).toBeUndefined();
+
+				// Double-promote is a no-op, never an error or duplicate.
+				const again = (await runOp('ingredients.relink-custom', a.ctx, {
+					key: group!.key,
+					ingredientId: created.id
+				})) as { relinked: number; skipped: number };
+				expect(again).toMatchObject({ relinked: 0, skipped: 0 });
+
+				// Clash: the host recipe already links the ingredient, so the
+				// custom row is skipped (unique index) and reported.
+				const { error: linkError } = await admin.from('recipe_ingredients').insert({
+					recipe_id: hostClash.id,
+					ingredient_id: created.id,
+					raw_input: clashName
+				});
+				expect(linkError).toBeNull();
+				const clash = (await runOp('ingredients.relink-custom', a.ctx, {
+					key: clashName.toLowerCase(),
+					ingredientId: created.id
+				})) as { relinked: number; skipped: number };
+				expect(clash).toMatchObject({ relinked: 0, skipped: 1 });
+
+				// Unknown ingredient → NOT_FOUND; blank key → VALIDATION.
+				await expect(
+					runOp('ingredients.relink-custom', a.ctx, {
+						key: 'no-such-custom-rt',
+						ingredientId: '00000000-0000-0000-0000-000000000000'
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'NOT_FOUND' });
+				await expect(
+					runOp('ingredients.relink-custom', a.ctx, { key: '   ', ingredientId: created.id })
+				).rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
+
+				// Best-effort cleanup, strictly scoped to this run's rows.
+				await admin.from('ingredients').delete().eq('id', created.id);
+			} finally {
+				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
+			}
+		});
+
+		it('admin custom ingredients: plan source + link to existing', async () => {
+			// Same free-text name in a recipe and in the shopping plan, to pin
+			// the per-source counts and the source-scoped relink.
+			const planName = `RT Planlink ${RUN}`;
+			const planSpace = (await runOp('spaces.create', a.ctx, {
+				userId: a.id,
+				name: `RT Plan Space ${RUN}`,
+				theme: 'default',
+				icon: 'home',
+				lang: LANG
+			})) as string;
+			spaceIds.push(planSpace);
+			await runOp('plans.add-item', a.ctx, {
+				spaceId: planSpace,
+				createdBy: a.id,
+				name: planName,
+				quantity: 1,
+				unit: 'pc'
+			});
+			const host = (await runOp('recipes.edit', a.ctx, {
+				recipeId: null,
+				data: {
+					lang: LANG,
+					title: `RT Planlink Host ${RUN}`,
+					short_title: `RT ${RUN}`,
+					description: 'round-trip plan-source host',
+					source_type: 'user-manual' as const,
+					source_url: '',
+					imageIds: [],
+					effortLevel: 'low',
+					skillLevel: 'beginner',
+					cleanupLevel: 'low',
+					costLevel: 'budget',
+					course_ids: ['main'],
+					cuisine_ids: ['italian'],
+					tag_ids: [],
+					timesofday_ids: ['dinner'],
+					tool_ids: [],
+					timePrep: 5,
+					timeRest: 0,
+					timeCook: 10,
+					servings: 2,
+					ingredientIds: [null, null],
+					ingredientCustomNames: [planName, `RT Planlink Filler ${RUN}`],
+					ingredientAmounts: [100, 10],
+					ingredientUnits: ['g', 'g'],
+					ingredientNames: [planName, `RT Planlink Filler ${RUN}`],
+					ingredientIsOptional: [false, false],
+					ingredientRawInputs: [`100 g ${planName}`, '10 g filler'],
+					ingredientDetails: ['', ''],
+					ingredientNotes: ['', ''],
+					ingredientPreparations: ['', ''],
+					stepDescriptions: ['Stir.']
+				}
+			})) as { id: string };
+			recipeIds.push(host.id);
+
+			// Promote `a` to admin for this test only (restored at the end).
+			await admin.from('user_permissions').update({ role: 'admin' }).eq('user_id', a.id);
+			try {
+				const planKey = planName.toLowerCase();
+				const planOnly = (await runOp('ingredients.list-custom', a.ctx, {
+					limit: 200,
+					source: 'plan'
+				})) as Array<{ key: string; count: number; recipeCount: number; planCount: number }>;
+				const planGroup = planOnly.find((g) => g.key === planKey);
+				expect(planGroup).toMatchObject({ count: 1, recipeCount: 0, planCount: 1 });
+
+				const recipesOnly = (await runOp('ingredients.list-custom', a.ctx, {
+					limit: 200,
+					source: 'recipes'
+				})) as Array<{ key: string; recipeCount: number; planCount: number }>;
+				expect(recipesOnly.find((g) => g.key === planKey)).toMatchObject({
+					recipeCount: 1,
+					planCount: 0
+				});
+
+				const merged = (await runOp('ingredients.list-custom', a.ctx, {
+					limit: 200,
+					source: 'all'
+				})) as Array<{
+					key: string;
+					count: number;
+					recipeCount: number;
+					planCount: number;
+					spaces: Array<{ spaceId: string }>;
+				}>;
+				const mergedGroup = merged.find((g) => g.key === planKey);
+				expect(mergedGroup).toMatchObject({ count: 2, recipeCount: 1, planCount: 1 });
+				expect(mergedGroup!.spaces.some((s) => s.spaceId === planSpace)).toBe(true);
+
+				const slug = `rt-planlink-${RUN}`;
+				const created = (await runOp('ingredients.create', a.ctx, {
+					slug,
+					slugGeneral: slug,
+					aisle: null,
+					hierarchy: [],
+					baseUnit: 'unit',
+					initialTranslation: { lang: LANG, nameGeneral: planName }
+				})) as { id: string };
+
+				// Source-scoped relink: plan rows move, the recipe row stays.
+				const planRelink = (await runOp('ingredients.relink-custom', a.ctx, {
+					key: planKey,
+					ingredientId: created.id,
+					source: 'plan'
+				})) as { relinked: number; recipeRelinked: number; planRelinked: number };
+				expect(planRelink).toMatchObject({ relinked: 1, recipeRelinked: 0, planRelinked: 1 });
+				const stillCustom = (await runOp('ingredients.list-custom', a.ctx, {
+					limit: 200,
+					source: 'recipes'
+				})) as Array<{ key: string }>;
+				expect(stillCustom.find((g) => g.key === planKey)).toBeDefined();
+
+				// Link-to-existing: no create, same op, remaining source only.
+				const linked = (await runOp('ingredients.relink-custom', a.ctx, {
+					key: planKey,
+					ingredientId: created.id,
+					source: 'recipes'
+				})) as { relinked: number; recipeRelinked: number };
+				expect(linked).toMatchObject({ relinked: 1, recipeRelinked: 1 });
+				const gone = (await runOp('ingredients.list-custom', a.ctx, {
+					limit: 200,
+					source: 'all'
+				})) as Array<{ key: string }>;
+				expect(gone.find((g) => g.key === planKey)).toBeUndefined();
+
+				// Best-effort cleanup, strictly scoped to this run's rows.
+				await admin.from('ingredients').delete().eq('id', created.id);
 			} finally {
 				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
 			}
