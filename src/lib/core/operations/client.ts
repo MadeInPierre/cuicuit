@@ -27,6 +27,7 @@ import './billing/balance.js';
 import './billing/logs.js';
 import './ingredients/list.js';
 import './ingredients/match.js';
+import './ingredients/upload-image.js';
 import './plans/add-item.js';
 import './plans/add-recipe.js';
 import './plans/check-item.js';

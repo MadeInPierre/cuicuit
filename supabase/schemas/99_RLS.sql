@@ -439,8 +439,45 @@ create index if not exists idx_recipe_ingredients_recipe on public.recipe_ingred
 ----------------------
 -- STORAGE: INGREDIENT IMAGES
 ----------------------
--- No SELECT policy: the 'ingredients' bucket is public and images load via
--- direct public URLs, so client-side listing is not needed by the app.
+-- The 'ingredients' bucket is public (images load via direct public URLs).
+-- Writes go through the admin ops (`ingredients.upload-image`) with the
+-- service-role client (RLS-bypassed); the policies below additionally gate
+-- direct bucket access to admins.
+create policy "Admins can list ingredient images"
+on storage.objects for select
+to authenticated
+using (
+    bucket_id = 'ingredients'
+    and public.is_admin((select auth.uid()))
+);
+
+create policy "Admins can upload ingredient images"
+on storage.objects for insert
+to authenticated
+with check (
+    bucket_id = 'ingredients'
+    and public.is_admin((select auth.uid()))
+);
+
+create policy "Admins can update ingredient images"
+on storage.objects for update
+to authenticated
+using (
+    bucket_id = 'ingredients'
+    and public.is_admin((select auth.uid()))
+)
+with check (
+    bucket_id = 'ingredients'
+    and public.is_admin((select auth.uid()))
+);
+
+create policy "Admins can delete ingredient images"
+on storage.objects for delete
+to authenticated
+using (
+    bucket_id = 'ingredients'
+    and public.is_admin((select auth.uid()))
+);
 ----------------------
 -- STORAGE: RECIPE IMAGES
 ----------------------

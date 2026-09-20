@@ -10,6 +10,7 @@ const CLIENT_OPS = [
 	'billing.logs',
 	'ingredients.list',
 	'ingredients.match',
+	'ingredients.upload-image',
 	'plans.add-item',
 	'plans.add-recipe',
 	'plans.check-item',
@@ -44,9 +45,19 @@ const CLIENT_OPS = [
 
 // Server-only ops must stay OUT of the browser bundle (their modules pull
 // `$app/server`, `$env/static/private`, `stripe`, …).
+// Admin ingredient ops are server-only too (they need `ctx.admin`): the admin
+// UI calls them through `*.remote.ts`, never via `runOp` + `getClientCtx`.
 const SERVER_ONLY_OPS = [
 	'billing.checkout',
 	'billing.consume',
+	'ingredients.add-substitution',
+	'ingredients.create',
+	'ingredients.delete-translation',
+	'ingredients.get',
+	'ingredients.remove-substitution',
+	'ingredients.update',
+	'ingredients.update-substitution',
+	'ingredients.upsert-translation',
 	'recipes.add-examples',
 	'recipes.import-from-text',
 	'recipes.import-from-url'

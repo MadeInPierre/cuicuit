@@ -563,6 +563,203 @@ if ('ok' in dbResult) {
 			for (const m of matched.matches) expect(Array.isArray(m.bestMatches)).toBe(true);
 		});
 
+		it('admin ingredients: non-admin is FORBIDDEN on every write op', async () => {
+			const noAdmin = { ingredientId: '00000000-0000-0000-0000-000000000000' };
+			await expect(runOp('ingredients.get', b.ctx, noAdmin)).rejects.toMatchObject({
+				name: 'OpError',
+				code: 'FORBIDDEN'
+			});
+			await expect(
+				runOp('ingredients.create', b.ctx, {
+					slug: `rt-${RUN}`,
+					slugGeneral: `rt-${RUN}`,
+					aisle: null,
+					hierarchy: [],
+					baseUnit: 'g',
+					initialTranslation: { lang: LANG, nameGeneral: `RT ${RUN}` }
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.update', b.ctx, { ingredientId: noAdmin.ingredientId, patch: {} })
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.upsert-translation', b.ctx, {
+					ingredientId: noAdmin.ingredientId,
+					lang: LANG,
+					nameGeneral: 'x'
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.delete-translation', b.ctx, {
+					ingredientId: noAdmin.ingredientId,
+					lang: LANG
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.add-substitution', b.ctx, {
+					originalIngredientId: noAdmin.ingredientId,
+					substituteIngredientId: '11111111-1111-4111-8111-111111111111',
+					strength: 'close'
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.update-substitution', b.ctx, {
+					substitutionId: noAdmin.ingredientId,
+					ratio: 2
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.remove-substitution', b.ctx, { substitutionId: noAdmin.ingredientId })
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+			await expect(
+				runOp('ingredients.upload-image', b.ctx, {
+					ingredientId: noAdmin.ingredientId,
+					file: new File(['x'], 'x.jpg', { type: 'image/jpeg' })
+				})
+			).rejects.toMatchObject({ name: 'OpError', code: 'FORBIDDEN' });
+		});
+
+		it('admin ingredients: create → get → update → translate → substitute → image', async () => {
+			// Promote `a` to admin for this test only (restored at the end).
+			await admin.from('user_permissions').update({ role: 'admin' }).eq('user_id', a.id);
+			try {
+				const slug = `rt-ingredient-${RUN}`;
+				const created = (await runOp('ingredients.create', a.ctx, {
+					slug,
+					slugGeneral: slug,
+					aisle: 'fruits-vegetables',
+					hierarchy: ['produce'],
+					baseUnit: 'g',
+					initialTranslation: {
+						lang: LANG,
+						nameSingular: `RT Thing ${RUN}`,
+						namePlural: `RT Things ${RUN}`,
+						nameGeneral: `RT Thing ${RUN}`,
+						commonlyUsed: 'rare'
+					}
+				})) as { id: string };
+				expect(created.id).toMatch(/^[0-9a-f-]{36}$/);
+				const ingredientId: string = created.id;
+
+				// Duplicate slug → CONFLICT (no orphan translation left behind).
+				await expect(
+					runOp('ingredients.create', a.ctx, {
+						slug,
+						slugGeneral: `${slug}-other`,
+						aisle: null,
+						hierarchy: [],
+						baseUnit: 'g',
+						initialTranslation: { lang: LANG, nameGeneral: `RT Dup ${RUN}` }
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'CONFLICT' });
+
+				const gotten = (await runOp('ingredients.get', a.ctx, { ingredientId })) as {
+					ingredient: { slug: string };
+					translations: Array<{ name_general: string }>;
+					substitutionsAsOriginal: unknown[];
+					substitutionsAsSubstitute: unknown[];
+				};
+				expect(gotten.ingredient.slug).toBe(slug);
+				expect(gotten.translations).toHaveLength(1);
+
+				await runOp('ingredients.update', a.ctx, {
+					ingredientId,
+					patch: { aisle: 'milk-cheese', gPerMl: 1.03 }
+				});
+				const updated = (await runOp('ingredients.get', a.ctx, { ingredientId })) as {
+					ingredient: { aisle: string; g_per_ml: number };
+				};
+				expect(updated.ingredient.aisle).toBe('milk-cheese');
+				expect(updated.ingredient.g_per_ml).toBeCloseTo(1.03);
+
+				// Empty patch → VALIDATION; unknown id → NOT_FOUND.
+				await expect(runOp('ingredients.update', a.ctx, { ingredientId, patch: {} }))
+					.rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
+				await expect(
+					runOp('ingredients.update', a.ctx, {
+						ingredientId: '00000000-0000-0000-0000-000000000000',
+						patch: { aisle: 'unknown' }
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'NOT_FOUND' });
+
+				// Second language, then delete it (twice → NOT_FOUND the 2nd time).
+				await runOp('ingredients.upsert-translation', a.ctx, {
+					ingredientId,
+					lang: 'fr-FR',
+					nameSingular: `RT Chose ${RUN}`,
+					nameGeneral: `RT Chose ${RUN}`
+				});
+				const bilingual = (await runOp('ingredients.get', a.ctx, { ingredientId })) as {
+					translations: Array<{ language: { lang: string } }>;
+				};
+				expect(bilingual.translations).toHaveLength(2);
+				await runOp('ingredients.delete-translation', a.ctx, { ingredientId, lang: 'fr-FR' });
+				await expect(
+					runOp('ingredients.delete-translation', a.ctx, { ingredientId, lang: 'fr-FR' })
+				).rejects.toMatchObject({ name: 'OpError', code: 'NOT_FOUND' });
+
+				// Substitution target + link lifecycle.
+				const target = (await runOp('ingredients.create', a.ctx, {
+					slug: `${slug}-sub`,
+					slugGeneral: `${slug}-sub`,
+					aisle: null,
+					hierarchy: [],
+					baseUnit: 'unit',
+					initialTranslation: { lang: LANG, nameGeneral: `RT Sub ${RUN}` }
+				})) as { id: string };
+
+				await expect(
+					runOp('ingredients.add-substitution', a.ctx, {
+						originalIngredientId: ingredientId,
+						substituteIngredientId: ingredientId,
+						strength: 'equivalent'
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
+				const sub = (await runOp('ingredients.add-substitution', a.ctx, {
+					originalIngredientId: ingredientId,
+					substituteIngredientId: target.id,
+					strength: 'close',
+					ratio: 0.5
+				})) as { id: string };
+				await expect(
+					runOp('ingredients.add-substitution', a.ctx, {
+						originalIngredientId: ingredientId,
+						substituteIngredientId: target.id,
+						strength: 'close'
+					})
+				).rejects.toMatchObject({ name: 'OpError', code: 'CONFLICT' });
+
+				const withSub = (await runOp('ingredients.get', a.ctx, { ingredientId })) as {
+					substitutionsAsOriginal: Array<{ id: string }>;
+				};
+				expect(withSub.substitutionsAsOriginal.some((s) => s.id === sub.id)).toBe(true);
+
+				await runOp('ingredients.update-substitution', a.ctx, {
+					substitutionId: sub.id,
+					strength: 'equivalent',
+					ratio: 1
+				});
+				await runOp('ingredients.remove-substitution', a.ctx, { substitutionId: sub.id });
+				await expect(
+					runOp('ingredients.remove-substitution', a.ctx, { substitutionId: sub.id })
+				).rejects.toMatchObject({ name: 'OpError', code: 'NOT_FOUND' });
+
+				// Image replace (storage round-trip, cleaned up in afterAll).
+				const uploaded = (await runOp('ingredients.upload-image', a.ctx, {
+					ingredientId,
+					file: new File(['fake-jpg-bytes'], `rt-${RUN}.jpg`, { type: 'image/jpeg' })
+				})) as { path: string };
+				expect(uploaded.path).toBe(`images/${ingredientId}.jpg`);
+				files.push({ bucket: 'ingredients', path: uploaded.path });
+
+				// Best-effort cleanup, strictly scoped to this run's rows.
+				await admin.from('ingredient_substitutions').delete().eq('original_ingredient_id', ingredientId);
+				await admin.from('ingredients').delete().in('id', [ingredientId, target.id]);
+			} finally {
+				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
+			}
+		});
+
 		it('billing.balance → logs', async () => {
 			const balance = (await runOp('billing.balance', a.ctx, {})) as {
 				balance: { balance: number } | null;
