@@ -233,6 +233,10 @@
 		}
 
 		const chosenMatch = ingredientProcessed.matches[chosenMatchIndex];
+		if (!chosenMatch) {
+			toast.error('Failed to add ingredient. Please try again.');
+			return;
+		}
 
 		// Exit if there is already an ingredient with the same ID in the list to avoid duplicates
 		if ($formData.ingredientIds.includes(chosenMatch.id)) {
