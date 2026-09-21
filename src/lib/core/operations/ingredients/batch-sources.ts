@@ -15,6 +15,12 @@ import type { BatchSource } from './batch-tasks.js';
  * Order guarantee: sources follow the INPUT id order (deduped), never DB
  * return order — `batch-submit` and `batch-status` must rebuild identical
  * groups, and Postgres without ORDER BY makes no such promise.
+ *
+ * Pagination: PostgREST caps one response at 1000 rows (verified live:
+ * 5390 translation rows, 1000 returned un-paginated). Id lists are chunked
+ * (also keeps URLs short) and every chunk is range-paged to completion —
+ * without this, large selections silently "skip" ingredients that do have
+ * translations (tofu, we're looking at you).
  */
 export async function loadBatchSources(
 	admin: SupabaseClient<Database>,
@@ -22,19 +28,61 @@ export async function loadBatchSources(
 ): Promise<{ sources: BatchSource[]; skipped: string[] }> {
 	if (ingredientIds.length === 0) return { sources: [], skipped: [] };
 
-	const { data: rows, error } = await admin
-		.from('ingredients')
-		.select('id, slug, slug_general, aisle')
-		.in('id', ingredientIds);
-	if (error) throw new OpError('INTERNAL', 'Failed to load ingredients for batch.', error);
+	const rows = await fetchIngredientsByIds(admin, ingredientIds);
+	const translations = await fetchTranslationsByIds(admin, ingredientIds);
+	return assembleBatchSources(rows, translations, ingredientIds);
+}
 
-	const { data: translations, error: tError } = await admin
-		.from('ingredient_translations')
-		.select('ingredient_id, name_singular, name_plural, name_general, commonly_used, language:languages!inner(lang)')
-		.in('ingredient_id', ingredientIds);
-	if (tError) throw new OpError('INTERNAL', 'Failed to load translations for batch.', tError);
+/** Ids per `.in()` query — keeps URLs well under proxy limits. */
+export const BATCH_ID_CHUNK_SIZE = 200;
+/** PostgREST default max rows per response. */
+export const BATCH_PAGE_SIZE = 1000;
 
-	return assembleBatchSources(rows ?? [], translations ?? [], ingredientIds);
+export function chunkArray<T>(arr: T[], size: number): T[][] {
+	const out: T[][] = [];
+	for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+	return out;
+}
+
+export async function fetchIngredientsByIds(
+	admin: SupabaseClient<Database>,
+	ids: string[]
+): Promise<BatchIngredientRow[]> {
+	const out: BatchIngredientRow[] = [];
+	for (const chunk of chunkArray([...new Set(ids)], BATCH_ID_CHUNK_SIZE)) {
+		const { data, error } = await admin
+			.from('ingredients')
+			.select('id, slug, slug_general, aisle')
+			.in('id', chunk);
+		if (error) throw new OpError('INTERNAL', 'Failed to load ingredients for batch.', error);
+		out.push(...(data ?? []));
+	}
+	return out;
+}
+
+export async function fetchTranslationsByIds(
+	admin: SupabaseClient<Database>,
+	ids: string[]
+): Promise<BatchTranslationRow[]> {
+	const out: BatchTranslationRow[] = [];
+	for (const chunk of chunkArray([...new Set(ids)], BATCH_ID_CHUNK_SIZE)) {
+		let from = 0;
+		for (;;) {
+			const { data, error } = await admin
+				.from('ingredient_translations')
+				.select(
+					'ingredient_id, name_singular, name_plural, name_general, commonly_used, language:languages!inner(lang)'
+				)
+				.in('ingredient_id', chunk)
+				.range(from, from + BATCH_PAGE_SIZE - 1);
+			if (error) throw new OpError('INTERNAL', 'Failed to load translations for batch.', error);
+			const page = data ?? [];
+			out.push(...page);
+			if (page.length < BATCH_PAGE_SIZE) break;
+			from += BATCH_PAGE_SIZE;
+		}
+	}
+	return out;
 }
 
 interface BatchIngredientRow {

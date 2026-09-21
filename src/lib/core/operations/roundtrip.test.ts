@@ -997,6 +997,32 @@ if ('ok' in dbResult) {
 			}
 		});
 
+		it('admin batch sources: full catalog loads with nothing skipped (1000-row cap)', async () => {
+			// Regression test for the tofu bug: PostgREST caps one response at
+			// 1000 rows, so an un-paginated source load silently "skipped"
+			// translated ingredients past the cutoff.
+			await admin.from('user_permissions').update({ role: 'admin' }).eq('user_id', a.id);
+			try {
+				const ids: string[] = [];
+				for (;;) {
+					const { data, error } = await admin
+						.from('ingredients')
+						.select('id')
+						.range(ids.length, ids.length + 999);
+					if (error || !data || data.length === 0) break;
+					ids.push(...data.map((r) => r.id));
+					if (data.length < 1000) break;
+				}
+				expect(ids.length).toBeGreaterThan(1000);
+				const { loadBatchSources } = await import('./ingredients/batch-sources.js');
+				const { sources, skipped } = await loadBatchSources(a.ctx.admin!, ids);
+				expect(skipped).toEqual([]);
+				expect(sources).toHaveLength(ids.length);
+			} finally {
+				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
+			}
+		});
+
 		it('admin custom ingredients: list → promote → relink → idempotent', async () => {
 			// Two recipes share one free-text name (same name twice in one recipe
 			// would violate the per-recipe custom uniqueness), plus a clash

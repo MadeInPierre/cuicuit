@@ -12,6 +12,12 @@ import {
 } from './batch-tasks.js';
 import { assembleBatchSources } from './batch-sources.js';
 import {
+	BATCH_ID_CHUNK_SIZE,
+	chunkArray,
+	fetchIngredientsByIds,
+	fetchTranslationsByIds
+} from './batch-sources.js';
+import {
 	buildChatBody,
 	buildJsonl,
 	extractLineContent,
@@ -295,5 +301,78 @@ describe('assembleBatchSources', () => {
 		expect(sources).toHaveLength(1);
 		expect(sources[0].sourceNameGeneral).toBe('pommes');
 		expect(skipped).toEqual(['id-gone']);
+	});
+});
+
+describe('batch fetching (1000-row cap regression)', () => {
+	// Mock admin serving canned pages per table; records chunk sizes/ranges.
+	// Awaits are sequential, so shared mutable state is safe.
+	function mockAdmin(pages: Record<string, unknown[][]>) {
+		const calls: Array<{ table: string; inCount: number; range: [number, number] | null }> = [];
+		const queues = new Map<string, unknown[][]>(
+			Object.entries(pages).map(([t, p]) => [t, [...p]])
+		);
+		let activeTable = '';
+		const builder = {
+			select() {
+				return builder;
+			},
+			in(_col: string, ids: string[]) {
+				calls.push({ table: activeTable, inCount: ids.length, range: null });
+				return builder;
+			},
+			range(from: number, to: number) {
+				const last = calls[calls.length - 1];
+				if (last) last.range = [from, to];
+				return builder;
+			},
+			then(resolve: (v: unknown) => void) {
+				const queue = queues.get(activeTable) ?? [[]];
+				resolve({ data: queue.length > 1 ? queue.shift() : queue[0], error: null });
+			}
+		};
+		const admin = {
+			from(table: string) {
+				activeTable = table;
+				return builder;
+			}
+		};
+		return { admin: admin as never, calls };
+	}
+
+	it('chunks large id lists', () => {
+		expect(chunkArray([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
+		expect(chunkArray([], 200)).toEqual([]);
+	});
+
+	it('pages translations past the 1000-row cap', async () => {
+		const fullPage = Array.from({ length: 1000 }, (_, i) => ({ n: i }));
+		const rest = [{ n: 1000 }, { n: 1001 }];
+		const { admin, calls } = mockAdmin({ ingredient_translations: [fullPage, rest] });
+		const rows = await fetchTranslationsByIds(admin, ['id-a']);
+		expect(rows).toHaveLength(1002);
+		// One query per page; the second page continues the range.
+		expect(calls).toHaveLength(2);
+		expect(calls[0]).toMatchObject({
+			table: 'ingredient_translations',
+			inCount: 1,
+			range: [0, 999]
+		});
+		expect(calls[1]).toMatchObject({
+			table: 'ingredient_translations',
+			inCount: 1,
+			range: [1000, 1999]
+		});
+	});
+
+	it('splits 250 ids into 200 + 50', async () => {
+		const ids = Array.from({ length: 250 }, (_, i) => `id-${i}`);
+		const { admin, calls } = mockAdmin({
+			ingredients: [ids.slice(0, 200).map((id) => ({ id })), ids.slice(200).map((id) => ({ id }))]
+		});
+		const rows = await fetchIngredientsByIds(admin, ids);
+		expect(rows).toHaveLength(250);
+		expect(calls.map((c) => c.inCount)).toEqual([200, 50]);
+		expect(BATCH_ID_CHUNK_SIZE).toBe(200);
 	});
 });
