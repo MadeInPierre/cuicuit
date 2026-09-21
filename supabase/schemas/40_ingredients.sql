@@ -193,11 +193,63 @@ ALTER TABLE ONLY "public"."ingredient_substitutions"
 ADD CONSTRAINT "ingredient_substitutions_substitute_ingredient_id_fkey" FOREIGN KEY ("substitute_ingredient_id") REFERENCES "public"."ingredients" ("id") ON DELETE CASCADE;
 
 -- 4. Triggers
+-- 4.0. Map an app language to its Postgres text-search configuration.
+-- New languages need zero SQL changes: codes with a built-in Postgres
+-- dictionary (de, es, it, nl, pt, ...) are picked up automatically, anything
+-- else (ja, zh, unknown) safely falls back to 'simple'.
+-- 4.0.1. Definition
+CREATE OR REPLACE FUNCTION "public"."ts_config_for_language" (lang_code text)
+RETURNS regconfig LANGUAGE sql IMMUTABLE SET search_path = public, extensions AS $$
+    SELECT CASE lower(split_part(coalesce(lang_code, ''), '-', 1))
+        WHEN 'ar' THEN 'arabic'::regconfig
+        WHEN 'hy' THEN 'armenian'::regconfig
+        WHEN 'eu' THEN 'basque'::regconfig
+        WHEN 'ca' THEN 'catalan'::regconfig
+        WHEN 'da' THEN 'danish'::regconfig
+        WHEN 'nl' THEN 'dutch'::regconfig
+        WHEN 'en' THEN 'english'::regconfig
+        WHEN 'fi' THEN 'finnish'::regconfig
+        WHEN 'fr' THEN 'french'::regconfig
+        WHEN 'de' THEN 'german'::regconfig
+        WHEN 'el' THEN 'greek'::regconfig
+        WHEN 'hi' THEN 'hindi'::regconfig
+        WHEN 'hu' THEN 'hungarian'::regconfig
+        WHEN 'id' THEN 'indonesian'::regconfig
+        WHEN 'ga' THEN 'irish'::regconfig
+        WHEN 'it' THEN 'italian'::regconfig
+        WHEN 'lt' THEN 'lithuanian'::regconfig
+        WHEN 'ne' THEN 'nepali'::regconfig
+        WHEN 'nb' THEN 'norwegian'::regconfig
+        WHEN 'nn' THEN 'norwegian'::regconfig
+        WHEN 'no' THEN 'norwegian'::regconfig
+        WHEN 'pt' THEN 'portuguese'::regconfig
+        WHEN 'ro' THEN 'romanian'::regconfig
+        WHEN 'ru' THEN 'russian'::regconfig
+        WHEN 'sr' THEN 'serbian'::regconfig
+        WHEN 'es' THEN 'spanish'::regconfig
+        WHEN 'sv' THEN 'swedish'::regconfig
+        ELSE 'simple'::regconfig
+    END;
+$$;
+
+-- 4.0.2. Ownership
+ALTER FUNCTION "public"."ts_config_for_language" ("text") OWNER TO "postgres";
+
+-- 4.0.3. Grants
+GRANT ALL ON FUNCTION "public"."ts_config_for_language" ("text") TO "anon";
+
+GRANT ALL ON FUNCTION "public"."ts_config_for_language" ("text") TO "authenticated";
+
+GRANT ALL ON FUNCTION "public"."ts_config_for_language" ("text") TO "service_role";
+
 -- 4.1. Update Full-Text-Search internal index column on ingredient translations
 -- 4.1.1. Definition
-CREATE OR REPLACE FUNCTION "public"."update_ingredient_fts" () RETURNS "trigger" LANGUAGE "plpgsql" SET search_path = public AS $$
+CREATE OR REPLACE FUNCTION "public"."update_ingredient_fts" () RETURNS "trigger" LANGUAGE "plpgsql" SET search_path = public, extensions AS $$
+DECLARE
+    lang_code TEXT;
 BEGIN
-    NEW.fts := to_tsvector('english',
+    SELECT l.code INTO lang_code FROM public.languages l WHERE l.id = NEW.language_id;
+    NEW.fts := to_tsvector(public.ts_config_for_language(lang_code),
         coalesce(NEW.name_singular, '') || ' ' ||
         coalesce(NEW.name_plural, '') || ' ' ||
         coalesce(NEW.name_general, '')
@@ -262,11 +314,7 @@ BEGIN
     SELECT id INTO target_lang_id FROM public.languages WHERE lang = lang_code;
     IF target_lang_id IS NULL THEN RETURN; END IF;
 
-    ts_config := CASE 
-        WHEN lang_code LIKE 'fr%' THEN 'french'::regconfig 
-        WHEN lang_code LIKE 'en%' THEN 'english'::regconfig 
-        ELSE 'simple'::regconfig 
-    END;
+    ts_config := public.ts_config_for_language(lang_code);
 
     -- 2. Pre-processing: unaccent, lowercase, trim whitespace
     clean_query := lower(trim(unaccent(query_text)));
@@ -297,7 +345,7 @@ BEGIN
 
     prefix_query := NULL;
     IF fts_query <> '' THEN
-        prefix_query := to_tsquery('simple', regexp_replace(fts_query, '\s+', ':* & ', 'g') || ':*');
+        prefix_query := to_tsquery(ts_config, regexp_replace(fts_query, '\s+', ':* & ', 'g') || ':*');
     END IF;
 
     RETURN QUERY

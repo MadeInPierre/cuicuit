@@ -22,7 +22,7 @@ async function matchIngredientsHandler(
 ) {
 	const effectiveLang = lang || DEFAULT_LANGUAGE;
 	const matchPromises = ingredientStrings.map(async (originalText: string) => {
-		const cleanedText = preprocessIngredient(originalText);
+		const cleanedText = preprocessIngredient(originalText, effectiveLang);
 
 		if (!cleanedText) {
 			return { originalText, bestMatches: [], message: 'Empty after cleaning.' };

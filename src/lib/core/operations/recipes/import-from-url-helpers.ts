@@ -205,6 +205,27 @@ export type ImportTextContext = {
 };
 
 /**
+ * Which language the ingredient catalog is matched against during an import.
+ *
+ * Always the recipe's own written language as reported by the LLM — never the
+ * importer's space language (a French user can import a German recipe). When
+ * the LLM output has no usable language, falls back to the space language
+ * with a loud warning: matching in the wrong language silently produces
+ * custom (unlinked) ingredients.
+ */
+export function resolveRecipeMatchLang(llmLang: unknown, fallbackLang: LanguageCode): LanguageCode {
+	const detected = normalizeLanguageCode(llmLang);
+	if (!detected) {
+		console.warn(
+			`Import: unrecognized recipe language (${JSON.stringify(llmLang)}), ` +
+				`matching ingredients as "${fallbackLang}" instead — expect custom ingredients.`
+		);
+		return fallbackLang;
+	}
+	return detected;
+}
+
+/**
  * Enriches and matches a raw list of ingredients against the database matches.
  */
 export async function processAndMatchIngredients(
@@ -610,7 +631,7 @@ export async function* importRecipeFromUrlCore(
 		const processedIngredients = await processAndMatchIngredients(
 			admin,
 			llmOutput.ingredients,
-			normalizeLanguageCode(llmOutput.lang) ?? lang,
+			resolveRecipeMatchLang(llmOutput.lang, lang),
 			userId
 		);
 		await insertRecipeIngredients(admin, templateId, processedIngredients);
@@ -686,7 +707,7 @@ export async function* importRecipeFromTextCore(
 	const processedIngredients = await processAndMatchIngredients(
 		admin,
 		enrichedRecipe.ingredients,
-		normalizeLanguageCode(enrichedRecipe.lang) ?? normalizedLang,
+		resolveRecipeMatchLang(enrichedRecipe.lang, normalizedLang),
 		context.userId
 	);
 	console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);

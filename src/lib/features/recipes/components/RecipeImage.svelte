@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_URL_CLOUD } from '$env/static/public';
+	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 	import { cn, youtubeUrlToThumbnailUrl } from '$lib/utils';
 	import { ChefHat } from '@lucide/svelte';
 	import type { Recipe, RecipeIngredientDetailed } from '../queries/get-recipe-detailed';
@@ -35,7 +35,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<img
-		src={`${PUBLIC_SUPABASE_URL_CLOUD}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
+		src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
 		alt="Recipe"
 		class={cn('size-11 aspect-square rounded-md object-cover cursor-pointer', className)}
 		onclick={(e) => {

@@ -1142,6 +1142,12 @@ export const publicSlugifyArgsSchema = z.object({
 
 export const publicSlugifyReturnsSchema = z.string();
 
+export const publicTsConfigForLanguageArgsSchema = z.object({
+  lang_code: z.string(),
+});
+
+export const publicTsConfigForLanguageReturnsSchema = z.unknown();
+
 export const publicUsersShareCommonSpaceArgsSchema = z.object({
   _user_a: z.string(),
   _user_b: z.string(),
@@ -1375,6 +1381,12 @@ export type PublicMatchIngredientReturns = z.infer<
 >;
 export type PublicSlugifyArgs = z.infer<typeof publicSlugifyArgsSchema>;
 export type PublicSlugifyReturns = z.infer<typeof publicSlugifyReturnsSchema>;
+export type PublicTsConfigForLanguageArgs = z.infer<
+  typeof publicTsConfigForLanguageArgsSchema
+>;
+export type PublicTsConfigForLanguageReturns = z.infer<
+  typeof publicTsConfigForLanguageReturnsSchema
+>;
 export type PublicUsersShareCommonSpaceArgs = z.infer<
   typeof publicUsersShareCommonSpaceArgsSchema
 >;

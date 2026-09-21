@@ -967,6 +967,7 @@ export type Database = {
         }
       }
       slugify: { Args: { max_length?: number; value: string }; Returns: string }
+      ts_config_for_language: { Args: { lang_code: string }; Returns: unknown }
       users_share_common_space: {
         Args: { _user_a: string; _user_b: string }
         Returns: boolean

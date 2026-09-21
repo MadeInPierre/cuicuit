@@ -76,7 +76,7 @@ const relevantRecipeFieldsSchema = z.object({
 
 const outputSchema = z.object({
 	lang: languageCodeSchema.describe(
-		"The input recipe's written language, e.g. en-US, fr-FR, pt-BR, es-ES."
+		"The input recipe's written language as BCP47 (e.g. en-US, fr-FR, de-DE, es-ES, pt-BR, pt-PT, it-IT, nl-NL — or any other xx-YY code, never a bare 2-letter code)."
 	),
 	recipe: relevantRecipeFieldsSchema.describe(
 		'The main enriched recipe object with inferred details.'
