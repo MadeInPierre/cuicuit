@@ -156,7 +156,12 @@ function defaultGroupMessage(
 ): string {
 	return JSON.stringify({
 		...messageBase(task, targetLang),
-		ingredients: entries.map((e) => ({ ref: e.ref, ...task.sourcePayload(e.source) }))
+		ingredients: entries.map((e) => ({ ref: e.ref, ...task.sourcePayload(e.source) })),
+		// Explicit shape hint: packed requests otherwise drift to a single
+		// object (observed live) — salvage below still catches leftovers.
+		response_shape: {
+			results: `array of exactly ${entries.length} objects, one per input ref, in any order: {ref, ${task.wanted.join(', ')}}`
+		}
 	});
 }
 
@@ -300,14 +305,35 @@ export interface BatchParsedRow {
 	error: string | null;
 }
 
-const groupEnvelopeSchema = z.object({
-	results: z.array(z.record(z.string(), z.unknown()))
-});
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 /**
- * Validates a packed group payload (`{"results": [{"ref", ...}]}`) item by
- * item against the task schema. Missing refs, unknown refs and invalid
- * items become per-pair errors; valid siblings still pass.
+ * Normalizes whatever JSON the model returned into a list of item objects:
+ * - `{"results": [...]}` (the instructed shape),
+ * - a bare array `[...]` (envelope dropped),
+ * - a single object `{...}` (group collapsed to one item — observed live).
+ * Anything else → `null` (whole group errors, per pair).
+ */
+function normalizeGroupItems(json: unknown): Record<string, unknown>[] | null {
+	if (Array.isArray(json)) return json.filter(isRecord);
+	if (!isRecord(json)) return null;
+	if (Array.isArray(json.results)) return (json.results as unknown[]).filter(isRecord);
+	return [json];
+}
+
+/** Coerces numeric refs (`"3"` → `3`); anything else → `undefined`. */
+function coerceRef(ref: unknown): number | undefined {
+	if (typeof ref === 'number' && Number.isInteger(ref)) return ref;
+	if (typeof ref === 'string' && /^\d{1,6}$/.test(ref.trim())) return Number(ref.trim());
+	return undefined;
+}
+
+/**
+ * Validates a packed group payload item by item against the task schema.
+ * One bad item never kills its siblings; pairs the model skipped become
+ * "Missing from group output." rows so they can simply be re-submitted.
  */
 export function parseGroupPayload(
 	json: unknown,
@@ -315,20 +341,25 @@ export function parseGroupPayload(
 	group: BatchGroup
 ): BatchParsedRow[] {
 	const byRef = new Map(group.pairs.map((p, i) => [i, p]));
-	const envelope = groupEnvelopeSchema.safeParse(json);
-	if (!envelope.success) {
-		return group.pairs.map((p) => ({
-			ingredientId: p.ingredientId,
-			lang: p.lang,
-			data: {},
-			error: 'Group output failed validation.'
-		}));
+	const failAll = (error: string): BatchParsedRow[] =>
+		group.pairs.map((p) => ({ ingredientId: p.ingredientId, lang: p.lang, data: {}, error }));
+	const items = normalizeGroupItems(json);
+	if (!items) return failAll('Group output failed validation.');
+	// Single object without a usable ref can only belong to a 1-pair group.
+	if (items.length === 1 && group.pairs.length === 1 && coerceRef(items[0].ref) === undefined) {
+		const parsed = task.outputSchema.safeParse(items[0]);
+		const only = group.pairs[0];
+		return [
+			parsed.success
+				? { ingredientId: only.ingredientId, lang: only.lang, data: parsed.data as Record<string, unknown>, error: null }
+				: { ingredientId: only.ingredientId, lang: only.lang, data: {}, error: 'Item failed validation.' }
+		];
 	}
 	const seen = new Set<number>();
 	const rows: BatchParsedRow[] = [];
-	for (const entry of envelope.data.results) {
-		const ref = entry.ref;
-		const pair = typeof ref === 'number' && Number.isInteger(ref) ? byRef.get(ref) : undefined;
+	for (const entry of items) {
+		const ref = coerceRef(entry.ref);
+		const pair = ref === undefined ? undefined : byRef.get(ref);
 		if (!pair || seen.has(ref as number)) continue;
 		seen.add(ref as number);
 		const item = { ...entry };

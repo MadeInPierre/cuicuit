@@ -15,6 +15,7 @@ import {
 	buildJsonl,
 	extractLineContent,
 	parseOutputLines,
+	stripFences,
 	BATCH_ENDPOINT
 } from './mistral-batch.js';
 
@@ -170,5 +171,84 @@ describe('mistral batch helpers', () => {
 		expect(extractLineContent(lines[0])).toEqual({ json: { ok: true } });
 		const err = extractLineContent(lines[1]) as { error: string };
 		expect(err.error.length).toBeGreaterThan(0);
+	});
+
+	it('tolerates fences, string bodies and non-200 statuses', () => {
+		const fenced = {
+			custom_id: 'pack:0',
+			response: {
+				status_code: 200,
+				body: { choices: [{ message: { content: '```json\n{"a":1}\n```' } }] }
+			}
+		};
+		expect(extractLineContent(fenced)).toEqual({ json: { a: 1 } });
+		expect(stripFences('{"a":1}')).toBe('{"a":1}');
+
+		const stringBody = {
+			custom_id: 'pack:0',
+			response: { status_code: 200, body: '{"choices":[{"message":{"content":"{\\"a\\":2}"}}]}' }
+		};
+		expect(extractLineContent(stringBody)).toEqual({ json: { a: 2 } });
+
+		const failed = {
+			custom_id: 'pack:0',
+			response: { status_code: 429, body: { message: 'rate limited' } }
+		};
+		const err = extractLineContent(failed) as { error: string };
+		expect(err.error).toContain('429');
+	});
+});
+
+describe('live batch shape regressions', () => {
+	// Captured verbatim from a real Mistral batch output file: the model
+	// collapsed a 4-item group into a single object (ref 0 only) instead of
+	// {"results": [...]}. The pipeline must salvage ref 0 and flag the rest
+	// as missing — never fail the whole group.
+	const LIVE_LINE =
+		'{"id":"batch-d6013397-ace12a30-0","custom_id":"pack:0","response":{"status_code":200,"body":{"id":"b33c35d091434a4f8e0182a1446f173d","object":"chat.completion","model":"mistral-small-latest","usage":{"prompt_tokens":488,"completion_tokens":37,"total_tokens":525},"created":1789937140,"choices":[{"index":0,"finish_reason":"stop","message":{"role":"assistant","content":"{\\"ref\\":0,\\"name_singular\\":\\"Apfel\\",\\"name_plural\\":\\"Äpfel\\",\\"name_general\\":\\"Äpfel\\",\\"commonly_used\\":\\"common\\" }","tool_calls":null}}]}},"error":null}';
+
+	const fourSources: BatchSource[] = [0, 1, 2, 3].map((i) => ({
+		...SOURCE,
+		ingredientId: `1111111${i}-1111-4111-8111-11111111111${i}`,
+		slug: `ingredient-${i}`
+	}));
+
+	it('salvages the single returned item and flags the missing three', () => {
+		const task = BATCH_TASKS['translation.full'];
+		const groups = chunkPairs(fourSources, ['de-DE'], 10);
+		expect(groups).toHaveLength(1);
+
+		const lines = parseOutputLines(LIVE_LINE + '\n');
+		expect(lines).toHaveLength(1);
+		const extracted = extractLineContent(lines[0]);
+		expect('json' in extracted).toBe(true);
+		if (!('json' in extracted)) throw new Error('unreachable');
+
+		const rows = parseGroupPayload(extracted.json, task, groups[0]);
+		expect(rows).toHaveLength(4);
+		const good = rows.filter((r) => !r.error);
+		const missing = rows.filter((r) => r.error);
+		expect(good).toHaveLength(1);
+		expect(good[0]).toMatchObject({
+			ingredientId: fourSources[0].ingredientId,
+			lang: 'de-DE',
+			data: { name_general: 'Äpfel', commonly_used: 'common' }
+		});
+		expect(missing).toHaveLength(3);
+		expect(missing.every((r) => r.error === 'Missing from group output.')).toBe(true);
+	});
+
+	it('accepts a bare array and coerces string refs', () => {
+		const task = BATCH_TASKS['translation.names'];
+		const groups = chunkPairs(fourSources.slice(0, 2), ['de-DE'], 10);
+		const rows = parseGroupPayload(
+			[
+				{ ref: '0', name_singular: 'Apfel', name_plural: 'Äpfel', name_general: 'Äpfel' },
+				{ ref: '1', name_singular: 'Birne', name_plural: 'Birnen', name_general: 'Birnen' }
+			],
+			task,
+			groups[0]
+		);
+		expect(rows.filter((r) => !r.error)).toHaveLength(2);
 	});
 });

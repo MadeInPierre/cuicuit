@@ -196,7 +196,8 @@ export interface BatchOutputLine {
 	custom_id: string;
 	response?: {
 		status_code?: number;
-		body?: { choices?: Array<{ message?: { content?: string } }> };
+		/** Object on the documented path; tolerated as a JSON string. */
+		body?: unknown;
 	};
 	error?: unknown;
 }
@@ -218,11 +219,42 @@ export function parseOutputLines(jsonl: string): BatchOutputLine[] {
 /** Extracts the assistant's JSON payload from one output line. */
 export function extractLineContent(line: BatchOutputLine): { json: unknown } | { error: string } {
 	if (line.error) return { error: `Request failed: ${JSON.stringify(line.error).slice(0, 300)}` };
-	const content = line.response?.body?.choices?.[0]?.message?.content;
-	if (!content || typeof content !== 'string') return { error: 'Empty model response.' };
-	try {
-		return { json: JSON.parse(content) };
-	} catch {
-		return { error: `Invalid JSON: ${content.slice(0, 200)}` };
+	if (typeof line.response?.status_code === 'number' && line.response.status_code !== 200) {
+		return {
+			error: `HTTP ${line.response.status_code}: ${JSON.stringify(line.response?.body).slice(0, 300)}`
+		};
 	}
+	// `body` is an object on the documented path; tolerate a JSON string too.
+	let body: unknown = line.response?.body;
+	if (typeof body === 'string') {
+		const parsed = tryJson(body);
+		if (parsed === undefined) return { error: `Invalid JSON body: ${body.slice(0, 200)}` };
+		body = parsed;
+	}
+	const content = (body as { choices?: Array<{ message?: { content?: unknown } }> } | null | undefined)
+		?.choices?.[0]?.message?.content;
+	if (!content || typeof content !== 'string') return { error: 'Empty model response.' };
+	const stripped = stripFences(content.trim());
+	try {
+		return { json: JSON.parse(stripped) as unknown };
+	} catch {
+		return { error: `Invalid JSON: ${stripped.slice(0, 200)}` };
+	}
+}
+
+/** JSON.parse that returns `undefined` instead of throwing. */
+function tryJson(text: string): unknown {
+	try {
+		return JSON.parse(text) as unknown;
+	} catch {
+		return undefined;
+	}
+}
+
+/** Strips ``` fences models sometimes emit despite `response_format: json_object`. */
+export function stripFences(text: string): string {
+	return text
+		.replace(/^```(?:json)?\s*/i, '')
+		.replace(/\s*```$/, '')
+		.trim();
 }

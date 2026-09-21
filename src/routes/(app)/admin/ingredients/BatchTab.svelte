@@ -29,7 +29,7 @@
 	const MAX_PAIRS = 2000;
 	const INLINE_PAIR_LIMIT = 50;
 	const BATCH_SIZES = [1, 5, 10, 20];
-	const JOB_KEY = 'cuicuit-batch-job-v2';
+	const JOB_KEY = 'cuicuit-batch-job';
 
 	let taskId: BatchTaskId = $state('translation.full');
 	let targetLangs: string[] = $state([]);
@@ -137,8 +137,6 @@
 
 	onMount(() => {
 		try {
-			// Drop the v1 key (jobId-only, pre-packing) — its groups can't be rebuilt.
-			localStorage.removeItem('cuicuit-batch-job-v1');
 			const raw = localStorage.getItem(JOB_KEY);
 			if (raw) {
 				const saved = JSON.parse(raw) as SavedJob;
