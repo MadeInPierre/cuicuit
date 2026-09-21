@@ -10,6 +10,7 @@ import {
 	parseGroupPayload,
 	type BatchSource
 } from './batch-tasks.js';
+import { assembleBatchSources } from './batch-sources.js';
 import {
 	buildChatBody,
 	buildJsonl,
@@ -199,8 +200,7 @@ describe('mistral batch helpers', () => {
 	});
 });
 
-describe('live batch shape regressions', () => {
-	// Captured verbatim from a real Mistral batch output file: the model
+describe('live batch shape regressions', () => {	// Captured verbatim from a real Mistral batch output file: the model
 	// collapsed a 4-item group into a single object (ref 0 only) instead of
 	// {"results": [...]}. The pipeline must salvage ref 0 and flag the rest
 	// as missing — never fail the whole group.
@@ -250,5 +250,50 @@ describe('live batch shape regressions', () => {
 			groups[0]
 		);
 		expect(rows.filter((r) => !r.error)).toHaveLength(2);
+	});
+});
+
+describe('assembleBatchSources', () => {
+	const rows = [
+		{ id: 'id-b', slug: 'b', slug_general: 'b', aisle: null },
+		{ id: 'id-a', slug: 'a', slug_general: 'a', aisle: 'milk-cheese' }
+	];
+	const translations = [
+		{
+			ingredient_id: 'id-a',
+			name_singular: 'pomme',
+			name_plural: 'pommes',
+			name_general: 'pommes',
+			commonly_used: 'daily',
+			language: { lang: 'fr-FR' }
+		},
+		{
+			ingredient_id: 'id-a',
+			name_singular: 'apple',
+			name_plural: 'apples',
+			name_general: 'apples',
+			commonly_used: 'daily',
+			language: { lang: 'en-US' }
+		}
+	];
+
+	it('follows input order (not DB order) and prefers en-US', () => {
+		// Rows arrive b-first; request order is a-first.
+		const { sources, skipped } = assembleBatchSources(rows, translations, ['id-a', 'id-b']);
+		expect(skipped).toEqual(['id-b']); // b has no translations at all
+		expect(sources).toHaveLength(1);
+		expect(sources[0]).toMatchObject({ ingredientId: 'id-a', sourceNameGeneral: 'apples' });
+	});
+
+	it('falls back to any language and skips unknown ids without error', () => {
+		const frOnly = translations.slice(0, 1);
+		const { sources, skipped } = assembleBatchSources(
+			rows,
+			frOnly,
+			['id-a', 'id-gone', 'id-a'] // dupe collapses, unknown skips
+		);
+		expect(sources).toHaveLength(1);
+		expect(sources[0].sourceNameGeneral).toBe('pommes');
+		expect(skipped).toEqual(['id-gone']);
 	});
 });

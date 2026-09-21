@@ -59,6 +59,7 @@
 		pairCount: number;
 		requestCount: number;
 		via: string;
+		skipped: string[];
 	}
 	interface StatusOut {
 		status: string;
@@ -107,12 +108,14 @@
 
 	function selectAll() {
 		selectedIds = candidates.slice(0, Math.floor(MAX_PAIRS / Math.max(1, targetLangs.length))).map((i) => i.id);
+		skippedIds = [];
 		toast.info(`Selected ${selectedIds.length} ingredients.`);
 	}
 
 	function clearSelection() {
 		selectedIds = [];
 		results = [];
+		skippedIds = [];
 	}
 
 	interface SavedJob {
@@ -122,6 +125,17 @@
 		targetLangs: string[];
 		batchSize: number;
 	}
+
+	/**
+	 * The exact spec the job was submitted with. Polling MUST use this, not
+	 * the live selection — groups are rebuilt from these ids, and polling
+	 * with a changed selection would misattribute rows to ingredients.
+	 */
+	let submittedSpec: { ingredientIds: string[]; targetLangs: string[]; batchSize: number } | null =
+		$state(null);
+	/** Ids reported as skipped (no source text); rendered by name below. */
+	let skippedIds: string[] = $state([]);
+	const skippedNames = $derived(skippedIds.map(displayName));
 
 	function jobSpec(): SavedJob {
 		return { jobId, taskId, ingredientIds: selectedIds, targetLangs, batchSize };
@@ -146,6 +160,11 @@
 					selectedIds = saved.ingredientIds ?? [];
 					targetLangs = saved.targetLangs ?? [];
 					batchSizeStr = String(saved.batchSize ?? 10);
+					submittedSpec = {
+						ingredientIds: selectedIds,
+						targetLangs,
+						batchSize: Number(batchSizeStr)
+					};
 					statusNote = 'Restored pending batch job from last session — press Poll.';
 				}
 			}
@@ -180,6 +199,7 @@
 				ingredientIds: selectedIds
 			});
 			results = out.results.map((r) => ({ ...r, accepted: !r.error }));
+			skippedIds = out.skipped;
 			statusNote = `${out.results.length} rows returned (${out.skipped.length} skipped — no source text). Review below, then Apply.`;
 		} catch (err) {
 			console.error(err);
@@ -209,6 +229,8 @@
 			})) as unknown as SubmitOut;
 			jobId = out.jobId;
 			jobStatus = out.status;
+			submittedSpec = { ingredientIds: selectedIds, targetLangs, batchSize };
+			skippedIds = out.skipped ?? [];
 			saveJob();
 			statusNote = `Job ${jobId} submitted (${out.pairCount} pairs in ${out.requestCount} requests via ${out.via}). Poll until done — batch is ~50% cheaper but takes minutes.`;
 			toast.success('Batch submitted.');
@@ -225,16 +247,23 @@
 			toast.error('No batch job to poll.');
 			return;
 		}
+		// Poll with the SUBMITTED spec, not the live selection (see above).
+		const spec = submittedSpec ?? { ingredientIds: selectedIds, targetLangs, batchSize };
+		if (spec.ingredientIds.length === 0 || spec.targetLangs.length === 0) {
+			toast.error('Job spec lost — re-select the ingredients and submit again.');
+			return;
+		}
 		busy = true;
 		try {
 			const out = (await batchStatusAdmin({
 				jobId,
 				taskId,
-				targetLangs,
-				batchSize,
-				ingredientIds: selectedIds
+				targetLangs: spec.targetLangs,
+				batchSize: spec.batchSize,
+				ingredientIds: spec.ingredientIds
 			})) as unknown as StatusOut;
 			jobStatus = out.status;
+			skippedIds = out.skipped ?? [];
 			if (out.done) {
 				results = (out.results ?? []).map((r) => ({
 					...r,
@@ -374,6 +403,15 @@
 
 	{#if statusNote}
 		<p class="text-sm text-muted-foreground">{statusNote}</p>
+	{/if}
+
+	{#if skippedIds.length > 0}
+		<p class="text-sm text-muted-foreground">
+			Skipped — no source text to translate from (no translation in any language yet, or
+			deleted since selection):
+			{skippedNames.slice(0, 15).join(', ')}{#if skippedNames.length > 15}
+				+{skippedNames.length - 15} more{/if}. Add a translation manually first, then re-run them.
+		</p>
 	{/if}
 
 	{#if results.length > 0}
