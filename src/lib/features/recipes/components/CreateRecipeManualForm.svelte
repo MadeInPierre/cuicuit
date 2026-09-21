@@ -66,7 +66,7 @@
 			toast.error('Please fix the errors in the form.');
 			return;
 		}
-		onSubmit();
+		onSubmit().catch(() => toast.error('Failed to create recipe. Please try again.'));
 	}
 </script>
 
