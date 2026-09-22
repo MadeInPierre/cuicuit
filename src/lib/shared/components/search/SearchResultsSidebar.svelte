@@ -75,6 +75,18 @@
 		searchResults = null;
 	}
 
+	// Handle the Enter key: select the first catalog match when one exists,
+	// otherwise add the typed text as a custom ingredient when allowed.
+	function onSearchEnter() {
+		const processed = searchResults?.processedIngredient;
+		if (!processed) return;
+		if (processed.matches.length > 0) {
+			onSelectIngredient(0);
+		} else if (allowCustom) {
+			onSelectIngredient(null);
+		}
+	}
+
 	async function onSelectRecipe(recipe: Recipe) {
 		if (!recipe?.id || !recipe?.servings) return;
 		await addRecipeToActivePlan(space, recipe.id, recipe.servings); // TODO refactor to allow choosing servings & send this function to parent component
@@ -155,9 +167,9 @@
 				hasTypedThisFocus = false;
 			}}
 			onkeydown={(e) => {
-				if (e.key === 'Enter' && searchResults?.processedIngredient?.matches) {
+				if (e.key === 'Enter' && searchResults?.processedIngredient) {
 					e.preventDefault(); // Avoid submitting the form
-					onSelectIngredient(0);
+					onSearchEnter();
 				}
 				if (e.key === 'Escape') {
 					console.log('Escape pressed, closing search results');
