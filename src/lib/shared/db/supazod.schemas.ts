@@ -459,7 +459,7 @@ export const publicRecipeIngredientsRelationshipsSchema = z.tuple([
 ]);
 
 export const publicRecipesRowSchema = z.object({
-  author_id: z.string().nullable(),
+  author_id: z.string(),
   cache_id: z.string().nullable(),
   cleanup_level: publicCleanupLevelSchema,
   cost_level: publicCostLevelSchema,
@@ -492,7 +492,7 @@ export const publicRecipesRowSchema = z.object({
 });
 
 export const publicRecipesInsertSchema = z.object({
-  author_id: z.string().optional().nullable(),
+  author_id: z.string(),
   cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema,
   cost_level: publicCostLevelSchema,
@@ -525,7 +525,7 @@ export const publicRecipesInsertSchema = z.object({
 });
 
 export const publicRecipesUpdateSchema = z.object({
-  author_id: z.string().optional().nullable(),
+  author_id: z.string().optional(),
   cache_id: z.string().optional().nullable(),
   cleanup_level: publicCleanupLevelSchema.optional(),
   cost_level: publicCostLevelSchema.optional(),

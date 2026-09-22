@@ -26,7 +26,7 @@ export type ImportRecipeFromUrlInput = z.infer<typeof importRecipeFromUrlInput>;
 export type ImportRecipeFromUrlOutput = ImportUrlResult & { usage: CreditUsage };
 
 /**
- * Imports a recipe from a URL (scrape → enrich → duplicate), charging 1 seed.
+ * Imports a recipe from a URL (scrape → enrich → match), charging 1 seed.
  * Moved from `features/recipes/actions/import-from-url.remote.ts:importRecipeFromUrl`
  * + `features/recipes/actions/import-recipe.ts:importRecipeFromUrlCore`.
  *

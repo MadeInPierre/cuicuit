@@ -14,9 +14,9 @@ export const addExampleRecipesInput = z.object({
 export type AddExampleRecipesInput = z.infer<typeof addExampleRecipesInput>;
 
 /**
- * Imports the curated example recipes into the user's library. Reuses the exact
- * same cache-backed import logic as a normal URL import, but never charges
- * credits — the recipes are already cached, so it only duplicates them.
+ * Imports the curated example recipes into the user's library. Reuses the
+ * cached scrape + LLM output like a normal URL import, but never charges
+ * credits. Ingredient matching re-runs against the live catalog.
  * Moved from `features/recipes/actions/add-example-recipes.remote.ts`.
  */
 export const addExampleRecipesOp = defineOp({

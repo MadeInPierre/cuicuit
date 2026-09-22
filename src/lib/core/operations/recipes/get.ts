@@ -51,6 +51,8 @@ export const getRecipeOp = defineOp({
 		}
 
 		// Add the author's public profile
+		// Every recipe row has an owner (author_id is NOT NULL); the
+		// recipes_randomized view type still marks it nullable, hence the assertion.
 		const { data: authorProfile, error: profileError } = await recipeAuthorQuery(
 			ctx.supabase,
 			data.author_id!

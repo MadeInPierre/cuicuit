@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS "public"."recipes" (
     "notes" "text",
     "image_ids" "text" [],
     "slug" character varying(100) NOT NULL,
-    "author_id" "uuid",
+    "author_id" "uuid" NOT NULL,
     "cache_id" "uuid",
     "language_id" integer NOT NULL,
     "source_type" "public"."recipe_source_type" NOT NULL,

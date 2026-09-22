@@ -107,8 +107,7 @@ export function recipesDetailedQuery(
 		.from('recipes_randomized')
 		.select(RECIPES_DETAILED_SELECT)
 		.eq('ingredients.ingredient.translations.language_id', languageId) // Only get translations in the user language
-		.is('deleted_at', null)
-		.not('author_id', 'is', null); // Hide author-less cache template recipes from the library (RLS forbids anyway)
+		.is('deleted_at', null);
 
 	if (searchText) {
 		// Remove accents from searchText for accent-insensitive search

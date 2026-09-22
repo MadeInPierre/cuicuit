@@ -310,7 +310,7 @@ export type Database = {
       }
       recipes: {
         Row: {
-          author_id: string | null
+          author_id: string
           cache_id: string | null
           cleanup_level: Database["public"]["Enums"]["cleanup_level"]
           cost_level: Database["public"]["Enums"]["cost_level"]
@@ -342,7 +342,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          author_id?: string | null
+          author_id: string
           cache_id?: string | null
           cleanup_level: Database["public"]["Enums"]["cleanup_level"]
           cost_level: Database["public"]["Enums"]["cost_level"]
@@ -374,7 +374,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          author_id?: string | null
+          author_id?: string
           cache_id?: string | null
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"]
           cost_level?: Database["public"]["Enums"]["cost_level"]
