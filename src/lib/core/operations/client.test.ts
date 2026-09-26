@@ -35,6 +35,7 @@ const CLIENT_OPS = [
 	'recipes.edit',
 	'recipes.get',
 	'recipes.list',
+	'recipes.list-cards',
 	'recipes.upload-image',
 	'spaces.create',
 	'spaces.edit',

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import RecipeCarouselCard from '$lib/features/recipes/components/RecipeCarouselCard.svelte';
-	import type { RecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { RecipeSummary } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import type { CarouselAPI } from '$lib/shared/components/ui/carousel/context.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import { ArrowRight } from '@lucide/svelte';
 	import { chunkIntoPages, computeLayout, FALLBACK_WIDTH, MAX_PAGES } from './carousel-layout.js';
 
 	type Props = {
-		recipes: RecipeDetailed[];
+		recipes: RecipeSummary[];
 		expand?: boolean;
 		showSeeAll?: boolean;
 		onSeeAll?: () => void;
@@ -45,7 +45,7 @@
 	// the last cell of the last page when there are leftover recipes.
 	const carousel = $derived.by(() => {
 		if (isLoading) {
-			const skeletonPage: (RecipeDetailed | undefined)[] = Array(pageSize).fill(undefined);
+			const skeletonPage: (RecipeSummary | undefined)[] = Array(pageSize).fill(undefined);
 			return { pages: [skeletonPage], showSeeAll: false };
 		}
 		return chunkIntoPages(recipes, pageSize, MAX_PAGES, showSeeAll);
@@ -104,7 +104,7 @@
 		{@render recipeGrid(recipes)}
 	{/if}
 
-	{#snippet recipeGrid(recipes: (RecipeDetailed | undefined)[], showSeeAllButton = false)}
+	{#snippet recipeGrid(recipes: (RecipeSummary | undefined)[], showSeeAllButton = false)}
 		<div
 			class="grid gap-3"
 			style="display: grid; grid-template-columns: repeat({layout.columns}, minmax(0, 1fr)); margin-top: 1rem;"

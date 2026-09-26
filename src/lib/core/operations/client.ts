@@ -51,6 +51,7 @@ import './recipes/delete-image.js';
 import './recipes/delete.js';
 import './recipes/edit.js';
 import './recipes/get.js';
+import './recipes/list-cards.js';
 import './recipes/list.js';
 import './recipes/upload-image.js';
 import './spaces/create.js';

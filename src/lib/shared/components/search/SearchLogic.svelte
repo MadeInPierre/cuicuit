@@ -1,7 +1,7 @@
 <script lang="ts" module>
 	export type SearchResults = {
 		processedIngredient: IngredientProcessed | null;
-		recipes: RecipeDetailed[] | undefined;
+		recipes: RecipeSummary[] | undefined;
 	};
 </script>
 
@@ -11,8 +11,8 @@
 		type IngredientProcessed
 	} from '$lib/features/recipes/modules/parse-ingredients/process';
 	import {
-		getRecipesDetailed,
-		type RecipeDetailed
+		getRecipeCards,
+		type RecipeSummary
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import type { LanguageCode } from '$lib/shared/language.js';
@@ -53,15 +53,15 @@
 				return;
 			}
 
-			let processedIngredient: IngredientProcessed | undefined = undefined;
-			let recipes: RecipeDetailed[] | undefined = undefined;
+		let processedIngredient: IngredientProcessed | undefined = undefined;
+		let recipes: RecipeSummary[] | undefined = undefined;
 
 			// Process the ingredient string into a structured format matched to the database
 			processedIngredient = await processIngredientString(supabase.client, inputValue, lang);
 
-			// Also search for recipes
+			// Also search for recipes (minimal cards — details load on demand)
 			if (display === 'recipes' || display === 'both') {
-				const { data, error } = await getRecipesDetailed(lang, inputValue, { limit: 3 });
+				const { data, error } = await getRecipeCards(lang, inputValue, { limit: 3 });
 				if (error) {
 					toast.error('Error fetching recipes');
 				} else recipes = data ?? undefined;

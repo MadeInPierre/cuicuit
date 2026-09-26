@@ -341,6 +341,45 @@ if ('ok' in dbResult) {
 			expect(listed.some((r) => r.id === draftId)).toBe(true);
 		});
 
+		it('recipes.list-cards → minimal card rows', async () => {
+			const cards = (await runOp('recipes.list-cards', a.ctx, {
+				lang: LANG,
+				searchText: '',
+				limit: 100,
+				overlaps: [],
+				in: [],
+				or: null
+			})) as Array<Record<string, unknown>>;
+			const card = cards.find((c) => c.id === draftId);
+			expect(card).toBeDefined();
+			// Card projection: flat browsing fields plus the slim mosaic
+			// ingredient embed present; detail/heavy fields absent.
+			for (const key of [
+				'id',
+				'title',
+				'servings',
+				'effort_level',
+				'time_total_minutes',
+				'image_ids',
+				'source_url',
+				'times_of_day',
+				'cuisines',
+				'courses',
+				'ingredients'
+			])
+				expect(card).toHaveProperty(key);
+			for (const key of [
+				'steps',
+				'description',
+				'notes',
+				'short_title',
+				'search_term',
+				'language',
+				'source_type'
+			])
+				expect(card).not.toHaveProperty(key);
+		});
+
 		it('recipes.edit create → update → delete → restore', async () => {
 			const data = {
 				lang: LANG,

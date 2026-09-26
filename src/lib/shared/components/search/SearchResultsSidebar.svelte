@@ -4,7 +4,7 @@
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import { type IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
-	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { RecipeSummary } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import {
 		formatProcessedIngredientDescription,
@@ -75,7 +75,7 @@
 		searchResults = null;
 	}
 
-	async function onSelectRecipe(recipe: Recipe) {
+	async function onSelectRecipe(recipe: RecipeSummary) {
 		if (!recipe?.id || !recipe?.servings) return;
 		await addRecipeToActivePlan(space, recipe.id, recipe.servings); // TODO refactor to allow choosing servings & send this function to parent component
 

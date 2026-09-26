@@ -6,13 +6,13 @@
 	import { cn, formatTime } from '$lib/utils';
 	import { CalendarPlus, Signal, SignalHigh, SignalLow, SignalMedium } from '@lucide/svelte';
 	import { onMount } from 'svelte';
-	import type { RecipeDetailed } from '../queries/get-recipe-detailed';
+	import type { RecipeSummary } from '../queries/get-recipe-detailed';
 	import RecipeImage from './RecipeImage.svelte';
 
 	const activeSpace = getActiveSpaceState();
 
 	interface Props {
-		recipe?: RecipeDetailed | null; // Allow recipe to be null for loading state
+		recipe?: RecipeSummary | null; // Allow recipe to be null for loading state
 		showAddToPlanButton?: boolean; // Optional prop to control visibility of Add to Plan button
 		class?: string;
 	}

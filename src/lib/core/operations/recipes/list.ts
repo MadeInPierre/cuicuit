@@ -132,6 +132,40 @@ export type RecipeDetailedRow = NonNullable<
 >[number];
 
 /**
+ * Applies the caller-chained list filters (`.limit()`, `.overlaps()`, `.in()`,
+ * `.or()`) to a recipe list query. Shared with `list-cards.ts` so both list
+ * ops filter identically — the column allowlist lives in `listRecipesInput`.
+ */
+export function applyRecipeListFilters<
+	Q extends {
+		overlaps: (column: string, values: string[]) => Q;
+		in: (column: string, values: string[]) => Q;
+		or: (filters: string) => Q;
+	}
+>(
+	query: Q,
+	{
+		overlaps,
+		in: inFilters,
+		or: orFilter
+	}: { overlaps: ListRecipesFilter[]; in: ListRecipesFilter[]; or: string | null }
+): Q {
+	// PostgREST filters are runtime strings — the column allowlist is enforced
+	// by the zod schema above, so widen back to `string` for the builder's
+	// overloads (the literal union would demand per-column value types).
+	for (const filter of overlaps) {
+		query = query.overlaps(filter.column as string, filter.values);
+	}
+	for (const filter of inFilters) {
+		query = query.in(filter.column as string, filter.values);
+	}
+	if (orFilter) {
+		query = query.or(orFilter);
+	}
+	return query;
+}
+
+/**
  * Lists detailed recipes (language-filtered translations, ingredients).
  * Moved from `features/recipes/queries/get-recipe-detailed.ts:getRecipesDetailed`.
  */
@@ -149,20 +183,10 @@ export const listRecipesOp = defineOp({
 	input: listRecipesInput,
 	handler: async (ctx, { lang, searchText, limit, overlaps, in: inFilters, or: orFilter }) => {
 		const { id: languageId } = await resolveLanguageId(ctx.supabase, lang);
-		let query = recipesDetailedQuery(ctx.supabase, languageId, searchText).limit(limit);
-
-		// PostgREST filters are runtime strings — the column allowlist is enforced
-		// by the zod schema above, so widen back to `string` for the builder's
-		// overloads (the literal union would demand per-column value types).
-		for (const filter of overlaps) {
-			query = query.overlaps(filter.column as string, filter.values);
-		}
-		for (const filter of inFilters) {
-			query = query.in(filter.column as string, filter.values);
-		}
-		if (orFilter) {
-			query = query.or(orFilter);
-		}
+		const query = applyRecipeListFilters(
+			recipesDetailedQuery(ctx.supabase, languageId, searchText).limit(limit),
+			{ overlaps, in: inFilters, or: orFilter }
+		);
 
 		const { data, error } = await query;
 		if (error) {

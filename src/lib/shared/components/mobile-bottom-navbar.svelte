@@ -5,7 +5,7 @@
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { addShoppingItem } from '$lib/features/plans/actions/add-shopping-item';
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
-	import type { Recipe } from '$lib/features/recipes/queries/get-recipe-detailed';
+	import type { RecipeSummary } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { recipesSearchState } from '$lib/features/recipes/state/recipes-search.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn } from '$lib/utils';
@@ -201,7 +201,7 @@
 		}
 	}
 
-	async function onSelectRecipe(recipe: Recipe) {
+	async function onSelectRecipe(recipe: RecipeSummary) {
 		if (!recipe?.id || !recipe?.servings) return;
 		// Focus synchronously to preserve the tap gesture (iOS only shows the
 		// keyboard on programmatic focus within a user activation), then again

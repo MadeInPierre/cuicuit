@@ -64,6 +64,23 @@ export const API_ROUTES: ApiRouteEntry[] = [
 	},
 	{
 		method: 'GET',
+		path: '/api/v1/recipes/cards',
+		op: 'recipes.list-cards',
+		tag: TAGS.recipes,
+		summary: 'List recipe cards',
+		description:
+			'Minimal card rows for browsing (same filters as `GET /api/v1/recipes`, a fraction of the payload). Use `GET /api/v1/recipes/{id}` for a full recipe.',
+		query: [
+			q('lang', 'Language code, e.g. en-US (required).', true),
+			q('searchText', 'Accent-insensitive title search.'),
+			q('limit', 'Max rows (1-500, default 100).', false, 'integer'),
+			q('in', 'JSON array of {column, values} enum filters.'),
+			q('overlaps', 'JSON array of {column, values} array filters.'),
+			q('or', 'PostgREST or-filter on time columns.')
+		]
+	},
+	{
+		method: 'GET',
 		path: '/api/v1/recipes/{id}',
 		op: 'recipes.get',
 		tag: TAGS.recipes,

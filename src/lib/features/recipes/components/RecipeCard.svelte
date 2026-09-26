@@ -2,13 +2,20 @@
 	import { cn } from '$lib/utils';
 	import { Users } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
-	import type { Recipe, RecipeIngredientDetailed } from '../queries/get-recipe-detailed';
+	import type {
+		Recipe,
+		RecipeIngredientDetailed,
+		RecipeSummary,
+		RecipeSummaryIngredient
+	} from '../queries/get-recipe-detailed';
 	import CookableStatus from './CookableStatus.svelte';
 	import RecipeImage from './RecipeImage.svelte';
 
 	interface Props {
-		recipe?: Recipe | null; // null for loading state
-		ingredients?: RecipeIngredientDetailed[] | null; // Used for the no-image fallback
+		// Cards render card-level fields only, so minimal `RecipeSummary` rows
+		// and full `Recipe` rows are both accepted (meal cards pass full rows).
+		recipe?: Recipe | RecipeSummary | null; // null for loading state
+		ingredients?: RecipeIngredientDetailed[] | RecipeSummaryIngredient[] | null; // Used for the no-image fallback
 		servings?: number | boolean; // If number, show servings. If false, don't show. If true, show if servings exist on recipe.
 		endSnippet?: Snippet | null; // Optional snippet to render at the end of the item (e.g. for actions)
 		belowSnippet?: Snippet | null; // Optional snippet to render below the title

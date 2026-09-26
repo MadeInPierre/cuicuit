@@ -4,12 +4,17 @@
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 	import { cn, youtubeUrlToThumbnailUrl } from '$lib/utils';
 	import { ChefHat } from '@lucide/svelte';
-	import type { Recipe, RecipeIngredientDetailed } from '../queries/get-recipe-detailed';
+	import type {
+		Recipe,
+		RecipeIngredientDetailed,
+		RecipeSummary,
+		RecipeSummaryIngredient
+	} from '../queries/get-recipe-detailed';
 	import IngredientImage from './IngredientImage.svelte';
 
 	interface Props {
-		recipe?: Recipe | null; // null for loading state
-		ingredients?: RecipeIngredientDetailed[] | null; // Used for the no-image fallback
+		recipe?: Recipe | RecipeSummary | null; // null for loading state
+		ingredients?: RecipeIngredientDetailed[] | RecipeSummaryIngredient[] | null; // Used for the no-image fallback
 		class?: string;
 	}
 
@@ -25,7 +30,7 @@
 			.slice(0, 6)
 	);
 
-	const ingredientName = (ing: RecipeIngredientDetailed) =>
+	const ingredientName = (ing: RecipeIngredientDetailed | RecipeSummaryIngredient) =>
 		ing.ingredient?.translations?.[0]?.name_singular ||
 		ing.ingredient?.translations?.[0]?.name_plural ||
 		ing.custom_name;

@@ -1,6 +1,10 @@
 import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 import type { GetRecipeInput, GetRecipeOutput } from '$lib/core/operations/recipes/get.js';
 import type {
+	ListRecipeCardsInput,
+	ListRecipeCardsOutput
+} from '$lib/core/operations/recipes/list-cards.js';
+import type {
 	ListRecipesFilter,
 	ListRecipesInput,
 	ListRecipesOutput
@@ -69,10 +73,53 @@ export async function getRecipeDetailed(
 	}
 }
 
+/**
+ * Minimal card rows for browsing (library grid, search-as-you-type).
+ * Same filters as `getRecipesDetailed`, a fraction of the egress — reach for
+ * `getRecipeDetailed` when a dedicated page needs the full recipe.
+ */
+export async function getRecipeCards(
+	lang: LanguageCode,
+	searchText?: string,
+	opts?: {
+		limit?: number;
+		overlaps?: ListRecipesFilter[];
+		in?: ListRecipesFilter[];
+		or?: string | null;
+	}
+): Promise<{ data: ListRecipeCardsOutput | null; error: unknown }> {
+	try {
+		const data = await runOp<ListRecipeCardsInput, ListRecipeCardsOutput>(
+			'recipes.list-cards',
+			await getClientCtx(),
+			{
+				lang,
+				searchText: searchText ?? '',
+				limit: opts?.limit ?? 100,
+				overlaps: opts?.overlaps ?? [],
+				in: opts?.in ?? [],
+				or: opts?.or ?? null
+			}
+		);
+		return { data, error: null };
+	} catch (error) {
+		console.error('Error fetching recipe cards:', error);
+		return { data: null, error };
+	}
+}
+
 export type RecipeDetailed = NonNullable<
 	Awaited<ReturnType<typeof getRecipesDetailed>>['data']
 >[number];
 export type Recipe = Omit<RecipeDetailed, 'ingredients'>;
+
+/** One minimal card row (see `getRecipeCards`) — flat scalars plus the slim
+ * ingredient embed for the no-image mosaic. Full detailed rows stay
+ * assignable wherever cards are accepted, so meal paths keep working. */
+export type RecipeSummary = NonNullable<
+	Awaited<ReturnType<typeof getRecipeCards>>['data']
+>[number];
+export type RecipeSummaryIngredient = RecipeSummary['ingredients'][number];
 
 export type RecipeIngredientDetailed = NonNullable<
 	Awaited<ReturnType<typeof getRecipeDetailed>>['data']

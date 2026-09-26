@@ -19,8 +19,8 @@
 		recipeTimesOfDay
 	} from '$lib/features/recipes/db/recipe-doc';
 	import {
-		getRecipesDetailed,
-		type RecipeDetailed
+		getRecipeCards,
+		type RecipeSummary
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import type { ListRecipesFilter } from '$lib/core/operations/recipes/list.js';
 	import {
@@ -94,8 +94,8 @@
 
 		// TODO add discover dial
 
-		// Fetch all recipes from Supabase
-		const { data, error } = await getRecipesDetailed(lang, searchText, {
+		// Fetch minimal card rows for browsing (full recipes load on demand)
+		const { data, error } = await getRecipeCards(lang, searchText, {
 			limit: 100,
 			overlaps,
 			in: inFilters,
@@ -113,7 +113,7 @@
 	 * STATES
 	 */
 
-	let recipes: RecipeDetailed[] = $state([]);
+	let recipes: RecipeSummary[] = $state([]);
 	let loading = $state(true);
 	let searchLoading: boolean = $state(false);
 
@@ -127,7 +127,7 @@
 	let groupedRecipes: {
 		key: string;
 		header: UISectionHeader | null;
-		recipes: RecipeDetailed[];
+		recipes: RecipeSummary[];
 	}[] = $derived.by(() => {
 		// Define grouping configurations for each groupBy option
 		const groupConfigs = {
@@ -136,21 +136,21 @@
 					? parameters.filters.timeOfDay
 					: Object.keys(recipeTimesOfDay)) as string[],
 				sectionHeaders: recipeTimesOfDaySectionHeaders,
-				getRecipeKeys: (recipe: RecipeDetailed) => recipe.times_of_day as string[]
+				getRecipeKeys: (recipe: RecipeSummary) => recipe.times_of_day as string[]
 			},
 			cuisine: {
 				keys: (parameters.filters.cuisine.length
 					? parameters.filters.cuisine
 					: Object.keys(recipeCuisines)) as string[],
 				sectionHeaders: recipeCuisineSectionHeaders,
-				getRecipeKeys: (recipe: RecipeDetailed) => recipe.cuisines as string[]
+				getRecipeKeys: (recipe: RecipeSummary) => recipe.cuisines as string[]
 			},
 			course: {
 				keys: (parameters.filters.course.length
 					? parameters.filters.course
 					: Object.keys(recipeCourses)) as string[],
 				sectionHeaders: recipeCoursesSectionHeaders,
-				getRecipeKeys: (recipe: RecipeDetailed) => recipe.courses as string[]
+				getRecipeKeys: (recipe: RecipeSummary) => recipe.courses as string[]
 			}
 		} as const;
 
