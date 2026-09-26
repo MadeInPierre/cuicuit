@@ -48,7 +48,9 @@ class ActiveSpaceState {
 	);
 
 	/** The active space's language, derived from the activeSpace (convenient shortcut) */
-	language: Tables<'languages'> | undefined = $derived(this.activeSpace?.language);
+	language: ActiveSpaceWithMembers['language'] | undefined = $derived(
+		this.activeSpace?.language
+	);
 
 	/** The active space's member object of the current user, derived from the activeSpace (convenient shortcut) */
 	activeMember: Tables<'space_members'> | undefined | null = $derived(

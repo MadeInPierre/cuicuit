@@ -13,18 +13,26 @@ export type GetIngredientInput = z.infer<typeof getIngredientInput>;
 async function getIngredientHandler(ctx: OpCtx, input: GetIngredientInput) {
 	const admin = await requireAdmin(ctx);
 
+	// Narrow projection: everything except `ingredients.embedding` (≈4KB/row),
+	// which the admin UI never reads.
 	const { data: ingredient, error: ingredientError } = await admin
 		.from('ingredients')
-		.select('*')
+		.select(
+			'id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml'
+		)
 		.eq('id', input.ingredientId)
 		.single();
 	if (ingredientError || !ingredient) {
 		throw new OpError('NOT_FOUND', 'Ingredient not found.', ingredientError);
 	}
 
+	// Narrow projection: everything except `ingredient_translations.fts`, which
+	// nothing reads. The language join keeps `name_en` (shown next to each lang).
 	const { data: translations, error: translationsError } = await admin
 		.from('ingredient_translations')
-		.select('*, language:languages!inner(*)')
+		.select(
+			'ingredient_id, language_id, name_singular, name_plural, name_general, commonly_used, language:languages!inner(lang, name_en)'
+		)
 		.eq('ingredient_id', input.ingredientId);
 	if (translationsError) {
 		throw new OpError('INTERNAL', 'Failed to load ingredient translations.', translationsError);

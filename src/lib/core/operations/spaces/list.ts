@@ -15,6 +15,8 @@ async function spacesListHandler(ctx: OpCtx, input: SpacesListInput) {
 		throw new OpError('VALIDATION', 'User ID not provided');
 	}
 
+	// Narrow projection: `language` is only ever read as `.lang` (the full
+	// `languages(*)` row per space was pure egress overhead).
 	const { data: userSpaces, error } = await ctx.supabase
 		.from('space_members')
 		.select(
@@ -22,7 +24,7 @@ async function spacesListHandler(ctx: OpCtx, input: SpacesListInput) {
 			...space_id(
 				*,
 				members:space_members(*),
-				language:languages(*)
+				language:languages(lang)
 			)`
 		)
 		.eq('user_id', userId);

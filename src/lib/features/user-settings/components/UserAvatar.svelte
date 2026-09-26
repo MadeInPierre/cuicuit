@@ -3,9 +3,11 @@
 	import * as Avatar from '$lib/shared/components/ui/avatar';
 	import { nature_icons } from '$lib/shared/icons/nature-icons';
 
+	// Minimal shape: only what the avatar renders. Full rows (e.g. `UserPublicProfile`)
+	// stay assignable, as do narrow projections like the `recipes.get` author.
 	interface Props {
 		class?: string;
-		profile?: UserPublicProfile;
+		profile?: Pick<NonNullable<UserPublicProfile>, 'icon' | 'image_url' | 'user_name'> | null;
 	}
 
 	// Take any user profile as input or use the current user's profile by default

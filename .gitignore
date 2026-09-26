@@ -35,3 +35,6 @@ test-results/
 
 # Agents
 plan/
+
+# Remotion demo videos (isolated from app code)
+cuicuit-demo-video/

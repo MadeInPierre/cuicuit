@@ -11,9 +11,14 @@ export const listIngredientsInput = z.object({
 export type ListIngredientsInput = z.infer<typeof listIngredientsInput>;
 
 async function listIngredientsHandler(ctx: OpCtx, { start, end }: ListIngredientsInput) {
+	// Narrow projection: everything except `ingredients.embedding` (≈4KB/row) and
+	// `ingredient_translations.fts`, neither of which the admin UI reads. The
+	// language join keeps `name_en` (shown next to each translation's lang).
 	const { data, error } = await ctx.supabase
 		.from('ingredients')
-		.select('*, translations:ingredient_translations(*, language:languages!inner(*))')
+		.select(
+			'id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml, translations:ingredient_translations(ingredient_id, language_id, name_singular, name_plural, name_general, commonly_used, language:languages!inner(lang, name_en))'
+		)
 		.range(start, end);
 	if (error) {
 		throw new OpError('INTERNAL', 'Failed to list ingredients.', error);

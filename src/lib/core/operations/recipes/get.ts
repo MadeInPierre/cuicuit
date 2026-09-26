@@ -19,7 +19,13 @@ export type GetRecipeInput = z.infer<typeof getRecipeInput>;
 
 /** Shared with the thin `get-recipe-detailed.ts` adapter so its author type stays identical. */
 export function recipeAuthorQuery(client: SupabaseClient<Database>, authorId: string) {
-	return client.from('user_public_profiles').select('*').eq('user_id', authorId).single();
+	// Narrow projection: the app only reads `user_name` (avatar fields kept for
+	// API/MCP consumers); `created_at`/`updated_at` are never read.
+	return client
+		.from('user_public_profiles')
+		.select('user_id, user_name, icon, image_url')
+		.eq('user_id', authorId)
+		.single();
 }
 
 export type RecipeAuthorRow = NonNullable<Awaited<ReturnType<typeof recipeAuthorQuery>>['data']>;

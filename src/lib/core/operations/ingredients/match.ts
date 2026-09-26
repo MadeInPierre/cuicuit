@@ -58,11 +58,14 @@ async function matchIngredientsHandler(
 		return { matches: matches.map((m) => ({ ...m, bestMatches: [] })) };
 	}
 
+	// Narrow projection: the RPC rows above are only used for their `id`, and the
+	// hydrated matches only need display fields — `ingredients.embedding`
+	// (≈4KB/row) and `ingredient_translations.fts` are never read by the app.
 	const { data: enriched, error: enrichedError } = await ctx.supabase
 		.from('ingredients')
 		.select(
-			`*,
-			translations:ingredient_translations(*, language:languages!inner(*))
+			`id, slug, slug_general, aisle, hierarchy, base_unit, unit_frequencies, g_per_unit, g_per_ml,
+			translations:ingredient_translations(ingredient_id, language_id, name_singular, name_plural, name_general, commonly_used, language:languages!inner(lang))
 			`
 		)
 		.in('id', ingredientIds)
