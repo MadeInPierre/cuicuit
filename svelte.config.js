@@ -11,6 +11,9 @@ const config = {
 		adapter: adapter({
 			runtime: 'nodejs24.x'
 		}),
+		version: {
+			name: `v${process.env.npm_package_version}-${process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local'}`
+		},
 		experimental: {
 			remoteFunctions: true
 		},

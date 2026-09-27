@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { version } from '$app/environment';
 	import { navLinksAppSettingsSidebar } from '$lib/features/marketing/consts/nav-links';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
@@ -46,6 +47,8 @@
 		<div class="flex flex-col space-y-8 pb-16 md:flex-row md:space-x-12 md:space-y-0">
 			<aside class="min-w-40 lg:w-1/6">
 				<SettingsSidebarNav groups={navLinksAppSettingsSidebar} />
+
+				<span class="text-xs text-muted-foreground">Cuicuit {version}</span>
 			</aside>
 
 			<div class="flex-1 lg:max-w-2xl">
@@ -65,6 +68,8 @@
 				showOptions = false;
 			}}
 		/>
+
+		<span class="text-xs text-muted-foreground">Cuicuit {version}</span>
 	{:else}
 		<div class="flex flex-col space-y-8">
 			{@render children?.()}
