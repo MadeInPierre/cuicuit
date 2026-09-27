@@ -184,14 +184,49 @@ export function generateShoppingList(
 }
 
 /**
+ * Categorization of a combined item by optionality across all its origins.
+ *
+ * - HAS_REQUIRED (returns false): at least one independent item, or at least one
+ *   meal-linked item that is NOT optional (priority !== 'optional').
+ * - OPTIONAL_ONLY (returns true): only meal-linked optional items, no independent
+ *   items and no required meal items.
+ *
+ * Items with no origins are treated as required so they stay visible.
+ */
+export function isOptionalOnlyItem(item: CombinedShoppingListItem): boolean {
+	if (item.items.length === 0) return false;
+	if (item.items.some((si) => si.type === 'independent')) return false;
+	return item.items.every((si) => si.priority === 'optional');
+}
+
+/**
+ * Splits combined items into required-first groups:
+ * `required` = HAS_REQUIRED, `optionalOnly` = OPTIONAL_ONLY.
+ */
+export function partitionByOptionality(items: CombinedShoppingListItem[]): {
+	required: CombinedShoppingListItem[];
+	optionalOnly: CombinedShoppingListItem[];
+} {
+	const required: CombinedShoppingListItem[] = [];
+	const optionalOnly: CombinedShoppingListItem[] = [];
+	for (const item of items) {
+		(isOptionalOnlyItem(item) ? optionalOnly : required).push(item);
+	}
+	return { required, optionalOnly };
+}
+
+/**
  * Formats the combined quantity of a shopping list item for display, showing required and optional quantities.
  * For example: "2 to 5 cups + 1 tbsp" (if there are 2 required cups and 3 optional cups, and 1 required tbsp).
  */
-export function formatCombinedItemQuantity(item: CombinedShoppingListItem): string {
+export function formatCombinedItemQuantity(
+	item: CombinedShoppingListItem,
+	shortUnit = true
+): string {
 	const parts: string[] = [];
 
 	for (const [unit, qty] of Object.entries(item.mergedQuantity)) {
-		const unitStr = formatUnit(unit);
+		const unitStr = formatUnit(unit, shortUnit);
 
 		if (qty.optionalOnly > 0) {
 			if (qty.requiredOnly > 0) {

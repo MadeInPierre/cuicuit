@@ -30,7 +30,7 @@
 	import type { CombinedShoppingListItem } from './generate-shopping-list';
 	import ItemDrawer from './ItemDrawer.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
-	import ShoppingItemsGrid from './ShoppingItemsGrid.svelte';
+	import ShoppingItemsPartitioned from './ShoppingItemsPartitioned.svelte';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
@@ -262,7 +262,7 @@
 									/>
 								{/if}
 
-								<ShoppingItemsGrid
+								<ShoppingItemsPartitioned
 									items={aisleItems || []}
 									layout={itemsLayout.value ?? 'grid'}
 									onCheckedChange={onItemCheckedChange}
@@ -302,7 +302,7 @@
 									</div>
 
 									<div class="grid space-y-2 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
-										<ShoppingItemsGrid
+										<ShoppingItemsPartitioned
 											items={space.activeShoppingList.filter((item) =>
 												item.items.some((si) => si.checked_at)
 											)}
