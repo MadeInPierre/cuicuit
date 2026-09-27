@@ -228,6 +228,39 @@ export const publicCreditLogsUpdateSchema = z.object({
   user_id: z.string().optional().nullable(),
 });
 
+export const publicCreditUsageWeeklyRowSchema = z.object({
+  import_text: z.number(),
+  import_website: z.number(),
+  private_used: z.number(),
+  public_used: z.number(),
+  total: z.number(),
+  updated_at: z.string(),
+  user_id: z.string(),
+  week_start: z.string(),
+});
+
+export const publicCreditUsageWeeklyInsertSchema = z.object({
+  import_text: z.number().optional(),
+  import_website: z.number().optional(),
+  private_used: z.number().optional(),
+  public_used: z.number().optional(),
+  total: z.number().optional(),
+  updated_at: z.string().optional(),
+  user_id: z.string(),
+  week_start: z.string(),
+});
+
+export const publicCreditUsageWeeklyUpdateSchema = z.object({
+  import_text: z.number().optional(),
+  import_website: z.number().optional(),
+  private_used: z.number().optional(),
+  public_used: z.number().optional(),
+  total: z.number().optional(),
+  updated_at: z.string().optional(),
+  user_id: z.string().optional(),
+  week_start: z.string().optional(),
+});
+
 export const publicIngredientSubstitutionsRowSchema = z.object({
   id: z.string(),
   original_ingredient_id: z.string(),
@@ -517,7 +550,7 @@ export const publicRecipesInsertSchema = z.object({
   time_cook_minutes: z.number().optional().nullable(),
   time_prep_minutes: z.number().optional().nullable(),
   time_rest_minutes: z.number().optional().nullable(),
-  time_total_minutes: z.number().optional().nullable(),
+  time_total_minutes: z.never().optional(),
   times_of_day: z.array(publicTimeOfDaySchema),
   title: z.string(),
   tools: z.array(publicRecipeToolSchema),
@@ -550,7 +583,7 @@ export const publicRecipesUpdateSchema = z.object({
   time_cook_minutes: z.number().optional().nullable(),
   time_prep_minutes: z.number().optional().nullable(),
   time_rest_minutes: z.number().optional().nullable(),
-  time_total_minutes: z.number().optional().nullable(),
+  time_total_minutes: z.never().optional(),
   times_of_day: z.array(publicTimeOfDaySchema).optional(),
   title: z.string().optional(),
   tools: z.array(publicRecipeToolSchema).optional(),
@@ -1076,7 +1109,7 @@ export const publicConsumeCreditsReturnsSchema = z.array(
   }),
 );
 
-export const publicGetPublicPoolHealthArgsSchema = z.never();
+export const publicGetPublicPoolHealthArgsSchema = z.object({});
 
 export const publicGetPublicPoolHealthReturnsSchema = z.string();
 
@@ -1203,6 +1236,15 @@ export type PublicCreditLogsInsert = z.infer<
 >;
 export type PublicCreditLogsUpdate = z.infer<
   typeof publicCreditLogsUpdateSchema
+>;
+export type PublicCreditUsageWeeklyRow = z.infer<
+  typeof publicCreditUsageWeeklyRowSchema
+>;
+export type PublicCreditUsageWeeklyInsert = z.infer<
+  typeof publicCreditUsageWeeklyInsertSchema
+>;
+export type PublicCreditUsageWeeklyUpdate = z.infer<
+  typeof publicCreditUsageWeeklyUpdateSchema
 >;
 export type PublicIngredientSubstitutionsRow = z.infer<
   typeof publicIngredientSubstitutionsRowSchema

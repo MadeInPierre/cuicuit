@@ -7,6 +7,7 @@ export type OpErrorCode =
 	| 'NOT_FOUND'
 	| 'VALIDATION'
 	| 'INSUFFICIENT_SEEDS'
+	| 'RATE_LIMITED'
 	| 'CONFLICT'
 	| 'INTERNAL';
 
@@ -33,6 +34,8 @@ export function toStatus(code: OpErrorCode): number {
 			return 404;
 		case 'INSUFFICIENT_SEEDS':
 			return 402;
+		case 'RATE_LIMITED':
+			return 429;
 		case 'VALIDATION':
 			return 400;
 		case 'CONFLICT':

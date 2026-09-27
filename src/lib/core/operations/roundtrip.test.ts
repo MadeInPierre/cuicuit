@@ -1344,6 +1344,94 @@ if ('ok' in dbResult) {
 			expect(logs.error).toBeNull();
 		});
 
+		it('billing weekly usage: trigger aggregates + consume_credits enforces RATE_LIMITED', async () => {
+			// Grant `a` a private balance (unique test user — harmless locally).
+			const { error: grantError } = await admin.from('credit_logs').insert({
+				user_id: a.id,
+				credit_type: 'private',
+				amount: 5,
+				source: 'stripe_charge',
+				metadata: {}
+			});
+			expect(grantError).toBeNull();
+
+			// Real RPC consume: succeeds and the trigger aggregates the row.
+			const { data: consumed, error: consumeError } = await admin.rpc('consume_credits', {
+				p_user_id: a.id,
+				p_amount_to_consume: 1,
+				p_source: 'import_recipe_from_website',
+				p_metadata: {}
+			});
+			expect(consumeError).toBeNull();
+			expect(consumed?.[0]).toMatchObject({
+				private_credits_consumed: 1,
+				public_credits_consumed: 0
+			});
+
+			const { data: usage, error: usageError } = await admin
+				.from('credit_usage_weekly')
+				.select('*')
+				.eq('user_id', a.id)
+				.order('week_start', { ascending: false })
+				.limit(1)
+				.maybeSingle();
+			expect(usageError).toBeNull();
+			// Grants never count — only the 1 consumed seed above.
+			expect(usage).toMatchObject({
+				total: 1,
+				private_used: 1,
+				public_used: 0,
+				import_website: 1,
+				import_text: 0
+			});
+			const weekStart = usage!.week_start;
+
+			// Community cap: stub `b` at 50/50 — the next seed must fail
+			// WITHOUT touching the shared public pool (guard runs pre-insert).
+			const { error: stubError } = await admin.from('credit_usage_weekly').upsert(
+				{
+					user_id: b.id,
+					week_start: weekStart,
+					total: 50,
+					private_used: 0,
+					public_used: 50,
+					import_website: 50,
+					import_text: 0
+				},
+				{ onConflict: 'user_id,week_start' }
+			);
+			expect(stubError).toBeNull();
+			const { error: communityLimited } = await admin.rpc('consume_credits', {
+				p_user_id: b.id,
+				p_amount_to_consume: 1,
+				p_source: 'import_recipe_from_text',
+				p_metadata: {}
+			});
+			expect(communityLimited?.message).toContain('RATE_LIMITED');
+
+			// Private cap: stub `a` at 1000 private — fails even with balance left.
+			const { error: capError } = await admin.from('credit_usage_weekly').upsert(
+				{
+					user_id: a.id,
+					week_start: weekStart,
+					total: 1001,
+					private_used: 1000,
+					public_used: 1,
+					import_website: 1,
+					import_text: 1000
+				},
+				{ onConflict: 'user_id,week_start' }
+			);
+			expect(capError).toBeNull();
+			const { error: privateLimited } = await admin.rpc('consume_credits', {
+				p_user_id: a.id,
+				p_amount_to_consume: 1,
+				p_source: 'import_recipe_from_text',
+				p_metadata: {}
+			});
+			expect(privateLimited?.message).toContain('RATE_LIMITED');
+		});
+
 		it('languages.list contains en-US', async () => {
 			const langs = (await runOp('languages.list', a.ctx, {})) as Array<{ lang: string }>;
 			expect(langs.some((l) => l.lang === 'en-US')).toBe(true);

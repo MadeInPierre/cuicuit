@@ -1,20 +1,39 @@
+import type { PaidFeatureKey } from '$lib/features/billing/consts.js';
 import { OpError } from './errors.js';
 import type { OpCtx } from './registry.js';
 
 /**
- * Credit (seed) gate for paid operations — REAL implementation (M2).
+ * Credit (seed) gate for paid operations.
  *
- * Semantics moved verbatim from `import-from-url.remote.ts`:
- * 1. check the user can afford the feature (private balance OR non-empty public pool),
- * 2. run the operation,
- * 3. charge once via the `consume_credits` RPC (SECURITY DEFINER → `ctx.admin` only).
+ * Two layers, same numbers:
+ * 1. fail-fast checks here (`canAfford` + `assertWithinWeeklyLimits`) run
+ *    BEFORE the expensive work (LLM import) so users get a clean error;
+ * 2. the authoritative guard lives in the `consume_credits` SQL function,
+ *    which re-checks under row locks — races can never overspend.
  *
- * Adapters must NEVER call credit consumption directly — the two import ops
- * (`recipes.import-from-url`, `recipes.import-from-text`) apply this internally.
+ * Weekly rate limits (keep in sync with `consume_credits` in
+ * `supabase/schemas/01_billing.sql`): max 50 community seeds per user per
+ * week (everyone), max 1000 private seeds per user per week (supporters).
+ * Weeks start Monday 00:00 UTC. Adapters must NEVER call credit consumption
+ * directly — the two import ops apply this internally.
  */
+
+/** Max community seeds one user may consume per week (all users). */
+export const WEEKLY_COMMUNITY_SEEDS_LIMIT = 50;
+/** Max private seeds one user may consume per week (supporters). */
+export const WEEKLY_PRIVATE_SEEDS_LIMIT = 1000;
+
 export interface CreditUsage {
 	privateCreditsUsed: number;
 	publicCreditsUsed: number;
+}
+
+/** Monday (UTC) of the current week as `YYYY-MM-DD` — mirrors Postgres `date_trunc('week', …)`. */
+export function currentWeekStart(now = new Date()): string {
+	const monday = new Date(now);
+	monday.setUTCHours(0, 0, 0, 0);
+	monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+	return monday.toISOString().slice(0, 10);
 }
 
 /** Mirrors `canUserAfford` (`features/auth/queries/get-user-credit-balance.ts`). */
@@ -36,18 +55,60 @@ export async function canAfford(ctx: OpCtx, seeds: number): Promise<boolean> {
 }
 
 /**
- * Run `fn` only if affordable, then charge. Returns `{ result, usage }` —
- * import ops spread this as `{ ...result, usage }` to preserve the wire shape.
+ * Fail-fast weekly rate-limit check — mirrors the `consume_credits` split
+ * (private balance first, overflow to the community pool) against this
+ * week's `credit_usage_weekly` row. Throws `RATE_LIMITED` (429).
  */
-export async function withCredits<T>(
-	ctx: OpCtx,
-	opts: { feature: string; seeds: number; metadata?: string },
-	fn: () => Promise<T>
-): Promise<{ result: T; usage: CreditUsage }> {
-	if (!(await canAfford(ctx, opts.seeds))) {
-		throw new OpError('INSUFFICIENT_SEEDS', 'User cannot afford the feature.');
+export async function assertWithinWeeklyLimits(ctx: OpCtx, seeds: number): Promise<void> {
+	if (seeds <= 0) throw new OpError('VALIDATION', 'Cost must be positive.');
+	const [{ data: balance, error: balanceError }, { data: usage, error: usageError }] =
+		await Promise.all([
+			ctx.supabase
+				.from('credit_balances')
+				.select('balance')
+				.eq('user_id', ctx.userId)
+				.maybeSingle(),
+			ctx.supabase
+				.from('credit_usage_weekly')
+				.select('private_used, public_used')
+				.eq('user_id', ctx.userId)
+				.eq('week_start', currentWeekStart())
+				.maybeSingle()
+		]);
+	if (balanceError) {
+		throw new OpError('INTERNAL', 'Could not check credit balance.', balanceError);
 	}
-	const result = await fn();
+	if (usageError) {
+		throw new OpError('INTERNAL', 'Could not check weekly seed usage.', usageError);
+	}
+	const privateBalance = balance?.balance ?? 0;
+	const needPrivate = Math.min(privateBalance, seeds);
+	const needPublic = seeds - needPrivate;
+	const usedPrivate = usage?.private_used ?? 0;
+	const usedPublic = usage?.public_used ?? 0;
+	if (usedPublic + needPublic > WEEKLY_COMMUNITY_SEEDS_LIMIT) {
+		throw new OpError(
+			'RATE_LIMITED',
+			`Weekly community seed limit reached (${WEEKLY_COMMUNITY_SEEDS_LIMIT}/week, used ${usedPublic}). Resets Monday 00:00 UTC.`
+		);
+	}
+	if (usedPrivate + needPrivate > WEEKLY_PRIVATE_SEEDS_LIMIT) {
+		throw new OpError(
+			'RATE_LIMITED',
+			`Weekly private seed limit reached (${WEEKLY_PRIVATE_SEEDS_LIMIT}/week, used ${usedPrivate}). Resets Monday 00:00 UTC.`
+		);
+	}
+}
+
+/**
+ * Charge seeds via the `consume_credits` RPC (SECURITY DEFINER, service_role
+ * only → `ctx.admin`). Single place that parses the RPC result and maps the
+ * `RATE_LIMITED` guard to an `OpError`.
+ */
+export async function consumeSeeds(
+	ctx: OpCtx,
+	opts: { feature: PaidFeatureKey; seeds: number; metadata?: string }
+): Promise<CreditUsage> {
 	if (!ctx.admin) {
 		throw new OpError('INTERNAL', 'Credit consumption requires a server context.');
 	}
@@ -60,13 +121,13 @@ export async function withCredits<T>(
 		p_metadata: opts.metadata
 	});
 	if (error) {
+		if (error.message?.includes('RATE_LIMITED')) {
+			throw new OpError('RATE_LIMITED', error.message.replace(/^RATE_LIMITED:\s*/, ''));
+		}
 		throw new OpError('INTERNAL', 'Could not consume credits.', error);
 	}
 	return {
-		result,
-		usage: {
-			privateCreditsUsed: data?.[0].private_credits_consumed,
-			publicCreditsUsed: data?.[0].public_credits_consumed
-		}
+		privateCreditsUsed: data?.[0].private_credits_consumed,
+		publicCreditsUsed: data?.[0].public_credits_consumed
 	};
 }

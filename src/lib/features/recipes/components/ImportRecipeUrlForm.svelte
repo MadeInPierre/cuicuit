@@ -14,6 +14,7 @@
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
 	import { importRecipeUrlSchema } from '../models/schemas';
+	import { toastImportError } from './import-error-toast';
 	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
 
 	const userState = getUserState();
@@ -87,7 +88,7 @@
 			}
 		} catch (error) {
 			console.error(error);
-			toast.error('Failed to import recipe. Please try again.');
+			toastImportError(error);
 		}
 		loading = false;
 		currentStep = -1;

@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import { FEATURE_COSTS, type PaidFeatureKey } from '$lib/features/billing/consts.js';
+
+import { consumeSeeds, type CreditUsage } from '../credits.js';
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
 
@@ -11,10 +14,7 @@ export const consumeCreditsInput = z.object({
 
 export type ConsumeCreditsInput = z.infer<typeof consumeCreditsInput>;
 
-export interface ConsumeCreditsResult {
-	privateCreditsUsed: number | undefined;
-	publicCreditsUsed: number | undefined;
-}
+export type ConsumeCreditsResult = CreditUsage;
 
 /**
  * `billing.consume` — charge seeds via the `consume_credits` RPC (internal,
@@ -26,9 +26,9 @@ export interface ConsumeCreditsResult {
  * `requireCtx('app')` → `requireUserId`, which runs the same check before the
  * handler; the handler assumes `ctx.userId` is verified.
  *
- * NOTE: `credits.ts:withCredits` calls the same `consume_credits` RPC directly
- * instead of routing through `runOp('billing.consume', ...)` — intentional
- * (hot path, avoids indirection), not duplication to "fix".
+ * NOTE: `credits.ts:consumeSeeds` holds the actual `consume_credits` RPC call —
+ * this op is just the internal `runOp` door onto it (hot-path import ops call
+ * `consumeSeeds` directly to keep streaming).
  */
 export const consumeOp = defineOp({
 	name: 'billing.consume',
@@ -43,28 +43,8 @@ export const consumeOp = defineOp({
 	internal: true,
 	handler: async (ctx, { amount, feature, metadata }): Promise<ConsumeCreditsResult> => {
 		console.log('Consuming credits', amount, feature, metadata);
-
-		if (!ctx.admin) {
-			throw new OpError('INTERNAL', 'Credit consumption requires a server context.');
-		}
-
-		// consume_credits is SECURITY DEFINER and only callable by service_role
-		// (revoked from PUBLIC/anon/authenticated), so it must go through the admin client.
-		const { data, error } = await ctx.admin.rpc('consume_credits', {
-			p_amount_to_consume: amount,
-			p_source: feature,
-			p_user_id: ctx.userId,
-			p_metadata: metadata
-		});
-
-		if (error) {
-			console.error(error);
-			throw new OpError('INTERNAL', 'Could not consume credits', error);
-		}
-
-		return {
-			privateCreditsUsed: data?.[0].private_credits_consumed,
-			publicCreditsUsed: data?.[0].public_credits_consumed
-		};
+		const key = feature as PaidFeatureKey;
+		if (!FEATURE_COSTS[key]) throw new OpError('VALIDATION', `Unknown feature: ${feature}.`);
+		return consumeSeeds(ctx, { feature: key, seeds: amount, metadata });
 	}
 });

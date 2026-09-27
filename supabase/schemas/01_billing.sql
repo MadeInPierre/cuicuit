@@ -157,6 +157,78 @@ create trigger trigger_on_credit_log_insert_update_balances
 
 
 -- ====================================================================
+-- 3B. WEEKLY USAGE ANALYTICS + RATE LIMIT SOURCE (LOG TO USAGE AGGREGATION)
+-- ====================================================================
+-- One row per user per ISO week (Monday 00:00 UTC). Counts consumptions
+-- only (`source = 'consumed'`); grants never count toward rate limits.
+-- Public-pool charges are logged with `user_id = NULL`, so the effective
+-- user is resolved via `metadata->>'consumed_by_user_id'` (see
+-- `consume_credits` below). Keep `WEEKLY_*_LIMIT` in sync with
+-- `src/lib/core/operations/credits.ts`.
+
+create table if not exists public.credit_usage_weekly (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  week_start date not null, -- Monday of the ISO week (UTC)
+  total integer not null default 0 check (total >= 0),
+  private_used integer not null default 0 check (private_used >= 0),
+  public_used integer not null default 0 check (public_used >= 0),
+  import_website integer not null default 0 check (import_website >= 0),
+  import_text integer not null default 0 check (import_text >= 0),
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  primary key (user_id, week_start)
+);
+
+create or replace function billing.on_credit_log_insert_update_weekly_usage()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, billing
+as $$
+declare
+  v_user_id uuid;
+  v_week date;
+  v_source text;
+  v_n integer;
+begin
+  if new.source != 'consumed' then
+    return new;
+  end if;
+  -- Public-pool rows carry user_id = NULL; the spender is in metadata.
+  v_user_id := coalesce(new.user_id, (new.metadata ->> 'consumed_by_user_id')::uuid);
+  if v_user_id is null then
+    return new;
+  end if;
+  v_week := (date_trunc('week', new.created_at))::date;
+  v_source := new.metadata ->> 'billing_action_source';
+  v_n := abs(new.amount);
+  insert into public.credit_usage_weekly as w
+    (user_id, week_start, total, private_used, public_used, import_website, import_text, updated_at)
+  values (
+    v_user_id, v_week, v_n,
+    case when new.credit_type = 'private' then v_n else 0 end,
+    case when new.credit_type = 'public' then v_n else 0 end,
+    case when v_source = 'import_recipe_from_website' then v_n else 0 end,
+    case when v_source = 'import_recipe_from_text' then v_n else 0 end,
+    timezone('utc'::text, now())
+  )
+  on conflict (user_id, week_start) do update
+  set total = w.total + v_n,
+      private_used = w.private_used + case when new.credit_type = 'private' then v_n else 0 end,
+      public_used = w.public_used + case when new.credit_type = 'public' then v_n else 0 end,
+      import_website = w.import_website + case when v_source = 'import_recipe_from_website' then v_n else 0 end,
+      import_text = w.import_text + case when v_source = 'import_recipe_from_text' then v_n else 0 end,
+      updated_at = timezone('utc'::text, now());
+  return new;
+end;
+$$;
+
+create trigger trigger_on_credit_log_insert_update_weekly_usage
+  after insert on public.credit_logs
+  for each row
+  execute function billing.on_credit_log_insert_update_weekly_usage();
+
+
+-- ====================================================================
 -- 4. STRIPE INGESTION ENGINE (STRIPE TO LEDGER PIPELINE)
 -- ====================================================================
 
@@ -351,6 +423,9 @@ declare
   v_public_bal integer := 0;
   v_deduct_private integer := 0;
   v_deduct_public integer := 0;
+  v_week date := (date_trunc('week', now()))::date;
+  v_used_private integer := 0;
+  v_used_public integer := 0;
 begin
   -- 1. Input Sanity Check
   if p_amount_to_consume <= 0 then
@@ -386,6 +461,23 @@ begin
     end if;
   else
     v_deduct_public := p_amount_to_consume;
+  end if;
+
+  -- 3b. Weekly rate-limit guard (authoritative; keep limits in sync with
+  -- `credits.ts`). Stub-then-lock makes the check race-safe under concurrency.
+  insert into public.credit_usage_weekly (user_id, week_start)
+  values (p_user_id, v_week)
+  on conflict (user_id, week_start) do nothing;
+  select coalesce(private_used, 0), coalesce(public_used, 0)
+  into v_used_private, v_used_public
+  from public.credit_usage_weekly
+  where user_id = p_user_id and week_start = v_week
+  for update;
+  if v_used_public + v_deduct_public > 50 then
+    raise exception 'RATE_LIMITED: weekly community seed limit exceeded (50/week).';
+  end if;
+  if v_used_private + v_deduct_private > 1000 then
+    raise exception 'RATE_LIMITED: weekly private seed limit exceeded (1000/week).';
   end if;
 
   -- 4. Process Public Pool Deductions with Lock
@@ -438,6 +530,7 @@ grant execute on function public.consume_credits(uuid, integer, text, jsonb) to 
 
 -- The billing trigger/cron functions are never meant to be called by clients.
 revoke all on function billing.on_credit_log_insert_update_balances() from public, anon, authenticated;
+revoke all on function billing.on_credit_log_insert_update_weekly_usage() from public, anon, authenticated;
 revoke all on function billing.process_expired_credits() from public, anon, authenticated;
 
 
@@ -447,6 +540,7 @@ revoke all on function billing.process_expired_credits() from public, anon, auth
 
 alter table public.credit_balances enable row level security;
 alter table public.credit_logs enable row level security;
+alter table public.credit_usage_weekly enable row level security;
 alter table billing.credit_conversion_rules enable row level security;
 
 -- Client-side users read access constraints
@@ -458,6 +552,11 @@ using (auth.uid() = user_id);
 create policy "select_own_logs" 
 on public.credit_logs
 for select 
+using (auth.uid() = user_id);
+
+create policy "select_own_weekly_usage"
+on public.credit_usage_weekly
+for select
 using (auth.uid() = user_id);
 
 create policy "select_public_conversion_rules" 

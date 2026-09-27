@@ -8,7 +8,7 @@ The Supabase schema uses the declarative approach defined at `supabase/schema/*.
 - Change the schema in the declarative files, do not change the database directly or write migrations manually.
 - Generate the migration using `npx supabase db diff -f my_migration`.
 - Warning: this automatic migration generation is not perfect, so check the generated migration file. It may introduce noise and probably doesn't handle security policies correctly. Adjust it to fit your intended schema changes. Both the declarative schema and the generated migration should be in sync, maintain both.
-- Run `npx supabase migration up` to apply the migration on the local dev setup and `npm run db:types:local` to update the TypeScript types and zod schemas.
+- Run `npx supabase migration up` to apply the migration on the local dev setup and `npm run db:types` to update the TypeScript types and zod schemas.
 - NEVER TOUCH PROD YOURSELF (e.g. AVOID running `npx supabase db push` which would overwride the production database schema), the user will handle it.
 
 The [hosted version](https://cuicuit.laclau.dev) has this additional setup:

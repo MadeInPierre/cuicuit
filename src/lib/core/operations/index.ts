@@ -78,7 +78,15 @@ export { requireUserId, resolvePatToken, signPatJwt, serverIsUserAuthenticated }
 export { requireApiCtx, requireCtx, type ApiAuthMethod } from './context.js';
 export { getClientCtx } from './context.client.js';
 export { opInputJsonSchema } from './json-schema.js';
-export { canAfford, withCredits, type CreditUsage } from './credits.js';
+export {
+	assertWithinWeeklyLimits,
+	canAfford,
+	consumeSeeds,
+	currentWeekStart,
+	WEEKLY_COMMUNITY_SEEDS_LIMIT,
+	WEEKLY_PRIVATE_SEEDS_LIMIT,
+	type CreditUsage
+} from './credits.js';
 export { OpError, toStatus, type OpErrorCode } from './errors.js';
 export {
 	defineOp,

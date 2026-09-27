@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 import { languageCodeSchema, type LanguageCode } from '$lib/shared/language.js';
 
-import { canAfford, type CreditUsage } from '../credits.js';
+import { FEATURE_COSTS } from '$lib/features/billing/consts.js';
+import { assertWithinWeeklyLimits, canAfford, consumeSeeds, type CreditUsage } from '../credits.js';
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
 import { importRecipeFromTextCore, type ImportUrlResult } from './import-from-url-helpers.js';
@@ -35,7 +36,8 @@ export const importRecipeFromTextOp = defineOp({
 		title: 'Import recipe from text',
 		description: 'Imports a recipe from free-form text, charging 1 seed.',
 		hints: [
-			'On INSUFFICIENT_SEEDS nothing is created — check seeds_balance and ask the user to top up in the app billing section (agents cannot pay).'
+			'On INSUFFICIENT_SEEDS nothing is created — check seeds_balance and ask the user to top up in the app billing section (agents cannot pay).',
+			'On RATE_LIMITED the weekly quota is hit (50 community seeds/week, 1000 private seeds/week, resets Monday 00:00 UTC) — tell the user to wait, not to top up.'
 		]
 	},
 	credits: { feature: 'import_recipe_from_text', seeds: 1 },
@@ -44,6 +46,7 @@ export const importRecipeFromTextOp = defineOp({
 		if (!(await canAfford(ctx, 1))) {
 			throw new OpError('INSUFFICIENT_SEEDS', 'User cannot afford the feature.');
 		}
+		await assertWithinWeeklyLimits(ctx, 1);
 		if (!ctx.admin) {
 			throw new OpError('INTERNAL', 'Importing a recipe requires a server context.');
 		}
@@ -66,26 +69,14 @@ export const importRecipeFromTextOp = defineOp({
 
 		if (!result) throw new OpError('INTERNAL', 'Import did not complete.');
 
-		// Same `consume_credits` call `credits.ts:withCredits` makes (see
-		// `recipes.import-from-url` for why it is replicated, not reused).
-		const { data, error } = await ctx.admin.rpc('consume_credits', {
-			p_amount_to_consume: 1,
-			p_source: 'import_recipe_from_text',
-			p_user_id: ctx.userId,
-			p_metadata: JSON.stringify({
-				length: text.length
-			})
+		// Charged after success via the shared `consumeSeeds` helper (see
+		// `recipes.import-from-url` for why it stays inline, not wrapped).
+		const usage = await consumeSeeds(ctx, {
+			feature: 'import_recipe_from_text',
+			seeds: FEATURE_COSTS.import_recipe_from_text.seeds,
+			metadata: JSON.stringify({ length: text.length })
 		});
-		if (error) {
-			throw new OpError('INTERNAL', 'Could not consume credits.', error);
-		}
 
-		yield {
-			...result,
-			usage: {
-				privateCreditsUsed: data?.[0].private_credits_consumed,
-				publicCreditsUsed: data?.[0].public_credits_consumed
-			}
-		};
+		yield { ...result, usage };
 	}
 });

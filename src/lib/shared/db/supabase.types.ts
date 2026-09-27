@@ -1,987 +1,998 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   graphql_public: {
     Tables: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
+        Args: { extensions?: Json; operationName?: string; query?: string; variables?: Json };
+        Returns: Json;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       credit_balances: {
         Row: {
-          balance: number
-          id: string
-          updated_at: string
-          user_id: string | null
-        }
+          balance: number;
+          id: string;
+          updated_at: string;
+          user_id: string | null;
+        };
         Insert: {
-          balance?: number
-          id?: string
-          updated_at?: string
-          user_id?: string | null
-        }
+          balance?: number;
+          id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
         Update: {
-          balance?: number
-          id?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+          balance?: number;
+          id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       credit_logs: {
         Row: {
-          amount: number
-          created_at: string
-          credit_type: Database["public"]["Enums"]["credit_type"]
-          id: string
-          metadata: Json
-          source: Database["public"]["Enums"]["credit_source"]
-          stripe_charge_id: string | null
-          user_id: string | null
-        }
+          amount: number;
+          created_at: string;
+          credit_type: Database["public"]["Enums"]["credit_type"];
+          id: string;
+          metadata: Json;
+          source: Database["public"]["Enums"]["credit_source"];
+          stripe_charge_id: string | null;
+          user_id: string | null;
+        };
         Insert: {
-          amount: number
-          created_at?: string
-          credit_type: Database["public"]["Enums"]["credit_type"]
-          id?: string
-          metadata?: Json
-          source: Database["public"]["Enums"]["credit_source"]
-          stripe_charge_id?: string | null
-          user_id?: string | null
-        }
+          amount: number;
+          created_at?: string;
+          credit_type: Database["public"]["Enums"]["credit_type"];
+          id?: string;
+          metadata?: Json;
+          source: Database["public"]["Enums"]["credit_source"];
+          stripe_charge_id?: string | null;
+          user_id?: string | null;
+        };
         Update: {
-          amount?: number
-          created_at?: string
-          credit_type?: Database["public"]["Enums"]["credit_type"]
-          id?: string
-          metadata?: Json
-          source?: Database["public"]["Enums"]["credit_source"]
-          stripe_charge_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+          amount?: number;
+          created_at?: string;
+          credit_type?: Database["public"]["Enums"]["credit_type"];
+          id?: string;
+          metadata?: Json;
+          source?: Database["public"]["Enums"]["credit_source"];
+          stripe_charge_id?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      credit_usage_weekly: {
+        Row: {
+          import_text: number;
+          import_website: number;
+          private_used: number;
+          public_used: number;
+          total: number;
+          updated_at: string;
+          user_id: string;
+          week_start: string;
+        };
+        Insert: {
+          import_text?: number;
+          import_website?: number;
+          private_used?: number;
+          public_used?: number;
+          total?: number;
+          updated_at?: string;
+          user_id: string;
+          week_start: string;
+        };
+        Update: {
+          import_text?: number;
+          import_website?: number;
+          private_used?: number;
+          public_used?: number;
+          total?: number;
+          updated_at?: string;
+          user_id?: string;
+          week_start?: string;
+        };
+        Relationships: [];
+      };
       ingredient_substitutions: {
         Row: {
-          id: string
-          original_ingredient_id: string
-          original_to_substitute_ratio: number
-          strength: Database["public"]["Enums"]["ingredient_substitution_strength"]
-          substitute_ingredient_id: string
-        }
+          id: string;
+          original_ingredient_id: string;
+          original_to_substitute_ratio: number;
+          strength: Database["public"]["Enums"]["ingredient_substitution_strength"];
+          substitute_ingredient_id: string;
+        };
         Insert: {
-          id?: string
-          original_ingredient_id: string
-          original_to_substitute_ratio?: number
-          strength: Database["public"]["Enums"]["ingredient_substitution_strength"]
-          substitute_ingredient_id: string
-        }
+          id?: string;
+          original_ingredient_id: string;
+          original_to_substitute_ratio?: number;
+          strength: Database["public"]["Enums"]["ingredient_substitution_strength"];
+          substitute_ingredient_id: string;
+        };
         Update: {
-          id?: string
-          original_ingredient_id?: string
-          original_to_substitute_ratio?: number
-          strength?: Database["public"]["Enums"]["ingredient_substitution_strength"]
-          substitute_ingredient_id?: string
-        }
+          id?: string;
+          original_ingredient_id?: string;
+          original_to_substitute_ratio?: number;
+          strength?: Database["public"]["Enums"]["ingredient_substitution_strength"];
+          substitute_ingredient_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "ingredient_substitutions_original_ingredient_id_fkey"
-            columns: ["original_ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
+            foreignKeyName: "ingredient_substitutions_original_ingredient_id_fkey";
+            columns: ["original_ingredient_id"];
+            isOneToOne: false;
+            referencedRelation: "ingredients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ingredient_substitutions_substitute_ingredient_id_fkey"
-            columns: ["substitute_ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
+            foreignKeyName: "ingredient_substitutions_substitute_ingredient_id_fkey";
+            columns: ["substitute_ingredient_id"];
+            isOneToOne: false;
+            referencedRelation: "ingredients";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       ingredient_translations: {
         Row: {
-          commonly_used: Database["public"]["Enums"]["commonly_used_level"]
-          fts: unknown
-          ingredient_id: string
-          language_id: number
-          name_general: string
-          name_plural: string | null
-          name_singular: string | null
-        }
+          commonly_used: Database["public"]["Enums"]["commonly_used_level"];
+          fts: unknown;
+          ingredient_id: string;
+          language_id: number;
+          name_general: string;
+          name_plural: string | null;
+          name_singular: string | null;
+        };
         Insert: {
-          commonly_used?: Database["public"]["Enums"]["commonly_used_level"]
-          fts?: unknown
-          ingredient_id: string
-          language_id: number
-          name_general: string
-          name_plural?: string | null
-          name_singular?: string | null
-        }
+          commonly_used?: Database["public"]["Enums"]["commonly_used_level"];
+          fts?: unknown;
+          ingredient_id: string;
+          language_id: number;
+          name_general: string;
+          name_plural?: string | null;
+          name_singular?: string | null;
+        };
         Update: {
-          commonly_used?: Database["public"]["Enums"]["commonly_used_level"]
-          fts?: unknown
-          ingredient_id?: string
-          language_id?: number
-          name_general?: string
-          name_plural?: string | null
-          name_singular?: string | null
-        }
+          commonly_used?: Database["public"]["Enums"]["commonly_used_level"];
+          fts?: unknown;
+          ingredient_id?: string;
+          language_id?: number;
+          name_general?: string;
+          name_plural?: string | null;
+          name_singular?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "ingredient_translations_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
+            foreignKeyName: "ingredient_translations_ingredient_id_fkey";
+            columns: ["ingredient_id"];
+            isOneToOne: false;
+            referencedRelation: "ingredients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ingredient_translations_language_id_fkey"
-            columns: ["language_id"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["id"]
+            foreignKeyName: "ingredient_translations_language_id_fkey";
+            columns: ["language_id"];
+            isOneToOne: false;
+            referencedRelation: "languages";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       ingredients: {
         Row: {
-          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null
-          base_unit: Database["public"]["Enums"]["ingredient_base_unit"]
-          embedding: string | null
-          g_per_ml: number | null
-          g_per_unit: Json | null
-          hierarchy: string[]
-          id: string
-          slug: string
-          slug_general: string
-          unit_frequencies: Json | null
-        }
+          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null;
+          base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
+          embedding: string | null;
+          g_per_ml: number | null;
+          g_per_unit: Json | null;
+          hierarchy: string[];
+          id: string;
+          slug: string;
+          slug_general: string;
+          unit_frequencies: Json | null;
+        };
         Insert: {
-          aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null
-          base_unit: Database["public"]["Enums"]["ingredient_base_unit"]
-          embedding?: string | null
-          g_per_ml?: number | null
-          g_per_unit?: Json | null
-          hierarchy: string[]
-          id?: string
-          slug: string
-          slug_general: string
-          unit_frequencies?: Json | null
-        }
+          aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null;
+          base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
+          embedding?: string | null;
+          g_per_ml?: number | null;
+          g_per_unit?: Json | null;
+          hierarchy: string[];
+          id?: string;
+          slug: string;
+          slug_general: string;
+          unit_frequencies?: Json | null;
+        };
         Update: {
-          aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null
-          base_unit?: Database["public"]["Enums"]["ingredient_base_unit"]
-          embedding?: string | null
-          g_per_ml?: number | null
-          g_per_unit?: Json | null
-          hierarchy?: string[]
-          id?: string
-          slug?: string
-          slug_general?: string
-          unit_frequencies?: Json | null
-        }
-        Relationships: []
-      }
+          aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null;
+          base_unit?: Database["public"]["Enums"]["ingredient_base_unit"];
+          embedding?: string | null;
+          g_per_ml?: number | null;
+          g_per_unit?: Json | null;
+          hierarchy?: string[];
+          id?: string;
+          slug?: string;
+          slug_general?: string;
+          unit_frequencies?: Json | null;
+        };
+        Relationships: [];
+      };
       languages: {
         Row: {
-          code: string
-          country_en: string
-          country_local: string
-          emoji: string | null
-          id: number
-          lang: string
-          name_en: string
-          name_local: string
-        }
+          code: string;
+          country_en: string;
+          country_local: string;
+          emoji: string | null;
+          id: number;
+          lang: string;
+          name_en: string;
+          name_local: string;
+        };
         Insert: {
-          code: string
-          country_en: string
-          country_local: string
-          emoji?: string | null
-          id?: number
-          lang: string
-          name_en: string
-          name_local: string
-        }
+          code: string;
+          country_en: string;
+          country_local: string;
+          emoji?: string | null;
+          id?: number;
+          lang: string;
+          name_en: string;
+          name_local: string;
+        };
         Update: {
-          code?: string
-          country_en?: string
-          country_local?: string
-          emoji?: string | null
-          id?: number
-          lang?: string
-          name_en?: string
-          name_local?: string
-        }
-        Relationships: []
-      }
+          code?: string;
+          country_en?: string;
+          country_local?: string;
+          emoji?: string | null;
+          id?: number;
+          lang?: string;
+          name_en?: string;
+          name_local?: string;
+        };
+        Relationships: [];
+      };
       recipe_ingredients: {
         Row: {
-          custom_name: string | null
-          details: string | null
-          id: string
-          ingredient_id: string | null
-          is_optional: boolean
-          notes: string | null
-          preparation: string | null
-          quantity: number | null
-          raw_input: string
-          recipe_id: string
-          unit: string | null
-        }
+          custom_name: string | null;
+          details: string | null;
+          id: string;
+          ingredient_id: string | null;
+          is_optional: boolean;
+          notes: string | null;
+          preparation: string | null;
+          quantity: number | null;
+          raw_input: string;
+          recipe_id: string;
+          unit: string | null;
+        };
         Insert: {
-          custom_name?: string | null
-          details?: string | null
-          id?: string
-          ingredient_id?: string | null
-          is_optional?: boolean
-          notes?: string | null
-          preparation?: string | null
-          quantity?: number | null
-          raw_input: string
-          recipe_id: string
-          unit?: string | null
-        }
+          custom_name?: string | null;
+          details?: string | null;
+          id?: string;
+          ingredient_id?: string | null;
+          is_optional?: boolean;
+          notes?: string | null;
+          preparation?: string | null;
+          quantity?: number | null;
+          raw_input: string;
+          recipe_id: string;
+          unit?: string | null;
+        };
         Update: {
-          custom_name?: string | null
-          details?: string | null
-          id?: string
-          ingredient_id?: string | null
-          is_optional?: boolean
-          notes?: string | null
-          preparation?: string | null
-          quantity?: number | null
-          raw_input?: string
-          recipe_id?: string
-          unit?: string | null
-        }
+          custom_name?: string | null;
+          details?: string | null;
+          id?: string;
+          ingredient_id?: string | null;
+          is_optional?: boolean;
+          notes?: string | null;
+          preparation?: string | null;
+          quantity?: number | null;
+          raw_input?: string;
+          recipe_id?: string;
+          unit?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "recipe_ingredients_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
+            foreignKeyName: "recipe_ingredients_ingredient_id_fkey";
+            columns: ["ingredient_id"];
+            isOneToOne: false;
+            referencedRelation: "ingredients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey";
+            columns: ["recipe_id"];
+            isOneToOne: false;
+            referencedRelation: "recipes";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes_randomized"
-            referencedColumns: ["id"]
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey";
+            columns: ["recipe_id"];
+            isOneToOne: false;
+            referencedRelation: "recipes_randomized";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       recipes: {
         Row: {
-          author_id: string
-          cache_id: string | null
-          cleanup_level: Database["public"]["Enums"]["cleanup_level"]
-          cost_level: Database["public"]["Enums"]["cost_level"]
-          courses: Database["public"]["Enums"]["course"][]
-          created_at: string
-          cuisines: Database["public"]["Enums"]["cuisine"][]
-          deleted_at: string | null
-          description: string | null
-          effort_level: Database["public"]["Enums"]["effort_level"]
-          id: string
-          image_ids: string[] | null
-          language_id: number
-          notes: string | null
-          search_term: string | null
-          servings: number
-          short_title: string
-          skill_level: Database["public"]["Enums"]["skill_level"]
-          slug: string
-          source_type: Database["public"]["Enums"]["recipe_source_type"]
-          source_url: string | null
-          steps: string[] | null
-          time_cook_minutes: number | null
-          time_prep_minutes: number | null
-          time_rest_minutes: number | null
-          time_total_minutes: number | null
-          times_of_day: Database["public"]["Enums"]["time_of_day"][]
-          title: string
-          tools: Database["public"]["Enums"]["recipe_tool"][]
-          updated_at: string
-        }
+          author_id: string;
+          cache_id: string | null;
+          cleanup_level: Database["public"]["Enums"]["cleanup_level"];
+          cost_level: Database["public"]["Enums"]["cost_level"];
+          courses: Database["public"]["Enums"]["course"][];
+          created_at: string;
+          cuisines: Database["public"]["Enums"]["cuisine"][];
+          deleted_at: string | null;
+          description: string | null;
+          effort_level: Database["public"]["Enums"]["effort_level"];
+          id: string;
+          image_ids: string[] | null;
+          language_id: number;
+          notes: string | null;
+          search_term: string | null;
+          servings: number;
+          short_title: string;
+          skill_level: Database["public"]["Enums"]["skill_level"];
+          slug: string;
+          source_type: Database["public"]["Enums"]["recipe_source_type"];
+          source_url: string | null;
+          steps: string[] | null;
+          time_cook_minutes: number | null;
+          time_prep_minutes: number | null;
+          time_rest_minutes: number | null;
+          time_total_minutes: number | null;
+          times_of_day: Database["public"]["Enums"]["time_of_day"][];
+          title: string;
+          tools: Database["public"]["Enums"]["recipe_tool"][];
+          updated_at: string;
+        };
         Insert: {
-          author_id: string
-          cache_id?: string | null
-          cleanup_level: Database["public"]["Enums"]["cleanup_level"]
-          cost_level: Database["public"]["Enums"]["cost_level"]
-          courses: Database["public"]["Enums"]["course"][]
-          created_at?: string
-          cuisines: Database["public"]["Enums"]["cuisine"][]
-          deleted_at?: string | null
-          description?: string | null
-          effort_level: Database["public"]["Enums"]["effort_level"]
-          id?: string
-          image_ids?: string[] | null
-          language_id: number
-          notes?: string | null
-          search_term?: string | null
-          servings: number
-          short_title: string
-          skill_level: Database["public"]["Enums"]["skill_level"]
-          slug: string
-          source_type: Database["public"]["Enums"]["recipe_source_type"]
-          source_url?: string | null
-          steps?: string[] | null
-          time_cook_minutes?: number | null
-          time_prep_minutes?: number | null
-          time_rest_minutes?: number | null
-          time_total_minutes?: number | null
-          times_of_day: Database["public"]["Enums"]["time_of_day"][]
-          title: string
-          tools: Database["public"]["Enums"]["recipe_tool"][]
-          updated_at?: string
-        }
+          author_id: string;
+          cache_id?: string | null;
+          cleanup_level: Database["public"]["Enums"]["cleanup_level"];
+          cost_level: Database["public"]["Enums"]["cost_level"];
+          courses: Database["public"]["Enums"]["course"][];
+          created_at?: string;
+          cuisines: Database["public"]["Enums"]["cuisine"][];
+          deleted_at?: string | null;
+          description?: string | null;
+          effort_level: Database["public"]["Enums"]["effort_level"];
+          id?: string;
+          image_ids?: string[] | null;
+          language_id: number;
+          notes?: string | null;
+          search_term?: string | null;
+          servings: number;
+          short_title: string;
+          skill_level: Database["public"]["Enums"]["skill_level"];
+          slug: string;
+          source_type: Database["public"]["Enums"]["recipe_source_type"];
+          source_url?: string | null;
+          steps?: string[] | null;
+          time_cook_minutes?: number | null;
+          time_prep_minutes?: number | null;
+          time_rest_minutes?: number | null;
+          time_total_minutes?: never;
+          times_of_day: Database["public"]["Enums"]["time_of_day"][];
+          title: string;
+          tools: Database["public"]["Enums"]["recipe_tool"][];
+          updated_at?: string;
+        };
         Update: {
-          author_id?: string
-          cache_id?: string | null
-          cleanup_level?: Database["public"]["Enums"]["cleanup_level"]
-          cost_level?: Database["public"]["Enums"]["cost_level"]
-          courses?: Database["public"]["Enums"]["course"][]
-          created_at?: string
-          cuisines?: Database["public"]["Enums"]["cuisine"][]
-          deleted_at?: string | null
-          description?: string | null
-          effort_level?: Database["public"]["Enums"]["effort_level"]
-          id?: string
-          image_ids?: string[] | null
-          language_id?: number
-          notes?: string | null
-          search_term?: string | null
-          servings?: number
-          short_title?: string
-          skill_level?: Database["public"]["Enums"]["skill_level"]
-          slug?: string
-          source_type?: Database["public"]["Enums"]["recipe_source_type"]
-          source_url?: string | null
-          steps?: string[] | null
-          time_cook_minutes?: number | null
-          time_prep_minutes?: number | null
-          time_rest_minutes?: number | null
-          time_total_minutes?: number | null
-          times_of_day?: Database["public"]["Enums"]["time_of_day"][]
-          title?: string
-          tools?: Database["public"]["Enums"]["recipe_tool"][]
-          updated_at?: string
-        }
+          author_id?: string;
+          cache_id?: string | null;
+          cleanup_level?: Database["public"]["Enums"]["cleanup_level"];
+          cost_level?: Database["public"]["Enums"]["cost_level"];
+          courses?: Database["public"]["Enums"]["course"][];
+          created_at?: string;
+          cuisines?: Database["public"]["Enums"]["cuisine"][];
+          deleted_at?: string | null;
+          description?: string | null;
+          effort_level?: Database["public"]["Enums"]["effort_level"];
+          id?: string;
+          image_ids?: string[] | null;
+          language_id?: number;
+          notes?: string | null;
+          search_term?: string | null;
+          servings?: number;
+          short_title?: string;
+          skill_level?: Database["public"]["Enums"]["skill_level"];
+          slug?: string;
+          source_type?: Database["public"]["Enums"]["recipe_source_type"];
+          source_url?: string | null;
+          steps?: string[] | null;
+          time_cook_minutes?: number | null;
+          time_prep_minutes?: number | null;
+          time_rest_minutes?: number | null;
+          time_total_minutes?: never;
+          times_of_day?: Database["public"]["Enums"]["time_of_day"][];
+          title?: string;
+          tools?: Database["public"]["Enums"]["recipe_tool"][];
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "recipes_cache_id_fkey"
-            columns: ["cache_id"]
-            isOneToOne: false
-            referencedRelation: "recipes_cache"
-            referencedColumns: ["id"]
+            foreignKeyName: "recipes_cache_id_fkey";
+            columns: ["cache_id"];
+            isOneToOne: false;
+            referencedRelation: "recipes_cache";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "recipes_language_id_fkey"
-            columns: ["language_id"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["id"]
+            foreignKeyName: "recipes_language_id_fkey";
+            columns: ["language_id"];
+            isOneToOne: false;
+            referencedRelation: "languages";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       recipes_cache: {
         Row: {
-          app_version: string
-          cache_key: string
-          created_at: string
-          id: string
-          llm_output: Json | null
-          llm_stats: Json | null
-          scrape_output: string | null
-          scrape_stats: Json | null
-          source_url: string
-          updated_at: string
-        }
+          app_version: string;
+          cache_key: string;
+          created_at: string;
+          id: string;
+          llm_output: Json | null;
+          llm_stats: Json | null;
+          scrape_output: string | null;
+          scrape_stats: Json | null;
+          source_url: string;
+          updated_at: string;
+        };
         Insert: {
-          app_version: string
-          cache_key: string
-          created_at?: string
-          id?: string
-          llm_output?: Json | null
-          llm_stats?: Json | null
-          scrape_output?: string | null
-          scrape_stats?: Json | null
-          source_url: string
-          updated_at?: string
-        }
+          app_version: string;
+          cache_key: string;
+          created_at?: string;
+          id?: string;
+          llm_output?: Json | null;
+          llm_stats?: Json | null;
+          scrape_output?: string | null;
+          scrape_stats?: Json | null;
+          source_url: string;
+          updated_at?: string;
+        };
         Update: {
-          app_version?: string
-          cache_key?: string
-          created_at?: string
-          id?: string
-          llm_output?: Json | null
-          llm_stats?: Json | null
-          scrape_output?: string | null
-          scrape_stats?: Json | null
-          source_url?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          app_version?: string;
+          cache_key?: string;
+          created_at?: string;
+          id?: string;
+          llm_output?: Json | null;
+          llm_stats?: Json | null;
+          scrape_output?: string | null;
+          scrape_stats?: Json | null;
+          source_url?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       space_items: {
         Row: {
-          checked_at: string | null
-          created_at: string | null
-          created_by: string
-          deleted_at: string | null
-          id: string
-          ingredient_id: string | null
-          meal_id: string | null
-          meal_origin: string | null
-          name: string | null
-          priority: Database["public"]["Enums"]["item_priority"]
-          quantity: number | null
-          space_id: string
-          type: string
-          unit: string | null
-          updated_at: string | null
-        }
+          checked_at: string | null;
+          created_at: string | null;
+          created_by: string;
+          deleted_at: string | null;
+          id: string;
+          ingredient_id: string | null;
+          meal_id: string | null;
+          meal_origin: string | null;
+          name: string | null;
+          priority: Database["public"]["Enums"]["item_priority"];
+          quantity: number | null;
+          space_id: string;
+          type: string;
+          unit: string | null;
+          updated_at: string | null;
+        };
         Insert: {
-          checked_at?: string | null
-          created_at?: string | null
-          created_by: string
-          deleted_at?: string | null
-          id?: string
-          ingredient_id?: string | null
-          meal_id?: string | null
-          meal_origin?: string | null
-          name?: string | null
-          priority?: Database["public"]["Enums"]["item_priority"]
-          quantity?: number | null
-          space_id: string
-          type: string
-          unit?: string | null
-          updated_at?: string | null
-        }
+          checked_at?: string | null;
+          created_at?: string | null;
+          created_by: string;
+          deleted_at?: string | null;
+          id?: string;
+          ingredient_id?: string | null;
+          meal_id?: string | null;
+          meal_origin?: string | null;
+          name?: string | null;
+          priority?: Database["public"]["Enums"]["item_priority"];
+          quantity?: number | null;
+          space_id: string;
+          type: string;
+          unit?: string | null;
+          updated_at?: string | null;
+        };
         Update: {
-          checked_at?: string | null
-          created_at?: string | null
-          created_by?: string
-          deleted_at?: string | null
-          id?: string
-          ingredient_id?: string | null
-          meal_id?: string | null
-          meal_origin?: string | null
-          name?: string | null
-          priority?: Database["public"]["Enums"]["item_priority"]
-          quantity?: number | null
-          space_id?: string
-          type?: string
-          unit?: string | null
-          updated_at?: string | null
-        }
+          checked_at?: string | null;
+          created_at?: string | null;
+          created_by?: string;
+          deleted_at?: string | null;
+          id?: string;
+          ingredient_id?: string | null;
+          meal_id?: string | null;
+          meal_origin?: string | null;
+          name?: string | null;
+          priority?: Database["public"]["Enums"]["item_priority"];
+          quantity?: number | null;
+          space_id?: string;
+          type?: string;
+          unit?: string | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "space_items_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_public_profiles"
-            referencedColumns: ["user_id"]
+            foreignKeyName: "space_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "user_public_profiles";
+            referencedColumns: ["user_id"];
           },
           {
-            foreignKeyName: "space_items_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredients"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_items_ingredient_id_fkey";
+            columns: ["ingredient_id"];
+            isOneToOne: false;
+            referencedRelation: "ingredients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "space_items_meal_id_fkey"
-            columns: ["meal_id"]
-            isOneToOne: false
-            referencedRelation: "space_meals"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_items_meal_id_fkey";
+            columns: ["meal_id"];
+            isOneToOne: false;
+            referencedRelation: "space_meals";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "space_items_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_items_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       space_meals: {
         Row: {
-          cooked: boolean
-          created_at: string | null
-          created_by: string
-          deleted_at: string | null
-          id: string
-          position: number
-          recipe_id: string
-          servings: number
-          space_id: string
-          updated_at: string | null
-        }
+          cooked: boolean;
+          created_at: string | null;
+          created_by: string;
+          deleted_at: string | null;
+          id: string;
+          position: number;
+          recipe_id: string;
+          servings: number;
+          space_id: string;
+          updated_at: string | null;
+        };
         Insert: {
-          cooked?: boolean
-          created_at?: string | null
-          created_by: string
-          deleted_at?: string | null
-          id?: string
-          position?: number
-          recipe_id: string
-          servings?: number
-          space_id: string
-          updated_at?: string | null
-        }
+          cooked?: boolean;
+          created_at?: string | null;
+          created_by: string;
+          deleted_at?: string | null;
+          id?: string;
+          position?: number;
+          recipe_id: string;
+          servings?: number;
+          space_id: string;
+          updated_at?: string | null;
+        };
         Update: {
-          cooked?: boolean
-          created_at?: string | null
-          created_by?: string
-          deleted_at?: string | null
-          id?: string
-          position?: number
-          recipe_id?: string
-          servings?: number
-          space_id?: string
-          updated_at?: string | null
-        }
+          cooked?: boolean;
+          created_at?: string | null;
+          created_by?: string;
+          deleted_at?: string | null;
+          id?: string;
+          position?: number;
+          recipe_id?: string;
+          servings?: number;
+          space_id?: string;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "space_meals_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_public_profiles"
-            referencedColumns: ["user_id"]
+            foreignKeyName: "space_meals_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "user_public_profiles";
+            referencedColumns: ["user_id"];
           },
           {
-            foreignKeyName: "space_meals_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_meals_recipe_id_fkey";
+            columns: ["recipe_id"];
+            isOneToOne: false;
+            referencedRelation: "recipes";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "space_meals_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes_randomized"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_meals_recipe_id_fkey";
+            columns: ["recipe_id"];
+            isOneToOne: false;
+            referencedRelation: "recipes_randomized";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "space_meals_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_meals_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       space_members: {
         Row: {
-          created_at: string
-          space_id: string
-          theme: string
-          updated_at: string
-          user_id: string
-        }
+          created_at: string;
+          space_id: string;
+          theme: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          space_id: string
-          theme: string
-          updated_at?: string
-          user_id: string
-        }
+          created_at?: string;
+          space_id: string;
+          theme: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          space_id?: string
-          theme?: string
-          updated_at?: string
-          user_id?: string
-        }
+          created_at?: string;
+          space_id?: string;
+          theme?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "space_members_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
+            foreignKeyName: "space_members_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       spaces: {
         Row: {
-          author_id: string
-          created_at: string
-          icon: string
-          id: string
-          initial_theme: string
-          language_id: number
-          name: string
-          updated_at: string
-        }
+          author_id: string;
+          created_at: string;
+          icon: string;
+          id: string;
+          initial_theme: string;
+          language_id: number;
+          name: string;
+          updated_at: string;
+        };
         Insert: {
-          author_id: string
-          created_at?: string
-          icon: string
-          id?: string
-          initial_theme: string
-          language_id?: number
-          name: string
-          updated_at?: string
-        }
+          author_id: string;
+          created_at?: string;
+          icon: string;
+          id?: string;
+          initial_theme: string;
+          language_id?: number;
+          name: string;
+          updated_at?: string;
+        };
         Update: {
-          author_id?: string
-          created_at?: string
-          icon?: string
-          id?: string
-          initial_theme?: string
-          language_id?: number
-          name?: string
-          updated_at?: string
-        }
+          author_id?: string;
+          created_at?: string;
+          icon?: string;
+          id?: string;
+          initial_theme?: string;
+          language_id?: number;
+          name?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "spaces_language_id_fkey"
-            columns: ["language_id"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["id"]
+            foreignKeyName: "spaces_language_id_fkey";
+            columns: ["language_id"];
+            isOneToOne: false;
+            referencedRelation: "languages";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       user_api_tokens: {
         Row: {
-          created_at: string
-          id: string
-          last_used_at: string | null
-          name: string
-          prefix: string
-          revoked_at: string | null
-          token_hash: string
-          user_id: string
-        }
+          created_at: string;
+          id: string;
+          last_used_at: string | null;
+          name: string;
+          prefix: string;
+          revoked_at: string | null;
+          token_hash: string;
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          last_used_at?: string | null
-          name: string
-          prefix: string
-          revoked_at?: string | null
-          token_hash: string
-          user_id: string
-        }
+          created_at?: string;
+          id?: string;
+          last_used_at?: string | null;
+          name: string;
+          prefix: string;
+          revoked_at?: string | null;
+          token_hash: string;
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          last_used_at?: string | null
-          name?: string
-          prefix?: string
-          revoked_at?: string | null
-          token_hash?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          id?: string;
+          last_used_at?: string | null;
+          name?: string;
+          prefix?: string;
+          revoked_at?: string | null;
+          token_hash?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_permissions: {
         Row: {
-          created_at: string
-          role: string
-          updated_at: string
-          user_id: string
-        }
+          created_at: string;
+          role: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          role?: string
-          updated_at?: string
-          user_id: string
-        }
+          created_at?: string;
+          role?: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          role?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          role?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_preferences: {
         Row: {
-          aisle_order: string[] | null
-          created_at: string
-          first_name: string
-          last_name: string
-          onboarding_status: string
-          updated_at: string
-          user_id: string
-        }
+          aisle_order: string[] | null;
+          created_at: string;
+          first_name: string;
+          last_name: string;
+          onboarding_status: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          aisle_order?: string[] | null
-          created_at?: string
-          first_name: string
-          last_name: string
-          onboarding_status?: string
-          updated_at?: string
-          user_id: string
-        }
+          aisle_order?: string[] | null;
+          created_at?: string;
+          first_name: string;
+          last_name: string;
+          onboarding_status?: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          aisle_order?: string[] | null
-          created_at?: string
-          first_name?: string
-          last_name?: string
-          onboarding_status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+          aisle_order?: string[] | null;
+          created_at?: string;
+          first_name?: string;
+          last_name?: string;
+          onboarding_status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_public_profiles: {
         Row: {
-          created_at: string
-          icon: string
-          image_url: string | null
-          updated_at: string
-          user_id: string
-          user_name: string
-        }
+          created_at: string;
+          icon: string;
+          image_url: string | null;
+          updated_at: string;
+          user_id: string;
+          user_name: string;
+        };
         Insert: {
-          created_at?: string
-          icon: string
-          image_url?: string | null
-          updated_at?: string
-          user_id: string
-          user_name: string
-        }
+          created_at?: string;
+          icon: string;
+          image_url?: string | null;
+          updated_at?: string;
+          user_id: string;
+          user_name: string;
+        };
         Update: {
-          created_at?: string
-          icon?: string
-          image_url?: string | null
-          updated_at?: string
-          user_id?: string
-          user_name?: string
-        }
-        Relationships: []
-      }
-    }
+          created_at?: string;
+          icon?: string;
+          image_url?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          user_name?: string;
+        };
+        Relationships: [];
+      };
+    };
     Views: {
       recipes_randomized: {
         Row: {
-          author_id: string | null
-          cleanup_level: Database["public"]["Enums"]["cleanup_level"] | null
-          cost_level: Database["public"]["Enums"]["cost_level"] | null
-          courses: Database["public"]["Enums"]["course"][] | null
-          created_at: string | null
-          cuisines: Database["public"]["Enums"]["cuisine"][] | null
-          deleted_at: string | null
-          description: string | null
-          effort_level: Database["public"]["Enums"]["effort_level"] | null
-          id: string | null
-          image_ids: string[] | null
-          language_id: number | null
-          notes: string | null
-          search_term: string | null
-          servings: number | null
-          short_title: string | null
-          skill_level: Database["public"]["Enums"]["skill_level"] | null
-          slug: string | null
-          source_type: Database["public"]["Enums"]["recipe_source_type"] | null
-          source_url: string | null
-          steps: string[] | null
-          time_cook_minutes: number | null
-          time_prep_minutes: number | null
-          time_rest_minutes: number | null
-          time_total_minutes: number | null
-          times_of_day: Database["public"]["Enums"]["time_of_day"][] | null
-          title: string | null
-          tools: Database["public"]["Enums"]["recipe_tool"][] | null
-          updated_at: string | null
-        }
+          author_id: string | null;
+          cleanup_level: Database["public"]["Enums"]["cleanup_level"] | null;
+          cost_level: Database["public"]["Enums"]["cost_level"] | null;
+          courses: Database["public"]["Enums"]["course"][] | null;
+          created_at: string | null;
+          cuisines: Database["public"]["Enums"]["cuisine"][] | null;
+          deleted_at: string | null;
+          description: string | null;
+          effort_level: Database["public"]["Enums"]["effort_level"] | null;
+          id: string | null;
+          image_ids: string[] | null;
+          language_id: number | null;
+          notes: string | null;
+          search_term: string | null;
+          servings: number | null;
+          short_title: string | null;
+          skill_level: Database["public"]["Enums"]["skill_level"] | null;
+          slug: string | null;
+          source_type: Database["public"]["Enums"]["recipe_source_type"] | null;
+          source_url: string | null;
+          steps: string[] | null;
+          time_cook_minutes: number | null;
+          time_prep_minutes: number | null;
+          time_rest_minutes: number | null;
+          time_total_minutes: number | null;
+          times_of_day: Database["public"]["Enums"]["time_of_day"][] | null;
+          title: string | null;
+          tools: Database["public"]["Enums"]["recipe_tool"][] | null;
+          updated_at: string | null;
+        };
         Insert: {
-          author_id?: string | null
-          cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
-          cost_level?: Database["public"]["Enums"]["cost_level"] | null
-          courses?: Database["public"]["Enums"]["course"][] | null
-          created_at?: string | null
-          cuisines?: Database["public"]["Enums"]["cuisine"][] | null
-          deleted_at?: string | null
-          description?: string | null
-          effort_level?: Database["public"]["Enums"]["effort_level"] | null
-          id?: string | null
-          image_ids?: string[] | null
-          language_id?: number | null
-          notes?: string | null
-          search_term?: string | null
-          servings?: number | null
-          short_title?: string | null
-          skill_level?: Database["public"]["Enums"]["skill_level"] | null
-          slug?: string | null
-          source_type?: Database["public"]["Enums"]["recipe_source_type"] | null
-          source_url?: string | null
-          steps?: string[] | null
-          time_cook_minutes?: number | null
-          time_prep_minutes?: number | null
-          time_rest_minutes?: number | null
-          time_total_minutes?: number | null
-          times_of_day?: Database["public"]["Enums"]["time_of_day"][] | null
-          title?: string | null
-          tools?: Database["public"]["Enums"]["recipe_tool"][] | null
-          updated_at?: string | null
-        }
+          author_id?: string | null;
+          cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null;
+          cost_level?: Database["public"]["Enums"]["cost_level"] | null;
+          courses?: Database["public"]["Enums"]["course"][] | null;
+          created_at?: string | null;
+          cuisines?: Database["public"]["Enums"]["cuisine"][] | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          effort_level?: Database["public"]["Enums"]["effort_level"] | null;
+          id?: string | null;
+          image_ids?: string[] | null;
+          language_id?: number | null;
+          notes?: string | null;
+          search_term?: string | null;
+          servings?: number | null;
+          short_title?: string | null;
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null;
+          slug?: string | null;
+          source_type?: Database["public"]["Enums"]["recipe_source_type"] | null;
+          source_url?: string | null;
+          steps?: string[] | null;
+          time_cook_minutes?: number | null;
+          time_prep_minutes?: number | null;
+          time_rest_minutes?: number | null;
+          time_total_minutes?: number | null;
+          times_of_day?: Database["public"]["Enums"]["time_of_day"][] | null;
+          title?: string | null;
+          tools?: Database["public"]["Enums"]["recipe_tool"][] | null;
+          updated_at?: string | null;
+        };
         Update: {
-          author_id?: string | null
-          cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null
-          cost_level?: Database["public"]["Enums"]["cost_level"] | null
-          courses?: Database["public"]["Enums"]["course"][] | null
-          created_at?: string | null
-          cuisines?: Database["public"]["Enums"]["cuisine"][] | null
-          deleted_at?: string | null
-          description?: string | null
-          effort_level?: Database["public"]["Enums"]["effort_level"] | null
-          id?: string | null
-          image_ids?: string[] | null
-          language_id?: number | null
-          notes?: string | null
-          search_term?: string | null
-          servings?: number | null
-          short_title?: string | null
-          skill_level?: Database["public"]["Enums"]["skill_level"] | null
-          slug?: string | null
-          source_type?: Database["public"]["Enums"]["recipe_source_type"] | null
-          source_url?: string | null
-          steps?: string[] | null
-          time_cook_minutes?: number | null
-          time_prep_minutes?: number | null
-          time_rest_minutes?: number | null
-          time_total_minutes?: number | null
-          times_of_day?: Database["public"]["Enums"]["time_of_day"][] | null
-          title?: string | null
-          tools?: Database["public"]["Enums"]["recipe_tool"][] | null
-          updated_at?: string | null
-        }
+          author_id?: string | null;
+          cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null;
+          cost_level?: Database["public"]["Enums"]["cost_level"] | null;
+          courses?: Database["public"]["Enums"]["course"][] | null;
+          created_at?: string | null;
+          cuisines?: Database["public"]["Enums"]["cuisine"][] | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          effort_level?: Database["public"]["Enums"]["effort_level"] | null;
+          id?: string | null;
+          image_ids?: string[] | null;
+          language_id?: number | null;
+          notes?: string | null;
+          search_term?: string | null;
+          servings?: number | null;
+          short_title?: string | null;
+          skill_level?: Database["public"]["Enums"]["skill_level"] | null;
+          slug?: string | null;
+          source_type?: Database["public"]["Enums"]["recipe_source_type"] | null;
+          source_url?: string | null;
+          steps?: string[] | null;
+          time_cook_minutes?: number | null;
+          time_prep_minutes?: number | null;
+          time_rest_minutes?: number | null;
+          time_total_minutes?: number | null;
+          times_of_day?: Database["public"]["Enums"]["time_of_day"][] | null;
+          title?: string | null;
+          tools?: Database["public"]["Enums"]["recipe_tool"][] | null;
+          updated_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "recipes_language_id_fkey"
-            columns: ["language_id"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["id"]
+            foreignKeyName: "recipes_language_id_fkey";
+            columns: ["language_id"];
+            isOneToOne: false;
+            referencedRelation: "languages";
+            referencedColumns: ["id"];
           },
-        ]
-      }
-    }
+        ];
+      };
+    };
     Functions: {
       consume_credits: {
         Args: {
-          p_amount_to_consume: number
-          p_metadata?: Json
-          p_source: string
-          p_user_id: string
-        }
+          p_amount_to_consume: number;
+          p_metadata?: Json;
+          p_source: string;
+          p_user_id: string;
+        };
         Returns: {
-          private_credits_consumed: number
-          public_credits_consumed: number
-        }[]
-      }
-      get_public_pool_health: { Args: never; Returns: string }
+          private_credits_consumed: number;
+          public_credits_consumed: number;
+        }[];
+      };
+      get_public_pool_health: { Args: Record<PropertyKey, never>; Returns: string };
       get_shopping_recommendations: {
         Args: {
-          aisle_filter?: Database["public"]["Enums"]["supermarket_aisle"]
-          lang: string
-          limit?: number
-          per_aisle_limit?: number
-          seed?: number
-          space_id: string
-        }
+          aisle_filter?: Database["public"]["Enums"]["supermarket_aisle"];
+          lang: string;
+          limit?: number;
+          per_aisle_limit?: number;
+          seed?: number;
+          space_id: string;
+        };
         Returns: {
-          aisle: Database["public"]["Enums"]["supermarket_aisle"]
-          ingredient_id: string
-          name: string
-          score: number
-          slug: string
-          slug_general: string
-        }[]
-      }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
-      is_space_member: {
-        Args: { _space_id: string; _user_id: string }
-        Returns: boolean
-      }
+          aisle: Database["public"]["Enums"]["supermarket_aisle"];
+          ingredient_id: string;
+          name: string;
+          score: number;
+          slug: string;
+          slug_general: string;
+        }[];
+      };
+      is_admin: { Args: { _user_id: string }; Returns: boolean };
+      is_space_member: { Args: { _space_id: string; _user_id: string }; Returns: boolean };
       match_ingredient: {
         Args: {
-          is_raw_import?: boolean
-          lang_code: string
-          n_matches?: number
-          query_text: string
-        }
+          is_raw_import?: boolean;
+          lang_code: string;
+          n_matches?: number;
+          query_text: string;
+        };
         Returns: {
-          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null
-          base_unit: Database["public"]["Enums"]["ingredient_base_unit"]
-          embedding: string | null
-          g_per_ml: number | null
-          g_per_unit: Json | null
-          hierarchy: string[]
-          id: string
-          slug: string
-          slug_general: string
-          unit_frequencies: Json | null
-        }[]
+          aisle: Database["public"]["Enums"]["supermarket_aisle"] | null;
+          base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
+          embedding: string | null;
+          g_per_ml: number | null;
+          g_per_unit: Json | null;
+          hierarchy: string[];
+          id: string;
+          slug: string;
+          slug_general: string;
+          unit_frequencies: Json | null;
+        }[];
         SetofOptions: {
-          from: "*"
-          to: "ingredients"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
-      slugify: { Args: { max_length?: number; value: string }; Returns: string }
-      ts_config_for_language: { Args: { lang_code: string }; Returns: unknown }
-      users_share_common_space: {
-        Args: { _user_a: string; _user_b: string }
-        Returns: boolean
-      }
-    }
+          from: "*";
+          to: "ingredients";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      slugify: { Args: { max_length?: number; value: string }; Returns: string };
+      ts_config_for_language: { Args: { lang_code: string }; Returns: unknown };
+      users_share_common_space: { Args: { _user_a: string; _user_b: string }; Returns: boolean };
+    };
     Enums: {
-      cleanup_level: "none" | "low" | "medium" | "high"
-      commonly_used_level:
-        | "daily"
-        | "common"
-        | "occasionally"
-        | "rare"
-        | "never"
-      cost_level: "minimal" | "budget" | "average" | "premium"
+      cleanup_level: "none" | "low" | "medium" | "high";
+      commonly_used_level: "daily" | "common" | "occasionally" | "rare" | "never";
+      cost_level: "minimal" | "budget" | "average" | "premium";
       course:
         | "appetizer"
         | "main"
@@ -991,14 +1002,14 @@ export type Database = {
         | "soup"
         | "dessert"
         | "snack"
-        | "drink"
+        | "drink";
       credit_source:
         | "stripe_charge"
         | "consumed"
         | "expired_consumed"
         | "expired_to_public"
-        | "gift_manual"
-      credit_type: "private" | "public"
+        | "gift_manual";
+      credit_type: "private" | "public";
       cuisine:
         | "italian"
         | "mexican"
@@ -1017,16 +1028,12 @@ export type Database = {
         | "british"
         | "brazilian"
         | "caribbean"
-        | "african"
-      effort_level: "none" | "low" | "medium" | "high"
-      ingredient_base_unit: "g" | "ml" | "unit"
-      ingredient_substitution_strength:
-        | "equivalent"
-        | "close"
-        | "far"
-        | "variant"
-      item_priority: "required" | "nicetohave" | "whynot" | "optional"
-      recipe_source_type: "website" | "user-manual"
+        | "african";
+      effort_level: "none" | "low" | "medium" | "high";
+      ingredient_base_unit: "g" | "ml" | "unit";
+      ingredient_substitution_strength: "equivalent" | "close" | "far" | "variant";
+      item_priority: "required" | "nicetohave" | "whynot" | "optional";
+      recipe_source_type: "website" | "user-manual";
       recipe_tool:
         | "blender"
         | "fryer"
@@ -1037,8 +1044,8 @@ export type Database = {
         | "oven"
         | "scale"
         | "stove"
-        | "toaster"
-      skill_level: "beginner" | "intermediate" | "advanced" | "chef"
+        | "toaster";
+      skill_level: "beginner" | "intermediate" | "advanced" | "chef";
       supermarket_aisle:
         | "beverages"
         | "bread-pastries"
@@ -1053,138 +1060,119 @@ export type Database = {
         | "milk-cheese"
         | "pet-supplies"
         | "snacks-sweets"
-        | "unknown"
-      time_of_day:
-        | "breakfast"
-        | "brunch"
-        | "lunch"
-        | "dinner"
-        | "dessert"
-        | "snack"
-        | "drinks"
-    }
+        | "unknown";
+      time_of_day: "breakfast" | "brunch" | "lunch" | "dinner" | "dessert" | "snack" | "drinks";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends (DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never) = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never) = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   graphql_public: {
@@ -1195,17 +1183,7 @@ export const Constants = {
       cleanup_level: ["none", "low", "medium", "high"],
       commonly_used_level: ["daily", "common", "occasionally", "rare", "never"],
       cost_level: ["minimal", "budget", "average", "premium"],
-      course: [
-        "appetizer",
-        "main",
-        "side",
-        "prep",
-        "salad",
-        "soup",
-        "dessert",
-        "snack",
-        "drink",
-      ],
+      course: ["appetizer", "main", "side", "prep", "salad", "soup", "dessert", "snack", "drink"],
       credit_source: [
         "stripe_charge",
         "consumed",
@@ -1236,12 +1214,7 @@ export const Constants = {
       ],
       effort_level: ["none", "low", "medium", "high"],
       ingredient_base_unit: ["g", "ml", "unit"],
-      ingredient_substitution_strength: [
-        "equivalent",
-        "close",
-        "far",
-        "variant",
-      ],
+      ingredient_substitution_strength: ["equivalent", "close", "far", "variant"],
       item_priority: ["required", "nicetohave", "whynot", "optional"],
       recipe_source_type: ["website", "user-manual"],
       recipe_tool: [
@@ -1273,16 +1246,7 @@ export const Constants = {
         "snacks-sweets",
         "unknown",
       ],
-      time_of_day: [
-        "breakfast",
-        "brunch",
-        "lunch",
-        "dinner",
-        "dessert",
-        "snack",
-        "drinks",
-      ],
+      time_of_day: ["breakfast", "brunch", "lunch", "dinner", "dessert", "snack", "drinks"],
     },
   },
-} as const
-
+} as const;

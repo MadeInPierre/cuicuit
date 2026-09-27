@@ -11,7 +11,6 @@
 -- Loaded automatically after `supabase/seed.sql` via `npm run db:reset`
 -- (see sql_paths in supabase/config.toml).
 -- ============================================================================
-
 -- pgcrypto for hashing the documented dev password (GoTrue verifies bcrypt).
 CREATE EXTENSION IF NOT EXISTS "pgcrypto"
 WITH
@@ -379,7 +378,7 @@ VALUES
 		'',
 		'',
 		'1 pinch of salt',
-		false,
+		true,
 		''
 	),
 	-- Greek Salad
@@ -435,7 +434,7 @@ VALUES
 		'',
 		'',
 		'30 ml olive oil',
-		false,
+		true,
 		''
 	),
 	(
@@ -446,7 +445,7 @@ VALUES
 		'',
 		'',
 		'2 g black pepper',
-		false,
+		true,
 		'ground'
 	),
 	(
@@ -457,7 +456,7 @@ VALUES
 		'',
 		'',
 		'2 g salt',
-		false,
+		true,
 		''
 	),
 	-- Tomato Mozzarella Pasta

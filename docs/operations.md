@@ -29,7 +29,9 @@ The REST API and MCP doors use PATs (Personal Access Tokens) for auth. Create on
   (schemas only); `tools/call` needs auth. Cookbook:
   [`src/routes/mcp/README.md`](../src/routes/mcp/README.md).
 - **Seeds** (i.e. credits): only recipe-import ops cost anything (1 seed each, charged
-  _after_ success — failures are free). Everything else is unlimited.
+  _after_ success — failures are free). Weekly rate limits: 50 community seeds/week
+  (everyone), 1000 private seeds/week (supporters); over-limit features fail with
+  `RATE_LIMITED` (429). Everything else is unlimited.
 - **Errors** all look the same: `{ code, message }` over REST, `isError` text (`"CODE: message"`) over MCP. `NOT_FOUND` means _"doesn't exist or isn't yours"_ — we never leak which.
 
 ## Adding an op (developers) — the `pantry.add-item` drill
@@ -95,7 +97,7 @@ export const pantryAddItemOp = defineOp({
 
 - Writes by id: append `.select('id')`, throw `OpError('NOT_FOUND', '<Thing> not found or not accessible.')` on zero rows (never `FORBIDDEN` — don't leak existence).
 - User input reaching PostgREST builders (`.in/.overlaps/.or` columns): allowlist **in the op**, not the adapter (adapters are bypassable).
-- Paid ops: gate via `withCredits()` in `credits.ts`, charged after success only.
+- Paid ops: gate via `canAfford()` + `assertWithinWeeklyLimits()` in `credits.ts`, charged after success only via `consumeSeeds()`.
 
 Then run the gate: `npm run check`, `npx eslint` on your files (direct `.from/.rpc/.storage` outside `core` fails the build), `npm run test:unit`, `npm run build`.
 
@@ -115,7 +117,7 @@ Run `npx vitest run src/lib/core/operations/roundtrip.test.ts` after touching an
 3. **Auth is settled before you:** handler assumes `ctx.userId` is verified; RLS does
    the rest via `ctx.supabase`. `ctx.admin` only in `server-only` ops.
 4. **Validation lives in the op's zod schema** — doors just forward to it.
-5. **Credits only via `withCredits()`**, only inside the two import ops. Adapters never touch `billing.consume`.
+5. **Credits only via `consumeSeeds()`**, only inside the two import ops. Adapters never touch `billing.consume`.
 6. **DB changes are declarative**: Edit `supabase/schema/*.sql` → run `npx supabase db diff -f …` → review → `migration up` locally → `npm run db:types:local`. Never prod (a human does that).
 
 ## Important files

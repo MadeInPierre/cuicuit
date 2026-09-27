@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 import { languageCodeSchema, type LanguageCode } from '$lib/shared/language.js';
 
-import { canAfford, type CreditUsage } from '../credits.js';
+import { FEATURE_COSTS } from '$lib/features/billing/consts.js';
+import { assertWithinWeeklyLimits, canAfford, consumeSeeds, type CreditUsage } from '../credits.js';
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
 import {
@@ -43,7 +44,8 @@ export const importRecipeFromUrlOp = defineOp({
 		title: 'Import recipe from URL',
 		description: 'Imports a recipe from a URL, charging 1 seed.',
 		hints: [
-			'On INSUFFICIENT_SEEDS nothing is created — check seeds_balance and ask the user to top up in the app billing section (agents cannot pay).'
+			'On INSUFFICIENT_SEEDS nothing is created — check seeds_balance and ask the user to top up in the app billing section (agents cannot pay).',
+			'On RATE_LIMITED the weekly quota is hit (50 community seeds/week, 1000 private seeds/week, resets Monday 00:00 UTC) — tell the user to wait, not to top up.'
 		]
 	},
 	credits: { feature: 'import_recipe_from_website', seeds: 1 },
@@ -52,6 +54,7 @@ export const importRecipeFromUrlOp = defineOp({
 		if (!(await canAfford(ctx, 1))) {
 			throw new OpError('INSUFFICIENT_SEEDS', 'User cannot afford the feature.');
 		}
+		await assertWithinWeeklyLimits(ctx, 1);
 		if (!ctx.admin) {
 			throw new OpError('INTERNAL', 'Importing a recipe requires a server context.');
 		}
@@ -80,14 +83,13 @@ export const importRecipeFromUrlOp = defineOp({
 		const cacheHit = !!cache && !!getLlmOutput(cache);
 		const scrapeStats = getScrapeStats(cache);
 
-		// Same `consume_credits` call `credits.ts:withCredits` makes (SECURITY
-		// DEFINER, service_role only → `ctx.admin`), replicated here so progress
-		// can stream — `withCredits` would force buffering the whole import.
-		const { data, error } = await ctx.admin.rpc('consume_credits', {
-			p_amount_to_consume: 1,
-			p_source: 'import_recipe_from_website',
-			p_user_id: ctx.userId,
-			p_metadata: JSON.stringify({
+		// Charged after success via the shared `consumeSeeds` helper (SECURITY
+		// DEFINER, service_role only → `ctx.admin`). Kept inline (not wrapped)
+		// so import progress can stream.
+		const usage = await consumeSeeds(ctx, {
+			feature: 'import_recipe_from_website',
+			seeds: FEATURE_COSTS.import_recipe_from_website.seeds,
+			metadata: JSON.stringify({
 				recipe_url: url,
 				cache_hit: cacheHit,
 				cache_key: cacheKey,
@@ -97,16 +99,7 @@ export const importRecipeFromUrlOp = defineOp({
 				attempts: scrapeStats?.attempts.length ?? 0
 			})
 		});
-		if (error) {
-			throw new OpError('INTERNAL', 'Could not consume credits.', error);
-		}
 
-		yield {
-			...result,
-			usage: {
-				privateCreditsUsed: data?.[0].private_credits_consumed,
-				publicCreditsUsed: data?.[0].public_credits_consumed
-			}
-		};
+		yield { ...result, usage };
 	}
 });
