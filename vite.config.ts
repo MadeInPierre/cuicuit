@@ -240,6 +240,9 @@ export default defineConfig({
 				]
 			},
 			workbox: {
+				clientsClaim: true,
+				skipWaiting: true,
+				cleanupOutdatedCaches: true,
 				globPatterns: [
 					'client/**/*.{js,css,ico,png,svg,webp,webmanifest,html}',
 					'prerendered/**/*.{html,json}'
