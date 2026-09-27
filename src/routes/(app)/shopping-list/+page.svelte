@@ -266,6 +266,7 @@
 									items={aisleItems || []}
 									layout={itemsLayout.value ?? 'grid'}
 									onCheckedChange={onItemCheckedChange}
+									collapseKey={aisleKey}
 								/>
 							</div>
 						</section>
@@ -308,6 +309,7 @@
 											)}
 											layout={itemsLayout.value ?? 'grid'}
 											onCheckedChange={onItemCheckedChange}
+											collapseKey="cart"
 										/>
 									</div>
 								</div>
