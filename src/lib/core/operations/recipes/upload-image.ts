@@ -7,9 +7,16 @@ import { uploadImageToRecipe } from './upload-image-helper.js';
 export const uploadRecipeImageInput = z.object({
 	recipeId: z.string().min(1),
 	currentImageIds: z.array(z.string()).nullable().default(null),
-	file: z.custom<File>((value) => value instanceof File, {
+	file: z.custom<File | Blob>((value) => value instanceof File || value instanceof Blob, {
 		message: 'No file to upload.'
-	})
+	}),
+	thumbnailFile: z
+		.custom<File | Blob | Uint8Array>(
+			(value) => value instanceof File || value instanceof Blob || value instanceof Uint8Array,
+			{ message: 'Invalid thumbnail file.' }
+		)
+		.nullable()
+		.default(null)
 });
 
 export type UploadRecipeImageInput = z.infer<typeof uploadRecipeImageInput>;
@@ -30,9 +37,15 @@ export const uploadRecipeImageOp = defineOp({
 		mcp: false
 	},
 	input: uploadRecipeImageInput,
-	handler: async (ctx, { recipeId, currentImageIds, file }) => {
+	handler: async (ctx, { recipeId, currentImageIds, file, thumbnailFile }) => {
 		try {
-			return await uploadImageToRecipe(ctx.supabase, file, recipeId, currentImageIds);
+			return await uploadImageToRecipe(
+				ctx.supabase,
+				file,
+				recipeId,
+				currentImageIds,
+				thumbnailFile
+			);
 		} catch (error) {
 			throw new OpError('INTERNAL', 'Failed to upload image.', error);
 		}

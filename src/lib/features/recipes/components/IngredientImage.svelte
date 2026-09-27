@@ -15,6 +15,8 @@
 	<img
 		src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images/${id}.jpg`}
 		alt={name}
+		loading="lazy"
+		decoding="async"
 		class={cn('aspect-square w-full object-contain rounded-lg p-0.5', className)}
 		onerror={(e) => {
 			const el = e.currentTarget as HTMLImageElement;

@@ -12,6 +12,7 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
+	import { clearImageCaches } from '$lib/shared/utils/clear-image-cache';
 	import { capitalize } from '$lib/utils';
 	import type { Provider, User } from '@supabase/supabase-js';
 	import { Check, Eye, EyeOff, KeyRound, Trash2 } from '@lucide/svelte';
@@ -40,6 +41,15 @@
 
 	let showPassword = $state(false);
 	let showReloginDialog = $state(false);
+	let clearingImageCache = $state(false);
+
+	async function clearCachedImages() {
+		clearingImageCache = true;
+		const cleared = await clearImageCaches();
+		clearingImageCache = false;
+		if (cleared) toast.success('Cached images cleared.');
+		else toast.error('Could not clear the image cache.');
+	}
 
 	const confirmDeleteAccountMessage = $derived(
 		`Delete @${userState.user?.email || 'account'} forever`
@@ -340,6 +350,23 @@
 					/>
 				</div>
 			{/if}
+
+			<div class="space-y-2">
+				<Label>This device</Label>
+				<div class="flex items-center gap-2">
+					<p class="grow text-sm text-muted-foreground">
+						Recipe photos and ingredient icons are kept on this device for offline use.
+					</p>
+					<Button
+						variant="outline"
+						size="sm"
+						disabled={clearingImageCache}
+						onclick={clearCachedImages}
+					>
+						Clear cached images
+					</Button>
+				</div>
+			</div>
 
 			<div class="mt-8 grid items-center md:grid-cols-2">
 				<p class="text-xs md:mr-auto text-muted-foreground">

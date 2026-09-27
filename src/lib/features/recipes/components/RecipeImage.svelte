@@ -2,6 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import {
+		getRecipeImageUrl,
+		type RecipeImageVariant
+	} from '$lib/core/operations/recipes/image-shared.js';
 	import { cn, youtubeUrlToThumbnailUrl } from '$lib/utils';
 	import { ChefHat } from '@lucide/svelte';
 	import type {
@@ -15,13 +19,32 @@
 	interface Props {
 		recipe?: Recipe | RecipeSummary | null; // null for loading state
 		ingredients?: RecipeIngredientDetailed[] | RecipeSummaryIngredient[] | null; // Used for the no-image fallback
+		variant?: RecipeImageVariant; // 'thumb' (480px WebP, cards/lists) or 'full' (detail page)
 		class?: string;
 	}
 
-	let { recipe = null, ingredients = null, class: className = '' }: Props = $props();
+	let {
+		recipe = null,
+		ingredients = null,
+		variant = 'thumb',
+		class: className = ''
+	}: Props = $props();
 
 	let error = $state(false);
-	let triedFallbackUrl = $state(false);
+	let fellBackToFull = $state(false);
+
+	// The {#key} below resets the <img> element, but not this state: reset it
+	// whenever the image changes so one missing thumbnail doesn't pin the
+	// next recipe to full resolution.
+	$effect(() => {
+		void recipe?.id;
+		void recipe?.image_ids?.[0];
+		void variant;
+		fellBackToFull = false;
+		error = false;
+	});
+
+	let firstImageId = $derived(recipe?.image_ids?.find((id): id is string => !!id) ?? null);
 
 	const displayIngredients = $derived(
 		(ingredients || [])
@@ -36,12 +59,23 @@
 		ing.custom_name;
 </script>
 
-{#if recipe && recipe.image_ids && recipe.image_ids.length > 0}
+{#if recipe && firstImageId}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<img
-		src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`}
+		src={getRecipeImageUrl(
+			PUBLIC_SUPABASE_URL,
+			// `?? ''` only satisfies the type checker (postgrest infers
+			// nullable ids); the {#if} above guarantees non-null at runtime.
+			recipe.id ?? '',
+			// Guaranteed non-null by the {#if} above (`?? ''` is only for the type checker,
+			// which doesn't narrow $derived bindings in templates).
+			firstImageId ?? '',
+			fellBackToFull ? 'full' : variant
+		)}
 		alt="Recipe"
+		loading={variant === 'thumb' ? 'lazy' : 'eager'}
+		decoding="async"
 		class={cn('size-11 aspect-square rounded-md object-cover cursor-pointer', className)}
 		onclick={(e) => {
 			// Prevent clicks on the image from propagating to parent elements (e.g. RecipeCard)
@@ -52,10 +86,16 @@
 			else goto(`/recipes/${recipe.id}`);
 		}}
 		onerror={(e) => {
-			if (!triedFallbackUrl && recipe.image_ids && recipe.image_ids[0]) {
-				(e.currentTarget as HTMLImageElement).src =
-					`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipe.id}/${recipe.image_ids[0]}`;
-				triedFallbackUrl = true;
+			// No thumbnail yet (legacy images, failed resize)? Fall back to
+			// the full-resolution image once before giving up.
+			if (variant === 'thumb' && !fellBackToFull && recipe && firstImageId) {
+				fellBackToFull = true;
+				(e.currentTarget as HTMLImageElement).src = getRecipeImageUrl(
+					PUBLIC_SUPABASE_URL,
+					recipe.id ?? '',
+					firstImageId ?? '',
+					'full'
+				);
 			} else {
 				error = true;
 			}

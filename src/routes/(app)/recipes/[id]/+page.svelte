@@ -154,6 +154,7 @@
 											<RecipeImage
 												{recipe}
 												ingredients={recipe.ingredients}
+												variant="full"
 												class="w-full aspect-[1.618] object-cover rounded-md size-auto"
 											/>
 										</Carousel.Item>

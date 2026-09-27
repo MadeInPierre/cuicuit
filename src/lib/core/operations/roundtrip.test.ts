@@ -456,11 +456,49 @@ if ('ok' in dbResult) {
 			})) as string;
 			expect(typeof uploaded).toBe('string');
 			files.push({ bucket: 'recipes', path: `images/${recipeId}/${uploaded}` });
+			// Thumbnail sibling (absent here — no thumbnail passed) is removed
+			// best-effort by delete-image; tracked so no orphan survives.
+			const { thumbnailFileName } = await import('./recipes/image-shared.js');
+			files.push({
+				bucket: 'recipes',
+				path: `images/${recipeId}/${thumbnailFileName(uploaded)}`
+			});
 			await runOp('recipes.delete-image', a.ctx, {
 				recipeId,
 				imageId: uploaded,
 				currentImageIds: [uploaded]
 			});
+		});
+
+		it('recipes.upload-image uploads original + thumbnail, delete-image removes both', async () => {
+			const { recipeImagePath, recipeThumbnailPath } = await import('./recipes/image-shared.js');
+			const uploaded = (await runOp('recipes.upload-image', a.ctx, {
+				recipeId,
+				currentImageIds: [],
+				file: new File(['fake-png-bytes'], `rt2-${RUN}.png`, { type: 'image/png' }),
+				thumbnailFile: new File([new Uint8Array([1, 2, 3])], 'thumbnail.webp', {
+					type: 'image/webp'
+				})
+			})) as string;
+			const origPath = recipeImagePath(recipeId, uploaded);
+			const thumbPath = recipeThumbnailPath(recipeId, uploaded);
+			files.push({ bucket: 'recipes', path: origPath });
+			files.push({ bucket: 'recipes', path: thumbPath });
+
+			const { data: orig } = await admin.storage.from('recipes').download(origPath);
+			const { data: thumb } = await admin.storage.from('recipes').download(thumbPath);
+			expect(orig?.size).toBeGreaterThan(0);
+			expect(thumb?.size).toBe(3);
+
+			await runOp('recipes.delete-image', a.ctx, {
+				recipeId,
+				imageId: uploaded,
+				currentImageIds: [uploaded]
+			});
+			const { data: goneOrig } = await admin.storage.from('recipes').download(origPath);
+			const { data: goneThumb } = await admin.storage.from('recipes').download(thumbPath);
+			expect(goneOrig).toBeNull();
+			expect(goneThumb).toBeNull();
 		});
 
 		it('recipes.add-examples rejects bad lang before any network', async () => {
@@ -784,8 +822,9 @@ if ('ok' in dbResult) {
 				expect(updated.ingredient.g_per_ml).toBeCloseTo(1.03);
 
 				// Empty patch → VALIDATION; unknown id → NOT_FOUND.
-				await expect(runOp('ingredients.update', a.ctx, { ingredientId, patch: {} }))
-					.rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
+				await expect(
+					runOp('ingredients.update', a.ctx, { ingredientId, patch: {} })
+				).rejects.toMatchObject({ name: 'OpError', code: 'VALIDATION' });
 				await expect(
 					runOp('ingredients.update', a.ctx, {
 						ingredientId: '00000000-0000-0000-0000-000000000000',
@@ -864,7 +903,10 @@ if ('ok' in dbResult) {
 				files.push({ bucket: 'ingredients', path: uploaded.path });
 
 				// Best-effort cleanup, strictly scoped to this run's rows.
-				await admin.from('ingredient_substitutions').delete().eq('original_ingredient_id', ingredientId);
+				await admin
+					.from('ingredient_substitutions')
+					.delete()
+					.eq('original_ingredient_id', ingredientId);
 				await admin.from('ingredients').delete().in('id', [ingredientId, target.id]);
 			} finally {
 				await admin.from('user_permissions').update({ role: 'user' }).eq('user_id', a.id);
@@ -950,9 +992,7 @@ if ('ok' in dbResult) {
 					.from('ingredients')
 					.download(promoted.path);
 				expect(activeError).toBeNull();
-				const activeMeta = await sharp(
-					new Uint8Array(await activeBlob!.arrayBuffer())
-				).metadata();
+				const activeMeta = await sharp(new Uint8Array(await activeBlob!.arrayBuffer())).metadata();
 				expect(activeMeta.width).toBe(128);
 				expect(activeMeta.height).toBe(128);
 				expect(activeMeta.format).toBe('png');

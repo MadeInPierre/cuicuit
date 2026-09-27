@@ -3,6 +3,8 @@ import type { DeleteRecipeImageInput } from '$lib/core/operations/recipes/delete
 import type { UploadRecipeImageInput } from '$lib/core/operations/recipes/upload-image.js';
 import { toast } from 'svelte-sonner';
 
+import { tryMakeRecipeThumbnail } from '../utils/make-recipe-thumbnail.js';
+
 /**
  * M2: thin client wrappers over the `recipes.upload-image` /
  * `recipes.delete-image` core ops (toast stays here).
@@ -16,10 +18,13 @@ export async function uploadRecipeImage(
 	if (!file) throw new Error('No file to upload');
 
 	try {
+		// 480px WebP thumbnail for cards/lists (canvas, client-side). Null on
+		// failure — the upload still succeeds and cards fall back to full.
+		const thumbnailFile = await tryMakeRecipeThumbnail(file);
 		const imageId = await runOp<UploadRecipeImageInput, string>(
 			'recipes.upload-image',
 			await getClientCtx(),
-			{ file, recipeId, currentImageIds }
+			{ file, recipeId, currentImageIds, thumbnailFile }
 		);
 		toast.success('Image uploaded successfully.');
 		return imageId;

@@ -253,12 +253,33 @@ export default defineConfig({
 				// 	// Add any other paths belonging to the /(app)/** */ group here
 				// ],
 				runtimeCaching: [
+					// Cache fonts
 					{
 						urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
 						handler: 'CacheFirst',
 						options: {
 							cacheName: 'google-fonts-cache',
 							expiration: { maxEntries: 20 }
+						}
+					},
+					// Recipe photos (full + `-thumbnail.webp`)
+					{
+						urlPattern: /^https?:\/\/.*\/storage\/v1\/object\/public\/recipes\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'recipe-images',
+							expiration: { maxEntries: 1000, maxAgeSeconds: 31536000 },
+							cacheableResponse: { statuses: [0, 200] }
+						}
+					},
+					// Ingredient icons (128×128, same URL for life)
+					{
+						urlPattern: /^https?:\/\/.*\/storage\/v1\/object\/public\/ingredients\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'ingredient-images',
+							expiration: { maxEntries: 2000, maxAgeSeconds: 31536000 },
+							cacheableResponse: { statuses: [0, 200] }
 						}
 					}
 				],

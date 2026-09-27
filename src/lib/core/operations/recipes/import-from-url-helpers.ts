@@ -1,4 +1,4 @@
-import { version } from '$app/env';
+import { version } from '$app/environment';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
@@ -25,6 +25,7 @@ import { unitToRegionized } from '$lib/shared/utils/quantity';
 import { resolveLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
 import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
+import { resizeToRecipeThumbnail } from './image-resize.js';
 import { uploadImageToRecipe } from './upload-image-helper.js';
 
 // M2: co-located helpers for the `recipes.import-from-url` /
@@ -566,7 +567,15 @@ export async function* importRecipeFromUrlCore(
 			const imgResponse = await fetch(imageUrl);
 			const blob = await imgResponse.blob();
 			const file = new File([blob], 'imported-image.jpg', { type: blob.type });
-			await uploadImageToRecipe(admin, file, userRecipeId, []);
+			// 480px WebP thumbnail for cards/lists (sharp, server-side). Null
+			// on failure — the import still succeeds, cards fall back to full.
+			let thumbnail: Uint8Array | null = null;
+			try {
+				thumbnail = await resizeToRecipeThumbnail(new Uint8Array(await blob.arrayBuffer()));
+			} catch (thumbError) {
+				console.warn('Failed to resize imported image, skipping thumbnail:', thumbError);
+			}
+			await uploadImageToRecipe(admin, file, userRecipeId, [], thumbnail);
 		} catch (error) {
 			console.warn('Failed to download & upload the image, skipping:', error);
 		}
