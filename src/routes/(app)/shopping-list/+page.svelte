@@ -1,16 +1,11 @@
 <script lang="ts">
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import {
-		updatePlanItemChecked,
-		updatePlanItemDeleted
-	} from '$lib/features/plans/actions/update-item';
+	import { updatePlanItemChecked } from '$lib/features/plans/actions/update-item';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
-	import { hoveredMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import {
 		resolveSupermarketAisleOrder,
 		supermarketAisleSectionHeaders
 	} from '$lib/features/recipes/components/consts';
-	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
 		getShoppingRecommendations,
 		type ShoppingRecommendation
@@ -22,27 +17,20 @@
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
 	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
-	import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import { cn } from '$lib/utils';
 	import {
 		Apple,
 		Calendar,
-		ChefHat,
 		ClipboardList,
 		RotateCcw,
-		ShoppingBasket,
-		User,
-		Users
+		ShoppingBasket
 	} from '@lucide/svelte';
-	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
-	import {
-		type CombinedShoppingListItem,
-		formatCombinedItemQuantity
-	} from './generate-shopping-list';
+	import type { CombinedShoppingListItem } from './generate-shopping-list';
 	import ItemDrawer from './ItemDrawer.svelte';
 	import SeparatorZigZag from './SeparatorZigZag.svelte';
+	import ShoppingItemsGrid from './ShoppingItemsGrid.svelte';
 	import ShoppingRecommendations from './ShoppingRecommendations.svelte';
 	import ShoppingRecommendationsList from './ShoppingRecommendationsList.svelte';
 	import ShoppingRecommendationsMobile from './ShoppingRecommendationsMobile.svelte';
@@ -274,7 +262,11 @@
 									/>
 								{/if}
 
-								{@render itemsGrid(aisleItems || [])}
+								<ShoppingItemsGrid
+									items={aisleItems || []}
+									layout={itemsLayout.value ?? 'grid'}
+									onCheckedChange={onItemCheckedChange}
+								/>
 							</div>
 						</section>
 					{:else}
@@ -310,11 +302,13 @@
 									</div>
 
 									<div class="grid space-y-2 md:ml-5 md:pl-8 lg:pl-12 md:border-l-2">
-										{@render itemsGrid(
-											space.activeShoppingList.filter((item) =>
+										<ShoppingItemsGrid
+											items={space.activeShoppingList.filter((item) =>
 												item.items.some((si) => si.checked_at)
-											)
-										)}
+											)}
+											layout={itemsLayout.value ?? 'grid'}
+											onCheckedChange={onItemCheckedChange}
+										/>
 									</div>
 								</div>
 							{/if}
@@ -355,111 +349,3 @@
 		</Tabs.Content>
 	</Tabs.Root>
 </div>
-
-{#snippet itemsGrid(items: CombinedShoppingListItem[])}
-	<!-- old for list: <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2 md:gap-4">
-			{#each items as item (item.ingredient?.id || item.name)}
-				<div class="flex group" animate:flip={{ duration: 300 }}> -->
-	<div
-		class={cn(
-			'grid gap-2',
-			itemsLayout.value === 'grid' &&
-				'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 ',
-			itemsLayout.value === 'list' &&
-				'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 lg:gap-3'
-		)}
-	>
-		{#each items as item (item.ingredient?.id || item.name)}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div
-				class="flex group"
-				animate:flip={{ duration: 200 }}
-				onmouseenter={() => {
-					if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
-					if (!item.ingredient) return; // No hover state for manual items
-					hoveredMealIngredient.value = item.ingredient;
-				}}
-				onmouseleave={() => {
-					if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;
-					hoveredMealIngredient.value = null;
-				}}
-			>
-				<ShoppingItemCard
-					layout={itemsLayout.value || 'grid'}
-					ingredient={item.ingredient}
-					name={item.name}
-					description={formatCombinedItemQuantity(item)}
-					plural={Object.values(item.mergedQuantity).some((quantities) =>
-						isPluralAmount(quantities.withOptionals)
-					)}
-					size="md"
-					selectable
-					onDelete={() => {
-						// Soft delete all origins of the item
-						item.items.forEach((si) => updatePlanItemDeleted(space, si.id));
-					}}
-					checked={item.items.some((si) => si.checked_at)}
-					onCheckedChange={(newChecked) => onItemCheckedChange(item, newChecked)}
-				>
-					{#snippet topRight()}
-						{#if itemsLayout.value === 'grid'}
-							{#if item.meals.length > 0}
-								<div class="flex gap-0.5">
-									{#if item.meals.length > 1}
-										<span>{item.meals.length}</span>
-									{/if}
-									<ChefHat class="size-3 mt-[1.2px]" />
-								</div>
-							{/if}
-
-							{#if item.items.filter((i) => i.type === 'independent').length > 0}
-								<div class="flex gap-0.5">
-									{#if item.items.filter((i) => i.type === 'independent').length > 1}
-										<span>
-											{item.items.filter((i) => i.type === 'independent').length}
-										</span>
-										<Users class="size-3 mt-[1.5px]" />
-									{:else}
-										<User class="size-3 mt-[1.5px]" />
-									{/if}
-								</div>
-							{/if}
-						{/if}
-					{/snippet}
-
-					{#if itemsLayout.value === 'list'}
-						<span class="text-xs text-muted-foreground/80 flex gap-3">
-							<!-- <div class="flex items-center gap-1">
-								<House class="size-3 inline-block" />
-								None
-							</div> -->
-
-							<!-- <div class="flex items-center gap-1">
-								<Calendar class="size-3 inline-block" />
-								{formatCombinedItemQuantity(item) || 'Any'}
-							</div> -->
-
-							{#if item.meals.length > 0}
-								<div class="flex items-center gap-1">
-									<ChefHat class="size-3 inline-block" />
-									{item.meals
-										.slice(0, 3)
-										.map((m) => m.recipe.title.split(' ')?.[0] || '')
-										.join(', ') + (item.meals.length > 3 ? ` +${item.meals.length - 3}` : '')}
-								</div>
-							{/if}
-
-							{#if item.items.filter((i) => i.type === 'independent').length > 0}
-								<div class="flex items-center gap-1">
-									<User class="size-3 inline-block" />
-									{item.items.filter((i) => i.type === 'independent').length}
-								</div>
-							{/if}
-						</span>
-					{/if}
-				</ShoppingItemCard>
-			</div>
-		{/each}
-	</div>
-{/snippet}

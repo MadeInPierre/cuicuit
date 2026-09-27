@@ -40,7 +40,7 @@
 <Sidebar.Root
 	bind:ref
 	collapsible="none"
-	class="sticky top-0 hidden h-svh border-r lg:flex w-[300px]"
+	class="sticky top-0 hidden h-svh border-r md:flex w-[300px]"
 	{...restProps}
 >
 	<Sidebar.Header class="border-sidebar-border border-b p-4">

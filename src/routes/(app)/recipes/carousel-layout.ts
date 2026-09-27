@@ -30,28 +30,45 @@ export interface CarouselLayout {
 	pageSize: number;
 }
 
+export interface ColumnOptions {
+	/** Minimum card width including gap share. Defaults to MIN_CARD_WIDTH. */
+	minCardWidth?: number;
+	/** Maximum card width including gap share. Defaults to MAX_CARD_WIDTH. */
+	maxCardWidth?: number;
+	/** Gap between cards. Defaults to GAP. */
+	gap?: number;
+	/** Minimum number of columns. Defaults to MIN_COLUMNS. */
+	minColumns?: number;
+}
+
 /**
  * Pick the number of grid columns so each card (gap included) lands within
  * [MIN_CARD_WIDTH, MAX_CARD_WIDTH]. `width` is the grid content width.
+ * Pass `opts` to reuse the same behavior with different card sizes.
  */
-export function computeColumns(width: number): number {
+export function computeColumns(width: number, opts?: ColumnOptions): number {
 	if (!Number.isFinite(width) || width <= 0) return 1;
 
-	// Smallest column count whose cards are not wider than MAX_CARD_WIDTH.
-	const minForMax = Math.max(MIN_COLUMNS, Math.ceil((width + GAP) / (MAX_CARD_WIDTH + GAP)));
-	// Largest column count whose cards are not narrower than MIN_CARD_WIDTH.
-	const maxForMin = Math.max(MIN_COLUMNS, Math.floor((width + GAP) / (MIN_CARD_WIDTH + GAP)));
+	const minCardWidth = opts?.minCardWidth ?? MIN_CARD_WIDTH;
+	const maxCardWidth = opts?.maxCardWidth ?? MAX_CARD_WIDTH;
+	const gap = opts?.gap ?? GAP;
+	const minColumns = opts?.minColumns ?? MIN_COLUMNS;
+
+	// Smallest column count whose cards are not wider than maxCardWidth.
+	const minForMax = Math.max(minColumns, Math.ceil((width + gap) / (maxCardWidth + gap)));
+	// Largest column count whose cards are not narrower than minCardWidth.
+	const maxForMin = Math.max(minColumns, Math.floor((width + gap) / (minCardWidth + gap)));
 
 	// A valid range exists: pick the count closest to the midpoint card size.
 	if (minForMax <= maxForMin) {
-		const mid = (MIN_CARD_WIDTH + MAX_CARD_WIDTH) / 2;
-		const closest = Math.round((width + GAP) / (mid + GAP));
+		const mid = (minCardWidth + maxCardWidth) / 2;
+		const closest = Math.round((width + gap) / (mid + gap));
 		return Math.min(maxForMin, Math.max(minForMax, closest));
 	}
 
 	// Dead zone: no integer column count fits within [MIN, MAX].
-	// Prefer fewer, wider cards (never below MIN) so the grid always fills
-	// the entire width available.
+	// Prefer fewer, wider cards (never below minColumns) so the grid always
+	// fills the entire width available.
 	return maxForMin;
 }
 
