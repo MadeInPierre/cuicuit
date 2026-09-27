@@ -200,20 +200,32 @@ $function$
 
 -- Backfill weekly usage from existing consumption logs (grants excluded).
 -- Public-pool rows carry user_id = NULL; attribute via consumed_by_user_id.
+-- Rows whose user no longer exists in auth.users (deleted accounts) are
+-- skipped: the FK on credit_usage_weekly would reject them, and per-user
+-- analytics for a gone user are worthless.
 insert into public.credit_usage_weekly as w
   (user_id, week_start, total, private_used, public_used, import_website, import_text)
 select
-  coalesce(user_id, (metadata ->> 'consumed_by_user_id')::uuid),
+  user_id,
   (date_trunc('week', created_at))::date,
   sum(abs(amount)),
   coalesce(sum(abs(amount)) filter (where credit_type = 'private'), 0),
   coalesce(sum(abs(amount)) filter (where credit_type = 'public'), 0),
   coalesce(sum(abs(amount)) filter (where metadata ->> 'billing_action_source' = 'import_recipe_from_website'), 0),
   coalesce(sum(abs(amount)) filter (where metadata ->> 'billing_action_source' = 'import_recipe_from_text'), 0)
-from public.credit_logs
-where source = 'consumed'
+from (
+  select
+    coalesce(l.user_id, (l.metadata ->> 'consumed_by_user_id')::uuid) as user_id,
+    l.created_at,
+    l.amount,
+    l.credit_type,
+    l.metadata
+  from public.credit_logs l
+  where l.source = 'consumed'
+) logs
+where user_id is not null
+  and exists (select 1 from auth.users u where u.id = logs.user_id)
 group by 1, 2
-having coalesce(user_id, (metadata ->> 'consumed_by_user_id')::uuid) is not null
 on conflict (user_id, week_start) do update
 set total = w.total + excluded.total,
     private_used = w.private_used + excluded.private_used,

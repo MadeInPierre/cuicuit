@@ -54,6 +54,7 @@
 		<img
 			src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipes/images/${recipeId}/${imgId}`}
 			alt="Recipe"
+			crossorigin="anonymous"
 			class="aspect-[1.618] w-full rounded-md object-cover"
 		/>
 		<button

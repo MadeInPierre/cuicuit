@@ -74,6 +74,7 @@
 			fellBackToFull ? 'full' : variant
 		)}
 		alt="Recipe"
+		crossorigin="anonymous"
 		loading={variant === 'thumb' ? 'lazy' : 'eager'}
 		decoding="async"
 		class={cn('size-11 aspect-square rounded-md object-cover cursor-pointer', className)}

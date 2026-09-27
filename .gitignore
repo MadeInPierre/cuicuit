@@ -1,6 +1,9 @@
 # I/O files for general scripts
 src/lib/scripts/
 
+# One-off ops scripts (run manifests may reference prod ids)
+scripts/
+
 node_modules
 .vscode
 

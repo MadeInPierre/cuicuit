@@ -272,7 +272,11 @@ export default defineConfig({
 						options: {
 							cacheName: 'recipe-images',
 							expiration: { maxEntries: 1000, maxAgeSeconds: 31536000 },
-							cacheableResponse: { statuses: [0, 200] }
+							// Statuses [200] only: opaque (0) responses are ~7 MB
+							// each in Chrome quota accounting — images below use
+							// crossorigin="anonymous" so Supabase CORS makes them
+							// real cache entries with true sizes for better stats.
+							cacheableResponse: { statuses: [200] }
 						}
 					},
 					// Ingredient icons (128×128, same URL for life)
@@ -282,7 +286,8 @@ export default defineConfig({
 						options: {
 							cacheName: 'ingredient-images',
 							expiration: { maxEntries: 2000, maxAgeSeconds: 31536000 },
-							cacheableResponse: { statuses: [0, 200] }
+							// See recipe-images above: [200] only, no opaque.
+							cacheableResponse: { statuses: [200] }
 						}
 					}
 				],

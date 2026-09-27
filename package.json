@@ -17,6 +17,7 @@
 		"organize-imports": "npx organize-imports-cli tsconfig[.*].json",
 		"test:integration": "playwright test",
 		"test:unit": "vitest run",
+		"backfill:thumbnails": "node scripts/backfill-thumbnails/backfill.ts",
 		"db:start": "npx --yes supabase start  # Start supabase locally",
 		"db:stop": "npx --yes supabase stop  # Stop supabase locally",
 		"db:deploy": "npx --yes supabase db push  # Deploy local changes to the database",

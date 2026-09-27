@@ -209,6 +209,7 @@
 						<img
 							src={candidateUrl(c.path)}
 							alt={displayName}
+							crossorigin="anonymous"
 							class="aspect-square w-full bg-white object-cover"
 							loading="lazy"
 						/>
