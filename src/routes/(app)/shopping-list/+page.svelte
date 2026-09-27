@@ -16,11 +16,11 @@
 		type ShoppingRecommendation
 	} from '$lib/features/spaces/queries/get-shopping-recommendations';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import SectionHeader from '$lib/shared/components/SectionHeader.svelte';
 	import SelectResponsive from '$lib/shared/components/SelectResponsive.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Tabs from '$lib/shared/components/ui/tabs/index.js';
+	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { isPluralAmount } from '$lib/shared/utils/format-quantity';
 	import { cn } from '$lib/utils';
@@ -318,21 +318,21 @@
 									</div>
 								</div>
 							{/if}
-
-							{#if suggestionsLayout.value === 'bottom' && shoppingRecommendations.length > 0}
-								<div class="grid space-y-2 xl:space-y-4" transition:fade={{ duration: 200 }}>
-									<h3 class="pt-8 text-md font-medium">You might also need:</h3>
-									<div class="overflow-hidden max-h-44 xl:max-h-26">
-										<ShoppingRecommendationsList
-											recommendations={shoppingRecommendations.slice(0, 30)}
-											class="flex-wrap min-w-auto m-0.5"
-										/>
-									</div>
-								</div>
-							{/if}
 						</div>
 					{:else}
 						<DoneShoppingButton onclick={refreshRecommendations} class="w-full md:hidden" />
+					{/if}
+
+					{#if suggestionsLayout.value === 'bottom' && shoppingRecommendations.length > 0}
+						<div class="grid space-y-2 xl:space-y-4" transition:fade={{ duration: 200 }}>
+							<h3 class="pt-8 text-md font-medium">You might also need:</h3>
+							<div class="overflow-hidden max-h-44 xl:max-h-26">
+								<ShoppingRecommendationsList
+									recommendations={shoppingRecommendations.slice(0, 30)}
+									class="flex-wrap min-w-auto m-0.5"
+								/>
+							</div>
+						</div>
 					{/if}
 				</div>
 			</div>
