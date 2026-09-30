@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import posthog from 'posthog-js';
 
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { PostgrestError } from '@supabase/supabase-js';
@@ -52,7 +53,10 @@ export const logsOp = defineOp({
 			// No results
 			if (error?.code === 'PGRST116') return { logs: null, error: null };
 
-			console.error('Error fetching credit log:', error);
+			// Report a readable exception with the error detail as a property, so the
+			// issue message stays legible instead of stringifying to "[object Object]".
+			if (posthog.__loaded)
+				posthog.captureException(new Error('Error fetching credit log'), { cause: error });
 		}
 
 		return { logs: dataLogs || null, error };
