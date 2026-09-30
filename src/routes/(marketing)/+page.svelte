@@ -150,29 +150,29 @@
 	const faqs = [
 		{
 			q: 'What is Cuicuit?',
-			a: "Cuicuit is an open-source meal planning app that imports recipes from any website, helps you plan your week, and automatically builds a beautiful aisle-aware shopping list. More features like pantry-aware meal recommendations coming soon. It's free to self-host and offers a free hosted version.",
+			a: 'Cuicuit is an open-source recipe app that helps you quickly get done with groceries: it automatically combines your meals and missing items into a neat aisle-aware shopping list. Free & open source, self-hostable and a hosted version.',
 			id: 'experiment'
 		},
 		{
 			q: 'Is Cuicuit really free?',
-			a: "Yes, and I hope forever! The full code is open source on GitHub and you can self-host it forever at no cost. The hosted cloud version also has an unlimited free plan, funded by a community moneypot. Only genuinely costly backend features need 'seeds' as a way to share the costs, use the app daily for free. I hope to see enough supporters to keep the app free."
+			a: "Yes! The full code is open source on GitHub and you can self-host it forever at no cost. The hosted cloud version also has an unlimited free plan, funded by a community moneypot. Only genuinely costly backend features need 'seeds' as a way to share the costs, use the cloud version daily for free."
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste any recipe URL (food blog, magazine, or personal site) and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it then uses AI (only low-CO2 inference locations) to guess filters, ingredient substitutions, and more.'
+			a: 'Paste any recipe URL and Cuicuit parses the ingredients, quantities, steps, and timings using open web standards like schema.org/Recipe. Behind the scenes, it guesses filters, ingredient substitutions, and more using AI (only low-CO2 inference locations).'
 		},
 		{
 			q: 'Can I self-host Cuicuit with Docker?',
-			a: "Yes. Cuicuit ships with a docker-compose setup. Clone the repo, run 'docker compose up -d', and you'll have your own instance running in minutes. Your recipes and data stay on your hardware, using your own API keys."
+			a: "Very soon! Cuicuit is preparing a docker-compose setup, right after the cloud version has been stabilized. Clone the repo, run 'docker compose up -d', and your recipes stay on your hardware, using your own API keys."
 		},
 		{
 			q: 'Where does the name Cuicuit come from?',
 			a: "Cuicuit is a play on words. In French, 'cui-cui' is the sound a bird makes, and 'cuit' means cooked. 'C'est cuit' is a French expression meaning 'it's cooked', so now we can say 'C'est cuicuit'! Pronounce it 'qui-qui(ck)' without the 'ck'."
-		},
-		{
-			q: 'Can my family or roommates share a meal plan with me?',
-			a: 'Absolutely. Shared households let multiple people cook, plan, and shop together in the same synced space.'
 		}
+		// {
+		// 	q: 'Can my family or roommates share a meal plan with me?',
+		// 	a: 'Absolutely. Shared households let multiple people cook, plan, and shop together in the same synced space.'
+		// }
 	];
 
 	let openSupportDialog = $state(false);
@@ -227,11 +227,11 @@
 <section id="top" class="relative overflow-hidden bg-(--gradient-warm)">
 	<div
 		aria-hidden={true}
-		class="pointer-events-none absolute -top-40 -right-40 h-180 w-180 rounded-full bg-primary/5 lg:bg-primary/8 blur-[120px]"
+		class="pointer-events-none absolute -top-40 -right-40 h-180 w-180 rounded-full bg-primary/2 lg:bg-primary/8 blur-[120px]"
 	></div>
 	<div
 		aria-hidden={true}
-		class="pointer-events-none absolute top-60 -left-56 h-160 w-160 rounded-full bg-primary/4 blur-[130px]"
+		class="pointer-events-none absolute top-60 -left-56 h-160 w-160 rounded-full bg-primary/2 blur-[130px]"
 	></div>
 	<div
 		aria-hidden={true}
@@ -255,10 +255,12 @@
 			<h1
 				class="font-hand max-[420px]:text-5xl text-6xl sm:text-7xl md:text-7xl font-semibold leading-[0.9] tracking-tight md:px-3"
 			>
-				Think about meals,
+				<!-- Less time shopping, -->
+				Pick your meals,
 				<br class="block lg:hidden" />
 				<span class="relative inline-block text-primary">
-					not ingredients.
+					<!-- more time cooking -->
+					groceries get sorted
 					<svg
 						aria-hidden={true}
 						viewBox="0 0 300 18"
@@ -277,7 +279,9 @@
 			</h1>
 
 			<p class="mt-6 px-6 max-w-xl text-lg text-muted-foreground text-balance leading-relaxed">
-				Simply jot down meal ideas & things you're missing, and get a ready-to-shop list.
+				<!-- Spend less time on groceries: get a combined list from your meal ideas and missing items. -->
+
+				Spend less time on groceries: turn your meal ideas and missing items into one neat shopping list.
 			</p>
 
 			<p class="mt-2 text-sm text-muted-foreground/70">
@@ -635,7 +639,7 @@
 		</p>
 	</div>
 
-	<div class="mt-14">
+	<div class="mt-14 hidden sm:block">
 		<ol class="grid gap-[1.35rem] md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
 			{#each roadmap.filter((r) => media.sm || r.mobile) as r, i (r.label)}
 				<li class="relative lg:even:mt-8">

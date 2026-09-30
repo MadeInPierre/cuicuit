@@ -56,7 +56,7 @@
 		<!-- Small badge centered over desktop screenshot -->
 		<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
 			<button
-				class="pointer-events-auto relative inline-flex items-center gap-2 px-3 py-1.5 md:px-6 md:py-3 rounded-full bg-white/85 text-black text-sm font-medium shadow-lg transform transition duration-150 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/40 overflow-visible"
+				class="pointer-events-auto relative inline-flex items-center gap-2 px-3 py-1.5 md:px-6 md:py-3 rounded-full bg-white/90 text-black text-sm font-medium shadow-lg transform transition duration-150 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/40 overflow-visible"
 				aria-label="Watch a demo"
 				on:click={openVideo}
 			>
