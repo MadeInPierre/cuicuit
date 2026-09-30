@@ -41,7 +41,7 @@
 	const media = useMedia();
 
 	async function onSubmit() {
-		if (loading) throw new Error('A web import is already ongoing, aborting.');
+		if (loading) return;
 
 		loading = true;
 		currentStep = -1;
@@ -101,7 +101,7 @@
 			toast.error('Please fix the errors in the form.');
 			return;
 		}
-		onSubmit();
+		onSubmit().catch(() => toast.error('Failed to import recipe. Please try again.'));
 	}
 </script>
 
