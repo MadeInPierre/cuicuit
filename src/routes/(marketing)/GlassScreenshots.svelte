@@ -66,7 +66,7 @@
 		</div>
 	</div>
 
-	<div class="md:hidden mx-auto w-[80%] overflow-hidden">
+	<div class="md:hidden mx-auto w-[80%] max-w-100 overflow-hidden">
 		<img
 			src={mobileSrc}
 			alt={mobileAlt}

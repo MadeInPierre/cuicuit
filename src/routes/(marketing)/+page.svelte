@@ -93,10 +93,6 @@
 			q: 'Where does the name come from?',
 			a: "“Cui-cui” is a French bird chirp and “cuit” means cooked, so “c'est cuit” becomes “c'est cuicuit”. Say it “qui-qui”."
 		}
-		// {
-		// 	q: 'Can I self-host it?',
-		// 	a: 'Not yet. A docker-compose setup is planned once the cloud version is stable. Star the repo to follow along.'
-		// }
 	];
 
 	let openSupportDialog = $state(false);
@@ -152,14 +148,15 @@
 	<div class="relative mx-auto max-w-6xl px-6 pt-16 pb-20 md:pt-24">
 		<div class="mx-auto max-w-3xl text-center">
 			<h1
-				class="font-display text-5xl md:text-6xl font-semibold tracking-tight text-balance text-foreground"
+				class="font-display text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance text-foreground"
 			>
-				Throw in meal ideas anytime. <span class="text-primary">Your list sorts itself.</span>
+				<span class="hidden sm:block"> Throw in meal ideas anytime. </span>
+				<span class="sm:hidden"> Pick your meals, </span>
+				<span class="text-primary"> Your list sorts itself. </span>
 			</h1>
-			<p class="mx-auto mt-6 max-w-2xl text-lg text-foreground/80 text-pretty">
-				<!-- Variant: Skip the weekly planning ritual. Add meals and missing items when you think of them, and Cuicuit builds one aisle-sorted list and tells you what you can cook right now. -->
-				Add meals and missing items when you think of them. Cuicuit merges everything into one aisle-sorted
-				shopping list and shows which meals you can already cook.
+			<p class="mx-auto mt-6 max-w-lg md:max-w-2xl text-base sm:text-lg text-foreground/80 text-pretty">
+				Add meals and missing items whenever you think of them. Cuicuit merges them into one
+				aisle-sorted shopping list and shows which meals you can already cook.
 			</p>
 			<div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
 				<a
