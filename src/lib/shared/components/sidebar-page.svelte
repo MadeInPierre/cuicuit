@@ -1,13 +1,16 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { getChangelogPosts, getUnseenPosts } from '$lib/features/changelog/changelog';
 	import ActiveSpaceIcon from '$lib/features/spaces/components/ActiveSpaceIcon.svelte';
 	import SidebarLeft from '$lib/shared/components/sidebar-left.svelte';
 	import SidebarRight from '$lib/shared/components/sidebar-right.svelte';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { Lightbulb } from '@lucide/svelte';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import HelloDialog from './HelloDialog.svelte';
 	import SupportBanner from './SupportBanner.svelte';
-	import ThemeButton from './ThemeButton.svelte';
 	import { Button } from './ui/button';
 
 	interface Props {
@@ -16,6 +19,16 @@
 	let { children }: Props = $props();
 
 	const media = useMedia();
+	const userState = getUserState();
+
+	// Same unread logic as the desktop sidebar badge. Hidden until preferences
+	// load (avoids a flash for users with nothing new) and on /whats-new itself.
+	const unseenChangelogCount = $derived.by(() => {
+		if (page.url.pathname.startsWith('/whats-new')) return 0;
+		if (!userState.preferences) return 0;
+		return getUnseenPosts(getChangelogPosts(), userState.preferences.last_seen_changelog_tag)
+			.length;
+	});
 </script>
 
 <svelte:window
@@ -93,11 +106,27 @@
 					<SupportBanner />
 				</div>
 
-				<ThemeButton class="md:hidden" />
+				<div class="ml-auto flex items-center gap-2 md:hidden">
+					{#if unseenChangelogCount > 0}
+						<a
+							href="/whats-new"
+							aria-label="See what's new"
+							class="relative flex h-7 items-center justify-center gap-1 text-xs text-lime-500 bg-lime-500/10 rounded-md px-2"
+						>
+							<Megaphone class="size-3.5" />
+							New
 
-				<a href="/settings" class="md:hidden">
-					<ActiveSpaceIcon variant="muted" class="size-10 rounded-full" iconClass="size-5" />
-				</a>
+							<span
+								class="absolute -top-0.5 -right-0.5 z-40 flex w-2 max-w-2 h-2 rounded-full bg-lime-500 px-1"
+							>
+							</span>
+						</a>
+					{/if}
+
+					<a href="/settings">
+						<ActiveSpaceIcon variant="muted" class="size-10 rounded-full" iconClass="size-5" />
+					</a>
+				</div>
 			</div>
 		</header>
 

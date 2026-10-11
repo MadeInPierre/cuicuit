@@ -433,7 +433,7 @@
 
 				<div class="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-						<Card.Root class="bg-primary-foreground">
+						<Card.Root class="bg-card">
 							<Card.Header class="flex-row items-center">
 								<div class="grid space-y-1.5">
 									<Card.Title>Recipe Details</Card.Title>

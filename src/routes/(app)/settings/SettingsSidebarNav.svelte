@@ -10,6 +10,7 @@
 	import { cubicInOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import SettingsMobileSpaceSwitcher from './SettingsMobileSpaceSwitcher.svelte';
+	import SettingsMobileThemeSwitcher from './SettingsMobileThemeSwitcher.svelte';
 
 	interface Props {
 		class?: string | undefined | null;
@@ -59,7 +60,7 @@
 					class={cn(
 						!isActive && 'hover:underline',
 						'relative justify-start hover:bg-transparent py-6 md:py-0',
-						!media.md && 'p-8 rounded-xl bg-white shadow-xs border border-border/60 text-md'
+						!media.md && 'p-8 rounded-xl bg-card shadow-xs border border-border/60 text-md'
 					)}
 					data-sveltekit-noscroll
 					onclick={async () => {
@@ -89,5 +90,13 @@
 		</div>
 
 		<div class="h-4"></div>
+
+		{#if group.name === 'Active space' && !media.md}
+			<p class="md:text-muted-foreground md:text-sm font-medium">Appearance</p>
+
+			<SettingsMobileThemeSwitcher />
+
+			<div class="h-4"></div>
+		{/if}
 	{/each}
 </nav>
