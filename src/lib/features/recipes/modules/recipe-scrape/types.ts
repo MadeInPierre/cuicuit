@@ -9,7 +9,7 @@
 export type ScrapeFormat = 'ldjson' | 'recipe-json' | 'markdown';
 
 /** Unique id of every strategy registered in the orchestrator. */
-export type ScrapeStrategyName = 'direct-ldjson' | 'recipe-scrapers' | 'geonode' | 'firecrawl';
+export type ScrapeStrategyName = 'direct-ldjson' | 'recipe-scrapers' | 'geonode' | 'firecrawl' | 'supadata';
 
 /** Outcome of a single strategy attempt, before the quality gate. */
 export type StrategyStatus = 'ok' | 'not_found' | 'blocked' | 'error' | 'skipped';

@@ -150,7 +150,7 @@
 							<Carousel.Root class="w-full relative">
 								<Carousel.Content>
 									{#each recipe.image_ids || [] as imgId, i (imgId)}
-										<Carousel.Item>
+										<Carousel.Item class="w-full">
 											<RecipeImage
 												{recipe}
 												ingredients={recipe.ingredients}

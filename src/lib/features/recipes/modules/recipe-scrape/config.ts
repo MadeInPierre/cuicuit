@@ -16,9 +16,13 @@ export const scraperConfig = {
     },
     firecrawl: {
         apiKey: env.FIRECRAWL_API_KEY
+    },
+    supadata: {
+        apiKey: env.SUPADATA_API_KEY
     }
 } as const;
 
 export const isPythonScraperEnabled = () => Boolean(scraperConfig.python.baseUrl);
 export const isGeonodeEnabled = () => Boolean(scraperConfig.geonode.apiKey);
 export const isFirecrawlEnabled = () => Boolean(scraperConfig.firecrawl.apiKey);
+export const isSupadataEnabled = () => Boolean(scraperConfig.supadata.apiKey);

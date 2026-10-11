@@ -39,13 +39,13 @@
 {#if recipe}
 	<button
 		class={cn(
-			'relative z-10 flex w-full items-center rounded-md bg-white p-2 shadow-2xs transition-all group dark:bg-muted gap-2',
+			'relative z-10 flex w-full items-center rounded-md bg-white p-1.5 shadow-2xs transition-all group dark:bg-muted gap-2',
 			size == 'lg' && 'rounded-lg gap-3 p-1.5 pr-4',
 			className
 		)}
 		{...others}
 	>
-		<RecipeImage {recipe} {ingredients} class={size == 'lg' ? 'size-16' : 'size-11'} />
+		<RecipeImage {recipe} {ingredients} class={size == 'lg' ? 'size-16' : 'size-12'} />
 
 		<div class="grid mr-auto">
 			<h3

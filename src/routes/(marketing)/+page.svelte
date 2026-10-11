@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import SourceLogoStack from '$lib/features/recipes/components/SourceLogoStack.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import { siteConfig } from '$lib/shared/config/site-config';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
-	import Stitch from './Stitch.svelte';
-	import Wave from './Wave.svelte';
 	import GitHub from '$lib/shared/icons/github.svelte';
 	import {
 		ArrowRight,
@@ -18,9 +17,11 @@
 		Sprout,
 		Type
 	} from '@lucide/svelte';
-	import GlassScreenshots from './GlassScreenshots.svelte';
-	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
 	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
+	import GlassScreenshots from './GlassScreenshots.svelte';
+	import Stitch from './Stitch.svelte';
+	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
+	import Wave from './Wave.svelte';
 
 	const { data } = $props();
 
@@ -48,9 +49,9 @@
 	];
 
 	const imports = [
-		{ icon: Globe, label: 'Any recipe website' },
-		{ icon: Camera, label: 'Photos of cookbooks' },
-		{ icon: Type, label: 'Pasted text' }
+		{ icon: Globe, label: 'Websites' },
+		{ icon: Camera, label: 'Photos' },
+		{ icon: Type, label: 'Any text' }
 	];
 
 	const roadmap = [
@@ -64,11 +65,7 @@
 				'Cookability badges'
 			]
 		},
-		{
-			label: 'Coming soon',
-			tone: 'soon',
-			items: ['Self-hosting with Docker', 'Pantry tracking', 'Social media import']
-		},
+		{ label: 'Coming soon', tone: 'soon', items: ['Self-hosting with Docker', 'Pantry tracking'] },
 		{ label: 'Later', tone: 'later', items: ['Online delivery', 'Nutrition & habits'] }
 	];
 
@@ -83,7 +80,7 @@
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste a recipe URL, a photo or some text. Cuicuit extracts ingredients, quantities, steps and timings, using open standards like schema.org/Recipe plus AI when needed.'
+			a: 'Paste a recipe link — from YouTube, TikTok, Instagram, X, Facebook or any blog — a photo or some text. Cuicuit extracts ingredients, quantities, steps and timings, using open standards like schema.org/Recipe plus AI when needed.'
 		},
 		{
 			q: 'Is it stable?',
@@ -154,7 +151,9 @@
 				<span class="sm:hidden"> Pick your meals, </span>
 				<span class="text-primary"> Your list sorts itself. </span>
 			</h1>
-			<p class="mx-auto mt-6 max-w-lg md:max-w-2xl text-base sm:text-lg text-foreground/80 text-pretty">
+			<p
+				class="mx-auto mt-6 max-w-lg md:max-w-2xl text-base sm:text-lg text-foreground/80 text-pretty"
+			>
 				Add meals and missing items whenever you think of them. Cuicuit merges them into one
 				aisle-sorted shopping list and shows which meals you can already cook.
 			</p>
@@ -224,18 +223,32 @@
 			<h2 class="font-display text-3xl font-semibold tracking-tight text-balance">
 				Bring your recipes with you.
 			</h2>
-			<p class="mt-3 text-foreground/80 max-w-prose">
-				Import from a link, a photo or pasted text. Social media import is on the way.
+			<p class="mt-3 text-foreground/80 max-w-md">
+				Paste a link from any video or blog, snap a handwritten note, or paste text. Cuicuit makes
+				it look nice and guesses filters.
 			</p>
 		</div>
-		<ul class="md:w-1/2 grid gap-3 sm:grid-cols-3">
-			{#each imports as item (item.label)}
-				<li class="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-(--shadow-soft)">
-					<item.icon class="h-5 w-5 shrink-0 text-primary" />
-					<span class="text-sm font-medium">{item.label}</span>
-				</li>
-			{/each}
-		</ul>
+		<div class="md:w-1/2 space-y-3">
+			<div class="flex items-center gap-4 rounded-2xl bg-card p-4 shadow-(--shadow-soft)">
+				<SourceLogoStack badgeClass="size-8" logoClass="size-4" withBlogsPill={false} />
+				<div class="min-w-0">
+					<p class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+						Social videos & posts
+					</p>
+					<p class="mt-0.5 text-xs text-foreground/70">
+						YouTube · TikTok · Instagram · X · Facebook
+					</p>
+				</div>
+			</div>
+			<ul class="grid gap-3 grid-cols-3">
+				{#each imports as item (item.label)}
+					<li class="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-(--shadow-soft)">
+						<item.icon class="h-5 w-5 shrink-0 text-primary" />
+						<span class="text-sm font-medium">{item.label}</span>
+					</li>
+				{/each}
+			</ul>
+		</div>
 	</div>
 </section>
 <div class="text-secondary/40"><Wave flip /></div>
@@ -269,7 +282,7 @@
 	</h2>
 	<div class="mt-10 grid gap-6 lg:grid-cols-[1fr_1.15fr_1fr]">
 		<!-- Hosted -->
-		<div class="flex flex-col rounded-3xl border border-border bg-card p-8">
+		<div class="flex flex-col rounded-3xl border border-border/60 bg-card p-8">
 			<div class="flex items-center justify-between">
 				<Cloud class="h-6 w-6 text-primary" />
 				<span class="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground">

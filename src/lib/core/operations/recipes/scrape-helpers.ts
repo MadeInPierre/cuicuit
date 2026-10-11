@@ -21,6 +21,7 @@ import { directLdJsonStrategy } from '$lib/features/recipes/modules/recipe-scrap
 import { recipeScrapersStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/recipe-scrapers';
 import { geonodeStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/geonode';
 import { firecrawlStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/firecrawl';
+import { supadataStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/supadata';
 
 /**
  * Register new scrapers here. Order is by `costRank` (cheapest first) unless a
@@ -30,7 +31,8 @@ const strategies: ScrapeStrategy[] = [
 	directLdJsonStrategy, // 0 · free · direct fetch + JSON-LD
 	recipeScrapersStrategy, // 1 · free · Python recipe-scrapers (optional)
 	geonodeStrategy, // 2 · paid · Geonode
-	firecrawlStrategy // 3 · paid · Firecrawl (fallback)
+	firecrawlStrategy, // 3 · paid · Firecrawl (fallback)
+	supadataStrategy // 4 · paid · Supadata (jumps first for social URLs via urlPriority)
 ];
 
 /**

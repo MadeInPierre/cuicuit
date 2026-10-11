@@ -16,6 +16,7 @@
 	import { importRecipeUrlSchema } from '../models/schemas';
 	import { toastImportError } from './import-error-toast';
 	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
+	import SupportedSources from './SupportedSources.svelte';
 
 	const userState = getUserState();
 
@@ -111,6 +112,7 @@
 			<ImportRecipeStepper steps={importSteps} {currentStep} />
 		</div>
 	{:else}
+		<SupportedSources />
 		<div class="space-y-2" transition:slide={{ duration: 300 }}>
 			<Label for="recipe-url">Recipe link</Label>
 
