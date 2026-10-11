@@ -30,6 +30,7 @@ export type Database = {
           updated_at: string;
           user_id: string | null;
         };
+        ComputedFields: never;
         Insert: {
           balance?: number;
           id?: string;
@@ -55,6 +56,7 @@ export type Database = {
           stripe_charge_id: string | null;
           user_id: string | null;
         };
+        ComputedFields: never;
         Insert: {
           amount: number;
           created_at?: string;
@@ -88,6 +90,7 @@ export type Database = {
           user_id: string;
           week_start: string;
         };
+        ComputedFields: never;
         Insert: {
           import_text?: number;
           import_website?: number;
@@ -118,6 +121,7 @@ export type Database = {
           strength: Database["public"]["Enums"]["ingredient_substitution_strength"];
           substitute_ingredient_id: string;
         };
+        ComputedFields: never;
         Insert: {
           id?: string;
           original_ingredient_id: string;
@@ -159,6 +163,7 @@ export type Database = {
           name_plural: string | null;
           name_singular: string | null;
         };
+        ComputedFields: never;
         Insert: {
           commonly_used?: Database["public"]["Enums"]["commonly_used_level"];
           fts?: unknown;
@@ -207,6 +212,7 @@ export type Database = {
           slug_general: string;
           unit_frequencies: Json | null;
         };
+        ComputedFields: never;
         Insert: {
           aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null;
           base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
@@ -244,6 +250,7 @@ export type Database = {
           name_en: string;
           name_local: string;
         };
+        ComputedFields: never;
         Insert: {
           code: string;
           country_en: string;
@@ -280,6 +287,7 @@ export type Database = {
           recipe_id: string;
           unit: string | null;
         };
+        ComputedFields: never;
         Insert: {
           custom_name?: string | null;
           details?: string | null;
@@ -363,6 +371,7 @@ export type Database = {
           tools: Database["public"]["Enums"]["recipe_tool"][];
           updated_at: string;
         };
+        ComputedFields: never;
         Insert: {
           author_id: string;
           cache_id?: string | null;
@@ -457,6 +466,7 @@ export type Database = {
           source_url: string;
           updated_at: string;
         };
+        ComputedFields: never;
         Insert: {
           app_version: string;
           cache_key: string;
@@ -501,6 +511,7 @@ export type Database = {
           unit: string | null;
           updated_at: string | null;
         };
+        ComputedFields: never;
         Insert: {
           checked_at?: string | null;
           created_at?: string | null;
@@ -579,6 +590,7 @@ export type Database = {
           space_id: string;
           updated_at: string | null;
         };
+        ComputedFields: never;
         Insert: {
           cooked?: boolean;
           created_at?: string | null;
@@ -642,6 +654,7 @@ export type Database = {
           updated_at: string;
           user_id: string;
         };
+        ComputedFields: never;
         Insert: {
           created_at?: string;
           space_id: string;
@@ -677,6 +690,7 @@ export type Database = {
           name: string;
           updated_at: string;
         };
+        ComputedFields: never;
         Insert: {
           author_id: string;
           created_at?: string;
@@ -718,6 +732,7 @@ export type Database = {
           token_hash: string;
           user_id: string;
         };
+        ComputedFields: never;
         Insert: {
           created_at?: string;
           id?: string;
@@ -747,6 +762,7 @@ export type Database = {
           updated_at: string;
           user_id: string;
         };
+        ComputedFields: never;
         Insert: {
           created_at?: string;
           role?: string;
@@ -767,15 +783,18 @@ export type Database = {
           created_at: string;
           first_name: string;
           last_name: string;
+          last_seen_changelog_tag: string | null;
           onboarding_status: string;
           updated_at: string;
           user_id: string;
         };
+        ComputedFields: never;
         Insert: {
           aisle_order?: string[] | null;
           created_at?: string;
           first_name: string;
           last_name: string;
+          last_seen_changelog_tag?: string | null;
           onboarding_status?: string;
           updated_at?: string;
           user_id: string;
@@ -785,6 +804,7 @@ export type Database = {
           created_at?: string;
           first_name?: string;
           last_name?: string;
+          last_seen_changelog_tag?: string | null;
           onboarding_status?: string;
           updated_at?: string;
           user_id?: string;
@@ -800,6 +820,7 @@ export type Database = {
           user_id: string;
           user_name: string;
         };
+        ComputedFields: never;
         Insert: {
           created_at?: string;
           icon: string;
@@ -852,6 +873,7 @@ export type Database = {
           tools: Database["public"]["Enums"]["recipe_tool"][] | null;
           updated_at: string | null;
         };
+        ComputedFields: never;
         Insert: {
           author_id?: string | null;
           cleanup_level?: Database["public"]["Enums"]["cleanup_level"] | null;

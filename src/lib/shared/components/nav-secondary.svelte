@@ -65,9 +65,9 @@
 							</a>
 						{/snippet}
 
-						{#snippet tooltipContent()}
+						<!-- {#snippet tooltipContent()}
 							<span>{item.title}</span>
-						{/snippet}
+						{/snippet} -->
 					</Sidebar.MenuButton>
 
 					{#if item.badge}

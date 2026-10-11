@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS "public"."user_preferences" (
     "first_name" "text" NOT NULL,
     "last_name" "text" NOT NULL,
     "onboarding_status" "text" DEFAULT 'not-started'::"text" NOT NULL,
-    "aisle_order" "text"[]
+    "aisle_order" "text"[],
+    "last_seen_changelog_tag" "text"
 );
 
 -- 2. Ownership

@@ -49,6 +49,7 @@
 				<a href="/#how" class="hover:text-foreground transition-colors">How it works</a>
 				<a href="/#pricing" class="hover:text-foreground transition-colors">Pricing</a>
 				<a href="/#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
+				<a href="/changelog" class="hover:text-foreground transition-colors">What&rsquo;s New</a>
 				<a href="/#faq" class="hover:text-foreground transition-colors">FAQ</a>
 				<!-- <a href="/#story" class="hover:text-foreground transition-colors">Story</a> -->
 

@@ -548,6 +548,9 @@ $ docker compose up -d</code
 			</button>
 		</div>
 		<div class="flex flex-col gap-1 text-sm text-foreground/80 md:items-end md:justify-center">
+			<a href="/changelog" class="inline-flex min-h-8 items-center gap-2 hover:text-foreground">
+				What&rsquo;s New
+			</a>
 			<a
 				href={githubUrl}
 				target="_blank"

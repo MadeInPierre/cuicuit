@@ -1,0 +1,67 @@
+# Publishes the curated What's New post + auto-generated commit list
+# as the GitHub Release notes for a version tag.
+#
+# Trigger: ONLY on tag push (`v*`). Merging markdown or code publishes nothing.
+# If release-please already created a (draft) release for the tag, its notes
+# are replaced and it is published; otherwise the release is created published.
+#
+# Source of truth: `src/content/changelog/<tag>.md` (frontmatter stripped,
+# image paths absolutized to the marketing site so they render on github.com).
+
+name: changelog-release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build hybrid release notes (human post + auto commits)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          FILE="src/content/changelog/${TAG}.md"
+          TITLE="${TAG}"
+          if [ -f "$FILE" ]; then
+            TITLE="$(grep -m1 '^title:' "$FILE" | sed -e "s/^title:[[:space:]]*//" -e "s/^['\"]//" -e "s/['\"]$//")"
+            # Strip the frontmatter block, absolutize site-relative image/link paths.
+            awk '/^---[[:space:]]*$/{c++; next} c>=2' "$FILE" \
+              | sed 's#(\(/?\)changelog/#(https://cuicuit.laclau.dev/changelog/#g; s#](/\(cuicuit\|hero\|screenshots\|food\)#](https://cuicuit.laclau.dev/\1#g' \
+              > /tmp/human.md
+          else
+            echo "_No curated post for this tag yet — see /changelog in the app._" > /tmp/human.md
+          fi
+          gh api "repos/${{ github.repository }}/releases/generate-notes" \
+            -f tag_name="$TAG" --jq .body > /tmp/auto.md
+          {
+            cat /tmp/human.md
+            echo
+            echo '---'
+            echo
+            echo '## Commits'
+            echo
+            cat /tmp/auto.md
+          } > /tmp/notes.md
+          echo "TITLE=${TITLE}" >> "$GITHUB_ENV"
+
+      - name: Create or publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TITLE" --notes-file /tmp/notes.md --draft=false
+          else
+            gh release create "$TAG" --title "$TITLE" --notes-file /tmp/notes.md --latest
+          fi

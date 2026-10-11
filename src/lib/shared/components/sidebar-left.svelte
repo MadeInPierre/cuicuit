@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { getChangelogPosts, getUnseenPosts } from '$lib/features/changelog/changelog';
 	import SpaceSwitcher from '$lib/features/spaces/components/SpaceSwitcher.svelte';
 	import NavAdmin from '$lib/shared/components/nav-admin.svelte';
 	import NavMain from '$lib/shared/components/nav-main.svelte';
@@ -8,11 +9,21 @@
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
 	import { ChefHat, Notebook, Refrigerator, ShoppingBasket } from '@lucide/svelte';
 	import Calendar from '@lucide/svelte/icons/calendar';
+	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import type { ComponentProps } from 'svelte';
 	import type { TAILWIND_BREAKPOINTS } from '../hooks/use-media.svelte';
 	import NavUser from './nav-user.svelte';
 
 	const userState = getUserState();
+
+	const unseenChangelogCount = $derived.by(() => {
+		if (page.url.pathname.startsWith('/whats-new')) return undefined;
+		const unseen = getUnseenPosts(
+			getChangelogPosts(),
+			userState.preferences?.last_seen_changelog_tag
+		);
+		return unseen.length > 0 ? String(unseen.length) : undefined;
+	});
 
 	// This is sample data.
 	const data: {
@@ -23,7 +34,7 @@
 			isActive?: boolean;
 			showUpTo?: keyof typeof TAILWIND_BREAKPOINTS;
 		}[];
-		navSecondary: { title: string; url: string; icon: any }[];
+		navSecondary: { title: string; url: string; icon: any; badge?: string }[];
 		admin: { name: string; url: string; emoji: string }[];
 		workspaces: {
 			name: string;
@@ -71,22 +82,12 @@
 			// }
 		],
 		navSecondary: [
-			// {
-			// 	title: 'Settings',
-			// 	url: '/settings/space',
-			// 	icon: Settings2
-			// },
-			// {
-			// 	title: 'Send feedback',
-			// 	url: '#',
-			// 	icon: Send
-			// },
-			// {
-			// 	title: "What's new",
-			// 	url: '/changelog',
-			// 	icon: Megaphone,
-			// 	badge: '2'
-			// }
+			{
+				title: "What's new",
+				url: '/whats-new',
+				icon: Megaphone,
+				badge: unseenChangelogCount
+			}
 		],
 		admin: [
 			{

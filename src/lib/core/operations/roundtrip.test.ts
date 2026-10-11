@@ -260,6 +260,16 @@ if ('ok' in dbResult) {
 			};
 			expect(after.profiles[0].user_name).toBe(USERNAME);
 			expect(after.preferences).toMatchObject({ first_name: 'Round', last_name: 'Trip' });
+
+			await runOp('profile.update-preferences', a.ctx, {
+				userId: a.id,
+				lastSeenChangelogTag: 'v0.1.0'
+			});
+			const seen = (await runOp('profile.get', a.ctx, {
+				userIds: [a.id],
+				includePreferences: true
+			})) as { preferences: { last_seen_changelog_tag: string | null } | null };
+			expect(seen.preferences?.last_seen_changelog_tag).toBe('v0.1.0');
 		});
 
 		it('profile.update-aisle-order → update-avatar → complete-onboarding', async () => {
