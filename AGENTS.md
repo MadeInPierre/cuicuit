@@ -23,3 +23,5 @@ No self-hosted version available yet, the app is in active development and will 
 Always follow KISS and YAGNI principles, aim for simplicity and a clean & easy-to-understand codebase with no code duplication. Prefer a clean codebase, it's fine to break backward compatibility - ask the user to confirm before implementing.
 
 Never go deep into node_modules or try to reproduce internal supabase behavior to debug a hard issue. Just refer to the documentation and try your best guess fix.
+
+Whever you plan implementation or implement anything, spend effort designing the solution and making the code as simple/minimal/maintainable with no code duplication. Search if there are features or functions you can reuse/refactor instead of implementing again. Long-term codebase maintainability is the top priority, more than just making the feature at hand work.

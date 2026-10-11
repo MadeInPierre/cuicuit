@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { FEATURE_COSTS } from '$lib/features/billing/consts';
-	import { importRecipeFromUrl } from '$lib/features/recipes/actions/import-from-url.remote';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import * as Dialog from '$lib/shared/components/ui/dialog';
@@ -10,9 +8,13 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { cn } from '$lib/utils';
-	import posthog from 'posthog-js';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
+	import {
+		completeRecipeImport,
+		runUrlImport,
+		URL_IMPORT_STEPS
+	} from '../actions/run-recipe-import';
 	import { importRecipeUrlSchema } from '../models/schemas';
 	import { toastImportError } from './import-error-toast';
 	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
@@ -30,13 +32,6 @@
 	let urlError = $state<string | null>(null);
 	let loading = $state(false);
 	let currentStep = $state(-1);
-
-	const importSteps = [
-		'Finding the recipe',
-		'Guessing filters and missing details',
-		'Recognizing ingredients & units',
-		'Uploading the recipe image'
-	];
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
@@ -56,37 +51,13 @@
 			if (!space.activeSpace) throw new Error('No active space');
 			if (!space.language) throw new Error('No active language');
 
-			let result: { id: string; isComplete: boolean; usage: unknown } | undefined;
-			for await (const value of importRecipeFromUrl({
-				spaceId: space.activeSpace.id,
-				url,
-				lang: space.language.lang
-			})) {
-				console.log('Received yield', value);
-				if (typeof value === 'number') {
-					currentStep = value;
-				} else {
-					result = value;
-				}
-			}
+			const result = await runUrlImport(
+				{ spaceId: space.activeSpace.id, url, lang: space.language.lang },
+				(step) => (currentStep = step)
+			);
 
-			if (!result) throw new Error('Import did not complete.');
-
-			userState.refresh();
-			posthog.capture('recipe_imported', {
-				source_type: 'url',
-				is_complete: result.isComplete
-			});
-
-			if (result.isComplete) {
-				toast.success('Recipe imported successfully!');
-				openDialog = false;
-				goto(`/recipes/${result.id}`);
-			} else {
-				toast.warning('Some fields are missing, please complete the recipe.');
-				openDialog = false;
-				goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
-			}
+			openDialog = false;
+			completeRecipeImport(userState, result, 'url');
 		} catch (error) {
 			console.error(error);
 			toastImportError(error);
@@ -109,7 +80,7 @@
 <div class="w-full space-y-4">
 	{#if loading}
 		<div class="flex justify-center" transition:slide={{ duration: 300 }}>
-			<ImportRecipeStepper steps={importSteps} {currentStep} />
+			<ImportRecipeStepper steps={URL_IMPORT_STEPS} {currentStep} />
 		</div>
 	{:else}
 		<SupportedSources />
