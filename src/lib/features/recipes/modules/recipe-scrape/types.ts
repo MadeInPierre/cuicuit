@@ -9,7 +9,13 @@
 export type ScrapeFormat = 'ldjson' | 'recipe-json' | 'markdown';
 
 /** Unique id of every strategy registered in the orchestrator. */
-export type ScrapeStrategyName = 'direct-ldjson' | 'recipe-scrapers' | 'geonode' | 'firecrawl' | 'supadata';
+export type ScrapeStrategyName =
+	| 'direct-ldjson'
+	| 'recipe-scrapers'
+	| 'geonode'
+	| 'firecrawl'
+	| 'supadata'
+	| 'scrapecreators';
 
 /** Outcome of a single strategy attempt, before the quality gate. */
 export type StrategyStatus = 'ok' | 'not_found' | 'blocked' | 'error' | 'skipped';
@@ -66,25 +72,28 @@ export interface ScrapeResult {
 
 /**
  * One billed provider HTTP call, for cost observability.
- * Credits come from Supadata's `x-billable-requests` response header
- * (async-job 202 responses carry a precharge estimate; polls report 0).
+ * Credits come from the provider response itself (Supadata's
+ * `x-billable-requests` header — async-job 202 responses carry a precharge
+ * estimate, polls report 0 — or ScrapeCreators' `credits_charged` body field).
  */
-export interface SupadataCallStat {
-	endpoint: 'metadata' | 'transcript';
+export interface ProviderCallStat {
+	endpoint: string;
 	mode?: string;
 	httpStatus: number | null;
 	credits: number | null;
 	latencyMs: number;
 	/** Chars of usable content from this call. */
 	chars: number;
+	/** Whether the provider served this from cache (0 credits). */
+	cached?: boolean;
 	/** Async job polls performed (always free). */
 	polls?: number;
 }
 
-/** Cost + decision trail of a Supadata scrape, persisted in `scrape_stats`. */
+/** Cost + decision trail of a provider scrape, persisted in `scrape_stats`. */
 export interface ScrapeProviderStats {
-	provider: 'supadata';
-	calls: SupadataCallStat[];
+	provider: 'supadata' | 'scrapecreators';
+	calls: ProviderCallStat[];
 	captionChars: number;
 	transcriptChars: number;
 	/** Which transcript (if any) made it into the content. */
@@ -111,6 +120,12 @@ export interface ScrapeStrategy {
 	 * for a specific URL (e.g. known social domains).
 	 */
 	urlPriority?(url: string): boolean;
+	/**
+	 * Optional: return `false` for URLs this strategy can never handle, so the
+	 * orchestrator skips it without a wasted call (e.g. social-only providers
+	 * on blog URLs). Absence means "may handle any URL".
+	 */
+	supportsUrl?(url: string): boolean;
 	/** Whether the strategy is configured & available right now. */
 	enabled(): boolean;
 	scrape(url: string): Promise<StrategyResult>;

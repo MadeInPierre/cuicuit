@@ -1,5 +1,5 @@
 /**
- * Social-media URL detection for the Supadata strategy.
+ * Social-media URL detection for the social strategies (ScrapeCreators, Supadata).
  *
  * Dependency-free (no `$env`, no SvelteKit) so it stays unit-testable.
  * Matching is hostname-based and tolerant: subdomains (`m.`, `vm.`, `www.`),
@@ -7,24 +7,20 @@
  * params (`?cplk=…`, `?si=…`) all match — only the hostname matters.
  */
 
-const SOCIAL_HOSTS = [
+export type SocialPlatform = 'youtube' | 'tiktok' | 'instagram' | 'facebook' | 'twitter';
+
+const PLATFORM_HOSTS: Array<{ platform: SocialPlatform; hosts: string[] }> = [
     // YouTube (watch, shorts, live, embed, music, nocookie, youtu.be)
-    'youtube.com',
-    'youtu.be',
-    'youtube-nocookie.com',
+    { platform: 'youtube', hosts: ['youtube.com', 'youtu.be', 'youtube-nocookie.com'] },
     // TikTok (incl. vm./vt./m. shares)
-    'tiktok.com',
+    { platform: 'tiktok', hosts: ['tiktok.com'] },
     // Instagram (reels, posts, tv)
-    'instagram.com',
-    'instagr.am',
+    { platform: 'instagram', hosts: ['instagram.com', 'instagr.am'] },
     // Facebook (reels, posts, shares, fb.watch)
-    'facebook.com',
-    'fb.com',
-    'fb.watch',
+    { platform: 'facebook', hosts: ['facebook.com', 'fb.com', 'fb.watch'] },
     // X / Twitter
-    'x.com',
-    'twitter.com'
-] as const;
+    { platform: 'twitter', hosts: ['x.com', 'twitter.com'] }
+];
 
 /** Generic prefixes that never change the site identity. */
 const IGNORABLE_PREFIXES = ['www.', 'm.', 'mobile.'] as const;
@@ -56,14 +52,28 @@ function normalizeHostname(hostname: string): string {
     return host;
 }
 
+function normalizedHost(url: string): string | null {
+    const hostname = extractHostname(url);
+    return hostname ? normalizeHostname(hostname) : null;
+}
+
 /**
  * Whether a URL points at a supported social platform (YouTube, TikTok,
  * Instagram, Facebook, X/Twitter), in any common shape: full/short/mobile
  * links, with or without tracking params.
  */
 export function isSocialUrl(url: string): boolean {
-    const hostname = extractHostname(url);
-    if (!hostname) return false;
-    const host = normalizeHostname(hostname);
-    return SOCIAL_HOSTS.some((social) => host === social || host.endsWith(`.${social}`));
+    return socialPlatform(url) !== null;
+}
+
+/** Which supported platform a URL points at, or null when unsupported. */
+export function socialPlatform(url: string): SocialPlatform | null {
+    const host = normalizedHost(url);
+    if (!host) return null;
+    for (const { platform, hosts } of PLATFORM_HOSTS) {
+        if (hosts.some((social) => host === social || host.endsWith(`.${social}`))) {
+            return platform;
+        }
+    }
+    return null;
 }

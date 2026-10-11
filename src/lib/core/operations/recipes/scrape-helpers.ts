@@ -10,7 +10,10 @@
 // using the remote. Server-only (strategies read `$env/dynamic/private` keys,
 // `fetch` external scrapers). Never import from `client.ts`.
 import { importRecipeUrlSchema } from '$lib/features/recipes/models/schemas';
-import { passesQualityGate } from '$lib/features/recipes/modules/recipe-scrape/quality';
+import {
+	markdownHasIngredientSignals,
+	passesQualityGate
+} from '$lib/features/recipes/modules/recipe-scrape/quality';
 import { logScrapeOutcome } from '$lib/features/recipes/modules/recipe-scrape/stats';
 import type {
 	ScrapeResult,
@@ -21,6 +24,7 @@ import { directLdJsonStrategy } from '$lib/features/recipes/modules/recipe-scrap
 import { recipeScrapersStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/recipe-scrapers';
 import { geonodeStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/geonode';
 import { firecrawlStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/firecrawl';
+import { scrapeCreatorsStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/scrapecreators';
 import { supadataStrategy } from '$lib/features/recipes/modules/recipe-scrape/strategies/saas/supadata';
 
 /**
@@ -32,7 +36,8 @@ const strategies: ScrapeStrategy[] = [
 	recipeScrapersStrategy, // 1 · free · Python recipe-scrapers (optional)
 	geonodeStrategy, // 2 · paid · Geonode
 	firecrawlStrategy, // 3 · paid · Firecrawl (fallback)
-	supadataStrategy // 4 · paid · Supadata (jumps first for social URLs via urlPriority)
+	scrapeCreatorsStrategy, // 4 · paid · ScrapeCreators (jumps first for social URLs via urlPriority)
+	supadataStrategy // 5 · paid · Supadata (social fallback + transcript generation)
 ];
 
 /**
@@ -59,6 +64,16 @@ export async function scrapeRecipeUrl(input: { url: string }): Promise<ScrapeRes
 			attempts.push({ strategy: strategy.name, status: 'skipped', latencyMs: 0 });
 			continue;
 		}
+		if (strategy.supportsUrl && !strategy.supportsUrl(url)) {
+			attempts.push({
+				strategy: strategy.name,
+				status: 'skipped',
+				latencyMs: 0,
+				errorKind: 'unsupported_url',
+				error: 'Strategy does not support this URL'
+			});
+			continue;
+		}
 
 		const startedAt = performance.now();
 		const result = await strategy.scrape(url);
@@ -77,8 +92,13 @@ export async function scrapeRecipeUrl(input: { url: string }): Promise<ScrapeRes
 		}
 
 		// Quality gate: reject content that doesn't look like a recipe so we
-		// fall through to the next (more expensive) strategy.
-		if (!passesQualityGate(result.format, result.content)) {
+		// fall through to the next (more expensive) strategy. Accepts the
+		// loose keyword gate or the strict ingredient-quantity gate, so spoken
+		// transcripts that never say "recipe" still pass.
+		if (
+			!passesQualityGate(result.format, result.content) &&
+			!markdownHasIngredientSignals(result.content)
+		) {
 			attempts.push({
 				strategy: strategy.name,
 				status: 'not_found',

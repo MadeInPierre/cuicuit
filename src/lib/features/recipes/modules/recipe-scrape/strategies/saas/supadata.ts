@@ -22,16 +22,15 @@
  */
 import { scraperConfig } from '../../config';
 import { markdownHasIngredientSignals } from '../../quality';
-import type { ScrapeProviderStats, SupadataCallStat } from '../../types';
+import type { ProviderCallStat, ScrapeProviderStats } from '../../types';
 import { failed, notFound, ok, type ScrapeStrategy } from '../base';
 import { isSocialUrl } from './social-urls';
+import { buildSocialMarkdown } from './social-markdown';
 
 const API_BASE = 'https://api.supadata.ai/v1';
 /** Whole-strategy budget (metadata + transcripts + async polling). */
 const TIMEOUT_MS = 30_000;
 const POLL_INTERVAL_MS = 2_000;
-/** Cap on the transcript portion so LLM input stays bounded; captions are kept whole. */
-const MAX_TRANSCRIPT_CHARS = 24_000;
 
 interface SupadataMetadata {
     title?: string | null;
@@ -73,25 +72,14 @@ function extractImage(metadata: SupadataMetadata): string | undefined {
 }
 
 function buildMarkdown(url: string, metadata: SupadataMetadata, transcript: string | null): string {
-    const sections: string[] = [];
-    const title = metadata.title?.trim();
-    sections.push(`# ${title || 'Social media post'}`);
-    sections.push(`Source: ${url}`);
-    const author = metadata.author?.displayName || metadata.author?.username;
-    if (author?.trim()) sections.push(`Author: ${author.trim()}`);
-    const description = metadata.description?.trim();
-    if (description) sections.push(`## Caption\n${description}`);
-    const tags = (metadata.tags ?? []).filter((tag) => tag.trim().length > 0);
-    if (tags.length > 0) sections.push(`Tags: ${tags.join(', ')}`);
-    const text = transcript?.trim();
-    if (text) {
-        const capped =
-            text.length > MAX_TRANSCRIPT_CHARS
-                ? `${text.slice(0, MAX_TRANSCRIPT_CHARS)}\n\n[transcript truncated]`
-                : text;
-        sections.push(`## Transcript\n${capped}`);
-    }
-    return sections.join('\n\n').trim();
+    return buildSocialMarkdown({
+        url,
+        title: metadata.title,
+        author: metadata.author?.displayName || metadata.author?.username,
+        caption: metadata.description,
+        tags: metadata.tags,
+        transcript
+    });
 }
 
 /** Content carrying a recipe: actual ingredient quantities, not just the word "recipes". */
@@ -120,11 +108,11 @@ function readCredits(response: Response): number | null {
  * for the caller to interpret (200/202/206/...).
  */
 async function supadataGet(
-    calls: SupadataCallStat[],
+    calls: ProviderCallStat[],
     url: string,
     apiKey: string,
     signal: AbortSignal,
-    meta: { endpoint: SupadataCallStat['endpoint']; mode?: string }
+    meta: { endpoint: string; mode?: string }
 ): Promise<Response> {
     const startedAt = performance.now();
     try {
@@ -164,7 +152,7 @@ function httpError(status: number, detail: string, context: string): SupadataHtt
 
 /** Polls an async transcript job until completed/failed. Resolves null when the abort fires. */
 async function pollTranscriptJob(
-    calls: SupadataCallStat[],
+    calls: ProviderCallStat[],
     callIndex: number,
     apiKey: string,
     jobId: string,
@@ -209,7 +197,7 @@ async function pollTranscriptJob(
  * (HTTP 206) or the overall timeout fires — never throws for those cases.
  */
 async function fetchTranscript(
-    calls: SupadataCallStat[],
+    calls: ProviderCallStat[],
     url: string,
     apiKey: string,
     mode: 'native' | 'auto',
@@ -261,7 +249,7 @@ function toStrategyError(error: unknown) {
 }
 
 function buildProviderStats(
-    calls: SupadataCallStat[],
+    calls: ProviderCallStat[],
     input: {
         captionChars: number;
         transcriptChars: number;
@@ -283,15 +271,16 @@ function buildProviderStats(
 
 export const supadataStrategy: ScrapeStrategy = {
     name: 'supadata',
-    costRank: 4,
+    costRank: 5,
     urlPriority: (url) => isSocialUrl(url),
+    supportsUrl: (url) => isSocialUrl(url),
     enabled: () => Boolean(scraperConfig.supadata.apiKey),
     async scrape(url) {
         const apiKey = scraperConfig.supadata.apiKey ?? '';
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
         const { signal } = controller;
-        const calls: SupadataCallStat[] = [];
+        const calls: ProviderCallStat[] = [];
 
         try {
             const metaResponse = await supadataGet(

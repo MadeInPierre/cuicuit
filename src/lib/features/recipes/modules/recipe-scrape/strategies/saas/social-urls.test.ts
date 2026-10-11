@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { isSocialUrl } from './social-urls';
+import { isSocialUrl, socialPlatform } from './social-urls';
 
-describe('isSocialUrl', () => {
-    const social = [
+const social = [
         // YouTube variants
         'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         'https://youtube.com/shorts/dQw4w9WgXcQ?feature=share',
@@ -46,11 +45,32 @@ describe('isSocialUrl', () => {
         ''
     ];
 
+describe('isSocialUrl', () => {
     it.each(social)('matches %s', (url) => {
         expect(isSocialUrl(url)).toBe(true);
     });
 
     it.each(notSocial)('rejects %s', (url) => {
         expect(isSocialUrl(url)).toBe(false);
+    });
+});
+
+describe('socialPlatform', () => {
+    it.each([
+        ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'youtube'],
+        ['https://youtu.be/dQw4w9WgXcQ', 'youtube'],
+        ['https://www.tiktok.com/@user/video/7234567890123456789', 'tiktok'],
+        ['https://vm.tiktok.com/AAAAZZZZZ/', 'tiktok'],
+        ['https://www.instagram.com/reel/DJwd01lpmMs/?cplk=aHZ4M3B0M3dmZzht', 'instagram'],
+        ['https://www.facebook.com/reel/682865820350105/', 'facebook'],
+        ['https://fb.watch/abc123XYZ/', 'facebook'],
+        ['https://x.com/username/status/1234567890123456789', 'twitter'],
+        ['https://mobile.twitter.com/username/status/1234567890123456789', 'twitter']
+    ] as const)('routes %s to %s', (url, platform) => {
+        expect(socialPlatform(url)).toBe(platform);
+    });
+
+    it.each(notSocial)('returns null for %s', (url) => {
+        expect(socialPlatform(url)).toBeNull();
     });
 });
