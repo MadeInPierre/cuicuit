@@ -96,7 +96,10 @@ export const importRecipeFromUrlOp = defineOp({
 				strategy: scrapeStats?.strategy ?? null,
 				format: scrapeStats?.format ?? null,
 				content_length: scrapeStats?.content_length ?? null,
-				attempts: scrapeStats?.attempts.length ?? 0
+				attempts: scrapeStats?.attempts.length ?? 0,
+				provider_credits: scrapeStats?.provider_stats?.totalCredits ?? null,
+				transcript_mode: scrapeStats?.provider_stats?.transcriptMode ?? null,
+				provider_calls: scrapeStats?.provider_stats?.calls.length ?? 0
 			})
 		});
 

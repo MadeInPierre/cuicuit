@@ -102,7 +102,8 @@ export async function scrapeRecipeUrl(input: { url: string }): Promise<ScrapeRes
 			image: result.image,
 			source: result.source,
 			strategy: strategy.name,
-			attempts
+			attempts,
+			providerStats: result.providerStats ?? null
 		};
 
 		logScrapeOutcome({

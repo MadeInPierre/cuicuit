@@ -9,6 +9,7 @@ import { enrichRawRecipe, enrichTextRecipe, type EnrichedRecipeOutput } from './
 import { scrapeRecipeUrl } from './scrape-helpers.js';
 import type {
 	ScrapeFormat,
+	ScrapeProviderStats,
 	ScrapeSource,
 	ScrapeStrategyName,
 	StrategyAttempt
@@ -61,6 +62,8 @@ export type ImportScrapeStats = {
 	source?: ScrapeSource | null;
 	image_url?: string | null;
 	content_length: number;
+	/** Provider cost + decision trail (Supadata calls), null for other strategies. */
+	provider_stats?: ScrapeProviderStats | null;
 };
 
 /** How the recipe was enriched by the LLM (provider + token usage). */
@@ -483,7 +486,8 @@ export async function* importRecipeFromUrlCore(
 			attempts: scraped.attempts,
 			source: scraped.source ?? null,
 			image_url: scraped.image ?? null,
-			content_length: scraped.content.length
+			content_length: scraped.content.length,
+			provider_stats: scraped.providerStats ?? null
 		};
 		imageUrl = scraped.image ?? null;
 

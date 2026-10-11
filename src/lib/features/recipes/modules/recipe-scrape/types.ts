@@ -31,6 +31,8 @@ export interface StrategyResult {
 	/** Best-guess image URL extracted from the page, when cheaply available. */
 	image?: string;
 	source?: ScrapeSource;
+	/** Provider cost + decision trail (e.g. Supadata calls). Dropped unless status === 'ok'. */
+	providerStats?: ScrapeProviderStats | null;
 	/** Short machine-readable tag (e.g. 'blocked', 'timeout', 'no_content', 'low_quality'). */
 	errorKind?: string;
 	/** Human-readable detail, safe to log. */
@@ -58,6 +60,39 @@ export interface ScrapeResult {
 	strategy: ScrapeStrategyName;
 	/** Ordered list of everything that was tried (including skipped). */
 	attempts: StrategyAttempt[];
+	/** Provider cost + decision trail (persisted in `recipes_cache.scrape_stats`). */
+	providerStats?: ScrapeProviderStats | null;
+}
+
+/**
+ * One billed provider HTTP call, for cost observability.
+ * Credits come from Supadata's `x-billable-requests` response header
+ * (async-job 202 responses carry a precharge estimate; polls report 0).
+ */
+export interface SupadataCallStat {
+	endpoint: 'metadata' | 'transcript';
+	mode?: string;
+	httpStatus: number | null;
+	credits: number | null;
+	latencyMs: number;
+	/** Chars of usable content from this call. */
+	chars: number;
+	/** Async job polls performed (always free). */
+	polls?: number;
+}
+
+/** Cost + decision trail of a Supadata scrape, persisted in `scrape_stats`. */
+export interface ScrapeProviderStats {
+	provider: 'supadata';
+	calls: SupadataCallStat[];
+	captionChars: number;
+	transcriptChars: number;
+	/** Which transcript (if any) made it into the content. */
+	transcriptMode: 'none' | 'native' | 'generated';
+	/** Whether the caption alone passed the strict ingredient gate. */
+	captionPassedGate: boolean;
+	/** Sum of billed credits across calls (null when unknown). */
+	totalCredits: number | null;
 }
 
 /**
