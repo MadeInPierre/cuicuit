@@ -18,7 +18,8 @@
             "prerelease-type": "alpha",
             "prerelease": true,
             "bump-minor-pre-major": true,
-            "bump-patch-for-minor-pre-major": true
+            "bump-patch-for-minor-pre-major": true,
+            "release-as": "0.1.0"
         }
     }
 }

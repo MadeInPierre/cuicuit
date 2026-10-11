@@ -53,8 +53,10 @@ Release Please is **versioning + dev-changelog automation**, driven purely by
   release PR will create the first real tag — that's normal, just review it.
 - First-release quirk: with the manifest at `0.0.0`, release-please proposes
   `1.0.0` for the first release (its `node` default; the pre-major bump flags
-  only apply afterwards). This was pinned to `0.1.0` once via an empty commit
-  with a `Release-As: 0.1.0` footer — one-time fix, never needed again.
+  only apply afterwards — a `Release-As` commit footer was tried and ignored).
+  Pinned via `"release-as": "0.1.0"` in `.github/release-please-config.json`.
+  **Remove that line right after the first release PR merges**, or every future
+  run stays pinned to `0.1.0`. (One-time fix, never needed again.)
 - After `0.1.0`: `feat:` → minor (`0.2.0`), `fix:` → patch (`0.1.1`),
   breaking changes → minor (capped by `bump-minor-pre-major`). Major stays `0`
   until you deliberately ship stable (that's a manual `Release-As: 1.0.0` decision).
