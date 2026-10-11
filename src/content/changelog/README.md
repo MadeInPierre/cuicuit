@@ -3,11 +3,11 @@
 **The one rule:** a release post is a single markdown file in this folder.
 From it, everything else is derived — no copy-pasting:
 
-| Surface                                          | How it gets the post                                                                 |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| In-app `/whats-new` (+ unread badge)             | Bundled at build time via `src/lib/features/changelog/changelog.ts`                  |
-| Public blog `/changelog` (+ `/changelog/<slug>`) | Same loader, prerendered, linked from the landing nav/footer                         |
-| GitHub Release notes                             | `.github/workflows/changelog-release.yml` on tag push: human post + auto commit list |
+| Surface                                          | How it gets the post                                                               |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| In-app `/whats-new` (+ unread badge)             | Bundled at build time via `src/lib/features/changelog/changelog.ts`                |
+| Public blog `/changelog` (+ `/changelog/<slug>`) | Same loader, prerendered, linked from the landing nav/footer                       |
+| GitHub Release notes                             | `changelog-release.yml` fills the draft pre-publish: human post + auto commit list |
 
 `CHANGELOG/*.md` (old weekly drafts) are **not** imported — they stay as archive
 until the POC is validated, then get converted or deleted to keep one source of truth.
@@ -15,12 +15,17 @@ until the POC is validated, then get converted or deleted to keep one source of 
 ## 1. Writing a post (manual)
 
 1. Create `src/content/changelog/vX.Y.Z.md` (must match the tag you will push,
-   e.g. `v0.2.0.md`). Copy the frontmatter from `poc-whats-new.md`:
+   e.g. `v0.2.0.md`). Copy the frontmatter from `v0.1.0.md`:
    `version` (= tag), `date` (YYYY-MM-DD), `title`, `excerpt`, optional `cover`.
+   (Release titles render as `vX.Y.Z - <title>` so the GitHub sidebar stays scannable.)
 2. Write the body in markdown: 3–5 user-visible items, short sections, screenshots.
-3. Images: put `.webp` files in `static/changelog/vX.Y.Z/` and reference them as
-   `/changelog/vX.Y.Z/hero.webp`. (The release workflow absolutizes these URLs
-   so they also render on github.com.)
+3. Images: put files in `static/changelog/vX.Y.Z/` (served by the site at
+   `/changelog/vX.Y.Z/…`) and reference them in the post as
+   `![alt](/changelog/vX.Y.Z/hero.webp)` — site-rooted, never `./static/…`.
+   The release workflow absolutizes every site-relative URL to
+   `https://cuicuit.laclau.dev/…` so images also render on github.com and in
+   notification emails (relative URLs have nothing to resolve against there).
+   Requires the images to be deployed (they are — `static/` ships with the site).
 4. Open a PR, edit until happy, merge. **Merging publishes nothing** — it only
    ships the post in the app + blog on next deploy.
 

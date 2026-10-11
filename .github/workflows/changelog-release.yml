@@ -88,11 +88,21 @@ jobs:
           fi
           echo "Curated post: $FILE"
           TITLE="$(grep -m1 '^title:' "$FILE" | sed -e "s/^title:[[:space:]]*//" -e "s/^['\"]//" -e "s/['\"]$//")"
+          TITLE="v${VERSION} - ${TITLE}"
           {
             echo "$MARKER"
             echo
+            # Strip frontmatter, then absolutize every image/link path shape to
+            # the marketing site: site-relative (/changelog/...) AND repo-relative
+            # (./static/..., /static/..., static/...) variants. GitHub release
+            # pages and notification emails cannot resolve relative URLs, so
+            # only absolute https:// URLs render images there.
             awk '/^---[[:space:]]*$/{c++; next} c>=2' "$FILE" \
-              | sed 's#(\(/?\)changelog/#(https://cuicuit.laclau.dev/changelog/#g; s#](/\(cuicuit\|hero\|screenshots\|food\)#](https://cuicuit.laclau.dev/\1#g'
+              | sed -E -e 's#\(\./static/changelog/#(https://cuicuit.laclau.dev/changelog/#g' \
+                -e 's#\(/static/changelog/#(https://cuicuit.laclau.dev/changelog/#g' \
+                -e 's#\(static/changelog/#(https://cuicuit.laclau.dev/changelog/#g' \
+                -e 's#\(/?changelog/#(https://cuicuit.laclau.dev/changelog/#g' \
+                -e 's#]\(/#](https://cuicuit.laclau.dev/#g'
             echo
             echo '---'
             echo
