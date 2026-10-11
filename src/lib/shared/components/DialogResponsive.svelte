@@ -45,7 +45,7 @@
 				{@render content?.()}
 			</Dialog.Content>
 		{:else}
-			<Drawer.Content class="max-h-[70dvh]">
+			<Drawer.Content>
 				{#if title || description}
 					<Drawer.Header class="text-start relative">
 						{#if title}

@@ -24,7 +24,7 @@
 	});
 </script>
 
-<div class="flex flex-col items-start gap-2 py-1">
+<div class="flex flex-col items-start gap-2">
 	{#each steps as label, i}
 		<div class="flex items-center gap-3" in:fly={{ y: 8, duration: 200, delay: i * 50 }}>
 			{#if statuses[i] === 'done'}

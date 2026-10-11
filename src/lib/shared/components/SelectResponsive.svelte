@@ -194,7 +194,7 @@
 							label={option.label}
 							side="right"
 							class={cn(
-								'p-3 rounded-xl bg-white shadow-xs border border-border/60 data-[highlighted]:bg-white transition-all',
+								'p-3 rounded-xl bg-white dark:bg-muted shadow-xs border border-border/60 data-[highlighted]:bg-white dark:data-[highlighted]:bg-muted transition-all',
 								values.includes(option.value) && 'ring-3 ring-primary/60 border-transparent'
 							)}
 							size="lg"

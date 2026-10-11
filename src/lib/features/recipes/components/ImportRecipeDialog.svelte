@@ -7,6 +7,7 @@
 	import type { Snippet } from 'svelte';
 	import CreateRecipeManualForm from './CreateRecipeManualForm.svelte';
 	import ImportRecipeFromTextForm from './ImportRecipeFromTextForm.svelte';
+	import ImportRecipeMobileMenu from './ImportRecipeMobileMenu.svelte';
 	import ImportRecipeUrlForm from './ImportRecipeUrlForm.svelte';
 
 	type Props = {
@@ -44,82 +45,76 @@
 
 <DialogResponsive {trigger} bind:open={openDialog}>
 	{#snippet content()}
-		<Tabs.Root bind:value={activeTab} class="min-w-0">
-			<Tabs.Content value="url" class="min-w-0">
-				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
-					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
-						<Globe class="size-5" />
-						Import from the web
-					</Dialog.Title>
-					<Dialog.Description class="text-center sm:text-left">
-						Grab the link of any recipe and paste it here.
-					</Dialog.Description>
-				</Dialog.Header>
+		{#if media.md}
+			<Tabs.Root bind:value={activeTab} class="min-w-0">
+				<Tabs.Content value="url" class="min-w-0">
+					<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
+						<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
+							<Globe class="size-5" />
+							Import from the web
+						</Dialog.Title>
+						<Dialog.Description class="text-center sm:text-left">
+							Grab the link of any recipe and paste it here.
+						</Dialog.Description>
+					</Dialog.Header>
 
-				{#if media.md}
 					{@render tabList()}
-				{/if}
 
-				<ImportRecipeUrlForm bind:openDialog />
-			</Tabs.Content>
+					<ImportRecipeUrlForm bind:openDialog />
+				</Tabs.Content>
 
-			<Tabs.Content value="image" class="min-w-0">
-				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
-					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
-						<FileImage class="size-5" />
-						Import from a photo
-					</Dialog.Title>
-					<Dialog.Description class="text-center sm:text-left"
-						>Upload a photo or PDF of a recipe to import it.</Dialog.Description
-					>
-				</Dialog.Header>
+				<Tabs.Content value="image" class="min-w-0">
+					<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
+						<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
+							<FileImage class="size-5" />
+							Import from a photo
+						</Dialog.Title>
+						<Dialog.Description class="text-center sm:text-left"
+							>Upload a photo or PDF of a recipe to import it.</Dialog.Description
+						>
+					</Dialog.Header>
 
-				{#if media.md}
 					{@render tabList()}
-				{/if}
 
-				<p class="p-6 bg-muted rounded-md text-center text-muted-foreground">Coming soon!</p>
-			</Tabs.Content>
+					<p class="p-6 bg-muted rounded-md text-center text-muted-foreground">Coming soon!</p>
+				</Tabs.Content>
 
-			<Tabs.Content value="text" class="min-w-0">
-				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
-					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
-						<FileText class="size-5" />
-						Import from a document
-					</Dialog.Title>
-					<Dialog.Description class="text-center sm:text-left">
-						Paste the text of a recipe or document to import it.
-					</Dialog.Description>
-				</Dialog.Header>
+				<Tabs.Content value="text" class="min-w-0">
+					<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
+						<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
+							<FileText class="size-5" />
+							Import from a document
+						</Dialog.Title>
+						<Dialog.Description class="text-center sm:text-left">
+							Paste the text of a recipe or document to import it.
+						</Dialog.Description>
+					</Dialog.Header>
 
-				{#if media.md}
 					{@render tabList()}
-				{/if}
 
-				<ImportRecipeFromTextForm bind:openDialog />
-			</Tabs.Content>
+					<ImportRecipeFromTextForm bind:openDialog />
+				</Tabs.Content>
 
-			<Tabs.Content value="manual" class="min-w-0">
-				<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
-					<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
-						<Pencil class="size-5" />
-						Create manually
-					</Dialog.Title>
-					<Dialog.Description class="text-center sm:text-left">
-						Start with a blank recipe.
-					</Dialog.Description>
-				</Dialog.Header>
+				<Tabs.Content value="manual" class="min-w-0">
+					<Dialog.Header class="w-full whitespace-nowrap my-4 sm:mt-0">
+						<Dialog.Title class="flex gap-2 items-center justify-center sm:justify-start">
+							<Pencil class="size-5" />
+							Create manually
+						</Dialog.Title>
+						<Dialog.Description class="text-center sm:text-left">
+							Start with a blank recipe.
+						</Dialog.Description>
+					</Dialog.Header>
 
-				{#if media.md}
 					{@render tabList()}
-				{/if}
 
-				<CreateRecipeManualForm bind:openDialog />
-			</Tabs.Content>
-
-			{#if !media.md}
-				{@render tabList()}
-			{/if}
-		</Tabs.Root>
+					<CreateRecipeManualForm bind:openDialog />
+				</Tabs.Content>
+			</Tabs.Root>
+		{:else}
+			<!-- Mobile: inline URL import on top, other options navigate to full pages
+			     so the keyboard never squishes the dialog. -->
+			<ImportRecipeMobileMenu bind:openDialog />
+		{/if}
 	{/snippet}
 </DialogResponsive>
