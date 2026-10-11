@@ -54,9 +54,11 @@ Release Please is **versioning + dev-changelog automation**, driven purely by
 - First-release quirk: with the manifest at `0.0.0`, release-please proposes
   `1.0.0` for the first release (its `node` default; the pre-major bump flags
   only apply afterwards — a `Release-As` commit footer was tried and ignored).
-  Pinned via `"release-as": "0.1.0"` in `.github/release-please-config.json`.
-  **Remove that line right after the first release PR merges**, or every future
-  run stays pinned to `0.1.0`. (One-time fix, never needed again.)
+  It was pinned via `"release-as": "0.1.0"` in `.github/release-please-config.json`,
+  removed right after the first release PR merged. Never needed again.
+- Tags are plain `vX.Y.Z` (`include-component-in-tag: false`). The very first
+  draft was created as `cuicuit-web-v0.1.0` before that flag existed — its tag
+  was fixed to `v0.1.0` by hand in the GitHub UI before publishing.
 - After `0.1.0`: `feat:` → minor (`0.2.0`), `fix:` → patch (`0.1.1`),
   breaking changes → minor (capped by `bump-minor-pre-major`). Major stays `0`
   until you deliberately ship stable (that's a manual `Release-As: 1.0.0` decision).
@@ -67,15 +69,19 @@ Release Please is **versioning + dev-changelog automation**, driven purely by
 2. Draft the curated post (manual §1 or agent §2) — separate PR, human-edited.
    Merge it whenever the text is good (app + blog pick it up on deploy).
 3. When ready to release: review + merge the release-please PR ("🐥 …").
-   → tag is pushed automatically.
-4. Tag push fires `changelog-release.yml`: it takes `src/content/changelog/<tag>.md`,
-   appends the auto-generated commit list, and **publishes** the GitHub Release
-   (replacing the draft, or creating it if missing).
-5. Users see the post in-app (badge via `last_seen_changelog_tag`), on the blog,
-   and on GitHub — all from the one file.
+   → the manifest bumps, which auto-runs `changelog-release.yml`: it finds the
+   new DRAFT release, prepends the curated post to its notes, and leaves it as
+   a draft. Nothing is published, no emails are sent.
+4. Open the draft on GitHub and read it. (First release only: fix the tag field
+   `cuicuit-web-v0.1.0` → `v0.1.0`; later drafts already use `vX.Y.Z` tags.)
+5. Click Publish → the tag is created and watchers get the email with the final
+   notes. Users see the post in-app (badge via `last_seen_changelog_tag`), on
+   the blog, and on GitHub — all from the one file.
 
-If the tag has no matching post file, the Release still publishes with commits only
-(plus a pointer to the in-app changelog), so a forgotten post never blocks a release.
+If the tag has no matching post file, the draft is left with commits only
+(plus a warning in the workflow log), so a forgotten post never blocks a release.
+To refresh notes after editing a post, delete the `<!-- cuicuit-curated-post -->`
+marker line from the draft and re-run the workflow via "Run workflow".
 
 ## 5. Files
 

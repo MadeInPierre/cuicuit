@@ -1,67 +1,102 @@
-# Publishes the curated What's New post + auto-generated commit list
-# as the GitHub Release notes for a version tag.
+# Fills a release-please DRAFT release with the curated What's New post.
 #
-# Trigger: ONLY on tag push (`v*`). Merging markdown or code publishes nothing.
-# If release-please already created a (draft) release for the tag, its notes
-# are replaced and it is published; otherwise the release is created published.
-#
-# Source of truth: `src/content/changelog/<tag>.md` (frontmatter stripped,
-# image paths absolutized to the marketing site so they render on github.com).
+# Why this shape: release-please merges create a DRAFT release (no tag yet,
+# no emails sent). A tag-push workflow could only run AFTER a human publishes,
+# which is too late — watcher emails would already be out with commit-only
+# notes, and editing notes post-publish never resends them.
+# So this workflow runs BEFORE publish and NEVER publishes itself:
+#   - automatic: when a release-please PR merges (the manifest changes on
+#     main), it prepends the curated post to the draft's notes and leaves it
+#     as a draft;
+#   - manual: "Run workflow" dispatch (for the first release, whose manifest
+#     change already merged, or emergencies).
+# A human always reads the draft and clicks Publish in the GitHub UI — that
+# creates the tag and sends the emails with the final notes.
 
-name: changelog-release
+name: changelog-release-notes
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    paths: [.github/release-please-manifest.json]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Draft release tag to fill (e.g. v0.1.0 or cuicuit-web-v0.1.0). Empty = read version from manifest.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
-  publish:
+  fill-draft-notes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Build hybrid release notes (human post + auto commits)
+      - name: Prepend curated post to draft notes (stays a draft)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          FILE="src/content/changelog/${TAG}.md"
-          TITLE="${TAG}"
-          if [ -f "$FILE" ]; then
-            TITLE="$(grep -m1 '^title:' "$FILE" | sed -e "s/^title:[[:space:]]*//" -e "s/^['\"]//" -e "s/['\"]$//")"
-            # Strip the frontmatter block, absolutize site-relative image/link paths.
-            awk '/^---[[:space:]]*$/{c++; next} c>=2' "$FILE" \
-              | sed 's#(\(/?\)changelog/#(https://cuicuit.laclau.dev/changelog/#g; s#](/\(cuicuit\|hero\|screenshots\|food\)#](https://cuicuit.laclau.dev/\1#g' \
-              > /tmp/human.md
+          set -euo pipefail
+          MARKER='<!-- cuicuit-curated-post -->'
+
+          VERSION="$(node -p "require('./.github/release-please-manifest.json')['.']")"
+          echo "Manifest version: $VERSION"
+
+          # Candidate draft tags, newest tag format first.
+          if [ -n "$INPUT_TAG" ]; then
+            TAGS="$INPUT_TAG"
           else
-            echo "_No curated post for this tag yet — see /changelog in the app._" > /tmp/human.md
+            TAGS="v$VERSION cuicuit-web-v$VERSION"
           fi
-          gh api "repos/${{ github.repository }}/releases/generate-notes" \
-            -f tag_name="$TAG" --jq .body > /tmp/auto.md
+
+          # The draft may not exist yet right after the merge — wait for it.
+          DRAFT_TAG=''
+          for i in $(seq 1 12); do
+            for t in $TAGS; do
+              if gh release view "$t" --json isDraft --jq .isDraft >/dev/null 2>&1; then
+                DRAFT_TAG="$t"
+                break 2
+              fi
+            done
+            echo "Draft not found yet, waiting... ($i/12)"
+            sleep 20
+          done
+          if [ -z "$DRAFT_TAG" ]; then
+            echo "::error::No draft release found for any of: $TAGS"
+            exit 1
+          fi
+          echo "Draft release tag: $DRAFT_TAG"
+
+          BODY="$(gh release view "$DRAFT_TAG" --json body --jq .body)"
+          if grep -qF "$MARKER" <<<"$BODY"; then
+            echo "Draft already contains the curated post (marker found). Nothing to do."
+            exit 0
+          fi
+
+          # Post file: exact draft tag first, then plain v<version>.
+          FILE=''
+          for f in "src/content/changelog/${DRAFT_TAG}.md" "src/content/changelog/v${VERSION}.md"; do
+            if [ -f "$f" ]; then FILE="$f"; break; fi
+          done
+          if [ -z "$FILE" ]; then
+            echo "::warning::No curated post found; leaving draft notes untouched."
+            exit 0
+          fi
+          echo "Curated post: $FILE"
+          TITLE="$(grep -m1 '^title:' "$FILE" | sed -e "s/^title:[[:space:]]*//" -e "s/^['\"]//" -e "s/['\"]$//")"
           {
-            cat /tmp/human.md
+            echo "$MARKER"
+            echo
+            awk '/^---[[:space:]]*$/{c++; next} c>=2' "$FILE" \
+              | sed 's#(\(/?\)changelog/#(https://cuicuit.laclau.dev/changelog/#g; s#](/\(cuicuit\|hero\|screenshots\|food\)#](https://cuicuit.laclau.dev/\1#g'
             echo
             echo '---'
             echo
-            echo '## Commits'
-            echo
-            cat /tmp/auto.md
+            echo "$BODY"
           } > /tmp/notes.md
-          echo "TITLE=${TITLE}" >> "$GITHUB_ENV"
-
-      - name: Create or publish the GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "$TITLE" --notes-file /tmp/notes.md --draft=false
-          else
-            gh release create "$TAG" --title "$TITLE" --notes-file /tmp/notes.md --latest
-          fi
+          gh release edit "$DRAFT_TAG" --title "$TITLE" --notes-file /tmp/notes.md
+          echo "Draft notes updated. Still a draft — a human publishes it from the GitHub UI."
