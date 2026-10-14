@@ -1,6 +1,7 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { readCachedSession } from '../cached-session';
 import { isTransportError } from '../offline-error';
 import { getUserCreditBalance, type UserCreditBalance } from '../queries/get-user-credit-balance';
 import { getUserCreditLogs, type UserCreditLogs } from '../queries/get-user-credit-logs';
@@ -28,9 +29,21 @@ export class UserState {
 	constructor(supabaseClient: SupabaseClient<Database> | undefined) {
 		if (!supabaseClient?.auth) return;
 
-		// Seed from the locally stored session immediately: `getSession()` reads
-		// localStorage without a network round-trip, so the app knows a session
-		// exists even before `INITIAL_SESSION` resolves (or when it can't).
+		// Sync seed from the locally stored session: `readCachedSession()` is
+		// a synchronous localStorage read (no network), so the user is already
+		// known on first paint and the optimistic shell renders with zero
+		// splash. The async cycle below confirms or corrects it. An expired
+		// `expires_at` is seeded as-is — layouts already map that to the
+		// "reconnect to refresh" card instead of stale chrome.
+		const cached = readCachedSession();
+		if (cached && this.#userState === undefined) {
+			this.#userState = cached.user;
+			this.#sessionExpiresAt = cached.expiresAt;
+		}
+
+		// Async confirmation: `getSession()` reads localStorage without a
+		// network round-trip, so the app knows a session exists even before
+		// `INITIAL_SESSION` resolves (or when it can't).
 		supabaseClient.auth
 			.getSession()
 			.then(({ data }) => {
@@ -86,24 +99,29 @@ export class UserState {
 						() => (this.#userPermissions ??= null)
 					);
 
-					// Fetch credit logs
-					this.#settle(
-						getUserCreditLogs(userId),
-						(result) => {
-							this.#userCreditLogs = result.logs;
-							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
-						},
-						() => (this.#userCreditLogs ??= null)
+					// Fetch credit logs (deferred: never blocks first paint — the
+					// optimistic shell renders before these resolve)
+					this.#defer(() =>
+						this.#settle(
+							getUserCreditLogs(userId),
+							(result) => {
+								this.#userCreditLogs = result.logs;
+								if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+							},
+							() => (this.#userCreditLogs ??= null)
+						)
 					);
 
-					// Fetch credit balance
-					this.#settle(
-						getUserCreditBalance(supabase.client, userId),
-						(result) => {
-							this.#userCreditBalance = result.balance;
-							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
-						},
-						() => (this.#userCreditBalance ??= null)
+					// Fetch credit balance (deferred, same as above)
+					this.#defer(() =>
+						this.#settle(
+							getUserCreditBalance(supabase.client, userId),
+							(result) => {
+								this.#userCreditBalance = result.balance;
+								if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+							},
+							() => (this.#userCreditBalance ??= null)
+						)
 					);
 				}
 			} else if (event === 'SIGNED_OUT') {
@@ -113,6 +131,21 @@ export class UserState {
 		});
 
 		this.#unsub = data;
+	}
+
+	/**
+	 * Runs non-critical work after first paint so it never blocks the
+	 * optimistic shell. Falls back to `setTimeout` where `requestIdleCallback`
+	 * is unavailable (e.g. Safari).
+	 */
+	#defer(work: () => void): void {
+		const ric = (
+			globalThis as unknown as {
+				requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+			}
+		).requestIdleCallback;
+		if (ric) ric(() => work(), { timeout: 2000 });
+		else setTimeout(work, 0);
 	}
 
 	/**

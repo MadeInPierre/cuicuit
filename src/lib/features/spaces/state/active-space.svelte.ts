@@ -88,7 +88,7 @@ class ActiveSpaceState {
 		// Fetch the user's spaces rows and members when the user state changes
 		$effect(() => {
 			if (this._userId) this.refreshSpaces();
-			else this.userSpaces = null;
+			else if (this._userState?.user === null) this.userSpaces = null;
 		});
 
 		$effect(() => {

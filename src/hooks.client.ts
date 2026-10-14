@@ -1,6 +1,6 @@
 import { dev } from '$app/env';
 import { version } from '$app/environment';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_PROJECT_TOKEN } from '$env/static/public';
 import type { HandleClientError } from '@sveltejs/kit';
 import posthog from 'posthog-js';
 
@@ -10,8 +10,8 @@ export function init() {
 	// during development.
 	if (dev) return;
 
-	const token = env.PUBLIC_POSTHOG_PROJECT_TOKEN;
-	const host = env.PUBLIC_POSTHOG_HOST;
+	const token = PUBLIC_POSTHOG_PROJECT_TOKEN;
+	const host = PUBLIC_POSTHOG_HOST;
 
 	if (!token || !host) return;
 
