@@ -1,6 +1,7 @@
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import { isTransportError } from '../offline-error';
 import { getUserCreditBalance, type UserCreditBalance } from '../queries/get-user-credit-balance';
 import { getUserCreditLogs, type UserCreditLogs } from '../queries/get-user-credit-logs';
 import { getUserPermissions, type UserPermissions } from '../queries/get-user-permissions';
@@ -15,50 +16,116 @@ export class UserState {
 	#userCreditLogs = $state<UserCreditLogs | undefined | null>(undefined);
 	#userCreditBalance = $state<UserCreditBalance | undefined | null>(undefined);
 
+	/** Set to `'offline'` when user-data fetches fail on transport errors. Sticky
+	 *  until the next signed-in fetch cycle — layouts use it to skip redirects. */
+	#loadError = $state<null | 'offline'>(null);
+	/** `expires_at` (epoch seconds) of the last known session, if any. Lets
+	 *  layouts tell "cached session" apart from "session expired while offline". */
+	#sessionExpiresAt = $state<number | null>(null);
+
 	#unsub: any;
 
 	constructor(supabaseClient: SupabaseClient<Database> | undefined) {
 		if (!supabaseClient?.auth) return;
+
+		// Seed from the locally stored session immediately: `getSession()` reads
+		// localStorage without a network round-trip, so the app knows a session
+		// exists even before `INITIAL_SESSION` resolves (or when it can't).
+		supabaseClient.auth
+			.getSession()
+			.then(({ data }) => {
+				if (data.session?.user && this.#userState === undefined) {
+					this.#userState = data.session.user;
+					this.#sessionExpiresAt = data.session.expires_at ?? null;
+				}
+			})
+			.catch(() => {
+				// No stored session (or storage unreadable) — stay undefined until
+				// the auth state callback fires.
+			});
 
 		const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
 			// console.log('Supabase auth state changed:', event, session);
 
 			if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
 				this.#userState = session?.user || null;
+				this.#sessionExpiresAt = session?.expires_at ?? null;
+				this.#loadError = null;
 
 				// If the user is signed in, fetch their public profile and preferences
 				if (session?.user?.id && supabase.client) {
+					const userId = session.user.id;
+
 					// Fetch user profile
-					getUserPublicProfile(session.user.id).then((result) => {
-						this.#userPublicProfile = result.profile;
-					});
+					this.#settle(
+						getUserPublicProfile(userId),
+						(result) => {
+							this.#userPublicProfile = result.profile;
+							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+						},
+						() => (this.#userPublicProfile ??= null)
+					);
 
 					// Fetch user preferences
-					getUserPreferences(supabase.client, session.user.id).then((result) => {
-						this.#userPreferences = result.preferences;
-					});
+					this.#settle(
+						getUserPreferences(supabase.client, userId),
+						(result) => {
+							this.#userPreferences = result.preferences;
+							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+						},
+						() => (this.#userPreferences ??= null)
+					);
 
 					// Fetch user permissions (role)
-					getUserPermissions(supabase.client, session.user.id).then((result) => {
-						this.#userPermissions = result.permissions;
-					});
+					this.#settle(
+						getUserPermissions(supabase.client, userId),
+						(result) => {
+							this.#userPermissions = result.permissions;
+							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+						},
+						() => (this.#userPermissions ??= null)
+					);
 
 					// Fetch credit logs
-					getUserCreditLogs(session.user.id).then((result) => {
-						this.#userCreditLogs = result.logs;
-					});
+					this.#settle(
+						getUserCreditLogs(userId),
+						(result) => {
+							this.#userCreditLogs = result.logs;
+							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+						},
+						() => (this.#userCreditLogs ??= null)
+					);
 
 					// Fetch credit balance
-					getUserCreditBalance(supabase.client, session.user.id).then((result) => {
-						this.#userCreditBalance = result.balance;
-					});
+					this.#settle(
+						getUserCreditBalance(supabase.client, userId),
+						(result) => {
+							this.#userCreditBalance = result.balance;
+							if (result.error && isTransportError(result.error)) this.#loadError = 'offline';
+						},
+						() => (this.#userCreditBalance ??= null)
+					);
 				}
 			} else if (event === 'SIGNED_OUT') {
 				this.#userState = null;
+				this.#sessionExpiresAt = null;
 			}
 		});
 
 		this.#unsub = data;
+	}
+
+	/**
+	 * Applies a user-data fetch: values on success; on rejection the last-known
+	 * value is kept, still-pending (`undefined`) slots settle to `null` so
+	 * `isLoading` resolves, and transport failures flag the state degraded.
+	 */
+	#settle<T>(work: Promise<T>, apply: (result: T) => void, settlePending: () => void): void {
+		work.then(apply, (reason) => {
+			if (isTransportError(reason)) this.#loadError = 'offline';
+			else console.error('[UserState] user-data fetch failed:', reason);
+			settlePending();
+		});
 	}
 
 	get user() {
@@ -87,6 +154,28 @@ export class UserState {
 
 	get creditBalance() {
 		return this.#userCreditBalance;
+	}
+
+	/** `'offline'` when user-data fetches failed on transport errors, else `null`. */
+	get loadError() {
+		return this.#loadError;
+	}
+
+	/** True when the state is usable-but-degraded: a session exists, but its
+	 *  profile/permissions/credits could not be fetched (offline). */
+	get isOfflineDegraded() {
+		return this.#loadError === 'offline';
+	}
+
+	get sessionExpiresAt() {
+		return this.#sessionExpiresAt;
+	}
+
+	/** True when we know a session existed but its JWT is past expiry — offline
+	 *  it cannot be refreshed, so the user must reconnect. Unknown expiry
+	 *  (`null`) counts as not expired: fail open, let the app try. */
+	get isSessionExpired() {
+		return this.#sessionExpiresAt !== null && this.#sessionExpiresAt * 1000 <= Date.now();
 	}
 
 	get isLoading() {

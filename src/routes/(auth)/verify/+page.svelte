@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { Button } from '$lib/shared/components/ui/button';
-	import { MailCheck } from '@lucide/svelte';
+	import { connectivity } from '$lib/shared/state/connectivity.svelte';
+	import { MailCheck, WifiOff } from '@lucide/svelte';
+
+	const offline = $derived(!connectivity.online);
 </script>
 
 <!-- <img src="/cuicuit_waving.png" alt="Cuicuit" class="h-16 mx-auto" /> -->
@@ -19,6 +22,12 @@
 
 <div class="grid gap-2">
 	<Button href="/login" class="w-full">Go to login</Button>
+	{#if offline}
+		<p class="mx-auto flex max-w-80 items-center gap-2 text-center text-xs text-muted-foreground">
+			<WifiOff class="size-4 shrink-0" />
+			Verifying your email needs a connection — this page will wait for you.
+		</p>
+	{/if}
 </div>
 
 <p class="mx-auto w-[290px] text-center text-xs text-muted-foreground">

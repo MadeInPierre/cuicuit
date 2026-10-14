@@ -244,10 +244,16 @@ export default defineConfig({
 				skipWaiting: true,
 				cleanupOutdatedCaches: true,
 				globPatterns: [
-					'client/**/*.{js,css,ico,png,svg,webp,webmanifest,html}',
+					'client/**/*.{js,css,ico,png,svg,jpg,jpeg,webp,avif,webmanifest,html}',
 					'prerendered/**/*.{html,json}'
 				],
 				navigateFallback: '/app-shell',
+				// `login-bg.jpeg` (4.9 MB) exceeds maximumFileSizeToCacheInBytes and
+				// is auth-only (sign-in needs connection anyway) — serve it from a
+				// runtime cache instead of precaching it.
+				globIgnores: ['**/login-bg.jpeg'],
+				// API/MCP must fail fast offline instead of returning the HTML shell.
+				navigateFallbackDenylist: [/^\/api\//, /^\/mcp/],
 				// navigateFallbackAllowlist: [
 				// 	/^\/$/,
 				// 	/^\/recipes/,
@@ -256,6 +262,46 @@ export default defineConfig({
 				// 	// Add any other paths belonging to the /(app)/** */ group here
 				// ],
 				runtimeCaching: [
+					// SvelteKit data requests: let already-visited routes re-render
+					// their shell offline from cache after a short network timeout.
+					{
+						urlPattern: /__data\.json/,
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'sveltekit-data',
+							networkTimeoutSeconds: 3,
+							expiration: { maxEntries: 100, maxAgeSeconds: 86400 },
+							cacheableResponse: { statuses: [200] }
+						}
+					},
+					// SvelteKit runtime public-env module. The app uses
+					// `$env/dynamic/public`, so prerendered pages (including the
+					// offline /app-shell fallback) boot via a dynamic
+					// `import('/_app/env.js')`. That URL is generated per-request
+					// by the server — never a file on disk — so precaching can't
+					// cover it. Without this rule the shell stays blank offline.
+					// (Warmed on load, see +layout.svelte: SSR pages inline env
+					// and never request this URL themselves.)
+					{
+						urlPattern: /\/_app\/env\.js/,
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'sveltekit-env',
+							networkTimeoutSeconds: 3,
+							expiration: { maxEntries: 5, maxAgeSeconds: 86400 },
+							cacheableResponse: { statuses: [200] }
+						}
+					},
+					// Oversized auth background excluded from precache (see globIgnores).
+					{
+						urlPattern: /\/login-bg\.jpeg/,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'auth-backgrounds',
+							expiration: { maxEntries: 5, maxAgeSeconds: 2592000 },
+							cacheableResponse: { statuses: [200] }
+						}
+					},
 					// Cache fonts
 					{
 						urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,

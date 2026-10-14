@@ -1,5 +1,6 @@
 import { dev } from '$app/environment';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { isTransportError } from '$lib/features/auth/offline-error';
 import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { createBrowserClient, isBrowser } from '@supabase/ssr';
@@ -35,9 +36,33 @@ export const load: LayoutLoad = async ({ fetch, depends }) => {
 	 * claims. While an initial or periodic network request may be required to
 	 * fetch or refresh keys, this is both faster and safer than `getSession`,
 	 * which does not validate the JWT.
+	 *
+	 * Offline this never throws: a stored session + a transport failure means
+	 * "can't reach auth" (`claimsOffline: true`), while no stored session means
+	 * genuinely signed out (`claims: null`).
 	 */
-	const { data: claimsData, error } = await sb.auth.getClaims();
-	const claims = error ? null : claimsData?.claims;
+	async function hasStoredSession(): Promise<boolean> {
+		try {
+			const { data } = await sb.auth.getSession();
+			return !!data.session;
+		} catch {
+			return false;
+		}
+	}
 
-	return { supabase: sb, claims };
+	let claims = null;
+	let claimsOffline = false;
+	try {
+		const { data: claimsData, error } = await sb.auth.getClaims();
+		if (!error) {
+			claims = claimsData?.claims ?? null;
+		} else if (isTransportError(error)) {
+			claimsOffline = await hasStoredSession();
+		}
+	} catch (e) {
+		if (isTransportError(e)) claimsOffline = await hasStoredSession();
+		// Non-transport failures behave like before: signed out, no claims.
+	}
+
+	return { supabase: sb, claims, claimsOffline };
 };

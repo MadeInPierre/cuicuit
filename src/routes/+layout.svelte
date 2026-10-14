@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
 	import posthog from 'posthog-js';
+	import { toast } from 'svelte-sonner';
 	import { Toaster } from '$lib/shared/components/ui/sonner';
 	import * as Tooltip from '$lib/shared/components/ui/tooltip';
 	import { ModeWatcher } from 'mode-watcher';
@@ -32,8 +33,36 @@
 				},
 				onRegisterError(error: any) {
 					console.log('SW registration error', error);
+				},
+				onNeedRefresh() {
+					toast('Update available', {
+						description: 'A new version of the app is ready.',
+						action: {
+							label: 'Reload',
+							onClick: () => location.reload()
+						},
+						duration: Infinity
+					});
+				},
+				onOfflineReady() {
+					console.debug('App ready to work offline');
 				}
 			});
+		}
+	});
+
+	// Warm the service worker's runtime cache for SvelteKit's `/_app/env.js`.
+	// The app uses `$env/dynamic/public`, so prerendered pages (including the
+	// offline /app-shell fallback) boot through a dynamic `import('/_app/env.js')`
+	// that precaching can't cover (see vite.config.ts). SSR pages inline public
+	// env and never request that URL themselves, so fetch it once while online,
+	// the SW's `sveltekit-env` rule caches it for the day the network is gone.
+	onMount(async () => {
+		try {
+			if (typeof caches === 'undefined' || !navigator.onLine) return;
+			if (!(await caches.match('/_app/env.js'))) await fetch('/_app/env.js');
+		} catch {
+			// Offline on first visit (or Cache API unavailable), nothing to warm.
 		}
 	});
 

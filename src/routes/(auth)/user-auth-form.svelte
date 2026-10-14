@@ -15,8 +15,9 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
 	import { Icons } from '$lib/shared/icons';
+	import { connectivity } from '$lib/shared/state/connectivity.svelte';
 	import { cn } from '$lib/utils';
-	import { Eye, EyeOff } from '@lucide/svelte';
+	import { Eye, EyeOff, WifiOff } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { defaults, superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
@@ -52,11 +53,21 @@
 	let showPasswordRequirements = $state(false);
 	let showPassword = $state(false);
 
+	// Signing in hits the network — gate the submit paths while offline.
+	const offline = $derived(!connectivity.online);
+
 	/**
 	 * Handle the form submission
 	 * @param authMethod The authentication method selected by the user (email/password, google, etc)
 	 */
 	async function onSubmit(authMethod: AuthMethod) {
+		if (offline) {
+			toast.error('Needs connection', {
+				description: 'Signing in needs a connection — your saved session still works offline.'
+			});
+			return;
+		}
+
 		if (!supabase.client?.auth) {
 			console.error('Error: Auth not found.');
 			return;
@@ -114,11 +125,19 @@
 </script>
 
 <div class={cn('grid gap-4', className)} {...restProps}>
+	{#if offline}
+		<p
+			class="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground"
+		>
+			<WifiOff class="size-4 shrink-0" />
+			Sign-in needs a connection — your saved session still works offline.
+		</p>
+	{/if}
 	<div class="grid grid-cols-1 gap-3">
 		<Button
 			variant="outline"
 			type="button"
-			disabled={isLoading}
+			disabled={isLoading || offline}
 			onclick={() => onSubmit(AuthMethod.GOOGLE)}
 		>
 			{#if isLoading && selectedMethod == AuthMethod.GOOGLE}
@@ -237,7 +256,7 @@
 						</p>
 					{/if}
 
-					<Form.Button disabled={isLoading} type="submit" class="mt-2 w-full">
+					<Form.Button disabled={isLoading || offline} type="submit" class="mt-2 w-full">
 						{#if isLoading && selectedMethod == AuthMethod.EMAIL_PASSWORD}
 							<Icons.spinner class="mr-2 size-4 animate-spin" />
 							Sending email...
