@@ -44,3 +44,17 @@ export function isOnline(): boolean {
 export function whenOnline(cb: () => void): void {
 	connectivity.whenOnline(cb);
 }
+
+/**
+ * Guard for online-only actions. Returns `true` when online; when offline
+ * shows a sonner toast (lazily imported so non-UI callers stay light) and
+ * returns `false` so callers can early-return instead of hanging a spinner.
+ */
+export async function requireOnline(action = 'This needs a connection'): Promise<boolean> {
+	if (!browser || connectivity.online) return true;
+	const { toast } = await import('svelte-sonner');
+	toast.error('Needs connection', {
+		description: `${action} — your saved session still works offline.`
+	});
+	return false;
+}

@@ -6,7 +6,7 @@
  * icon was replaced under the same URL) or to free disk space. The next
  * image view re-caches on demand.
  */
-export const IMAGE_CACHE_NAMES = ['recipe-images', 'ingredient-images'] as const;
+export const IMAGE_CACHE_NAMES = ['recipe-images', 'ingredient-images', 'youtube-thumbs'] as const;
 
 export async function clearImageCaches(): Promise<boolean> {
 	try {

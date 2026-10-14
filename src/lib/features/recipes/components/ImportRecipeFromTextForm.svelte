@@ -7,6 +7,7 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { cn } from '$lib/utils';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
@@ -37,6 +38,7 @@
 
 	async function onSubmit() {
 		if (loading) throw new Error('A text import is already ongoing, aborting.');
+		if (!(await requireOnline('Recipe import'))) return;
 
 		loading = true;
 		currentStep = -1;
@@ -101,7 +103,12 @@
 
 	<div class="space-y-2">
 		<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
-			<Button onclick={onClick} disabled={loading || !text} class="w-full relative">
+			<Button
+				onclick={onClick}
+				disabled={loading || !text || !connectivity.online}
+				title={!connectivity.online ? 'Import unavailable offline' : undefined}
+				class="w-full relative"
+			>
 				<div
 					class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
 				>

@@ -9,9 +9,19 @@
 	};
 
 	const { id, name = null, class: className }: Props = $props();
+
+	let imgFailed = $state(false);
+
+	// Reset on navigation between ingredients (same component instance).
+	$effect(() => {
+		void id;
+		imgFailed = false;
+	});
+
+	const letter = $derived(name ? name.charAt(0).toUpperCase() : '?');
 </script>
 
-{#if id}
+{#if id && !imgFailed}
 	<img
 		src={`${PUBLIC_SUPABASE_URL}/storage/v1/object/public/ingredients/images/${id}.jpg`}
 		alt={name}
@@ -19,19 +29,7 @@
 		loading="lazy"
 		decoding="async"
 		class={cn('aspect-square w-full object-contain rounded-lg p-0.5', className)}
-		onerror={(e) => {
-			const el = e.currentTarget as HTMLImageElement;
-			el.style.display = 'none';
-
-			const classes = cn(
-				'w-full rounded-lg flex items-center justify-center transition-colors text-muted dark:text-muted-foreground/40 text-5xl',
-				className
-			);
-			el.insertAdjacentHTML(
-				'afterend',
-				`<div class="${classes}">${name ? name.charAt(0).toUpperCase() : '?'}</div>`
-			);
-		}}
+		onerror={() => (imgFailed = true)}
 	/>
 {:else}
 	<div
@@ -40,6 +38,6 @@
 			className
 		)}
 	>
-		{name ? name.charAt(0).toUpperCase() : '?'}
+		{letter}
 	</div>
 {/if}

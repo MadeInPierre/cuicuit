@@ -32,6 +32,7 @@
 
 	let error = $state(false);
 	let fellBackToFull = $state(false);
+	let ytFailed = $state(false);
 
 	// The {#key} below resets the <img> element, but not this state: reset it
 	// whenever the image changes so one missing thumbnail doesn't pin the
@@ -42,6 +43,7 @@
 		void variant;
 		fellBackToFull = false;
 		error = false;
+		ytFailed = false;
 	});
 
 	let firstImageId = $derived(recipe?.image_ids?.find((id): id is string => !!id) ?? null);
@@ -103,11 +105,15 @@
 		}}
 	/>
 {:else if error || recipe?.image_ids?.length === 0}
-	{#if recipe?.source_url?.includes('youtu')}
+	{#if recipe?.source_url?.includes('youtu') && !ytFailed}
 		<img
 			src={youtubeUrlToThumbnailUrl(recipe.source_url)}
 			class={cn('w-full aspect-[1.618] object-cover rounded-md cursor-pointer', className)}
 			alt="Youtube Thumbnail"
+			crossorigin="anonymous"
+			loading="lazy"
+			decoding="async"
+			onerror={() => (ytFailed = true)}
 		/>
 	{:else if displayIngredients.length > 0}
 		<div

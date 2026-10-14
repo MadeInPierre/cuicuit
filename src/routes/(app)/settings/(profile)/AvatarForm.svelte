@@ -8,6 +8,7 @@
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
+	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { ImageUp, LoaderCircle, Trash2 } from '@lucide/svelte';
 	import IconPicker from './IconPicker.svelte';
 
@@ -28,6 +29,7 @@
 	 */
 	async function upload() {
 		if (!file || !userState.user?.id) return;
+		if (!(await requireOnline('Avatar upload'))) return;
 
 		loadingUpload = true;
 
@@ -58,7 +60,13 @@
 			/>
 
 			{#if file}
-				<Button variant="default" class="px-3 flex gap-2" onclick={upload} disabled={loadingUpload}>
+				<Button
+					variant="default"
+					class="px-3 flex gap-2"
+					onclick={upload}
+					disabled={loadingUpload || !connectivity.online}
+					title={!connectivity.online ? 'Avatar upload needs connection' : undefined}
+				>
 					{#if loadingUpload}
 						<LoaderCircle class="h-[1.2rem] w-[1.2rem] animate-spin" />
 						<span>Uploading...</span>

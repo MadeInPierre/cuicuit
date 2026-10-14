@@ -355,7 +355,7 @@
 				<Label>This device</Label>
 				<div class="flex items-center gap-2">
 					<p class="grow text-sm text-muted-foreground">
-						Recipe photos and ingredient icons are kept on this device for offline use.
+						Recipe photos, ingredient icons (+ video thumbnails) are kept on this device.
 					</p>
 					<Button
 						variant="outline"

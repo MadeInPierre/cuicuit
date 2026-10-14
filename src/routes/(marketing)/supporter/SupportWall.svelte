@@ -7,6 +7,7 @@
 	import { Label } from '$lib/shared/components/ui/label';
 	import { Slider } from '$lib/shared/components/ui/slider';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { cn } from '$lib/utils';
 	import { ArrowRight, Check, ExternalLink, Heart } from '@lucide/svelte';
 	import posthog from 'posthog-js';
@@ -82,6 +83,7 @@
 	};
 
 	async function onSubmit() {
+		if (!(await requireOnline('Checkout'))) return;
 		if (!email) {
 			toast.error('Please login first', {
 				description: 'Login and come back, thanks!',
@@ -361,7 +363,8 @@
 	<div class={cn(!media.md && 'fixed bottom-0 left-0 right-0 py-4 px-8 bg-background')}>
 		<Button
 			onclick={onSubmit}
-			disabled={belowMin}
+			disabled={belowMin || !connectivity.online}
+			title={!connectivity.online ? 'Checkout needs connection' : undefined}
 			class={cn(
 				'w-full rounded-full px-6 py-3.5 sm:py-4 text-sm sm:text-base font-semibold transition shadow-(--shadow-lift)',
 				belowMin && 'cursor-not-allowed'

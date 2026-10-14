@@ -15,7 +15,8 @@
 	import { parseSharedContent } from '$lib/features/recipes/share/parse-shared-content';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
-	import { ArrowLeft, FileText, ImagePlus, Link2, RotateCcw } from '@lucide/svelte';
+	import { connectivity } from '$lib/shared/state/connectivity.svelte';
+	import { ArrowLeft, FileText, ImagePlus, Link2, RotateCcw, WifiOff } from '@lucide/svelte';
 
 	/**
 	 * Web Share Target receiver (`share_target` action in `vite.config.ts`).
@@ -47,9 +48,10 @@
 	let currentStep = $state(-1);
 
 	const ready = $derived(!!userState.user?.id && !!space.activeSpace?.id && !!space.language?.lang);
+	const offline = $derived(!connectivity.online);
 
 	$effect(() => {
-		if (shared.kind === 'empty' || started || loading || failed || !ready) return;
+		if (shared.kind === 'empty' || started || loading || failed || !ready || offline) return;
 		started = true;
 		loading = true;
 		(async () => {
@@ -108,8 +110,7 @@
 		</div>
 	{:else if failed}
 		<div class="w-full space-y-4 rounded-lg bg-sidebar p-6 text-center md:p-8">
-			<h1 class="text-xl font-bold tracking-tight">Import failed</h1>
-			<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+			<h1 class="text-xl font-bold tracking-tight">Import failed</h1>			<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
 				{#if shared.kind === 'url'}
 					<Link2 class="size-4 shrink-0" />
 					<span class="max-w-full truncate">{shared.url}</span>
@@ -122,6 +123,38 @@
 				<Button onclick={retry} class="w-full">
 					<RotateCcw class="size-4" />
 					Try again
+				</Button>
+				<Button variant="outline" onclick={goBack} class="w-full">
+					<ArrowLeft class="size-4" />
+					Go back
+				</Button>
+			</div>
+		</div>
+	{:else if offline}
+		<!-- Offline: the shared link/text can't be imported without network.
+		     Nothing is lost — the URL stays in the address bar, retry when back. -->
+		<div class="w-full space-y-4 rounded-lg bg-sidebar p-6 text-center md:p-8">
+			<WifiOff class="mx-auto size-12 text-muted-foreground" />
+			<h1 class="text-xl font-bold tracking-tight">You're offline</h1>
+			{#if shared.kind === 'url'}
+				<p class="text-sm text-muted-foreground">
+					Shared link saved — it will import when you reconnect. Keep this tab open or copy
+					the link:
+				</p>
+				<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+					<Link2 class="size-4 shrink-0" />
+					<span class="max-w-full truncate">{shared.url}</span>
+				</p>
+			{:else}
+				<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+					<FileText class="size-4 shrink-0" />
+					<span>Shared text ({shared.text.length} characters) — will import on reconnect.</span>
+				</p>
+			{/if}
+			<div class="flex flex-col gap-2 pt-2">
+				<Button onclick={() => location.reload()} class="w-full">
+					<RotateCcw class="size-4" />
+					Retry when online
 				</Button>
 				<Button variant="outline" onclick={goBack} class="w-full">
 					<ArrowLeft class="size-4" />

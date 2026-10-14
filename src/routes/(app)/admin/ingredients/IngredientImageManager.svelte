@@ -11,6 +11,7 @@
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { Input } from '$lib/shared/components/ui/input';
+	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { Textarea } from '$lib/shared/components/ui/textarea';
 	import { toast } from 'svelte-sonner';
 
@@ -64,6 +65,7 @@
 			toast.error('Prompt is empty.');
 			return;
 		}
+		if (!(await requireOnline('Image generation'))) return;
 		generating = true;
 		try {
 			const res = (await generateIngredientImageAdmin({
@@ -118,6 +120,7 @@
 
 	async function handleFile(file: File | undefined) {
 		if (!file) return;
+		if (!(await requireOnline('Image upload'))) return;
 		if (file.size > 5000000) {
 			toast.error('File too large.', { description: 'Image must be less than 5MB.' });
 			return;
@@ -162,7 +165,8 @@
 			<Input
 				type="file"
 				accept="image/png,image/jpeg,image/webp"
-				disabled={uploading}
+				disabled={uploading || !connectivity.online}
+				title={!connectivity.online ? 'Image upload needs connection' : undefined}
 				onchange={(e) => handleFile((e.target as HTMLInputElement)?.files?.[0])}
 			/>
 			{#if uploading}
@@ -188,7 +192,12 @@
 			disabled={generating}
 		/>
 		<div class="flex gap-2">
-			<Button size="sm" disabled={generating || !prompt.trim()} onclick={handleGenerate}>
+			<Button
+				size="sm"
+				disabled={generating || !prompt.trim() || !connectivity.online}
+				title={!connectivity.online ? 'Image generation needs connection' : undefined}
+				onclick={handleGenerate}
+			>
 				{generating ? 'Generating…' : 'Generate candidate'}
 			</Button>
 			<Button variant="outline" size="sm" onclick={() => (prompt = defaultPrompt)}>

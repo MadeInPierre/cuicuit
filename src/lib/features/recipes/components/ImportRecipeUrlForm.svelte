@@ -7,6 +7,7 @@
 	import { Input } from '$lib/shared/components/ui/input';
 	import { Label } from '$lib/shared/components/ui/label';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { cn } from '$lib/utils';
 	import { ArrowRight, Loader2, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
@@ -44,6 +45,7 @@
 
 	async function onSubmit() {
 		if (loading) throw new Error('A web import is already ongoing, aborting.');
+		if (!(await requireOnline('Recipe import'))) return;
 
 		loading = true;
 		currentStep = -1;
@@ -173,7 +175,12 @@
 	{#if !compact}
 		<div class="space-y-2">
 			<Dialog.Footer class={cn('sm:flex-col', !media.md && 'bg-transparent border-0')}>
-				<Button onclick={onClick} disabled={loading || !url} class="w-full relative">
+				<Button
+					onclick={onClick}
+					disabled={loading || !url || !connectivity.online}
+					title={!connectivity.online ? 'Sign-in needs connection — import unavailable offline' : undefined}
+					class="w-full relative"
+				>
 					<div
 						class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs rounded-full bg-lime-100 text-lime-600"
 					>

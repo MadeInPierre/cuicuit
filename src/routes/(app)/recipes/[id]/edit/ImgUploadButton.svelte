@@ -6,6 +6,7 @@
 	} from '$lib/features/recipes/actions/upload-recipe-image';
 	import { Input } from '$lib/shared/components/ui/input';
 	import { supabase } from '$lib/shared/db/supabase-client.svelte';
+	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { cn } from '$lib/utils';
 	import { Camera, Loader2, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
@@ -28,6 +29,7 @@
 
 	async function uploadImage(file: File) {
 		if (!recipeId || !supabase.client) return;
+		if (!(await requireOnline('Image upload'))) return;
 
 		loading = true;
 		const imageId = await uploadRecipeImage(file, recipeId, currentImageIds);
@@ -39,6 +41,7 @@
 
 	async function deleteImage() {
 		if (!recipeId || !imgId || !supabase.client) return;
+		if (!(await requireOnline('Image delete'))) return;
 
 		loading = true;
 		const newImageIds = await deleteRecipeImage(imgId, recipeId, currentImageIds);
@@ -76,6 +79,7 @@
 	<label
 		class="flex flex-col gap-2 aspect-[1.618] w-full items-center justify-center rounded-md border border-dashed cursor-pointer bg-muted"
 		for={`upload-button-${position}`}
+		title={!connectivity.online ? 'Image upload needs connection' : undefined}
 	>
 		<Camera class={cn('text-muted-foreground', size == 'big' ? 'size-8' : 'size-4')} />
 		{#if size === 'big'}

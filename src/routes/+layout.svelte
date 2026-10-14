@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import '../app.css';
 	import Metadata from './Metadata.svelte';
+	import OfflineBanner from '$lib/shared/components/OfflineBanner.svelte';
 	// @ts-ignore
 	import { pwaInfo } from 'virtual:pwa-info';
 
@@ -51,21 +52,6 @@
 		}
 	});
 
-	// Warm the service worker's runtime cache for SvelteKit's `/_app/env.js`.
-	// The app uses `$env/dynamic/public`, so prerendered pages (including the
-	// offline /app-shell fallback) boot through a dynamic `import('/_app/env.js')`
-	// that precaching can't cover (see vite.config.ts). SSR pages inline public
-	// env and never request that URL themselves, so fetch it once while online,
-	// the SW's `sveltekit-env` rule caches it for the day the network is gone.
-	onMount(async () => {
-		try {
-			if (typeof caches === 'undefined' || !navigator.onLine) return;
-			if (!(await caches.match('/_app/env.js'))) await fetch('/_app/env.js');
-		} catch {
-			// Offline on first visit (or Cache API unavailable), nothing to warm.
-		}
-	});
-
 	// Get <meta> tags from the PWA manifest to be included in <head>
 	const webManifest = $derived(pwaInfo ? pwaInfo.webManifest.linkTag : '');
 
@@ -103,6 +89,7 @@
 <Metadata />
 <ModeWatcher defaultMode="light" />
 <Toaster />
+<OfflineBanner />
 
 <Tooltip.Provider>
 	{@render children()}

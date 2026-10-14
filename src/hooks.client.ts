@@ -34,5 +34,20 @@ export function init() {
 }
 
 export const handleError: HandleClientError = ({ error }) => {
+	// Offline fetch failures are expected (DB layer is online-only for now) —
+	// don't report them as exceptions.
+	if (typeof navigator !== 'undefined' && !navigator.onLine) {
+		const msg = error instanceof Error ? error.message : String(error);
+		if (
+			error instanceof TypeError ||
+			msg.includes('fetch failed') ||
+			msg.includes('Failed to fetch') ||
+			msg.includes('NetworkError') ||
+			msg.includes('Load failed')
+		) {
+			console.debug('Suppressed offline error:', msg);
+			return;
+		}
+	}
 	if (posthog.__loaded) posthog.captureException(error);
 };

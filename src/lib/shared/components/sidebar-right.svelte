@@ -6,6 +6,7 @@
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import { type RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import * as Sidebar from '$lib/shared/components/ui/sidebar/index.js';
+	import { connectivity } from '$lib/shared/state/connectivity.svelte';
 	import { ArrowRight, Calendar, ScrollText, X } from '@lucide/svelte';
 	import type { ComponentProps } from 'svelte';
 	import SearchSidebar from './search/SearchSidebar.svelte';
@@ -50,7 +51,11 @@
 			<div class="flex items-center gap-4">
 				<div class="grid">
 					<h1 class="text-md font-semibold">Your plan</h1>
-					<p class="text-xs text-muted-foreground">Add recipes and items to get a shopping list.</p>
+					<p class="text-xs text-muted-foreground">
+						{connectivity.online
+							? 'Add recipes and items to get a shopping list.'
+							: 'Offline — library search unavailable.'}
+					</p>
 				</div>
 			</div>
 		{/if}

@@ -274,24 +274,6 @@ export default defineConfig({
 							cacheableResponse: { statuses: [200] }
 						}
 					},
-					// SvelteKit runtime public-env module. The app uses
-					// `$env/dynamic/public`, so prerendered pages (including the
-					// offline /app-shell fallback) boot via a dynamic
-					// `import('/_app/env.js')`. That URL is generated per-request
-					// by the server — never a file on disk — so precaching can't
-					// cover it. Without this rule the shell stays blank offline.
-					// (Warmed on load, see +layout.svelte: SSR pages inline env
-					// and never request this URL themselves.)
-					{
-						urlPattern: /\/_app\/env\.js/,
-						handler: 'NetworkFirst',
-						options: {
-							cacheName: 'sveltekit-env',
-							networkTimeoutSeconds: 3,
-							expiration: { maxEntries: 5, maxAgeSeconds: 86400 },
-							cacheableResponse: { statuses: [200] }
-						}
-					},
 					// Oversized auth background excluded from precache (see globIgnores).
 					{
 						urlPattern: /\/login-bg\.jpeg/,
@@ -333,6 +315,18 @@ export default defineConfig({
 							cacheName: 'ingredient-images',
 							expiration: { maxEntries: 2000, maxAgeSeconds: 31536000 },
 							// See recipe-images above: [200] only, no opaque.
+							cacheableResponse: { statuses: [200] }
+						}
+					},
+					// YouTube thumbnails (i.ytimg.com / img.youtube.com). The
+					// <img> uses crossorigin="anonymous" so entries are real
+					// (status 200) instead of opaque.
+					{
+						urlPattern: /^https:\/\/(i\.ytimg\.com|img\.youtube\.com)\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'youtube-thumbs',
+							expiration: { maxEntries: 200, maxAgeSeconds: 2592000 },
 							cacheableResponse: { statuses: [200] }
 						}
 					}
