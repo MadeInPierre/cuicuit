@@ -25,7 +25,9 @@
 		resetForm: false,
 		onUpdate({ form }) {
 			if (form.valid) onSubmit(form.data);
-			else console.error('Form invalid', form.errors);
+			// Warn instead of console.error: posthog captures console.error as an
+			// exception, and this failure is already handled by inline field errors.
+			else console.warn('Form invalid', form.errors);
 		}
 	});
 	const { form: formData, enhance, allErrors } = form;

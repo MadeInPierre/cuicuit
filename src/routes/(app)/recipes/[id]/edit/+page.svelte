@@ -90,7 +90,9 @@
 				await onSubmit(form.data);
 				toast.success('Recipe saved! 👨‍🍳');
 			} else {
-				console.error('Form validation failed:', form.errors);
+				// Warn instead of console.error: posthog captures console.error as an
+				// exception, and this failure is already handled by the toast below.
+				console.warn('Form validation failed:', form.errors);
 				toast.error('Please fix the errors in the form.');
 			}
 		}
