@@ -332,7 +332,7 @@
 					/> -->
 
 					<SearchBar
-						class="w-40 lg:w-80"
+						class="w-40 lg:w-70"
 						bind:value={recipesSearchState.searchInput}
 						loading={searchLoading}
 					/>

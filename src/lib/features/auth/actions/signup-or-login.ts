@@ -11,6 +11,7 @@ import {
 } from './auth-error-utils';
 import { handleEmailPasswordAuth } from './handlers/email-password-handler';
 import { handleGoogleOAuth } from './handlers/google-oauth-handler';
+import { getSupportIntent } from '$lib/features/billing/support-intent';
 
 export { AuthMethod, LogMethod };
 
@@ -51,7 +52,7 @@ export async function signupOrLogin(
 				break;
 			case AuthMethod.GOOGLE:
 				await handleGoogleOAuth({
-					redirectTo: `${window.location.origin}/recipes`
+					redirectTo: `${window.location.origin}${getSupportIntent() ?? '/recipes'}`
 				});
 				break;
 			case AuthMethod.EMAIL_LINK:

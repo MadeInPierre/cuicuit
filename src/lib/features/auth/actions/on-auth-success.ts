@@ -6,6 +6,7 @@ import { AuthMethod } from '../models/auth-method';
 import { LogMethod } from '../models/log-method';
 import { getUserState } from '../state/user-state.svelte';
 import { resendConfirmationEmail } from './send-signup-confirmation-email';
+import { getSupportIntent } from '$lib/features/billing/support-intent';
 
 /**
  * Handle a new signed in user coming from any source (after signup or signin, any provider)
@@ -16,7 +17,7 @@ import { resendConfirmationEmail } from './send-signup-confirmation-email';
  */
 export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod, user: User) {
 	const userState = getUserState();
-	
+
 	// Make sure a non-anonymous user has a verified email
 	if (authMethod !== AuthMethod.ANONYMOUS && !user.email_confirmed_at) {
 		// Show a reminder if the user still didn't verify their email on login
@@ -61,6 +62,13 @@ export async function onAuthSuccess(logMethod: LogMethod, authMethod: AuthMethod
 	}
 
 	// On signup, create initial user data in Supabase
+	const supportReturn = getSupportIntent();
+	if (supportReturn) {
+		await userState.refresh();
+		await goto(supportReturn);
+		return;
+	}
+
 	if (logMethod === LogMethod.SIGNUP) {
 		console.log('New user, going to welcome page.');
 		await userState.refresh(); // Refresh the user state to get the new data

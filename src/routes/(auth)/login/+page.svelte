@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { LogMethod } from '$lib/features/auth/models/log-method';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { getSupportIntent } from '$lib/features/billing/support-intent';
 	import UserAuthForm from '../user-auth-form.svelte';
 
 	const userState = getUserState();
@@ -11,6 +12,7 @@
 	$effect(() => {
 		// If the user is already logged in...
 		if (browser && userState.user?.id && userState.preferences) {
+			if (getSupportIntent()) return;
 			if (userState.preferences.onboarding_status !== 'finished') {
 				console.info('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');

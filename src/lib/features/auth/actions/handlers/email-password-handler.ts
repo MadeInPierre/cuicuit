@@ -10,6 +10,7 @@ import {
 	isSupabaseErrorCode
 } from '../auth-error-utils';
 import { onAuthSuccess } from '../on-auth-success';
+import { getSupportIntent } from '$lib/features/billing/support-intent';
 
 interface EmailPasswordArgs {
 	logMethod: LogMethod;
@@ -44,7 +45,7 @@ async function signupWithEmailPassword(email: string, password: string) {
 		email,
 		password,
 		options: {
-			emailRedirectTo: '/welcome'
+			emailRedirectTo: `${window.location.origin}${getSupportIntent() ?? '/welcome'}`
 		}
 	});
 

@@ -21,21 +21,26 @@
 <Dialog.Root bind:open>
 	<Dialog.Content
 		class={media.md
-			? 'min-w-xl sm:min-x-xl lg:min-w-250 overflow-hidden bg-background'
-			: 'h-screen w-screen max-w-none sm:max-w-none md:max-w-none lg:max-w-none rounded-none border-0 bg-background p-0'}
+			? 'min-w-xl lg:min-w-250 max-h-[90vh] overflow-y-auto bg-background p-0'
+			: 'h-dvh w-screen max-w-none sm:max-w-none md:max-w-none lg:max-w-none rounded-none border-0 bg-background p-0 overflow-y-auto'}
 	>
+		<Dialog.Title class="sr-only">Support Cuicuit</Dialog.Title>
+		<Dialog.Description class="sr-only">
+			Choose a contribution for recipe imports and the shared seed garden.
+		</Dialog.Description>
+		<SupportWall {email} />
 		{#if suggestHide}
 			<Button
 				disabled={userState.creditBalance?.communityHealth === 'Empty'}
 				variant="link"
-				class="absolute top-2 right-12 h-8 z-40"
+				class="mx-auto mb-5 min-h-11"
 				onclick={() => {
 					hideBannerUntil.set(
 						new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0]
 					);
 
-					toast.success('Banner hidden for 2 months', {
-						description: 'Please support to hide forever',
+					toast.success('Banner hidden for 3 months', {
+						description: 'You can still support Cuicuit from your account menu.',
 						duration: 8000,
 						action: {
 							label: 'Support',
@@ -51,7 +56,5 @@
 				Hide for 3 months
 			</Button>
 		{/if}
-
-		<SupportWall {email} />
 	</Dialog.Content>
 </Dialog.Root>

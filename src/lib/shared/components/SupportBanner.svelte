@@ -29,9 +29,9 @@
 		onclick={openSupportWall}
 		variant="secondary"
 		class={cn(
-			'flex h-8 text-md px-2 font-normal text-pink-400 items-center gap-1 bg-transparent hover:bg-pink-100 shadow-none font-hand',
-			userState.creditBalance.communityHealth === 'Low' && 'bg-pink-100',
-			userState.creditBalance.communityHealth === 'Critical' && 'bg-pink-100',
+			'flex h-8 text-md px-2 font-normal text-primary items-center gap-1 bg-transparent hover:bg-primary/10 shadow-none font-hand',
+			userState.creditBalance.communityHealth === 'Low' && 'bg-primary/10',
+			userState.creditBalance.communityHealth === 'Critical' && 'bg-primary/10',
 			userState.creditBalance.communityHealth === 'Empty' &&
 				'bg-red-100 text-red-600 hover:bg-red-200 text-sm font-sans tracking-tight'
 		)}
@@ -41,10 +41,10 @@
 			<span>Support</span>
 		{:else if userState.creditBalance.communityHealth === 'Empty'}
 			<HeartCrack />
-			<span>No more community seeds, please contribute!</span>
+			<span>Recipe imports paused · Help refill seeds</span>
 		{:else}
 			<HeartCrack />
-			<span class="hidden sm:inline-block">{userState.creditBalance.communityHealth} health - Support us!</span>
+			<span class="hidden sm:inline-block">Shared import seeds running low · Support</span>
 			<span class="sm:hidden">Support</span>
 		{/if}
 	</Button>

@@ -2,16 +2,20 @@
 	import { goto } from '$app/navigation';
 	import SourceLogoStack from '$lib/features/recipes/components/SourceLogoStack.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
+	import { WEEKLY_COMMUNITY_SEEDS_LIMIT } from '$lib/core/operations/credits';
 	import { siteConfig } from '$lib/shared/config/site-config';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import Discord from '$lib/shared/icons/discord.svelte';
 	import GitHub from '$lib/shared/icons/github.svelte';
 	import {
 		ArrowRight,
-		Camera,
 		Check,
+		ChevronRight,
 		Cloud,
+		ExternalLink,
 		Globe,
 		Heart,
+		Megaphone,
 		Plus,
 		Server,
 		Sprout,
@@ -20,12 +24,14 @@
 	import SeparatorZigZag from '../(app)/shopping-list/SeparatorZigZag.svelte';
 	import GlassScreenshots from './GlassScreenshots.svelte';
 	import Stitch from './Stitch.svelte';
+	import SeedSteps from './supporter/SeedSteps.svelte';
 	import SupportWallAutoDialog from './supporter/success/SupportWallAutoDialog.svelte';
 	import Wave from './Wave.svelte';
 
 	const { data } = $props();
 
 	const githubUrl = 'https://github.com/MadeInPierre/cuicuit';
+	const releasesUrl = `${githubUrl}/releases`;
 
 	const loop = [
 		{
@@ -49,8 +55,7 @@
 	];
 
 	const imports = [
-		{ icon: Globe, label: 'Websites' },
-		{ icon: Camera, label: 'Photos' },
+		{ icon: Globe, label: 'Any website or blog' },
 		{ icon: Type, label: 'Any text' }
 	];
 
@@ -65,22 +70,34 @@
 				'Cookability badges'
 			]
 		},
-		{ label: 'Coming soon', tone: 'soon', items: ['Self-hosting with Docker', 'Pantry tracking'] },
-		{ label: 'Later', tone: 'later', items: ['Online delivery', 'Nutrition & habits'] }
+		{
+			label: 'Coming soon',
+			tone: 'soon',
+			items: ['Self-hosting with Docker', 'Nutrition stats & Timeline', 'Pantry tracking']
+		},
+		{
+			label: 'Later',
+			tone: 'later',
+			items: ['Online groceries automation?']
+		}
 	];
 
 	const faqs = [
 		{
 			q: 'How is this different from other recipe managers?',
-			a: "Most make you plan by date. Cuicuit doesn't: you drop meals and missing items in whenever, and it keeps one merged, aisle-sorted list and tells you which meals you can already cook. The goal is the least possible time between “what's for dinner” and “I'm done shopping”."
+			a: "Most make you plan by date, and you must manage ingredients separately. Cuicuit doesn't: you drop in meals and missing items whenever with a single search bar, and it keeps one merged, aisle-sorted list and tells you which meals you can already cook. The goal is the least possible time between “what's for dinner” and “I'm done shopping”."
 		},
 		{
 			q: 'Is Cuicuit really free?',
-			a: 'Yes. The hosted app is free with fair usage limits, funded by supporters. Only a few costly features (like AI imports) use community “seeds” to share the cost.'
+			a: `Yes! Planning, shopping lists and sharing are always free. Recipe imports use seeds: you can use up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} a week from the shared garden while seeds are available. Supporting the app gets you seeds of your own and tops up the garden for everyone.`
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste a recipe link — from YouTube, TikTok, Instagram, X, Facebook or any blog — a photo or some text. Cuicuit extracts ingredients, quantities, steps and timings, using open standards like schema.org/Recipe plus AI when needed.'
+			a: 'Paste a recipe link (YouTube, TikTok, Instagram, X, Facebook or any blog) or some text. Cuicuit extracts ingredients, quantities, steps and timings, using open standards like schema.org/Recipe plus AI when needed.'
+		},
+		{
+			q: 'Can I host it myself?',
+			a: 'Soon. Cuicuit is open source (AGPL-3.0), and a Docker Compose release will follow once the cloud version stabilizes. Watch releases on GitHub or join the Discord to hear when it lands. Until then, the cloud version is free.'
 		},
 		{
 			q: 'Is it stable?',
@@ -88,7 +105,7 @@
 		},
 		{
 			q: 'Where does the name come from?',
-			a: "“Cui-cui” is a French bird chirp and “cuit” means cooked, so “c'est cuit” becomes “c'est cuicuit”. Say it “qui-qui”."
+			a: "“Cui-cui” is the sound of a bird chirp in French and “cuit” means cooked, so “c'est cuit” becomes “c'est cuicuit”. Say it “qui-qui”."
 		}
 	];
 
@@ -147,8 +164,7 @@
 			<h1
 				class="font-display text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-balance text-foreground"
 			>
-				<span class="hidden sm:block"> Throw in meal ideas anytime. </span>
-				<span class="sm:hidden"> Pick your meals, </span>
+				<span class="block"> Throw in meal ideas anytime. </span>
 				<span class="text-primary"> Your list sorts itself. </span>
 			</h1>
 			<p
@@ -157,7 +173,7 @@
 				Add meals and missing items whenever you think of them. Cuicuit merges them into one
 				aisle-sorted shopping list and shows which meals you can already cook.
 			</p>
-			<div class="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+			<div class="mt-8 flex flex-col sm:flex-row sm:items-start justify-center gap-3">
 				<a
 					href="/signup"
 					class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-base font-semibold text-primary-foreground shadow-(--shadow-soft) transition hover:-translate-y-0.5 motion-reduce:transition-none"
@@ -168,12 +184,14 @@
 					href={githubUrl}
 					target="_blank"
 					rel="noreferrer"
-					class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-foreground/30 bg-background px-7 text-base font-semibold text-foreground transition hover:-translate-y-0.5 motion-reduce:transition-none"
+					class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-foreground/30 bg-background px-7 text-base font-semibold text-foreground transition hover:bg-secondary motion-reduce:transition-none"
 				>
 					<GitHub class="h-4 w-4" /> Star on GitHub
 				</a>
 			</div>
-			<p class="mt-4 text-sm text-foreground/70">Free to use · Open source · Alpha</p>
+			<p class="mt-4 text-sm text-foreground/75">
+				Free in the cloud · Self-hosting soon · Open source
+			</p>
 		</div>
 
 		<div class="mt-14">
@@ -204,7 +222,7 @@
 						height="1389"
 						loading="lazy"
 						decoding="async"
-						class="mx-auto w-56 h-auto rounded-3xl shadow-(--shadow-lift) mix-blend-normal
+						class="mx-auto w-56 h-auto rounded-3xl drop-shadow-xl
 							mask-[linear-gradient(to_bottom,white_90%,transparent_100%)]"
 					/>
 				</div>
@@ -224,8 +242,8 @@
 				Bring your recipes with you.
 			</h2>
 			<p class="mt-3 text-foreground/80 max-w-md">
-				Paste a link from any video or blog, snap a handwritten note, or paste text. Cuicuit makes
-				it look nice and guesses filters.
+				Paste a recipe link or text. Keep the ingredients and steps together, with useful filters to
+				help you find it again.
 			</p>
 		</div>
 		<div class="md:w-1/2 space-y-3">
@@ -235,12 +253,12 @@
 					<p class="flex flex-wrap items-center gap-2 text-sm font-semibold">
 						Social videos & posts
 					</p>
-					<p class="mt-0.5 text-xs text-foreground/70">
+					<p class="mt-0.5 text-xs text-foreground/75">
 						YouTube · TikTok · Instagram · X · Facebook
 					</p>
 				</div>
 			</div>
-			<ul class="grid gap-3 grid-cols-3">
+			<ul class="grid gap-3 grid-cols-2">
 				{#each imports as item (item.label)}
 					<li class="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-(--shadow-soft)">
 						<item.icon class="h-5 w-5 shrink-0 text-primary" />
@@ -253,121 +271,154 @@
 </section>
 <div class="text-secondary/40"><Wave flip /></div>
 
-<!-- ==================== FAQ ==================== -->
-<section id="faq" class="mx-auto max-w-3xl px-6 py-20">
-	<h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight">Good questions</h2>
-	<div class="mt-8 divide-y divide-border border-y border-border">
-		{#each faqs as faq (faq.q)}
-			<details class="group py-5">
-				<summary
-					class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-medium"
-				>
-					{faq.q}
-					<Plus
-						class="h-5 w-5 shrink-0 text-primary transition-transform group-open:rotate-45 motion-reduce:transition-none"
-					/>
-				</summary>
-				<p class="mt-3 text-foreground/80 max-w-prose">{faq.a}</p>
-			</details>
-		{/each}
-	</div>
-</section>
-
-<Stitch />
-
-<!-- ==================== PRICING / OPEN ==================== -->
-<section id="pricing" class="mx-auto max-w-6xl px-6 pb-24">
+<!-- ==================== CLOUD / SELF-HOST ==================== -->
+<section id="pricing" class="mx-auto max-w-6xl px-6 pt-20 pb-24 scroll-mt-16">
 	<h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight text-balance max-w-2xl">
-		Free to use. Yours to host. Kept alive by supporters.
+		Free in the cloud today. Yours to host soon.
 	</h2>
-	<div class="mt-10 grid gap-6 lg:grid-cols-[1fr_1.15fr_1fr]">
-		<!-- Hosted -->
-		<div class="flex flex-col rounded-3xl border border-border/60 bg-card p-8">
+	<p class="mt-3 text-foreground/80 max-w-lg">
+		The same open-source app either way. Start in the cloud in a minute, or run it on your own
+		hardware once the Docker release lands.
+	</p>
+	<div class="mt-10 grid gap-6 md:grid-cols-2">
+		<!-- Cloud: the recommended path, available now -->
+		<div class="flex flex-col rounded-3xl bg-foreground p-8 text-background shadow-(--shadow-lift)">
 			<div class="flex items-center justify-between">
-				<Cloud class="h-6 w-6 text-primary" />
-				<span class="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
+				<Cloud class="h-6 w-6" aria-hidden="true" />
+				<span
+					class="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+				>
 					Available now
 				</span>
 			</div>
-			<h3 class="mt-6 font-display text-2xl font-semibold">Hosted</h3>
+			<h3 class="mt-6 font-display text-2xl font-semibold">Cloud</h3>
 			<p class="mt-1 font-display text-4xl font-semibold">Free</p>
-			<ul class="mt-6 mb-auto space-y-2 text-foreground/80">
-				{#each ['Every feature, nothing to install', 'Fair usage limits', 'Community seeds for AI imports'] as t (t)}
-					<li class="flex gap-2"><Check class="mt-1 h-4 w-4 shrink-0 text-primary" />{t}</li>
+			<ul class="mt-6 mb-auto space-y-2 text-background/85">
+				{#each ['Every feature, nothing to install', 'Synced between your phone, laptop and household', `${WEEKLY_COMMUNITY_SEEDS_LIMIT} free recipe imports a week from the shared seed garden`] as t (t)}
+					<li class="flex gap-2">
+						<Check class="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />{t}
+					</li>
 				{/each}
 			</ul>
 			<a
 				href="/signup"
 				class="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 font-semibold text-primary-foreground transition hover:-translate-y-0.5 motion-reduce:transition-none"
 			>
-				Sign up free <ArrowRight class="h-4 w-4" />
+				Sign up free <ArrowRight class="h-4 w-4" aria-hidden="true" />
 			</a>
+			<p class="mt-3 text-center text-sm text-background/75">No card needed.</p>
 		</div>
 
-		<!-- Self-hosted: prominent, with a coming-soon tag -->
+		<!-- Self-hosted: equal footing, honestly not released yet -->
 		<div
-			class="relative flex flex-col rounded-3xl bg-foreground p-8 text-background shadow-(--shadow-lift)"
+			class="flex flex-col rounded-3xl bg-card p-8 outline-2 outline-dashed -outline-offset-8 outline-foreground/25"
 		>
 			<div class="flex items-center justify-between">
-				<Server class="h-6 w-6 text-primary-foreground" />
+				<Server class="h-6 w-6 text-primary" aria-hidden="true" />
 				<span
-					class="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+					class="rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary"
 				>
 					Coming soon
 				</span>
 			</div>
 			<h3 class="mt-6 font-display text-2xl font-semibold">Self-hosted</h3>
 			<p class="mt-1 font-display text-4xl font-semibold">Free, forever</p>
-			<p class="mt-4 text-background/80">
-				Your recipes on your own hardware, with your own API keys. One docker-compose file, landing
-				right after the cloud version stabilizes.
+			<ul class="mt-6 space-y-2 text-foreground/80">
+				{#each ['Your recipes on your own hardware', 'Bring your own API keys', 'One Docker Compose file, AGPL-3.0'] as t (t)}
+					<li class="flex gap-2">
+						<Check class="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{t}
+					</li>
+				{/each}
+			</ul>
+			<p class="mt-4 mb-auto text-sm text-foreground/75">
+				Lands once the cloud version stabilizes, around early 2027.
 			</p>
-			<pre
-				class="mt-6 overflow-x-auto rounded-xl bg-background/10 p-4 text-sm text-background"><code
-					>$ git clone cuicuit
-$ docker compose up -d</code
-				></pre>
+			<div class="mt-8 flex flex-col gap-3 sm:flex-row">
+				<a
+					href={releasesUrl}
+					target="_blank"
+					rel="noreferrer"
+					class="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border-2 border-foreground px-6 font-semibold transition hover:bg-foreground hover:text-background motion-reduce:transition-none"
+				>
+					<GitHub class="h-4 w-4" /> Watch releases
+				</a>
+				<a
+					href={siteConfig.links.discord}
+					target="_blank"
+					rel="noreferrer"
+					class="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-foreground/30 px-6 font-semibold transition hover:bg-secondary motion-reduce:transition-none"
+				>
+					<Discord class="h-4 w-4" /> Join Discord
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<!-- Seeds: how the cloud stays free -->
+	<div class="mt-6 rounded-3xl bg-primary/10 p-8">
+		<div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+			<div>
+				<h3 class="font-display text-2xl font-semibold">How the cloud stays free</h3>
+				<p class="mt-2 max-w-prose text-foreground/80">
+					Seeds are how we share the hosting costs together. Support Cuicuit and you get seeds of
+					your own, plus you top up the shared seed garden for everyone.
+				</p>
+			</div>
+			<button
+				type="button"
+				onclick={openSupportWall}
+				class="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-foreground/30 bg-background px-6 font-semibold transition hover:-translate-y-0.5 motion-reduce:transition-none"
+			>
+				<Sprout class="h-4 w-4 text-primary" aria-hidden="true" /> Plant a few seeds
+			</button>
+		</div>
+		<details class="group mt-4">
+			<summary class="inline-flex cursor-pointer items-center gap-1 font-medium">
+				What are seeds?
+				<ChevronRight
+					class="size-4 translate-y-0.2 text-primary group-open:rotate-90 transition-transform motion-reduce:transition-none"
+					aria-hidden="true"
+				/>
+			</summary>
+			<SeedSteps class="mt-5" />
+		</details>
+	</div>
+</section>
+
+<section class="mx-auto max-w-6xl px-6 pb-16">
+	<div
+		class="flex flex-col items-start gap-6 border-y-2 border-dashed border-foreground/20 py-8 sm:flex-row sm:items-center sm:justify-between"
+	>
+		<div class="max-w-xl">
+			<h2 class="font-display text-2xl font-semibold">Join the community</h2>
+			<p class="mt-2 text-foreground/80">
+				You don't have to contribute money to help. Star Cuicuit on GitHub to help other cooks
+				discover it, or join us on Discord to shape what comes next.
+			</p>
+		</div>
+		<div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
 			<a
 				href={githubUrl}
 				target="_blank"
 				rel="noreferrer"
-				class="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-background px-6 font-semibold text-foreground transition hover:-translate-y-0.5 motion-reduce:transition-none"
+				class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-foreground px-6 font-semibold transition-colors hover:bg-foreground hover:text-background motion-reduce:transition-none"
 			>
-				<GitHub class="h-4 w-4" /> Star to follow along
+				<GitHub class="size-4" aria-hidden="true" /> Star Cuicuit on GitHub
 			</a>
-		</div>
-
-		<!-- Support -->
-		<div class="flex flex-col rounded-3xl bg-primary/10 p-8">
-			<div class="flex items-center justify-between">
-				<Sprout class="h-6 w-6 text-primary" />
-				<span class="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-foreground"
-					>Keeps it free</span
-				>
-			</div>
-			<h3 class="mt-6 font-display text-2xl font-semibold">Support</h3>
-			<p class="mt-1 font-display text-4xl font-semibold">
-				5 € <span class="text-xl text-foreground/70">= 100 seeds</span>
-			</p>
-			<p class="mt-4 text-foreground/80">
-				Cuicuit is built by one person and funded by supporters. Seeds pay for costly features like
-				AI imports: some are yours, the rest are shared with every user.
-			</p>
-			<button
-				type="button"
-				onclick={openSupportWall}
-				class="mt-8 lg:mt-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-foreground/30 bg-background px-6 font-semibold transition hover:-translate-y-0.5 motion-reduce:transition-none"
+			<a
+				href={siteConfig.links.discord}
+				target="_blank"
+				rel="noreferrer"
+				class="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-medium underline underline-offset-4"
 			>
-				<Heart class="h-4 w-4 text-primary" /> Support Cuicuit
-			</button>
+				<Discord class="size-4" aria-hidden="true" /> Join the conversation
+			</a>
 		</div>
 	</div>
 </section>
 
-<!-- <Stitch /> -->
-
 <!-- ==================== ROADMAP ==================== -->
-<section id="roadmap" class="mx-auto max-w-6xl px-6 pb-24">
+<section id="roadmap" class="mx-auto max-w-6xl px-6 pt-8 pb-24">
 	<div class="flex flex-wrap items-baseline gap-x-4">
 		<h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight">Where we are</h2>
 		<span class="font-hand text-3xl text-primary -rotate-2">alpha, growing fast</span>
@@ -415,7 +466,10 @@ $ docker compose up -d</code
 					></span>
 				</div>
 				<div
-					class="relative md:mt-6 rounded-2xl p-2 shadow-(--shadow-lift) {i === 1
+					class="relative md:mt-6 rounded-2xl px-7 pb-8 pt-10 outline-2 outline-dashed -outline-offset-8 shadow-(--shadow-lift) {col.tone ===
+					'live'
+						? 'outline-primary/50'
+						: 'outline-foreground/25'} {i === 1
 						? 'md:rotate-1'
 						: i === 2
 							? 'md:-rotate-1'
@@ -429,27 +483,62 @@ $ docker compose up -d</code
 						aria-hidden="true"
 						class="absolute -top-3 left-1/2 z-10 h-6 w-20 -translate-x-1/2 -rotate-2 bg-[oklch(0.86_0.13_75/0.75)] shadow-(--shadow-soft) [clip-path:polygon(4%_0,100%_0,96%_100%,0_100%)]"
 					></span>
-					<div
-						class="h-full rounded-xl border-2 border-dashed px-5 pb-6 pt-8 {col.tone === 'live'
-							? 'border-primary/50'
-							: 'border-foreground/25'}"
-					>
-						<h3 class="font-display text-xl font-semibold">{col.label}</h3>
-						<ul class="mt-4 space-y-2.5 text-foreground/85">
-							{#each col.items as item (item)}
-								<li class="flex items-start gap-2">
-									<span
-										class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full {col.tone === 'later'
-											? 'bg-foreground/50'
-											: 'bg-primary'}"
-									></span>
-									{item}
-								</li>
-							{/each}
-						</ul>
-					</div>
+					<h3 class="font-display text-xl font-semibold">{col.label}</h3>
+					<ul class="mt-4 space-y-2.5 text-foreground/85">
+						{#each col.items as item (item)}
+							<li class="flex items-start gap-2">
+								<span
+									class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full {col.tone === 'later'
+										? 'bg-foreground/50'
+										: 'bg-primary'}"
+								></span>
+								{item}
+							</li>
+						{/each}
+
+						{#if i === 2}
+							<li class="flex items-start gap-2">
+								<span
+									class="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full {col.tone === 'later'
+										? 'bg-foreground/50'
+										: 'bg-primary'}"
+								></span>
+								<a
+									href={siteConfig.links.githubFeatureRequests}
+									target="_blank"
+									rel="noreferrer"
+									class="flex items-center gap-1 underline decoration-dotted"
+								>
+									Vote what's next on GitHub
+									<ExternalLink class="size-4" />
+								</a>
+							</li>
+						{/if}
+					</ul>
 				</div>
 			</div>
+		{/each}
+	</div>
+</section>
+
+<Stitch />
+
+<!-- ==================== FAQ ==================== -->
+<section id="faq" class="mx-auto max-w-3xl px-6 py-20">
+	<h2 class="font-display text-3xl md:text-4xl font-semibold tracking-tight">Good questions</h2>
+	<div class="mt-8 divide-y divide-border border-y border-border">
+		{#each faqs as faq (faq.q)}
+			<details class="group py-5">
+				<summary
+					class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-medium"
+				>
+					{faq.q}
+					<Plus
+						class="h-5 w-5 shrink-0 text-primary transition-transform group-open:rotate-45 motion-reduce:transition-none"
+					/>
+				</summary>
+				<p class="mt-3 text-foreground/80 max-w-prose">{faq.a}</p>
+			</details>
 		{/each}
 	</div>
 </section>
@@ -457,16 +546,13 @@ $ docker compose up -d</code
 <!-- ==================== FINAL CTA ==================== -->
 <section class="mx-auto max-w-6xl px-6 pt-8">
 	<div
-		class="relative overflow-hidden rounded-4xl bg-primary p-4 text-center shadow-(--shadow-lift) rotate-[-0.4deg]"
+		class="relative overflow-hidden rounded-4xl bg-primary px-6 py-14 text-center shadow-(--shadow-lift) outline-2 outline-dashed -outline-offset-12 outline-primary-foreground/50 rotate-[-0.4deg] md:px-16 md:py-20"
 	>
 		<div
 			aria-hidden="true"
 			class="pointer-events-none absolute inset-0 bg-primary-foreground/15 mask-[url('/food-pattern.svg')] mask-size-[630px_540px]"
 		></div>
-		<!-- Embroidered patch: stitched inner border -->
-		<div
-			class="relative rounded-3xl border-2 border-dashed border-primary-foreground/50 px-6 py-12 md:px-16 md:py-16"
-		>
+		<div class="relative">
 			<img
 				src="/cuicuit_waving.png"
 				alt=""
@@ -476,10 +562,8 @@ $ docker compose up -d</code
 				loading="lazy"
 				class="mx-auto h-24 w-24 -rotate-6 mb-2 drop-shadow-md"
 			/>
-			<span class="block font-hand text-3xl text-primary-foreground/90 rotate-1">psst, hungry?</span
-			>
 			<h2
-				class="mt-2 font-display text-4xl md:text-6xl font-semibold tracking-tight text-primary-foreground text-balance"
+				class="mt-4 font-display text-4xl md:text-6xl font-semibold tracking-tight text-primary-foreground text-balance"
 			>
 				Try it on tonight's
 				<span class="relative inline-block">
@@ -508,17 +592,9 @@ $ docker compose up -d</code
 				>
 					Sign up free <ArrowRight class="h-5 w-5" />
 				</a>
-				<a
-					href={githubUrl}
-					target="_blank"
-					rel="noreferrer"
-					class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full border-2 border-primary-foreground/70 px-8 text-lg font-semibold text-primary-foreground transition hover:bg-primary-foreground/10 motion-reduce:transition-none"
-				>
-					<GitHub class="h-5 w-5" /> Star on GitHub
-				</a>
 			</div>
 			<p class="mt-8 font-hand text-2xl text-primary-foreground rotate-1">
-				Self-hosting: coming soon. Star the repo to follow along. C'est cuicuit!
+				Self-hosting is on its way. C'est cuicuit!
 			</p>
 		</div>
 	</div>
@@ -536,8 +612,8 @@ $ docker compose up -d</code
 			</div>
 			<p class="mt-3 text-sm text-foreground/80 max-w-prose">
 				Hi! I'm Pierre 😊 I made Cuicuit for myself and hope it'll be useful for more people. I'm
-				building in the open, keeping it free thanks to supporters. A 5 € support gives you 100
-				seeds for costly features like imports, and you give 50 seeds to everyone.
+				building in the open, keeping it free thanks to supporters. €5 a month gives you 100 recipe
+				imports plus 50 shared with everyone, and really helps keep Cuicuit going.
 			</p>
 			<button
 				type="button"
@@ -550,6 +626,7 @@ $ docker compose up -d</code
 		<div class="flex flex-col gap-1 text-sm text-foreground/80 md:items-end md:justify-center">
 			<a href="/changelog" class="inline-flex min-h-8 items-center gap-2 hover:text-foreground">
 				What&rsquo;s New
+				<Megaphone class="h-4 w-4" />
 			</a>
 			<a
 				href={githubUrl}
@@ -557,7 +634,8 @@ $ docker compose up -d</code
 				rel="noreferrer"
 				class="inline-flex min-h-8 items-center gap-2 hover:text-foreground"
 			>
-				<GitHub class="h-4 w-4" /> GitHub
+				GitHub
+				<GitHub class="h-4 w-4" />
 			</a>
 			<a
 				href={siteConfig.links.discord}
@@ -565,21 +643,13 @@ $ docker compose up -d</code
 				rel="noreferrer"
 				class="inline-flex min-h-8 items-center gap-2 hover:text-foreground"
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="16"
-					height="16"
-					fill="currentColor"
-					viewBox="0 0 16 16"
-					aria-hidden="true"
-				>
-					<path
-						d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"
-					/>
-				</svg>
 				Discord
+				<Discord class="h-4 w-4" />
 			</a>
-			<ThemeButton class="inline-flex justify-center md:justify-end" />
+			<div class="flex items-center mt-4 text-sm text-foreground/80">
+				Theme
+				<ThemeButton class="inline-flex justify-center md:justify-end" />
+			</div>
 		</div>
 	</div>
 </footer>

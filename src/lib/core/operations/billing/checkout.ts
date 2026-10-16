@@ -2,24 +2,17 @@ import { dev } from '$app/env';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import Stripe from 'stripe';
 import { z } from 'zod';
+import { contributionPath, contributionSchema } from '$lib/features/billing/contribution';
 
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
 
-const MINIMUM_PER_PAYMENT_AMOUNT = 3;
 const STRIPE_CUICUIT_PRODUCT_ID = dev ? 'prod_Us4cfPGPtzu7nF' : 'prod_Us4Gy2Fism9M4E'; // Test mode and LIVE stripe products
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2026-06-24.dahlia' });
 
-export const checkoutInput = z.object({
-	amountChosen: z
-		.number()
-		.min(
-			MINIMUM_PER_PAYMENT_AMOUNT,
-			`Due to fixed payment fees, we kindly ask to set a minimum per-payment amount above ${MINIMUM_PER_PAYMENT_AMOUNT} EUR. Please consider subscribing yearly or a larger one-time payment, thank you!`
-		),
+export const checkoutInput = contributionSchema.extend({
 	currency: z.string().length(3),
-	interval: z.enum(['month', 'year', 'once']),
 	// Transport-derived (from the request origin, or the `CHECKOUT_ORIGIN` env
 	// pin when set — core must not touch `getRequestEvent`, so the adapter
 	// injects it at the boundary). Validated as an absolute URL so a spoofed
@@ -33,18 +26,7 @@ export interface CheckoutResult {
 	url: string | null;
 }
 
-/**
- * `billing.checkout` — create a Stripe checkout session (server-only, Stripe
- * secret never leaves the server).
- *
- * Body moved verbatim from
- * `src/lib/features/billing/server/create-stripe-checkout-session.remote.ts`.
- * Auth (confirmed-email check) now lives in `requireCtx('app')`; the customer
- * email is re-read from `ctx.supabase.auth.getUser()` (same source as before).
- * `success_url`/`cancel_url` use the injected `origin` instead of
- * `event.url.origin`. Failures throw `OpError` (`VALIDATION` for the minimum
- * amount, `INTERNAL` for Stripe errors) with the original messages.
- */
+/** Server-only checkout: account identity comes from auth, never from form input. */
 export const checkoutOp = defineOp({
 	name: 'billing.checkout',
 	domain: 'billing',
@@ -63,10 +45,6 @@ export const checkoutOp = defineOp({
 		const email = userData.user?.email;
 		const userId = ctx.userId;
 		if (!email) throw new OpError('UNAUTHENTICATED', 'User must be confirmed with a valid email.');
-
-		if (amountChosen < MINIMUM_PER_PAYMENT_AMOUNT) {
-			throw new OpError('VALIDATION', `Minimum billing amount is ${MINIMUM_PER_PAYMENT_AMOUNT}.`);
-		}
 
 		try {
 			const isSubscription = interval === 'month' || interval === 'year';
@@ -93,7 +71,7 @@ export const checkoutOp = defineOp({
 					}
 				],
 				success_url: `${origin}/supporter/success?session_id={CHECKOUT_SESSION_ID}`,
-				cancel_url: `${origin}/supporter`
+				cancel_url: `${origin}${contributionPath({ amountChosen, currency, interval })}`
 			};
 
 			// If you capture the stripe customer id via the mapping table on previous lookups,

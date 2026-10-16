@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { clearSupportIntent, getSupportIntent } from '$lib/features/billing/support-intent';
+	import { onMount } from 'svelte';
 	import { Heart } from '@lucide/svelte';
 	import Transition from './transition.svelte';
 
@@ -11,6 +13,10 @@
 	let { data, children }: Props = $props();
 
 	const TopRightComponent = $derived(page.data.topRight);
+	let supportReturn = $state<string | null>(null);
+	onMount(() => {
+		supportReturn = getSupportIntent();
+	});
 </script>
 
 <div class="relative h-screen lg:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -49,6 +55,20 @@
 	</div>
 
 	<div class="relative mx-auto flex h-screen flex-col justify-center w-full max-w-[380px]">
+		{#if supportReturn}
+			<div class="mx-4 mb-6 rounded-xl border border-border bg-card p-4 text-center text-sm">
+				<p class="font-semibold">Your contribution is saved.</p>
+				<p class="mt-1 text-muted-foreground">
+					Log in or create an account, then review it before opening Stripe.
+				</p>
+				<a
+					href={supportReturn}
+					onclick={clearSupportIntent}
+					class="mt-2 inline-flex min-h-11 items-center underline underline-offset-4"
+					>Back to contribution</a
+				>
+			</div>
+		{/if}
 		<Transition url={data.url} direction={page.data.direction}>
 			{@render children?.()}
 		</Transition>

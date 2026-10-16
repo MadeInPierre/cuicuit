@@ -70,7 +70,7 @@
 							<X />
 						</InputGroup.Button>
 					</InputGroup.Addon>
-				{:else}
+				<!-- {:else}
 					<InputGroup.Addon align="inline-end">
 						<InputGroup.Button
 							aria-label="Clear search"
@@ -84,7 +84,7 @@
 						>
 							<Mic />
 						</InputGroup.Button>
-					</InputGroup.Addon>
+					</InputGroup.Addon> -->
 				{/if}
 			</InputGroup.Root>
 		</div>

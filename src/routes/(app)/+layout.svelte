@@ -2,6 +2,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
+	import { getSupportIntent } from '$lib/features/billing/support-intent';
 	import { createActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte.js';
 	import LoadingSplash from '$lib/shared/components/LoadingSplash.svelte';
 	import MobileBottomNavbar from '$lib/shared/components/mobile-bottom-navbar.svelte';
@@ -50,6 +51,11 @@
 		// Only run this effect in the browser, not in the server.
 		// Skipped entirely while degraded (see above).
 		if (browser && !degraded) {
+			const supportReturn = getSupportIntent();
+			if (supportReturn && userState.user?.email_confirmed_at) {
+				goto(supportReturn);
+				return;
+			}
 			if (userState.user === null) {
 				console.warn('User is not logged in, redirect to signup');
 				goto('/signup');
@@ -62,12 +68,6 @@
 			) {
 				console.warn('User has not finished onboarding, redirect to welcome');
 				goto('/welcome');
-			}
-
-			// If the user wanted to see the support page, bring them there
-			const navigateIntent = localStorage.getItem('navigate-intent');
-			if (navigateIntent === 'supporter-page') {
-				goto('/supporter');
 			}
 		}
 	});

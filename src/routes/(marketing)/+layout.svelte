@@ -38,25 +38,24 @@
 				class="w-70 flex items-center justify-start gap-1 text-xl font-semibold tracking-tight"
 			>
 				<div class="flex items-center justify-center gap-2">
-					<img src="/cuicuit_logo_transparent.png" alt="Cuicuit" class="h-8" />
-					<h1>Cuicuit</h1>
+					<img src="/cuicuit_logo_transparent.png" alt="" class="h-8" />
+					<span>Cuicuit</span>
 				</div>
 
-				<span class="px-2 text-xl text-[#fab030] font-hand"> alpha </span>
+				<span class="px-2 text-xl text-primary font-hand"> alpha </span>
 			</a>
 
 			<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
 				<a href="/#how" class="hover:text-foreground transition-colors">How it works</a>
-				<a href="/#pricing" class="hover:text-foreground transition-colors">Pricing</a>
+				<a href="/#pricing" class="hover:text-foreground transition-colors">Cloud & self-host</a>
 				<a href="/#roadmap" class="hover:text-foreground transition-colors">Roadmap</a>
-				<a href="/changelog" class="hover:text-foreground transition-colors">What&rsquo;s New</a>
 				<a href="/#faq" class="hover:text-foreground transition-colors">FAQ</a>
-				<!-- <a href="/#story" class="hover:text-foreground transition-colors">Story</a> -->
 
 				<a
 					href="https://github.com/MadeInPierre/cuicuit"
 					target="_blank"
 					rel="noreferrer"
+					aria-label={stars ? `GitHub repository, ${stars} stars` : 'GitHub repository'}
 					class="hover:text-foreground transition-colors inline-flex items-center gap-1"
 				>
 					<GitHub class="h-4 w-4" />
@@ -106,8 +105,8 @@
 		opacity: 0.07;
 		mix-blend-mode: multiply;
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.2 0 0 0 0 0.1 0 0 0 1.4 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-			repeating-linear-gradient(0deg, rgb(90 60 30 / 0.5) 0 1px, transparent 1px 4px),
-			repeating-linear-gradient(90deg, rgb(90 60 30 / 0.5) 0 1px, transparent 1px 4px);
+			repeating-linear-gradient(0deg, rgb(90 60 30 / 0.3) 0 1px, transparent 1px 4px),
+			repeating-linear-gradient(90deg, rgb(90 60 30 / 0.3) 0 1px, transparent 1px 4px);
 	}
 	:global(.dark) .grain {
 		mix-blend-mode: screen;

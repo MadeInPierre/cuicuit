@@ -53,7 +53,7 @@
 						target="_blank"
 						class="underline decoration-dotted"
 					>
-						Pierre Laclau
+						Pierre
 					</a>
 				</div>
 			</Dialog.Description>

@@ -7,8 +7,8 @@
 Every database-touching thing in Cuicuit is defined once as an **operation**
 (one file per operation), and then exposed through **thin doors**:
 
-| Door           | Where                             | Who uses it                                      |
-| -------------- | --------------------------------- | ------------------------------------------------ |
+| Door            | Where                             | Who uses it                                      |
+| --------------- | --------------------------------- | ------------------------------------------------ |
 | 📱 App          | `*.remote.ts` + direct core calls | The Web UI you click                             |
 | 🌐 REST API     | `src/routes/api/v1/...`           | Scripts, CLIs, integrations (JWT or PAT)         |
 | 🤖 MCP          | `POST /mcp` (Streamable HTTP)     | AI agents, with a PAT                            |
@@ -22,7 +22,7 @@ inside. Doors handle transport, while the op handles data.
 The REST API and MCP doors use PATs (Personal Access Tokens) for auth. Create one via `POST /api/v1/auth/tokens` (JWT only) or using the Web UI settings.
 
 - **REST**: Use the header `Authorization: Bearer <Supabase JWT | cui_… PAT>`.
-  - OpenAPI schema: `GET /api/v1/openapi.json`. 
+  - OpenAPI schema: `GET /api/v1/openapi.json`.
   - Human Swagger UI (Scalar): `/api/v1/docs`.
   - Docs with curl + SSE: [`src/routes/api/v1/README.md`](../src/routes/api/v1/README.md).
 - **MCP**: point your client at `/mcp` with the PAT. `tools/list` works pre-auth
@@ -59,7 +59,7 @@ export const pantryAddItemOp = defineOp({
 	docs: {
 		title: 'Add a pantry item', // short label
 		description: 'Adds an item to the space pantry.', // 1–3 sentences, agent-facing
-		tool: 'pantry_add_item', // optional MCP override (default: dots/dashes → `_`)
+		tool: 'pantry_add_item', // optional MCP tool name override
 		hints: ['Deletes are soft …'] // optional extra agent notes
 	},
 	input: pantryAddItemInput, // zod input gets validated for every door
@@ -82,16 +82,17 @@ export const pantryAddItemOp = defineOp({
 ```
 
 **2. Register it** — import the file in **both**:
+
 - `src/lib/core/operations/index.ts` (server: everything)
 - `src/lib/core/operations/client.ts` (browser-safe ops only — never files that use `ctx.admin`, Stripe, or private environment variables).
 
 **3. Open the doors:**
 
-| Door   | Work                                                                                                                                                                                                       |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Door    | Work                                                                                                                                                                                                       |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 📱 App  | Add a thin `*.remote.ts`: `query(inputSchema, (i) => runOp('pantry.add-item', await requireCtx('app'), i))`, or call `runOp` with `getClientCtx()` from `client.js`. Toasts/refresh stay in the component. |
 | 🌐 REST | Add one entry to `API_ROUTES` in `src/routes/api/v1/openapi.ts` (OpenAPI renders itself) + a `<50`-line `+server.ts` (auth → parse → `runApiOp` → json). Copy a sibling.                                   |
-| 🤖 MCP  | Nothing. 🎉 Tools render from the registry — your op appears automatically.                                                                                                                                 |
+| 🤖 MCP  | Nothing. 🎉 Tools render from the registry — your op appears automatically.                                                                                                                                |
 
 **4. Harden it** (steal from siblings):
 

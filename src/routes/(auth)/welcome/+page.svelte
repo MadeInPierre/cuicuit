@@ -4,11 +4,8 @@
 	import { generateRandomProfileDraft } from '$lib/features/auth/actions/create-user-data';
 	import { profileFormSchema } from '$lib/features/auth/models/schemas';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import {
-		CURATED_LANGUAGES,
-		DEFAULT_LANGUAGE,
-		type LanguageCode
-	} from '$lib/shared/language.js';
+	import { getSupportIntent } from '$lib/features/billing/support-intent';
+	import { CURATED_LANGUAGES, DEFAULT_LANGUAGE, type LanguageCode } from '$lib/shared/language.js';
 	const languages = CURATED_LANGUAGES;
 	import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 	import '$lib/core/operations/profile/complete-onboarding.js';
@@ -26,6 +23,13 @@
 	const userState = getUserState();
 
 	$effect(() => {
+		if (browser && userState.user?.email_confirmed_at) {
+			const supportReturn = getSupportIntent();
+			if (supportReturn) {
+				goto(supportReturn);
+				return;
+			}
+		}
 		// Require the user to be signed in to get here
 		if (browser && userState.user === null) {
 			console.warn('User is not logged in, redirect to /login');

@@ -14,7 +14,7 @@
 ![Hero](./static/hero/hero_wide.png)
 
 > [!WARNING]
-> 🐣 **Cuicuit just hatched!** Expect alpha-quality with many bugs and rough edges. Feedback is appreciated!
+> 🐣 **Cuicuit just hatched!** Expect alpha-quality with some rough edges. Feedback is appreciated!
 
 > [!NOTE]
 > Self-hostable deployment coming soon! I am actively stabilizing the app foundations and hosted version first. No releases yet, but you can try the [hosted version](https://cuicuit.laclau.dev) and give feedback in [Discord](https://discord.gg/yJrPfp2G3y), [Discussions](https://github.com/MadeInPierre/cuicuit/discussions/categories/ideas), or [call me](https://cal.com/madeinpierre/cuicuit).

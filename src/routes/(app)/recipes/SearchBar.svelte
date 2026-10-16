@@ -35,7 +35,7 @@
 				<X />
 			</InputGroup.Button>
 		</InputGroup.Addon>
-	{:else}
+	<!-- {:else}
 		<InputGroup.Addon align="inline-end">
 			<InputGroup.Button
 				size="icon-xs"
@@ -47,6 +47,6 @@
 			>
 				<Mic />
 			</InputGroup.Button>
-		</InputGroup.Addon>
+		</InputGroup.Addon> -->
 	{/if}
 </InputGroup.Root>

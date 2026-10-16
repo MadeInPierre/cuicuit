@@ -18,8 +18,8 @@ import type { OpCtx } from './registry.js';
  * directly — the two import ops apply this internally.
  */
 
-/** Max community seeds one user may consume per week (all users). */
-export const WEEKLY_COMMUNITY_SEEDS_LIMIT = 50;
+/** Max community seeds one user may consume per week (users with no seeds). */
+export const WEEKLY_COMMUNITY_SEEDS_LIMIT = 20;
 /** Max private seeds one user may consume per week (supporters). */
 export const WEEKLY_PRIVATE_SEEDS_LIMIT = 1000;
 
