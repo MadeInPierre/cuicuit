@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import SourceLogoStack from '$lib/features/recipes/components/SourceLogoStack.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import { WEEKLY_COMMUNITY_SEEDS_LIMIT } from '$lib/core/operations/credits';
@@ -73,7 +72,7 @@
 		{
 			label: 'Coming soon',
 			tone: 'soon',
-			items: ['Self-hosting with Docker', 'Nutrition stats & Timeline', 'Pantry tracking']
+			items: ['Self-hosting with Docker', 'Nutrition stats & Timeline', 'Offline support']
 		},
 		{
 			label: 'Later',
@@ -89,7 +88,7 @@
 		},
 		{
 			q: 'Is Cuicuit really free?',
-			a: `Yes! Planning, shopping lists and sharing are always free. Recipe imports use seeds: you can use up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} a week from the shared garden while seeds are available. Supporting the app gets you seeds of your own and tops up the garden for everyone.`
+			a: `Yes! All features free, with no subscription required. To share hosting costs, recipe imports use seeds. You can use up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} shared seeds weekly while the community fund has seeds available. If it runs out, you can wait for supporters to top-up or contribute yourself to get your own seeds. Your saved recipes, plan and shopping list remain always available.`
 		},
 		{
 			q: 'How does recipe import work?',
@@ -97,7 +96,7 @@
 		},
 		{
 			q: 'Can I host it myself?',
-			a: 'Soon. Cuicuit is open source (AGPL-3.0), and a Docker Compose release will follow once the cloud version stabilizes. Watch releases on GitHub or join the Discord to hear when it lands. Until then, the cloud version is free.'
+			a: 'Soon. Cuicuit is open source (AGPL-3.0), and a Docker Compose release is planned once the cloud version stabilizes. Early 2027 is a target, not a confirmed release date. Watch releases on GitHub for updates.'
 		},
 		{
 			q: 'Is it stable?',
@@ -111,9 +110,11 @@
 
 	let openSupportDialog = $state(false);
 	let media = useMedia();
-	function openSupportWall() {
-		if (media.md) openSupportDialog = true;
-		else goto('/supporter');
+	function openSupportWall(event: MouseEvent) {
+		if (media.md && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+			event.preventDefault();
+			openSupportDialog = true;
+		}
 	}
 </script>
 
@@ -184,7 +185,7 @@
 					href={githubUrl}
 					target="_blank"
 					rel="noreferrer"
-					class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-foreground/30 bg-background px-7 text-base font-semibold text-foreground transition hover:bg-secondary motion-reduce:transition-none"
+					class="inline-flex min-h-12 items-center justify-center gap-2 px-4 text-base font-medium text-foreground underline underline-offset-4 hover:text-primary"
 				>
 					<GitHub class="h-4 w-4" /> Star on GitHub
 				</a>
@@ -292,14 +293,21 @@
 				</span>
 			</div>
 			<h3 class="mt-6 font-display text-2xl font-semibold">Cloud</h3>
-			<p class="mt-1 font-display text-4xl font-semibold">Free</p>
+			<p class="mt-1 font-display text-4xl font-semibold flex gap-2 items-end">
+				Free
+				<span class="text-lg">as a 🐤</span>
+			</p>
 			<ul class="mt-6 mb-auto space-y-2 text-background/85">
-				{#each ['Every feature, nothing to install', 'Synced between your phone, laptop and household', `${WEEKLY_COMMUNITY_SEEDS_LIMIT} free recipe imports a week from the shared seed garden`] as t (t)}
+				{#each ['Every feature, nothing to install', 'Synced between your phone and laptop', `Up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} recipe imports a week, using the community fund`] as t (t)}
 					<li class="flex gap-2">
 						<Check class="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />{t}
 					</li>
 				{/each}
 			</ul>
+			<p class="mt-4 text-sm text-background/85">
+				Imports use credits called seeds as a way to share hosting costs. If shared seeds run out, wait for a supporter to top-up or contribute
+				to get your own. All other features remain always available.
+			</p>
 			<a
 				href="/signup"
 				class="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 font-semibold text-primary-foreground transition hover:-translate-y-0.5 motion-reduce:transition-none"
@@ -309,7 +317,7 @@
 			<p class="mt-3 text-center text-sm text-background/75">No card needed.</p>
 		</div>
 
-		<!-- Self-hosted: equal footing, honestly not released yet -->
+		<!-- Self-hosting is planned, not available yet. -->
 		<div
 			class="flex flex-col rounded-3xl bg-card p-8 outline-2 outline-dashed -outline-offset-8 outline-foreground/25"
 		>
@@ -331,24 +339,16 @@
 				{/each}
 			</ul>
 			<p class="mt-4 mb-auto text-sm text-foreground/75">
-				Lands once the cloud version stabilizes, around early 2027.
+				Coming soon around early 2027, once the cloud version stabilizes. Watch releases on GitHub for updates.
 			</p>
 			<div class="mt-8 flex flex-col gap-3 sm:flex-row">
 				<a
 					href={releasesUrl}
 					target="_blank"
 					rel="noreferrer"
-					class="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border-2 border-foreground px-6 font-semibold transition hover:bg-foreground hover:text-background motion-reduce:transition-none"
+					class="inline-flex min-h-11 items-center gap-2 font-medium underline underline-offset-4 hover:text-primary"
 				>
 					<GitHub class="h-4 w-4" /> Watch releases
-				</a>
-				<a
-					href={siteConfig.links.discord}
-					target="_blank"
-					rel="noreferrer"
-					class="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-foreground/30 px-6 font-semibold transition hover:bg-secondary motion-reduce:transition-none"
-				>
-					<Discord class="h-4 w-4" /> Join Discord
 				</a>
 			</div>
 		</div>
@@ -360,20 +360,21 @@
 			<div>
 				<h3 class="font-display text-2xl font-semibold">How the cloud stays free</h3>
 				<p class="mt-2 max-w-prose text-foreground/80">
-					Seeds are how we share the hosting costs together. Support Cuicuit and you get seeds of
-					your own, plus you top up the shared seed garden for everyone.
+					Contributions help cover hosting and recipe imports. You get your own import credits,
+					called seeds, and add seeds to the community fund. Contributing is optional.
 				</p>
 			</div>
-			<button
-				type="button"
+			<a
+				href="/supporter"
+				aria-haspopup={media.md ? 'dialog' : undefined}
 				onclick={openSupportWall}
 				class="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-foreground/30 bg-background px-6 font-semibold transition hover:-translate-y-0.5 motion-reduce:transition-none"
 			>
-				<Sprout class="h-4 w-4 text-primary" aria-hidden="true" /> Plant a few seeds
-			</button>
+				<Sprout class="h-4 w-4 text-primary" aria-hidden="true" /> Support Cuicuit
+			</a>
 		</div>
 		<details class="group mt-4">
-			<summary class="inline-flex cursor-pointer items-center gap-1 font-medium">
+			<summary class="inline-flex min-h-11 cursor-pointer items-center gap-1 font-medium">
 				What are seeds?
 				<ChevronRight
 					class="size-4 translate-y-0.2 text-primary group-open:rotate-90 transition-transform motion-reduce:transition-none"
@@ -385,38 +386,6 @@
 	</div>
 </section>
 
-<section class="mx-auto max-w-6xl px-6 pb-16">
-	<div
-		class="flex flex-col items-start gap-6 border-y-2 border-dashed border-foreground/20 py-8 sm:flex-row sm:items-center sm:justify-between"
-	>
-		<div class="max-w-xl">
-			<h2 class="font-display text-2xl font-semibold">Join the community</h2>
-			<p class="mt-2 text-foreground/80">
-				You don't have to contribute money to help. Star Cuicuit on GitHub to help other cooks
-				discover it, or join us on Discord to shape what comes next.
-			</p>
-		</div>
-		<div class="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
-			<a
-				href={githubUrl}
-				target="_blank"
-				rel="noreferrer"
-				class="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-foreground px-6 font-semibold transition-colors hover:bg-foreground hover:text-background motion-reduce:transition-none"
-			>
-				<GitHub class="size-4" aria-hidden="true" /> Star Cuicuit on GitHub
-			</a>
-			<a
-				href={siteConfig.links.discord}
-				target="_blank"
-				rel="noreferrer"
-				class="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-medium underline underline-offset-4"
-			>
-				<Discord class="size-4" aria-hidden="true" /> Join the conversation
-			</a>
-		</div>
-	</div>
-</section>
-
 <!-- ==================== ROADMAP ==================== -->
 <section id="roadmap" class="mx-auto max-w-6xl px-6 pt-8 pb-24">
 	<div class="flex flex-wrap items-baseline gap-x-4">
@@ -424,7 +393,7 @@
 		<span class="font-hand text-3xl text-primary -rotate-2">alpha, growing fast</span>
 	</div>
 	<p class="mt-2 text-foreground/80 max-w-prose">
-		The core loop works and I use it daily. Here is what comes next, with no promised dates.
+		The core loop works and I use it daily. The roadmap is shaped by feedback from the community on Discord and GitHub. If you have ideas, please share them!
 	</p>
 	<div class="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
 		{#each roadmap as col, i (col.label)}
@@ -611,20 +580,21 @@
 				Cuicuit
 			</div>
 			<p class="mt-3 text-sm text-foreground/80 max-w-prose">
-				Hi! I'm Pierre 😊 I made Cuicuit for myself and hope it'll be useful for more people. I'm
-				building in the open, keeping it free thanks to supporters. €5 a month gives you 100 recipe
-				imports plus 50 shared with everyone, and really helps keep Cuicuit going.
+				Hi! I'm Pierre 😊 I made Cuicuit for myself and hope it'll be useful for more people.
+				Supporters help me cover hosting and recipe import costs while I build in the open. You can also
+				help by starring Cuicuit on GitHub or sharing feedback on Discord. Thank you!
 			</p>
-			<button
-				type="button"
+			<a
+				href="/supporter"
+				aria-haspopup={media.md ? 'dialog' : undefined}
 				onclick={openSupportWall}
 				class="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-foreground/30 px-5 text-sm font-semibold hover:bg-secondary"
 			>
 				<Heart class="h-4 w-4 text-primary" /> Support Cuicuit
-			</button>
+			</a>
 		</div>
 		<div class="flex flex-col gap-1 text-sm text-foreground/80 md:items-end md:justify-center">
-			<a href="/changelog" class="inline-flex min-h-8 items-center gap-2 hover:text-foreground">
+			<a href="/changelog" class="inline-flex min-h-11 items-center gap-2 hover:text-foreground">
 				What&rsquo;s New
 				<Megaphone class="h-4 w-4" />
 			</a>
@@ -632,23 +602,23 @@
 				href={githubUrl}
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex min-h-8 items-center gap-2 hover:text-foreground"
+				class="inline-flex min-h-11 items-center gap-2 hover:text-foreground"
 			>
-				GitHub
+				Star Cuicuit on GitHub
 				<GitHub class="h-4 w-4" />
 			</a>
 			<a
 				href={siteConfig.links.discord}
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex min-h-8 items-center gap-2 hover:text-foreground"
+				class="inline-flex min-h-11 items-center gap-2 hover:text-foreground"
 			>
-				Discord
+				Join Discord
 				<Discord class="h-4 w-4" />
 			</a>
 			<div class="flex items-center mt-4 text-sm text-foreground/80">
 				Theme
-				<ThemeButton class="inline-flex justify-center md:justify-end" />
+				<ThemeButton class="inline-flex size-11 justify-center" />
 			</div>
 		</div>
 	</div>

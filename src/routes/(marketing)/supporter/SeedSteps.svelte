@@ -12,17 +12,17 @@
 		{
 			icon: HandHeart,
 			title: 'Supporters chip in',
-			text: `Every ${sym}1 grows ${SEEDS_PER_UNIT.private} 🌱 for them and ${SEEDS_PER_UNIT.public} 🌱 for the shared garden.`
+			text: `Every ${sym}1 adds ${SEEDS_PER_UNIT.private} seeds to your balance and ${SEEDS_PER_UNIT.public} to the community fund.`
 		},
 		{
 			icon: Sprout,
 			title: 'Everyone picks from the garden',
-			text: `Free users can use up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} 🌱 a week from the shared garden.`
+			text: `Anyone can use up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} shared seeds weekly while the community fund has seeds available.`
 		},
 		{
 			icon: Sparkles,
 			title: 'Seeds power recipe imports',
-			text: `${importCost} 🌱 = ${importCost} recipe import. Everything else is free for everyone.`
+			text: `Each recipe import uses ${importCost} seed${importCost === 1 ? '' : 's'}. Planning, shopping lists and sharing stay free.`
 		}
 	]);
 </script>

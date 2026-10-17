@@ -21,8 +21,8 @@
 <Dialog.Root bind:open>
 	<Dialog.Content
 		class={media.md
-			? 'min-w-xl lg:min-w-250 max-h-[90vh] overflow-y-auto bg-background p-0'
-			: 'h-dvh w-screen max-w-none sm:max-w-none md:max-w-none lg:max-w-none rounded-none border-0 bg-background p-0 overflow-y-auto'}
+			? 'min-w-xl lg:min-w-250 max-h-[90vh] overflow-y-auto bg-background p-0 [&_[data-slot=dialog-close]]:size-11'
+			: 'h-dvh w-screen max-w-none sm:max-w-none md:max-w-none lg:max-w-none rounded-none border-0 bg-background p-0 overflow-y-auto [&_[data-slot=dialog-close]]:size-11'}
 	>
 		<Dialog.Title class="sr-only">Support Cuicuit</Dialog.Title>
 		<Dialog.Description class="sr-only">

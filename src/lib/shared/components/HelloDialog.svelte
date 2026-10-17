@@ -29,7 +29,7 @@
 			</Dialog.Title>
 			<Dialog.Description class="grid space-y-3 pt-3">
 				<span>
-					Welcome to the alpha version of Cuicuit! This is a very early preview to see if people
+					Welcome to the alpha version of Cuicuit! This is an early preview to see if people
 					like the concept. I am actively working on improving the app, expect some bugs and rough
 					edges!
 				</span>

@@ -5,8 +5,10 @@ export const siteConfig = {
 	description:
 		"Your favorite kitchen companion! Import recipes, jot down meal ideas and things you're missing at home, and Cuicuit turns them into a convenient shopping list. Think about meals, not ingredients. Open source & self-hostable.",
 	links: {
+		billingPortal: 'https://billing.stripe.com/p/login/4gMdRbc12dgM4kfd7l7N600',
 		github: 'https://github.com/MadeInPierre/cuicuit',
-		githubFeatureRequests: 'https://github.com/MadeInPierre/cuicuit/discussions/categories/feature-requests-ideas',
+		githubFeatureRequests:
+			'https://github.com/MadeInPierre/cuicuit/discussions/categories/feature-requests-ideas',
 		discord: 'https://discord.gg/guQDECXK7'
 	},
 	keywords:

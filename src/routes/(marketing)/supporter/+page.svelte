@@ -5,10 +5,10 @@
 </script>
 
 <svelte:head>
-	<title>Support Cuicuit — Plant a few seeds</title>
+	<title>Support Cuicuit — Recipe imports for you and the community</title>
 	<meta
 		name="description"
-		content="Support independent, open-source cooking. Choose a contribution from 3 and grow recipe imports for you and the community."
+		content="Support independent, open-source cooking from €3, $3 or £3. Get recipe imports for yourself and help fund imports for the community."
 	/>
 </svelte:head>
 

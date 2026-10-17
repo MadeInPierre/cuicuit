@@ -7,12 +7,21 @@
 	import { clearSupportIntent, saveSupportIntent } from '$lib/features/billing/support-intent';
 	import { createStripeCheckoutSession } from '$lib/features/billing/server/create-stripe-checkout-session.remote';
 	import { Button } from '$lib/shared/components/ui/button';
+	import { siteConfig } from '$lib/shared/config/site-config';
 	import { connectivity, requireOnline } from '$lib/shared/state/connectivity.svelte';
 	import { cn } from '$lib/utils';
-	import { ArrowRight, ChevronRight, ExternalLink, LoaderCircle, Lock, Sprout } from '@lucide/svelte';
+	import {
+		ArrowRight,
+		ChevronRight,
+		ExternalLink,
+		Heart,
+		LoaderCircle,
+		Lock,
+		Sprout
+	} from '@lucide/svelte';
 	import { isHttpError } from '@sveltejs/kit';
 	import posthog from 'posthog-js';
-	import { untrack } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import SeedSteps from './SeedSteps.svelte';
 
@@ -36,7 +45,12 @@
 	let submitting = $state(false);
 	let needsLogin = $state(false);
 	let checkoutError = $state('');
+	let ready = $state(false);
 	const signedIn = $derived(!!accountEmail && !needsLogin);
+
+	onMount(() => {
+		ready = true;
+	});
 
 	const sym = $derived(SYMBOLS[currency]);
 	const per = $derived(FREQUENCIES.find((f) => f.id === frequency)!.per);
@@ -44,10 +58,24 @@
 		contributionSchema.safeParse({ amountChosen: amount, currency, interval: frequency })
 	);
 	const valid = $derived(selection.success);
-	const value = $derived(valid ? (amount ?? 0) : 0);
+	const value = $derived(selection.success ? selection.data.amountChosen : 0);
+	const amountError = $derived(
+		amount === undefined || !Number.isFinite(amount) || amount < MIN_SUPPORT_AMOUNT
+			? `Enter ${sym}${MIN_SUPPORT_AMOUNT} or more to cover transaction fees.`
+			: 'Use no more than two decimal places.'
+	);
 	const yourSeeds = $derived(Math.round(value * SEEDS_PER_UNIT.private));
 	const gardenSeeds = $derived(Math.round(value * SEEDS_PER_UNIT.public));
 	const imports = $derived(Math.floor(yourSeeds / FEATURE_COSTS.import_recipe_from_website.seeds));
+
+	function money(value: number) {
+		return new Intl.NumberFormat('en', {
+			style: 'currency',
+			currency: currency.toUpperCase(),
+			minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+			maximumFractionDigits: 2
+		}).format(value);
+	}
 
 	$effect(() => {
 		if (accountEmail) clearSupportIntent();
@@ -93,17 +121,32 @@
 </script>
 
 <div class="px-5 py-6 sm:px-8 sm:py-8">
-	<header class="pr-5">
-		<h1 class="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-			Plant seeds and support us
+	<header class="pr-8">
+		<h1
+			class="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl flex items-center gap-3"
+		>
+			<img
+				src="/cuicuit_waving.png"
+				alt=""
+				aria-hidden={true}
+				width="96"
+				height="96"
+				loading="lazy"
+				class="h-10 w-10 -rotate-6"
+			/>
+			Support Cuicuit
 		</h1>
-		<p class="mt-3 max-w-prose text-foreground/80">
-			Help keep Cuicuit free. Get your own recipe imports and give to the community.
+		<p class="mt-3 max-w-lg text-foreground/80">
+			Help Cuicuit remain free by getting your own recipe imports.
+		</p>
+		<p class="mt-2 max-w-lg text-sm text-foreground/75">
+			Seeds are credits for recipe imports. Contribute to guarantee your own seeds and help the
+			community fund. All other features are free.
 		</p>
 	</header>
 
 	<form onsubmit={onSubmit} class="mt-6">
-		<fieldset disabled={submitting} class="grid gap-6 lg:grid-cols-2 lg:gap-10">
+		<fieldset disabled={!ready || submitting} class="grid gap-6 lg:grid-cols-2 lg:gap-10">
 			<legend class="sr-only">Choose your contribution</legend>
 			<div class="space-y-5">
 				<fieldset class="grid grid-cols-3 gap-1 rounded-full bg-secondary p-1">
@@ -169,7 +212,7 @@
 						<select
 							id="{id}-currency"
 							bind:value={currency}
-							class="min-h-12 rounded-xl border border-input bg-card px-3 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-ring"
+							class="min-h-12 rounded-xl border border-input bg-card px-3 text-base font-semibold focus-visible:ring-2 focus-visible:ring-ring"
 						>
 							{#each Object.keys(SYMBOLS) as c (c)}
 								<option value={c}>{c.toUpperCase()}</option>
@@ -183,7 +226,7 @@
 					aria-live="polite"
 				>
 					{#if !valid}
-						Sorry, we require {sym}{MIN_SUPPORT_AMOUNT} or more due to transaction fees.
+						{amountError}
 					{/if}
 				</p>
 			</div>
@@ -198,19 +241,27 @@
 						<h2 class="font-hand text-2xl text-primary">Your seed packet</h2>
 						<Sprout class="size-5 text-primary" aria-hidden="true" />
 					</div>
-					<p class="mt-2 font-display text-3xl font-semibold tabular-nums">
-						{sym}{value} <span class="font-sans text-base font-normal">{per}</span>
-					</p>
-					<p class="mt-2 text-sm text-foreground/80">
-						<span class="font-semibold text-foreground"
-							>{imports.toLocaleString()} recipe imports for you</span
-						>
-						({yourSeeds.toLocaleString()} seeds), plus
-						<span class="font-semibold text-foreground"
-							>{gardenSeeds.toLocaleString()} shared seeds</span
-						>
-						to help others try the app.
-					</p>
+					{#if amount !== undefined && Number.isFinite(amount)}
+						<p class="mt-2 break-words font-display text-3xl font-semibold tabular-nums">
+							{money(amount)} <span class="font-sans text-base font-normal">{per}</span>
+						</p>
+					{/if}
+					{#if valid}
+						<p class="mt-2 text-sm text-foreground/80">
+							<span class="font-semibold text-foreground"
+								>{imports.toLocaleString()} recipe imports for you</span
+							>
+							({yourSeeds.toLocaleString()} seeds), plus
+							<span class="font-semibold text-foreground"
+								>{gardenSeeds.toLocaleString()} shared seeds</span
+							>
+							to help others try the app.
+						</p>
+					{:else}
+						<p class="mt-2 text-sm text-foreground/80">
+							Choose a valid amount to see your recipe imports.
+						</p>
+					{/if}
 					<p class="mt-2 text-sm text-foreground/75">
 						{frequency === 'month'
 							? 'Renews monthly.'
@@ -221,12 +272,19 @@
 					</p>
 				</div>
 
+				{#if !signedIn}
+					<p class="mt-4 text-sm text-foreground/80">
+						Your choices will be kept. After login, review them before continuing to Stripe.
+					</p>
+				{/if}
 				<Button
 					type="submit"
-					disabled={!valid || !connectivity.online || submitting}
+					disabled={!ready || !valid || !connectivity.online || submitting}
 					class="mt-5 min-h-12 w-full rounded-full text-base font-semibold"
 				>
-					{#if submitting}
+					{#if !ready}
+						Preparing contribution…
+					{:else if submitting}
 						<LoaderCircle
 							class="size-4 animate-spin motion-reduce:animate-none"
 							aria-hidden="true"
@@ -234,9 +292,14 @@
 						{signedIn ? 'Opening Stripe…' : 'Going to login…'}
 					{:else if !connectivity.online}
 						Checkout needs a connection
+					{:else if !valid}
+						Check your amount
+					{:else if !signedIn}
+						Log in to contribute
+						<ArrowRight class="size-4" aria-hidden="true" />
 					{:else}
 						Contribute
-						{sym}{valid ? amount : MIN_SUPPORT_AMOUNT}
+						{money(value)}
 						{per}
 						<ArrowRight class="size-4" aria-hidden="true" />
 					{/if}
@@ -246,14 +309,20 @@
 				{/if}
 				{#if frequency !== 'once'}
 					<p class="mt-2 text-center text-sm text-foreground/75">
-						Cancel anytime by just coming back to this page.
+						<a
+							href={siteConfig.links.billingPortal}
+							target="_blank"
+							rel="noreferrer"
+							class="inline-flex min-h-11 items-center gap-1 underline underline-offset-4"
+						>
+							Cancel or change your support anytime
+							<ExternalLink class="size-3.5" aria-hidden="true" />
+						</a>
 					</p>
 				{/if}
-				<p class="mt-3 text-center text-xs text-foreground/75">
+				<p class="mt-3 text-center text-sm text-foreground/75">
 					{#if signedIn}
 						<span class="block break-all">Paying as {accountEmail}</span>
-					{:else}
-						<span class="block break-all">You'll be asked to log in first, then taken to Stripe.</span>
 					{/if}
 					<span class="inline-flex items-center gap-1 text-foreground/80">
 						<Lock class="size-4" aria-hidden="true" />
@@ -263,25 +332,26 @@
 			</div>
 		</fieldset>
 	</form>
+	<noscript>
+		<p class="mt-4 text-sm text-foreground/80">
+			Enable JavaScript to choose a contribution. You can still
+			<a href={siteConfig.links.billingPortal} class="underline underline-offset-4"
+				>manage existing support through Stripe</a
+			>.
+		</p>
+	</noscript>
 
 	<details class="group mt-6">
 		<summary class="flex min-h-11 cursor-pointer items-center gap-1 font-medium">
 			How do seeds work?
-			<ChevronRight class="size-4 transition-transform group-open:rotate-90 text-primary translate-y-0.2" aria-hidden="true" />
+			<ChevronRight
+				class="size-4 transition-transform group-open:rotate-90 text-primary translate-y-0.2 motion-reduce:transition-none"
+				aria-hidden="true"
+			/>
 		</summary>
 		<SeedSteps {sym} class="mt-5" />
 		<p class="mt-5 text-sm text-foreground/75">
 			Planning, shopping lists and sharing stay free. Seeds are only used for recipe imports.
 		</p>
 	</details>
-	<!-- <p class="mt-3 text-center text-sm">
-		<a
-			href="https://github.com/sponsors/MadeInPierre"
-			target="_blank"
-			rel="noreferrer"
-			class="inline-flex min-h-11 items-center gap-1 text-foreground/80 underline underline-offset-4 hover:text-foreground"
-		>
-			Prefer to sponsor on GitHub? <ExternalLink class="size-3.5" aria-hidden="true" />
-		</a>
-	</p> -->
 </div>

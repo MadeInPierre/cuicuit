@@ -95,7 +95,7 @@
 
 				<!-- <CommandMenu /> -->
 
-				<div class="flex items-center gap-2">
+				<div class="ml-auto flex items-center gap-2">
 					<HelloDialog>
 						<Button variant="link" class="text-muted-foreground hidden sm:flex">
 							<Lightbulb />
@@ -106,7 +106,7 @@
 					<SupportBanner />
 				</div>
 
-				<div class="ml-auto flex items-center gap-2 md:hidden">
+				<div class="flex items-center gap-2 md:hidden">
 					{#if unseenChangelogCount > 0}
 						<a
 							href="/whats-new"
