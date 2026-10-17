@@ -33,9 +33,10 @@
 	const sessionExpired = $derived(
 		userState.sessionExpiresAt !== null && userState.sessionExpiresAt * 1000 <= now
 	);
-	// Optimistic shell: render chrome as soon as a (cached, unexpired) session is
-	// known. `LoadingSplash` shows only while auth is genuinely unknown.
-	const canRenderApp = $derived(!!userState.user && !sessionExpired);
+	// Optimistic shell: render chrome as soon as a cached session is known —
+	// even if the JWT is expired, as long as we're offline (it can't be refreshed
+	// without network). Online + expired resolves via supabase-js auto-refresh.
+	const canRenderApp = $derived(!!userState.user && (!sessionExpired || !connectivity.online));
 	// Safety net: if auth stays unknown for a long time, stop spinning and
 	// show the retry card instead of an infinite splash.
 	let authStalled = $state(false);
@@ -99,7 +100,11 @@
 	</SidebarPage>
 
 	<MobileBottomNavbar bind:openChat />
-{:else if degraded && (userState.user === null || sessionExpired)}
+
+	{#if degraded && sessionExpired && canRenderApp}
+		{@render sessionExpiredBanner()}
+	{/if}
+{:else if degraded && userState.user === null}
 	{@render offlineNoSession()}
 {:else if userState.user === undefined && authStalled}
 	{@render stalledAuth()}
@@ -107,9 +112,20 @@
 	<LoadingSplash />
 {/if}
 
+{#snippet sessionExpiredBanner()}
+	<!-- Offline + expired JWT: the app renders with cached data, but DB operations
+		will fail until the session is refreshed on reconnect. -->
+	<div
+		class="flex items-center justify-center gap-2 bg-muted px-4 py-2 text-center text-sm text-muted-foreground"
+	>
+		<RotateCw class="h-4 w-4" />
+		Session expired — will refresh when you're back online
+	</div>
+{/snippet}
+
 {#snippet offlineNoSession()}
-	<!-- Offline with no cached session (or an expired one that can't be refreshed):
-		signing in needs a connection, so explain instead of redirect-looping. -->
+	<!-- Offline with no cached session: signing in needs a connection,
+		so explain instead of redirect-looping. -->
 	<div
 		class="flex h-screen w-screen flex-col items-center justify-center space-y-6 bg-background px-6 text-center text-muted-foreground"
 	>
@@ -117,19 +133,10 @@
 		<div class="flex max-w-sm flex-col items-center space-y-2">
 			<div class="flex items-center gap-2 text-sm font-medium text-foreground">
 				<WifiOff class="h-4 w-4" />
-				{#if sessionExpired}
-					Session expired
-				{:else}
-					You're offline
-				{/if}
+				You're offline
 			</div>
 			<p class="text-sm">
-				{#if sessionExpired}
-					Reconnect to refresh your session — your saved data will sync when you're back.
-				{:else}
-					Signing in needs a connection. Your saved session still works offline once you've signed
-					in.
-				{/if}
+				Signing in needs a connection. Your saved session still works offline once you've signed in.
 			</p>
 		</div>
 		<button
