@@ -30,13 +30,19 @@
 		compact?: boolean;
 		/** Bindable focus state so the parent can hide everything else while typing. */
 		focused?: boolean;
+		/** Bindable import-in-progress state so the parent can switch to an importing view. */
+		loading?: boolean;
 	};
 
-	let { openDialog = $bindable(), compact = false, focused = $bindable(false) }: Props = $props();
+	let {
+		openDialog = $bindable(),
+		compact = false,
+		focused = $bindable(false),
+		loading = $bindable(false)
+	}: Props = $props();
 
 	let url = $state('');
 	let urlError = $state<string | null>(null);
-	let loading = $state(false);
 	let currentStep = $state(-1);
 	let inputEl: HTMLInputElement | null = $state(null);
 
@@ -127,7 +133,7 @@
 					}}
 					enterkeyhint="go"
 					aria-label="Recipe link"
-					class="min-w-0 flex-1"
+					class="min-w-0 flex-1 bg-white dark:bg-muted border-none shadow-xs"
 				/>
 
 				<Button
@@ -178,7 +184,9 @@
 				<Button
 					onclick={onClick}
 					disabled={loading || !url || !connectivity.online}
-					title={!connectivity.online ? 'Sign-in needs connection — import unavailable offline' : undefined}
+					title={!connectivity.online
+						? 'Sign-in needs connection — import unavailable offline'
+						: undefined}
 					class="w-full relative"
 				>
 					<div
