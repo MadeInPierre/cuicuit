@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.1](https://github.com/MadeInPierre/cuicuit/compare/v0.1.0...v0.1.1) (2026-10-17)
+
+
+### Features
+
+* **app:** offline image cache, notification banner, disabled online=only buttons ([e362f07](https://github.com/MadeInPierre/cuicuit/commit/e362f07747242b4c64771a26b379c26363e8a5ad))
+* **app:** offline support for app shell ([d255afd](https://github.com/MadeInPierre/cuicuit/commit/d255afd293c1882085e96db4ced22194f7683943))
+
+
+### Bug Fixes
+
+* **changelog:** show new changelog badge on mobile ([c72536f](https://github.com/MadeInPierre/cuicuit/commit/c72536fbb5a070329232fd954e52966a20737a64))
+* **import:** attempt to fix import dialog dynamic height ([22af3df](https://github.com/MadeInPierre/cuicuit/commit/22af3df99cfd419c88bdd431bfbcc9c160f2cd63))
+* **landing:** landing & support design refinements ([344fb62](https://github.com/MadeInPierre/cuicuit/commit/344fb623c71d3e8ef17dc8bf343760246f7b960b))
+* **offline:** support offline expired JWTs to laod the app anyway ([12e2f83](https://github.com/MadeInPierre/cuicuit/commit/12e2f832600b87354716c8fd797f0af79789c600))
+
+
+### Performance Improvements
+
+* **app:** make loading splash appear less ([a0d5d02](https://github.com/MadeInPierre/cuicuit/commit/a0d5d0272f76f686ce1cccfc060a7b792e9e2c50))
+
 ## 0.1.0 (2026-10-11)
 
 
