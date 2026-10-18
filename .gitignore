@@ -1,3 +1,7 @@
+# Marketing images
+static/marketing/
+src/routes/cards/
+
 # I/O files for general scripts
 src/lib/scripts/
 

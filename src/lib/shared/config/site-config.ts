@@ -1,7 +1,7 @@
 export const siteConfig = {
 	name: 'Cuicuit - Recipe Meal Planner & Automatic Grocery List - Open Source & Self-Hostable',
 	url: 'https://cuicuit.laclau.dev',
-	ogImage: 'https://cuicuit.laclau.dev/signup-bg.jpg',
+	ogImage: 'https://cuicuit.laclau.dev/og.png',
 	description:
 		"Your favorite kitchen companion! Import recipes, jot down meal ideas and things you're missing at home, and Cuicuit turns them into a convenient shopping list. Think about meals, not ingredients. Open source & self-hostable.",
 	links: {
