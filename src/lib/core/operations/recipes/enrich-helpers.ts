@@ -13,14 +13,14 @@
 // server callers import this core module directly, browser callers (none
 // today) keep using the remote. Server-only (Vercel AI SDK + private env
 // keys). Never import from `client.ts`.
+import { parsedSearchInputSchema } from '$lib/features/recipes/modules/parse-ingredients/parse';
+import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
-import { languageCodeSchema } from '$lib/shared/language.js';
+import { CURATED_LANGUAGES, languageCodeSchema } from '$lib/shared/language.js';
 import { withLlmFailover } from '$lib/shared/llm/fallback';
 import type { LlmProvider } from '$lib/shared/llm/providers';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import z from 'zod';
-import { parsedSearchInputSchema } from '$lib/features/recipes/modules/parse-ingredients/parse';
-import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
 
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe parser. The user will provide you with a draft or incomplete recipe.
 
@@ -41,6 +41,8 @@ Your task is to enrich the recipe by inferring missing details (null/incomplete 
 Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description).
 If an ingredient string is actually describing multiple ingredients, split it into multiple ingredients with correct details.
 Do not add ingredients or details not in the original recipe.
+
+Note: Only the "${Object.keys(CURATED_LANGUAGES).join(', ')}" languages are supported. If the input recipe is in another language, set the recipe language to "en-US" and translate the ingredients (i.e. ingredientText fields) to English but keep everything else in the original language.
 
 Requirements:
 - Return enriched/corrected recipe in JSON format, strictly following the schema.

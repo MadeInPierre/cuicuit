@@ -47,10 +47,10 @@ export function isLanguageCode(input: unknown): input is LanguageCode {
  * Existence is validated against the DB by `resolveLanguageId`
  * (unknown-but-well-formed codes fail with NOT_FOUND, not here).
  */
-export const languageCodeSchema = z.preprocess(
-	(v) => normalizeLanguageCode(v) ?? v,
-	z.string().regex(LANG_SHAPE, 'Expected a language code like en-US.')
-);
+// export const languageCodeSchema = z.preprocess(
+// 	(v) => normalizeLanguageCode(v) ?? v,
+// 	z.string().regex(LANG_SHAPE, 'Expected a language code like en-US.')
+// );
 
 /**
  * Curated subset offered by the UI language pickers (label + emoji).
@@ -66,3 +66,14 @@ export const CURATED_LANGUAGES = {
 	'nl-NL': { id: 7, label: 'Nederlands', emoji: '🇳🇱' },
 	'pt-PT': { id: 8, label: 'Português', emoji: '🇵🇹' }
 } as const;
+
+export const CURATED_LANGUAGE_CODES = Object.keys(
+	CURATED_LANGUAGES
+) as (keyof typeof CURATED_LANGUAGES)[];
+
+/**
+ * Zod schema for public inputs/outputs. Accepts canonical codes plus forgiving
+ */
+export const languageCodeSchema = z
+	.enum(CURATED_LANGUAGE_CODES)
+	.describe('Language code (BCP47) like en-US, fr-FR, es-ES, pt-BR, de-DE, it-IT, nl-NL, pt-PT.');
