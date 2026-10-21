@@ -33,12 +33,12 @@
 	{#if !userState.creditBalance?.balance}
 		<Button
 			href="/supporter"
-			class="md:hidden max-w-lg mb-8 bg-lime-100 hover:bg-lime-200 border border-lime-400 text-lime-600 p-8 rounded-xl flex items-center gap-4 mx-0"
+			class="md:hidden max-w-lg mb-8 bg-lime-100 hover:bg-lime-200 border border-lime-400 text-lime-600 py-6 rounded-xl flex items-center gap-4 mx-0 dark:bg-lime-900 dark:hover:bg-lime-900 dark:border-lime-800 dark:text-lime-400"
 		>
 			<span class="text-lg">🌱</span>
-			<div class="grid">
-				<span class="text-lg font-medium leading-tight">Get your own seeds</span>
-				<span class="text-sm font-normal">and support Cuicuit!</span>
+			<div class="grid space-y-0.5">
+				<span class="text-md font-medium leading-tight">Get your own seeds</span>
+				<span class="text-xs font-normal">and support Cuicuit!</span>
 			</div>
 			<ArrowRight class="size-5 ml-auto mr-2" />
 		</Button>
@@ -47,7 +47,7 @@
 	{#each groups as group}
 		<p class="md:text-muted-foreground md:text-sm font-medium">{group.name}</p>
 
-		{#if group.name == 'Active space' && !media.md}
+		{#if group.name == 'Your households' && !media.md}
 			<SettingsMobileSpaceSwitcher />
 		{/if}
 
@@ -60,7 +60,8 @@
 					class={cn(
 						!isActive && 'hover:underline',
 						'relative justify-start hover:bg-transparent py-6 md:py-0',
-						!media.md && 'p-8 rounded-xl bg-card shadow-xs border border-border/60 text-md'
+						!media.md && 'p-8 rounded-xl bg-card shadow-xs border border-border/60 text-md',
+						link.className
 					)}
 					data-sveltekit-noscroll
 					onclick={async () => {
@@ -91,7 +92,7 @@
 
 		<div class="h-4"></div>
 
-		{#if group.name === 'Active space' && !media.md}
+		{#if group.name === 'Your households' && !media.md}
 			<p class="md:text-muted-foreground md:text-sm font-medium">Appearance</p>
 
 			<SettingsMobileThemeSwitcher />

@@ -1,12 +1,13 @@
-import { Sprout } from '@lucide/svelte';
 import {
 	House,
 	KeyRound,
 	LayoutDashboard,
 	Lock,
 	LogOut,
+	Megaphone,
 	ScanLine,
 	Scroll,
+	Sprout,
 	User,
 	Users
 } from '@lucide/svelte';
@@ -54,7 +55,7 @@ export const navLinksApp: NavLink[] = [
 
 export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = [
 	{
-		name: 'Active space',
+		name: 'Your households',
 		links: [
 			{
 				title: 'General',
@@ -94,7 +95,18 @@ export const navLinksAppSettingsSidebar: { name: string; links: NavLink[] }[] = 
 			{
 				title: 'Sign out',
 				icon: LogOut,
-				display: 'mobile'
+				display: 'mobile',
+				className: 'text-red-600 dark:text-red-600'
+			}
+		]
+	},
+	{
+		name: 'About Cuicuit',
+		links: [
+			{
+				title: "What's New",
+				href: '/whats-new',
+				icon: Megaphone
 			}
 		]
 	}

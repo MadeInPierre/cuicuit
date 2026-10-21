@@ -10,7 +10,6 @@
 	import Megaphone from '@lucide/svelte/icons/megaphone';
 	import { useMedia } from '../hooks/use-media.svelte';
 	import HelloDialog from './HelloDialog.svelte';
-	import SupportBanner from './SupportBanner.svelte';
 	import { Button } from './ui/button';
 
 	interface Props {
@@ -89,10 +88,6 @@
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
 
-				<!-- {#if hasCheckedItems && page.url.pathname === '/shopping-list'}
-					<DoneShoppingButton />
-				{/if} -->
-
 				<!-- <CommandMenu /> -->
 
 				<div class="ml-auto flex items-center gap-2">
@@ -103,7 +98,7 @@
 						</Button>
 					</HelloDialog>
 
-					<SupportBanner />
+					<!-- <SupportBanner /> -->
 				</div>
 
 				<div class="flex items-center gap-2 md:hidden">
@@ -111,10 +106,10 @@
 						<a
 							href="/whats-new"
 							aria-label="See what's new"
-							class="relative flex h-7 items-center justify-center gap-1 text-xs text-lime-500 bg-lime-500/10 rounded-md px-2"
+							class="relative flex h-7 w-7 items-center justify-center gap-1 text-xs text-lime-500 bg-lime-500/10 rounded-md px-1.5"
 						>
 							<Megaphone class="size-3.5" />
-							New
+							<!-- New -->
 
 							<span
 								class="absolute -top-0.5 -right-0.5 z-40 flex w-2 max-w-2 h-2 rounded-full bg-lime-500 px-1"

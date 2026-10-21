@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { WEEKLY_COMMUNITY_SEEDS_LIMIT } from '$lib/core/operations/credits';
 	import SourceLogoStack from '$lib/features/recipes/components/SourceLogoStack.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
-	import { WEEKLY_COMMUNITY_SEEDS_LIMIT } from '$lib/core/operations/credits';
 	import { siteConfig } from '$lib/shared/config/site-config';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import Discord from '$lib/shared/icons/discord.svelte';
@@ -201,7 +201,7 @@
 				desktopAlt="Cuicuit desktop app: planned meals with cookable badges on the left, recipe library on the right"
 				mobileSrc="/hero/mockups/iphone_plan.webp"
 				mobileAlt="Cuicuit on a phone: planned meals with cookable badges"
-				videoUrl="https://github.com/user-attachments/assets/8f880754-87fd-4342-91ce-7fc59808c708"
+				videoUrl="https://github.com/user-attachments/assets/9fc9e146-efce-4926-8db1-326a2c05e185"
 			/>
 		</div>
 	</div>
@@ -305,8 +305,9 @@
 				{/each}
 			</ul>
 			<p class="mt-4 text-sm text-background/85">
-				Imports use credits called seeds as a way to share hosting costs. If shared seeds run out, wait for a supporter to top-up or contribute
-				to get your own. All other features remain always available.
+				Imports use credits called seeds as a way to share hosting costs. If shared seeds run out,
+				wait for a supporter to top-up or contribute to get your own. All other features remain
+				always available.
 			</p>
 			<a
 				href="/signup"
@@ -339,7 +340,8 @@
 				{/each}
 			</ul>
 			<p class="mt-4 mb-auto text-sm text-foreground/75">
-				Coming soon around early 2027, once the cloud version stabilizes. Watch releases on GitHub for updates.
+				Coming soon around early 2027, once the cloud version stabilizes. Watch releases on GitHub
+				for updates.
 			</p>
 			<div class="mt-8 flex flex-col gap-3 sm:flex-row">
 				<a
@@ -393,7 +395,8 @@
 		<span class="font-hand text-3xl text-primary -rotate-2">alpha, growing fast</span>
 	</div>
 	<p class="mt-2 text-foreground/80 max-w-prose">
-		The core loop works and I use it daily. The roadmap is shaped by feedback from the community on Discord and GitHub. If you have ideas, please share them!
+		The core loop works and I use it daily. The roadmap is shaped by feedback from the community on
+		Discord and GitHub. If you have ideas, please share them!
 	</p>
 	<div class="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
 		{#each roadmap as col, i (col.label)}
@@ -581,8 +584,8 @@
 			</div>
 			<p class="mt-3 text-sm text-foreground/80 max-w-prose">
 				Hi! I'm Pierre 😊 I made Cuicuit for myself and hope it'll be useful for more people.
-				Supporters help me cover hosting and recipe import costs while I build in the open. You can also
-				help by starring Cuicuit on GitHub or sharing feedback on Discord. Thank you!
+				Supporters help me cover hosting and recipe import costs while I build in the open. You can
+				also help by starring Cuicuit on GitHub or sharing feedback on Discord. Thank you!
 			</p>
 			<a
 				href="/supporter"
