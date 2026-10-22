@@ -41,7 +41,7 @@
 		},
 		{
 			title: 'One list, sorted by aisle',
-			text: 'Meals and extras merge into a single shopping list, grouped the way you walk the store, each item linked to its meal.',
+			text: 'Meals and extras merge into a single  neat shopping list, each item linked to its meal.',
 			img: '/hero/mockups/iphone_list.webp',
 			alt: 'Cuicuit shopping list grouped by supermarket aisle'
 		},
@@ -65,7 +65,7 @@
 			items: [
 				'Recipe import',
 				'Dateless meal plan',
-				'Aisle-aware shopping list',
+				'Combined shopping list',
 				'Cookability badges'
 			]
 		},
@@ -77,7 +77,7 @@
 		{
 			label: 'Later',
 			tone: 'later',
-			items: ['Online groceries automation?']
+			items: ['Online groceries? Expirations?']
 		}
 	];
 
@@ -92,7 +92,7 @@
 		},
 		{
 			q: 'How does recipe import work?',
-			a: 'Paste a recipe link (YouTube, TikTok, Instagram, X, Facebook or any blog) or some text. Cuicuit extracts ingredients, quantities, steps and timings, using open standards like schema.org/Recipe plus AI when needed.'
+			a: 'Paste a recipe link (YouTube, TikTok, Instagram, X, Facebook or any blog) or some text. Cuicuit extracts ingredients, quantities, steps and timings, using open standards like schema.org/Recipe plus AI when needed (low-CO2 inference locations chosen on Cloud).'
 		},
 		{
 			q: 'Can I host it myself?',
@@ -169,7 +169,7 @@
 				<span class="text-primary"> Your list sorts itself. </span>
 			</h1>
 			<p
-				class="mx-auto mt-6 max-w-lg md:max-w-2xl text-base sm:text-lg text-foreground/80 text-pretty"
+				class="mx-auto mt-6 max-w-lg md:max-w-3xl text-base sm:text-lg text-foreground/80 text-pretty"
 			>
 				Add meals and missing items whenever you think of them. Cuicuit merges them into one
 				aisle-sorted shopping list and shows which meals you can already cook.
@@ -240,11 +240,11 @@
 	<div class="mx-auto max-w-6xl px-6 py-16 flex flex-col md:flex-row md:items-center gap-8">
 		<div class="md:w-1/2">
 			<h2 class="font-display text-3xl font-semibold tracking-tight text-balance">
-				Bring your recipes with you.
+				Curate your own recipe library.
 			</h2>
 			<p class="mt-3 text-foreground/80 max-w-md">
-				Paste a recipe link or text. Keep the ingredients and steps together, with useful filters to
-				help you find it again.
+				Import from anywhere: paste a recipe link or text. Cuicuit guesses useful filters and
+				displays them in a gallery.
 			</p>
 		</div>
 		<div class="md:w-1/2 space-y-3">
@@ -278,8 +278,8 @@
 		Free in the cloud today. Yours to host soon.
 	</h2>
 	<p class="mt-3 text-foreground/80 max-w-lg">
-		The same open-source app either way. Start in the cloud in a minute, or run it on your own
-		hardware once the Docker release lands.
+		The same open-source app either way. Start in the cloud in a minute, or run it yourself once the
+		Docker release lands.
 	</p>
 	<div class="mt-10 grid gap-6 md:grid-cols-2">
 		<!-- Cloud: the recommended path, available now -->
@@ -295,19 +295,18 @@
 			<h3 class="mt-6 font-display text-2xl font-semibold">Cloud</h3>
 			<p class="mt-1 font-display text-4xl font-semibold flex gap-2 items-end">
 				Free
-				<span class="text-lg">as a 🐤</span>
+				<span class="text-lg">crowdfunded</span>
 			</p>
 			<ul class="mt-6 mb-auto space-y-2 text-background/85">
-				{#each ['Every feature, nothing to install', 'Synced between your phone and laptop', `Up to ${WEEKLY_COMMUNITY_SEEDS_LIMIT} recipe imports a week, using the community fund`] as t (t)}
+				{#each ['Every feature, nothing to install', 'Synced with your friends and family', `Fair usage limits on recipe imports`] as t (t)}
 					<li class="flex gap-2">
 						<Check class="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />{t}
 					</li>
 				{/each}
 			</ul>
 			<p class="mt-4 text-sm text-background/85">
-				Imports use credits called seeds as a way to share hosting costs. If shared seeds run out,
-				wait for a supporter to top-up or contribute to get your own. All other features remain
-				always available.
+				Imports use 'seeds' as a way to share hosting costs. If shared seeds run out, wait for a
+				supporter to top-up or contribute to get your own.
 			</p>
 			<a
 				href="/signup"
@@ -331,17 +330,19 @@
 				</span>
 			</div>
 			<h3 class="mt-6 font-display text-2xl font-semibold">Self-hosted</h3>
-			<p class="mt-1 font-display text-4xl font-semibold">Free, forever</p>
+			<p class="mt-1 font-display text-4xl font-semibold">
+				Free
+				<span class="text-lg">forever</span>
+			</p>
 			<ul class="mt-6 space-y-2 text-foreground/80">
-				{#each ['Your recipes on your own hardware', 'Bring your own API keys', 'One Docker Compose file, AGPL-3.0'] as t (t)}
+				{#each ['Same app and features on your hardware', 'Bring your own API keys', 'One Docker Compose file'] as t (t)}
 					<li class="flex gap-2">
 						<Check class="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{t}
 					</li>
 				{/each}
 			</ul>
 			<p class="mt-4 mb-auto text-sm text-foreground/75">
-				Coming soon around early 2027, once the cloud version stabilizes. Watch releases on GitHub
-				for updates.
+				Coming soon around end of 2026, once Cloud stabilizes.
 			</p>
 			<div class="mt-8 flex flex-col gap-3 sm:flex-row">
 				<a
@@ -361,9 +362,9 @@
 		<div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
 			<div>
 				<h3 class="font-display text-2xl font-semibold">How the cloud stays free</h3>
-				<p class="mt-2 max-w-prose text-foreground/80">
-					Contributions help cover hosting and recipe imports. You get your own import credits,
-					called seeds, and add seeds to the community fund. Contributing is optional.
+				<p class="mt-2 max-w-xl text-foreground/80">
+					Contributions help cover hosting and recipe imports. You get your own seeds, and gift
+					seeds to the community fund. Contributing is optional.
 				</p>
 			</div>
 			<a
@@ -585,7 +586,9 @@
 			<p class="mt-3 text-sm text-foreground/80 max-w-prose">
 				Hi! I'm Pierre 😊 I made Cuicuit for myself and hope it'll be useful for more people.
 				Supporters help me cover hosting and recipe import costs while I build in the open. You can
-				also help by starring Cuicuit on GitHub or sharing feedback on Discord. Thank you!
+				also help by starring Cuicuit on GitHub or sharing feedback on Discord.
+				<br />
+				Thank you!
 			</p>
 			<a
 				href="/supporter"
@@ -597,7 +600,7 @@
 			</a>
 		</div>
 		<div class="flex flex-col gap-1 text-sm text-foreground/80 md:items-end md:justify-center">
-			<a href="/changelog" class="inline-flex min-h-11 items-center gap-2 hover:text-foreground">
+			<a href="/changelog" class="inline-flex min-h-9 items-center gap-2 hover:text-foreground">
 				What&rsquo;s New
 				<Megaphone class="h-4 w-4" />
 			</a>
@@ -605,23 +608,23 @@
 				href={githubUrl}
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex min-h-11 items-center gap-2 hover:text-foreground"
+				class="inline-flex min-h-9 items-center gap-2 hover:text-foreground"
 			>
-				Star Cuicuit on GitHub
+				Star on GitHub
 				<GitHub class="h-4 w-4" />
 			</a>
 			<a
 				href={siteConfig.links.discord}
 				target="_blank"
 				rel="noreferrer"
-				class="inline-flex min-h-11 items-center gap-2 hover:text-foreground"
+				class="inline-flex min-h-9 items-center gap-2 hover:text-foreground"
 			>
 				Join Discord
 				<Discord class="h-4 w-4" />
 			</a>
 			<div class="flex items-center mt-4 text-sm text-foreground/80">
 				Theme
-				<ThemeButton class="inline-flex size-11 justify-center" />
+				<ThemeButton class="inline-flex size-8 justify-center" />
 			</div>
 		</div>
 	</div>

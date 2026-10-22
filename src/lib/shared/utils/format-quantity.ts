@@ -51,7 +51,7 @@ export function formatQuantityAmount(amount: number | null | undefined): string 
 
 /** Format a unit key (regionized or not) as a display label. 'whole'/empty -> ''. */
 export function formatUnit(unit: string | null | undefined, short = false): string {
-	if (!unit) return '';
+	if (!unit || unit === 'unit') return '';
 	const trimmed = unit.trim();
 	if (!trimmed || trimmed === 'whole') return '';
 

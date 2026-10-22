@@ -19,14 +19,15 @@
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
-	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { formatQuantity, isPluralAmount } from '$lib/shared/utils/format-quantity';
-	import { capitalize, youtubeUrlToThumbnailUrl } from '$lib/utils';
+	import { youtubeThumbnailFallbacks, youtubeUrlToThumbnailUrl } from '$lib/shared/utils/youtube';
+	import { capitalize } from '$lib/utils';
 	import {
 		ArrowUpRight,
 		BatteryFull,
@@ -76,6 +77,7 @@
 	let recipe: RecipeDetailedWithAuthor | undefined | null = $state(undefined);
 
 	let displayServings = $state(1);
+	let ytFallbackStep = $state(0);
 
 	// Fetch the recipe from Supabase when the component mounts or when the pageRecipeId changes
 	$effect(() => {
@@ -87,6 +89,7 @@
 		getRecipe(pageRecipeId).then((result) => {
 			recipe = result;
 			displayServings = recipe?.servings || 1;
+			ytFallbackStep = 0;
 		});
 	});
 
@@ -178,6 +181,12 @@
 								src={youtubeUrlToThumbnailUrl(recipe.source_url)}
 								class="w-full aspect-[1.618] object-cover rounded-md"
 								alt="Youtube Thumbnail"
+								onerror={(e) => {
+									const fallback = youtubeThumbnailFallbacks(recipe?.source_url ?? '')[
+										ytFallbackStep++
+									];
+									if (fallback) (e.currentTarget as HTMLImageElement).src = fallback;
+								}}
 							/>
 						{/if}
 
@@ -460,7 +469,7 @@
 				ingredient={ing.ingredient}
 				name={ing.custom_name}
 				plural={isPluralAmount(amount)}
-				description={formatQuantity(amount, ing.unit)}
+				description={formatQuantity(amount, ing.unit, true)}
 				checkable={false}
 			>
 				{#if view === 'list'}

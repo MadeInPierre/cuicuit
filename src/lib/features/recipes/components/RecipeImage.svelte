@@ -6,7 +6,8 @@
 		getRecipeImageUrl,
 		type RecipeImageVariant
 	} from '$lib/core/operations/recipes/image-shared.js';
-	import { cn, youtubeUrlToThumbnailUrl } from '$lib/utils';
+	import { youtubeThumbnailFallbacks, youtubeUrlToThumbnailUrl } from '$lib/shared/utils/youtube';
+	import { cn } from '$lib/utils';
 	import { ChefHat } from '@lucide/svelte';
 	import type {
 		Recipe,
@@ -33,6 +34,7 @@
 	let error = $state(false);
 	let fellBackToFull = $state(false);
 	let ytFailed = $state(false);
+	let ytFallbackStep = $state(0);
 
 	// The {#key} below resets the <img> element, but not this state: reset it
 	// whenever the image changes so one missing thumbnail doesn't pin the
@@ -44,6 +46,7 @@
 		fellBackToFull = false;
 		error = false;
 		ytFailed = false;
+		ytFallbackStep = 0;
 	});
 
 	let firstImageId = $derived(recipe?.image_ids?.find((id): id is string => !!id) ?? null);
@@ -113,7 +116,13 @@
 			crossorigin="anonymous"
 			loading="lazy"
 			decoding="async"
-			onerror={() => (ytFailed = true)}
+			onerror={(e) => {
+				// maxresdefault only exists for HD videos; walk down to the
+				// guaranteed hqdefault before giving up.
+				const fallback = youtubeThumbnailFallbacks(recipe.source_url ?? '')[ytFallbackStep++];
+				if (fallback) (e.currentTarget as HTMLImageElement).src = fallback;
+				else ytFailed = true;
+			}}
 		/>
 	{:else if displayIngredients.length > 0}
 		<div

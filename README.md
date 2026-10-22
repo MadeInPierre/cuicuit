@@ -29,7 +29,7 @@ Import recipes from anywhere and get an automatic shopping list from your plan. 
 
 https://github.com/user-attachments/assets/8f880754-87fd-4342-91ce-7fc59808c708
 
-[Sign up](https://cuicuit.laclau.dev/signup) for the hosted version and use for free!
+[Sign up](https://cuicuit.laclau.dev/signup) on the hosted version and use for free!
 
 ## 🍀 Why use Cuicuit?
 

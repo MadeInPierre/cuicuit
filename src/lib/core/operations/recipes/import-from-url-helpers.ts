@@ -22,6 +22,7 @@ import {
 	type LanguageCode
 } from '$lib/shared/language.js';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
+import { youtubeThumbnailFallbacks } from '$lib/shared/utils/youtube';
 
 import { resolveLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
@@ -449,6 +450,19 @@ export async function insertUserImportedRecipe(
 // ==========================================
 
 /**
+ * Downloads the recipe image, falling back to lower-quality YouTube thumbnails
+ * when the provider's `maxresdefault` URL doesn't exist (low-res uploads return
+ * a 404 with a 120×90 placeholder image, which must never be stored).
+ */
+async function fetchRecipeImage(imageUrl: string, sourceUrl: string): Promise<Response | null> {
+	for (const url of [imageUrl, ...youtubeThumbnailFallbacks(sourceUrl)]) {
+		const response = await fetch(url);
+		if (response.ok) return response;
+	}
+	return null;
+}
+
+/**
  * Imports a recipe from a URL, reusing the shared scrape + LLM cache so a
  * recipe is only ever scraped and enriched once. Ingredient matching re-runs
  * per import against the live catalog. Yields progress steps (numbers) and
@@ -568,7 +582,8 @@ export async function* importRecipeFromUrlCore(
 	yield 3;
 	if (imageUrl) {
 		try {
-			const imgResponse = await fetch(imageUrl);
+			const imgResponse = await fetchRecipeImage(imageUrl, sourceUrl);
+			if (!imgResponse) throw new Error(`Could not download the image: ${imageUrl}`);
 			const blob = await imgResponse.blob();
 			const file = new File([blob], 'imported-image.jpg', { type: blob.type });
 			// 480px WebP thumbnail for cards/lists (sharp, server-side). Null

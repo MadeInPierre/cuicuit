@@ -72,7 +72,7 @@ export const CURATED_LANGUAGE_CODES = Object.keys(
 ) as (keyof typeof CURATED_LANGUAGES)[];
 
 /**
- * Zod schema for public inputs/outputs. Accepts canonical codes plus forgiving
+ * Zod schema for the officially supported language codes.
  */
 export const languageCodeSchema = z
 	.enum(CURATED_LANGUAGE_CODES)
