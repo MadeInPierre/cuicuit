@@ -42,7 +42,9 @@ Also provide a cleaned, enriched ingredient list, inferring missing details (qua
 If an ingredient string is actually describing multiple ingredients, split it into multiple ingredients with correct details.
 Do not add ingredients or details not in the original recipe.
 
-Note: Only the "${Object.keys(CURATED_LANGUAGES).join(', ')}" languages are supported. If the input recipe is in another language, set the recipe language to "en-US" and translate the ingredients (i.e. ingredientText fields) to English but keep everything else in the original language.
+Note: Only the "${Object.keys(CURATED_LANGUAGES).join(', ')}" languages are supported, so:
+- If the input recipe is in a supported language, keep all text fields in that language including ingredientText.
+- If the input recipe is in another unsupported language, set the recipe language to "en-US" and translate the ingredients (i.e. ingredientText fields) to English, but output everything else in the original language.
 
 Requirements:
 - Return enriched/corrected recipe in JSON format, strictly following the schema.
@@ -59,7 +61,7 @@ const relevantRecipeFieldsSchema = z.object({
 	short_title: publicRecipesRowSchema.shape.short_title.describe(
 		'Shortest possible title for this recipe in 1 word.'
 	),
-	description: publicRecipesRowSchema.shape.description,
+	description: publicRecipesRowSchema.shape.description.describe('1-2 sentence short description.'),
 	servings: publicRecipesRowSchema.shape.servings,
 	time_prep_minutes: publicRecipesRowSchema.shape.time_prep_minutes,
 	time_cook_minutes: publicRecipesRowSchema.shape.time_cook_minutes,
