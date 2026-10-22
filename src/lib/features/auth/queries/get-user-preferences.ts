@@ -3,6 +3,7 @@ import '$lib/core/operations/profile/get.js';
 import type { ProfileGetInput, ProfileGetOutput } from '$lib/core/operations/profile/get.js';
 import type { Database } from '$lib/shared/db/supabase.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import posthog from 'posthog-js';
 
 /**
  * Thin adapter over the `profile.get` op (M2 core migration).
@@ -25,7 +26,12 @@ export async function getUserPreferences(supabase: SupabaseClient<Database>, use
 		});
 		return { preferences: preferences ?? null, error: null };
 	} catch (error) {
-		console.error('Error fetching user preferences:', error);
+		// Report a readable exception with the error detail as a property, so the
+		// issue message stays legible instead of stringifying to "[object Object]".
+		if (posthog.__loaded)
+			posthog.captureException(new Error('Error fetching user preferences'), {
+				cause: error instanceof Error ? error.message : error
+			});
 		return { preferences: null, error };
 	}
 }

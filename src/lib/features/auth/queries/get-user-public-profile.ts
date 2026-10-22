@@ -1,6 +1,7 @@
 import { getClientCtx, runOp } from '$lib/core/operations/client.js';
 import '$lib/core/operations/profile/get.js';
 import type { ProfileGetInput, ProfileGetOutput } from '$lib/core/operations/profile/get.js';
+import posthog from 'posthog-js';
 
 /**
  * Thin client adapters over the `profile.get` op (M2 core migration).
@@ -16,7 +17,12 @@ export async function getUserPublicProfile(userId: string) {
 		);
 		return { profile: profiles[0] ?? null, error: null };
 	} catch (error) {
-		console.error('Error fetching user public profile:', error);
+		// Report a readable exception with the error detail as a property, so the
+		// issue message stays legible instead of stringifying to "[object Object]".
+		if (posthog.__loaded)
+			posthog.captureException(new Error('Error fetching user public profile'), {
+				cause: error instanceof Error ? error.message : error
+			});
 		return { profile: null, error };
 	}
 }
