@@ -3,6 +3,10 @@
 	import { Loader2, RotateCw, WifiOff } from '@lucide/svelte';
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <div
 	class="flex h-screen w-screen flex-col items-center justify-center space-y-6 bg-background px-6 text-center text-muted-foreground"
 >

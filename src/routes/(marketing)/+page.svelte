@@ -62,12 +62,7 @@
 		{
 			label: 'Live today',
 			tone: 'live',
-			items: [
-				'Recipe import',
-				'Dateless meal plan',
-				'Combined shopping list',
-				'Cookability badges'
-			]
+			items: ['Recipe import', 'Dateless meal plan', 'Combined shopping list', 'Cookability badges']
 		},
 		{
 			label: 'Coming soon',
@@ -107,6 +102,16 @@
 			a: "“Cui-cui” is the sound of a bird chirp in French and “cuit” means cooked, so “c'est cuit” becomes “c'est cuicuit”. Say it “qui-qui”."
 		}
 	];
+
+	const faqJsonLd = JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'FAQPage',
+		mainEntity: faqs.map((faq) => ({
+			'@type': 'Question',
+			name: faq.q,
+			acceptedAnswer: { '@type': 'Answer', text: faq.a }
+		}))
+	}).replaceAll('<', '\\u003c');
 
 	let openSupportDialog = $state(false);
 	let media = useMedia();
@@ -152,6 +157,8 @@
 			"openSource": true
 		}
 	</script>
+	<!-- eslint-disable-next-line svelte/no-at-html-tags, no-useless-escape -->
+	{@html `<script type="application/ld+json">${faqJsonLd}<\/script>`}
 </svelte:head>
 
 <!-- ==================== HERO ==================== -->

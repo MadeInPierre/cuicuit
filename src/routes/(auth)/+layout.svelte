@@ -19,6 +19,10 @@
 	});
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <div class="relative h-screen lg:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
 	<div class="absolute right-6 top-6 z-20 md:right-9 md:top-9">
 		{#if TopRightComponent}

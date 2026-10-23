@@ -27,6 +27,10 @@
 	}
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <div class="container mx-auto">
 	<PageHeader.Root class="relative pb-8">
 		<div

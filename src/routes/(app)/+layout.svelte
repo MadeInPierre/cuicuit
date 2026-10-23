@@ -86,6 +86,10 @@
 	let openChat = $state(false);
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <ModeWatcher />
 <Toaster />
 
