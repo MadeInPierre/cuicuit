@@ -63,7 +63,14 @@
 				class="min-h-11 flex shrink-0 items-center justify-start gap-1 text-xl font-semibold tracking-tight"
 			>
 				<div class="flex items-center justify-center gap-2">
-					<img src="/cuicuit_logo_transparent.png" alt="" class="h-8" />
+					<img
+						src="/cuicuit_logo_transparent.png"
+						alt=""
+						width="32"
+						height="32"
+						decoding="async"
+						class="h-8"
+					/>
 					<span>Cuicuit</span>
 				</div>
 

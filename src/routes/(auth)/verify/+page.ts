@@ -1,10 +1,10 @@
 import VerifyButton from './verify-button.svelte';
 
 export function load() {
-    return {
-        backgroundUrl: '/signup-bg.jpg',
-        topRight: VerifyButton,
-        direction: 'right',
-        title: 'Verify your email'
-    };
+	return {
+		backgroundUrl: '/signup-bg.webp',
+		topRight: VerifyButton,
+		direction: 'right',
+		title: 'Verify your email'
+	};
 }

@@ -22,7 +22,14 @@
 	</Sheet.Trigger>
 	<Sheet.Content side="left" class="pr-0">
 		<MobileLink href="/" class="flex items-center gap-2" bind:open>
-			<img src="/cuicuit_logo_transparent.png" alt={siteConfig.name} class="h-8" />
+			<img
+				src="/cuicuit_logo_transparent.png"
+				alt={siteConfig.name}
+				width="32"
+				height="32"
+				decoding="async"
+				class="h-8"
+			/>
 			<span class="font-bold">Cuicuit</span>
 		</MobileLink>
 

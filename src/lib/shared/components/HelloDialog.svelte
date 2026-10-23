@@ -23,15 +23,22 @@
 	<Dialog.Content class="sm:max-w-[550px]">
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2">
-				<img src="/cuicuit_waving.png" alt="Cuicuit" class="h-8" />
+				<img
+					src="/cuicuit_waving.webp"
+					alt="Cuicuit"
+					width="32"
+					height="32"
+					loading="lazy"
+					decoding="async"
+					class="h-8"
+				/>
 
 				Cuicuit just hatched!
 			</Dialog.Title>
 			<Dialog.Description class="grid space-y-3 pt-3">
 				<span>
-					Welcome to the alpha version of Cuicuit! This is an early preview to see if people
-					like the concept. I am actively working on improving the app, expect some bugs and rough
-					edges!
+					Welcome to the alpha version of Cuicuit! This is an early preview to see if people like
+					the concept. I am actively working on improving the app, expect some bugs and rough edges!
 				</span>
 				<span>
 					I love and rely on open source software every day. I want to give back to the community by

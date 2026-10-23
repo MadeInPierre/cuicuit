@@ -13,7 +13,7 @@
 		user: {
 			name: 'shadcn',
 			email: 'm@example.com',
-			avatar: '/cuicuit_logo.jpg'
+			avatar: '/cuicuit_logo.webp'
 		},
 		navMain: [
 			{

@@ -6,7 +6,7 @@
 	const offline = $derived(!connectivity.online);
 </script>
 
-<!-- <img src="/cuicuit_waving.png" alt="Cuicuit" class="h-16 mx-auto" /> -->
+<!-- <img src="/cuicuit_waving.webp" alt="Cuicuit" class="h-16 mx-auto" /> -->
 
 <div class="flex flex-col items-center gap-2 text-center pb-3">
 	<div class="mt-3 flex size-16 items-center justify-center rounded-full bg-primary/10">

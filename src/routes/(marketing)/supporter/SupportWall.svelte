@@ -126,12 +126,13 @@
 			class="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl flex items-center gap-3"
 		>
 			<img
-				src="/cuicuit_waving.png"
+				src="/cuicuit_waving.webp"
 				alt=""
 				aria-hidden={true}
 				width="96"
 				height="96"
 				loading="lazy"
+				decoding="async"
 				class="h-10 w-10 -rotate-6"
 			/>
 			Support Cuicuit

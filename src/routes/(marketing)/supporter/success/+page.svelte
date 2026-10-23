@@ -201,7 +201,14 @@
 								Confirming...
 							{:else if status === 'success'}
 								Thank you so much!
-								<img src="/cuicuit_waving.png" class="size-10 inline-block" alt="Logo" />
+								<img
+									src="/cuicuit_waving.webp"
+									class="size-10 inline-block"
+									alt="Logo"
+									width="40"
+									height="40"
+									decoding="async"
+								/>
 							{:else if status === 'failure'}
 								Something went wrong
 							{/if}

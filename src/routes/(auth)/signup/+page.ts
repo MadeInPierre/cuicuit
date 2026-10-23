@@ -2,7 +2,7 @@ import SignupButton from './GotoLoginButton.svelte';
 
 export function load() {
 	return {
-		backgroundUrl: '/signup-bg.jpg',
+		backgroundUrl: '/signup-bg.webp',
 		topRight: SignupButton,
 		direction: 'right',
 		title: 'Sign up'

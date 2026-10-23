@@ -5,7 +5,14 @@
 </script>
 
 <div class="flex flex-col gap-6 items-center">
-	<img src="/cuicuit_waving.png" alt="Cuicuit" class="h-16 mx-auto" />
+	<img
+		src="/cuicuit_waving.webp"
+		alt="Cuicuit"
+		width="64"
+		height="64"
+		decoding="async"
+		class="h-16 mx-auto"
+	/>
 
 	<div class="flex flex-col space-y-2 text-center">
 		<h1 class="text-2xl font-semibold tracking-tight">Welcome to Cuicuit!</h1>

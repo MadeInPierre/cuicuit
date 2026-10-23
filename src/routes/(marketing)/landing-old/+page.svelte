@@ -79,7 +79,15 @@
 	</PageHeader.Root>
 </div>
 
-<img src="/hero/hero_wide.png" alt="Cuicuit" class="w-full container mx-auto" />
+<img
+	src="/hero/hero_wide.webp"
+	alt="Cuicuit"
+	width="1916"
+	height="1079"
+	loading="lazy"
+	decoding="async"
+	class="w-full container mx-auto"
+/>
 
 <div class="container mx-auto mb-40 text-center md:max-w-lg">
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -97,7 +105,15 @@
 		<h1 class="pt-2 text-2xl font-semibold">Cuicuit</h1>
 	</div>
 
-	<img src="/cuicuit_logo.jpg" alt="Basket" class="mt-20 w-full" />
+	<img
+		src="/cuicuit_logo.webp"
+		alt="Basket"
+		width="512"
+		height="512"
+		loading="lazy"
+		decoding="async"
+		class="mt-20 w-full"
+	/>
 </div>
 
 <div class="mx-auto grid w-full max-w-2xl space-y-3 rounded-xl bg-muted px-8 py-10 mb-20">

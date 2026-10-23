@@ -24,7 +24,14 @@
 	});
 </script>
 
-<img src="/cuicuit_waving.png" alt="Cuicuit" class="h-16 mx-auto" />
+<img
+	src="/cuicuit_waving.webp"
+	alt="Cuicuit"
+	width="64"
+	height="64"
+	decoding="async"
+	class="h-16 mx-auto"
+/>
 
 <div class="flex flex-col space-y-2 text-center pb-3">
 	<h1 class="text-2xl font-semibold tracking-tight">Welcome back!</h1>

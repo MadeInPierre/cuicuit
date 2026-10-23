@@ -6,6 +6,9 @@
 	}
 
 	let { post }: Props = $props();
+
+	// Markdown images are below the fold: defer them without changing the source.
+	const html = $derived(post.html.replaceAll('<img ', '<img loading="lazy" decoding="async" '));
 </script>
 
 <article class="w-full">
@@ -19,7 +22,7 @@
 		/>
 	{/if}
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- trusted in-repo markdown -->
-	<div class="changelog-body space-y-4 text-foreground/90">{@html post.html}</div>
+	<div class="changelog-body space-y-4 text-foreground/90">{@html html}</div>
 </article>
 
 <style>

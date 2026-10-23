@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { WEEKLY_COMMUNITY_SEEDS_LIMIT } from '$lib/core/operations/credits';
 	import SourceLogoStack from '$lib/features/recipes/components/SourceLogoStack.svelte';
+	import JsonLd from '$lib/shared/components/JsonLd.svelte';
 	import ThemeButton from '$lib/shared/components/ThemeButton.svelte';
 	import { siteConfig } from '$lib/shared/config/site-config';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
@@ -103,7 +104,21 @@
 		}
 	];
 
-	const faqJsonLd = JSON.stringify({
+	const softwareApplicationJsonLd = {
+		'@context': 'https://schema.org',
+		'@type': 'SoftwareApplication',
+		name: 'Cuicuit',
+		applicationCategory: 'FoodApplication',
+		operatingSystem: 'Web',
+		description: 'Meal planning app: throw in meals anytime and get an aisle-sorted shopping list.',
+		url: siteConfig.url,
+		offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+		softwareVersion: 'Alpha',
+		openSource: true,
+		sameAs: [siteConfig.links.github, siteConfig.links.discord]
+	};
+
+	const faqJsonLd = {
 		'@context': 'https://schema.org',
 		'@type': 'FAQPage',
 		mainEntity: faqs.map((faq) => ({
@@ -111,7 +126,7 @@
 			name: faq.q,
 			acceptedAnswer: { '@type': 'Answer', text: faq.a }
 		}))
-	}).replaceAll('<', '\\u003c');
+	};
 
 	let openSupportDialog = $state(false);
 	let media = useMedia();
@@ -135,31 +150,17 @@
 		content="Throw in meal ideas anytime. Get one aisle-sorted shopping list and live cookability badges. Open source."
 	/>
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://cuicuit.laclau.dev" />
+	<meta property="og:url" content={siteConfig.url} />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Cuicuit — Your shopping list organizes itself" />
 	<meta
 		name="twitter:description"
 		content="Throw in meal ideas anytime. Get one aisle-sorted shopping list and live cookability badges. Open source."
 	/>
-	<link rel="canonical" href="https://cuicuit.laclau.dev" />
-	<script type="application/ld+json">
-		{
-			"@context": "https://schema.org",
-			"@type": "SoftwareApplication",
-			"name": "Cuicuit",
-			"applicationCategory": "FoodApplication",
-			"operatingSystem": "Web",
-			"description": "Meal planning app: throw in meals anytime and get an aisle-sorted shopping list.",
-			"url": "https://cuicuit.laclau.dev",
-			"offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-			"softwareVersion": "Alpha",
-			"openSource": true
-		}
-	</script>
-	<!-- eslint-disable-next-line svelte/no-at-html-tags, no-useless-escape -->
-	{@html `<script type="application/ld+json">${faqJsonLd}<\/script>`}
+	<link rel="canonical" href={siteConfig.url} />
 </svelte:head>
+
+<JsonLd data={[softwareApplicationJsonLd, faqJsonLd]} />
 
 <!-- ==================== HERO ==================== -->
 <section id="top" class="relative bg-(--gradient-warm)">
@@ -534,12 +535,13 @@
 		></div>
 		<div class="relative">
 			<img
-				src="/cuicuit_waving.png"
+				src="/cuicuit_waving.webp"
 				alt=""
 				aria-hidden={true}
 				width="96"
 				height="96"
 				loading="lazy"
+				decoding="async"
 				class="mx-auto h-24 w-24 -rotate-6 mb-2 drop-shadow-md"
 			/>
 			<h2
@@ -587,7 +589,15 @@
 	<div class="grid gap-8 pt-10 md:grid-cols-[1.5fr_1fr]">
 		<div>
 			<div class="flex items-center gap-2 font-display text-lg font-semibold">
-				<img src="/cuicuit_logo_transparent.png" alt="" width="24" height="24" class="h-6 w-6" />
+				<img
+					src="/cuicuit_logo_transparent.png"
+					alt=""
+					width="24"
+					height="24"
+					loading="lazy"
+					decoding="async"
+					class="h-6 w-6"
+				/>
 				Cuicuit
 			</div>
 			<p class="mt-3 text-sm text-foreground/80 max-w-prose">

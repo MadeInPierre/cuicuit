@@ -7,7 +7,14 @@
 
 <div class="mr-4 hidden md:flex">
 	<a href="/" class="mr-6 flex items-center gap-2">
-		<img src="/cuicuit_logo_transparent.png" alt={siteConfig.name} class="h-8" />
+		<img
+			src="/cuicuit_logo_transparent.png"
+			alt={siteConfig.name}
+			width="32"
+			height="32"
+			decoding="async"
+			class="h-8"
+		/>
 		<span class="hidden text-lg font-bold sm:inline-block"> {siteConfig.name} </span>
 	</a>
 

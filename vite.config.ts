@@ -248,19 +248,23 @@ export default defineConfig({
 					'prerendered/**/*.{html,json}'
 				],
 				navigateFallback: '/app-shell',
-				// `login-bg.jpeg` (4.9 MB) exceeds maximumFileSizeToCacheInBytes and
-				// is auth-only (sign-in needs connection anyway) — serve it from a
-				// runtime cache instead of precaching it.
-				globIgnores: ['**/login-bg.jpeg'],
+				// Exclude marketing assets from precache
+				globIgnores: [
+					'**/marketing/**',
+					'**/hero/hero_wide.png',
+					'**/hero/hero_narrow.png',
+					'**/hero/mockups/*.png',
+					'**/screenshots/demo_desktop.jpeg',
+					'**/og.png',
+					'**/cuicuit_logo.png',
+					'**/cuicuit_logo.jpg',
+					'**/cuicuit_waving.png',
+					'**/changelog/**',
+					'**/login-bg.*',
+					'**/signup-bg.*'
+				],
 				// API/MCP must fail fast offline instead of returning the HTML shell.
 				navigateFallbackDenylist: [/^\/api\//, /^\/mcp/],
-				// navigateFallbackAllowlist: [
-				// 	/^\/$/,
-				// 	/^\/recipes/,
-				// 	/^\/pantry/,
-				// 	/^\/settings/
-				// 	// Add any other paths belonging to the /(app)/** */ group here
-				// ],
 				runtimeCaching: [
 					// SvelteKit data requests: let already-visited routes re-render
 					// their shell offline from cache after a short network timeout.
@@ -274,13 +278,13 @@ export default defineConfig({
 							cacheableResponse: { statuses: [200] }
 						}
 					},
-					// Oversized auth background excluded from precache (see globIgnores).
+					// Auth backgrounds excluded from precache (see globIgnores).
 					{
-						urlPattern: /\/login-bg\.jpeg/,
+						urlPattern: /\/(login-bg|signup-bg)\.(jpeg|jpg|webp)$/,
 						handler: 'CacheFirst',
 						options: {
 							cacheName: 'auth-backgrounds',
-							expiration: { maxEntries: 5, maxAgeSeconds: 2592000 },
+							expiration: { maxEntries: 10, maxAgeSeconds: 2592000 },
 							cacheableResponse: { statuses: [200] }
 						}
 					},
