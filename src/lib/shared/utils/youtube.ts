@@ -65,16 +65,31 @@ export function youtubeUrlToThumbnailUrl(url: string): string | null {
 }
 
 /**
- * Lower-quality YouTube thumbnails that exist for every video, best first.
- * Used when `youtubeUrlToThumbnailUrl` 404s (low-res uploads) — YouTube then
- * serves a 120×90 grey placeholder instead of the real image.
+ * 16:9 YouTube thumbnails that never contain black bars, best first.
+ * For direct display: `mqdefault` exists for every video.
+ */
+export function youtubeWidescreenThumbnailFallbacks(url: string): string[] {
+	const videoId = youtubeVideoId(url);
+	return videoId
+		? [
+				`https://i.ytimg.com/vi/${videoId}/hq720.jpg`,
+				`https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
+			]
+		: [];
+}
+
+/**
+ * Import fallbacks, best first. `sddefault`/`hqdefault` are 4:3 with black
+ * letterbox bars for widescreen videos, so the import trims them.
  */
 export function youtubeThumbnailFallbacks(url: string): string[] {
 	const videoId = youtubeVideoId(url);
 	return videoId
 		? [
+				`https://i.ytimg.com/vi/${videoId}/hq720.jpg`,
 				`https://i.ytimg.com/vi/${videoId}/sddefault.jpg`,
-				`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+				`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+				`https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
 			]
 		: [];
 }

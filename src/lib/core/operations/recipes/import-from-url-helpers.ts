@@ -22,12 +22,12 @@ import {
 	type LanguageCode
 } from '$lib/shared/language.js';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
-import { youtubeThumbnailFallbacks } from '$lib/shared/utils/youtube';
+import { youtubeThumbnailFallbacks, youtubeVideoId } from '$lib/shared/utils/youtube';
 
 import { resolveLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
 import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
-import { resizeToRecipeThumbnail } from './image-resize.js';
+import { resizeToRecipeThumbnail, trimLetterboxBorders } from './image-resize.js';
 import { uploadImageToRecipe } from './upload-image-helper.js';
 
 // M2: co-located helpers for the `recipes.import-from-url` /
@@ -585,12 +585,21 @@ export async function* importRecipeFromUrlCore(
 			const imgResponse = await fetchRecipeImage(imageUrl, sourceUrl);
 			if (!imgResponse) throw new Error(`Could not download the image: ${imageUrl}`);
 			const blob = await imgResponse.blob();
-			const file = new File([blob], 'imported-image.jpg', { type: blob.type });
+			let imageBytes = new Uint8Array(await blob.arrayBuffer());
+			// Remove black bars from YouTube thumbnails
+			if (youtubeVideoId(sourceUrl)) {
+				try {
+					imageBytes = await trimLetterboxBorders(imageBytes);
+				} catch (trimError) {
+					console.warn('Failed to trim image letterbox bars, skipping:', trimError);
+				}
+			}
+			const file = new File([imageBytes], 'imported-image.jpg', { type: blob.type });
 			// 480px WebP thumbnail for cards/lists (sharp, server-side). Null
 			// on failure — the import still succeeds, cards fall back to full.
 			let thumbnail: Uint8Array | null = null;
 			try {
-				thumbnail = await resizeToRecipeThumbnail(new Uint8Array(await blob.arrayBuffer()));
+				thumbnail = await resizeToRecipeThumbnail(imageBytes);
 			} catch (thumbError) {
 				console.warn('Failed to resize imported image, skipping thumbnail:', thumbError);
 			}

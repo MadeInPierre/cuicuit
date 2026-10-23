@@ -24,3 +24,13 @@ export async function resizeToRecipeThumbnail(bytes: Uint8Array): Promise<Uint8A
 		.toBuffer();
 	return new Uint8Array(out);
 }
+
+/**
+ * Removes uniform black borders (e.g. the letterbox bars in YouTube's 4:3
+ * `sddefault`/`hqdefault` thumbnails) so the image can cover a 16:9 / square
+ * container without visible bars.
+ */
+export async function trimLetterboxBorders(bytes: Uint8Array): Promise<Uint8Array> {
+	const out = await sharp(bytes).rotate().trim({ background: '#000000', threshold: 20 }).toBuffer();
+	return new Uint8Array(out);
+}

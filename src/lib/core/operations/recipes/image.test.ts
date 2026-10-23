@@ -9,7 +9,7 @@ import {
 	recipeThumbnailPath,
 	thumbnailFileName
 } from './image-shared.js';
-import { resizeToRecipeThumbnail } from './image-resize.js';
+import { resizeToRecipeThumbnail, trimLetterboxBorders } from './image-resize.js';
 
 /**
  * Recipe image unit tests — pure functions only, no network, no DB.
@@ -71,5 +71,38 @@ describe('thumbnail resize', () => {
 		expect(meta.width).toBe(10);
 		expect(meta.height).toBe(10);
 		expect(meta.format).toBe('webp');
+	});
+});
+
+describe('letterbox trim', () => {
+	it('crops black bars from a 4:3 letterboxed thumbnail', async () => {
+		const content = await sharp({
+			create: { width: 640, height: 360, channels: 3, background: { r: 200, g: 100, b: 50 } }
+		})
+			.png()
+			.toBuffer();
+		const letterboxed = await sharp({
+			create: { width: 640, height: 480, channels: 3, background: { r: 0, g: 0, b: 0 } }
+		})
+			.composite([{ input: content, top: 60, left: 0 }])
+			.png()
+			.toBuffer();
+
+		const out = await trimLetterboxBorders(new Uint8Array(letterboxed));
+		const meta = await sharp(out).metadata();
+		expect(meta.width).toBe(640);
+		expect(meta.height).toBe(360);
+	});
+
+	it('leaves an image without bars untouched', async () => {
+		const plain = await sharp({
+			create: { width: 640, height: 360, channels: 3, background: { r: 200, g: 100, b: 50 } }
+		})
+			.png()
+			.toBuffer();
+		const out = await trimLetterboxBorders(new Uint8Array(plain));
+		const meta = await sharp(out).metadata();
+		expect(meta.width).toBe(640);
+		expect(meta.height).toBe(360);
 	});
 });

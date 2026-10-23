@@ -6,7 +6,10 @@
 		getRecipeImageUrl,
 		type RecipeImageVariant
 	} from '$lib/core/operations/recipes/image-shared.js';
-	import { youtubeThumbnailFallbacks, youtubeUrlToThumbnailUrl } from '$lib/shared/utils/youtube';
+	import {
+		youtubeUrlToThumbnailUrl,
+		youtubeWidescreenThumbnailFallbacks
+	} from '$lib/shared/utils/youtube';
 	import { cn } from '$lib/utils';
 	import { ChefHat } from '@lucide/svelte';
 	import type {
@@ -117,9 +120,10 @@
 			loading="lazy"
 			decoding="async"
 			onerror={(e) => {
-				// maxresdefault only exists for HD videos; walk down to the
-				// guaranteed hqdefault before giving up.
-				const fallback = youtubeThumbnailFallbacks(recipe.source_url ?? '')[ytFallbackStep++];
+				// maxresdefault only exists for HD videos, so walk down to 16:9
+				const fallback = youtubeWidescreenThumbnailFallbacks(recipe.source_url ?? '')[
+					ytFallbackStep++
+				];
 				if (fallback) (e.currentTarget as HTMLImageElement).src = fallback;
 				else ytFailed = true;
 			}}

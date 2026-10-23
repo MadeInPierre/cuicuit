@@ -26,7 +26,10 @@
 	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { formatQuantity, isPluralAmount } from '$lib/shared/utils/format-quantity';
-	import { youtubeThumbnailFallbacks, youtubeUrlToThumbnailUrl } from '$lib/shared/utils/youtube';
+	import {
+		youtubeUrlToThumbnailUrl,
+		youtubeWidescreenThumbnailFallbacks
+	} from '$lib/shared/utils/youtube';
 	import { capitalize } from '$lib/utils';
 	import {
 		ArrowUpRight,
@@ -182,7 +185,7 @@
 								class="w-full aspect-[1.618] object-cover rounded-md"
 								alt="Youtube Thumbnail"
 								onerror={(e) => {
-									const fallback = youtubeThumbnailFallbacks(recipe?.source_url ?? '')[
+									const fallback = youtubeWidescreenThumbnailFallbacks(recipe?.source_url ?? '')[
 										ytFallbackStep++
 									];
 									if (fallback) (e.currentTarget as HTMLImageElement).src = fallback;
