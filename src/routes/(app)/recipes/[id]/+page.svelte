@@ -114,44 +114,6 @@
 	<div class="w-full flex flex-col mb-20">
 		<main class="grid flex-1 items-start gap-4 md:gap-8">
 			<div class="mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
-				<!-- <div class="flex items-center gap-4">
-					<Button
-						variant="outline"
-						size="icon"
-						class="h-7 w-7"
-						onclick={() => {
-							if (window) window.history.back();
-						}}
-					>
-						<ChevronLeft class="h-4 w-4" />
-						<span class="sr-only">Back</span>
-					</Button>
-
-					<h1
-						class="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0"
-					>
-						Recipe
-					</h1>
-
-					{#if doc?.status == 'draft'}
-						<Badge class="ml-auto sm:ml-0 bg-yellow-600 text-white dark:bg-yellow-900">Draft</Badge>
-					{/if}
-
-					<div class="hidden items-center gap-2 md:ml-auto md:flex">
-						{#if doc?.author?.uid == userDocState.user?.uid}
-							<Button variant="outline" size="sm" href={'/recipes/' + pageRecipeId + '/edit'}>
-								<Pencil class="size-3.5" />
-								Edit
-							</Button>
-						{/if}
-
-						<ButtonThemed size="sm" type="submit" class="flex gap-2">
-							<CalendarPlus class="size-4" />
-							Add to plan
-						</ButtonThemed>
-					</div>
-				</div> -->
-
 				<div class="grid gap-12 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
 						{#if (recipe?.image_ids?.length || 0) > 0}

@@ -22,27 +22,37 @@ import { z } from 'zod';
  * Represents the structured result of parsing an ingredient search input.
  */
 export const parsedSearchInputSchema = z.object({
-	sourceText: z.string().describe('Original full text of the ingredient.'),
-	quantity: ingredientQuantitySchema.nullable(),
+	sourceText: z.string().default('').catch('').describe('Original full text of the ingredient.'),
+	quantity: ingredientQuantitySchema.nullable().default(null).catch(null),
 	linkWord: z
 		.string()
-		.describe('Linking word used between quantity and ingredient, e.g. "of", "de", "d\'".')
-		.nullable(),
+		.nullable()
+		.default(null)
+		.catch(null)
+		.describe('Linking word used between quantity and ingredient, e.g. "of", "de", "d\'".'),
 	ingredientText: z
 		.string()
+		.default('')
+		.catch('')
 		.describe(
 			'Name of ingredient. Must be edible and easy to find in a database of common ingredients.'
 		),
 	description: z
 		.string()
 		.nullable()
+		.default(null)
+		.catch(null)
 		.describe('Short attitional description or ingredient variant/subitem, e.g. "large".'),
 	preparation: z
 		.string()
 		.nullable()
+		.default(null)
+		.catch(null)
 		.describe('Any short preparation notes for ingredient, e.g. "sifted, chopped".'),
 	isOptional: z
 		.boolean()
+		.default(false)
+		.catch(false)
 		.describe(
 			'Considered optional if the recipe title remains valid when cooked without this ingredient.'
 		)

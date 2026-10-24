@@ -5,14 +5,17 @@ import { z } from 'zod';
 export const llmStepIngredientSchema = z.object({
 	ingredientText: z
 		.string()
+		.default('')
+		.catch('')
 		.describe('Must match an ingredientText from the top-level ingredients list.'),
 	stepSubstring: z
 		.string()
 		.default('')
+		.catch('')
 		.describe(
 			'Exact substring of the step text that mentions this ingredient, copied verbatim for highlighting.'
 		),
-	quantity: ingredientQuantitySchema.nullable().default(null)
+	quantity: ingredientQuantitySchema.nullable().default(null).catch(null)
 });
 
 /**
@@ -27,15 +30,11 @@ export const stepIngredientSchema = z.object({
 
 /** The step shape the LLM must produce (no resolved ids). */
 export const recipeStepSchema = z.object({
-	text: z.string(),
-	ingredients: z.array(llmStepIngredientSchema).default([]),
-	timer_minutes: z.number().int().positive().nullable().default(null),
-	temperature_amount: z.number().positive().nullable().default(null),
-	temperature_unit: z
-		.string()
-		.nullable()
-		.default(null)
-		.describe('"C" or "F", matching what the step says; null when there is no temperature.')
+	text: z.string().default('').catch(''),
+	ingredients: z.array(llmStepIngredientSchema).default([]).catch([]),
+	timer_minutes: z.coerce.number().nullable().default(null).catch(null),
+	temperature_amount: z.coerce.number().nullable().default(null).catch(null),
+	temperature_unit: z.string().nullable().default(null).catch(null)
 });
 
 /** The step shape stored in `recipes.steps` (with resolved ingredient ids). */

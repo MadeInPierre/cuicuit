@@ -24,13 +24,6 @@
 	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
-	import {
-		CURATED_LANGUAGES,
-		DEFAULT_LANGUAGE,
-		normalizeLanguageCode,
-		type LanguageCode
-	} from '$lib/shared/language.js';
-	const languages = CURATED_LANGUAGES;
 	import SearchResultsSidebar from '$lib/shared/components/search/SearchResultsSidebar.svelte';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
@@ -44,6 +37,11 @@
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import type { PublicRecipeSourceType } from '$lib/shared/db/supazod.schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
+	import {
+		CURATED_LANGUAGES,
+		DEFAULT_LANGUAGE,
+		normalizeLanguageCode
+	} from '$lib/shared/language.js';
 	import { capitalize, cn } from '$lib/utils';
 	import {
 		ArrowUpDown,
@@ -497,12 +495,12 @@
 														bind:value={$formData.lang}
 													>
 														<Select.Trigger class="w-20 h-9">
-															{languages[$formData.lang as keyof typeof languages]?.emoji || '?'}
+															{CURATED_LANGUAGES[$formData.lang]?.emoji || '?'}
 														</Select.Trigger>
 														<Select.Content>
 															<Select.Group>
 																<Select.GroupHeading>Recipe language</Select.GroupHeading>
-																{#each Object.entries(languages) as [value, lang] (value)}
+																{#each Object.entries(CURATED_LANGUAGES) as [value, lang] (value)}
 																	<Select.Item
 																		{value}
 																		label={lang.label}
@@ -659,46 +657,12 @@
 							</Card.Content>
 						</Card.Root>
 
-						<!-- <Card.Root>
-							<Card.Header>
-								<Card.Title>Tools</Card.Title>
-								<Card.Description>
-									Please select the tools needed to make this recipe
-								</Card.Description>
-							</Card.Header>
-							<Card.Content>
-								<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-									{#snippet toolButton(key: RecipeToolKey, label: string)}
-										<button
-											disabled={loading}
-											class={cn(
-												'transition-all aspect-square rounded-md text-center border-2',
-												$formData.tool_ids.includes(key) &&
-													'font-semibold border-primary text-primary ring-2 ring-primary/50'
-											)}
-											onclick={(e) => {
-												e.preventDefault(); // Don't submit the form
-												$formData.tool_ids = $formData.tool_ids.includes(key)
-													? $formData.tool_ids.filter((tool) => tool !== key)
-													: [...$formData.tool_ids, key];
-											}}
-										>
-											<img src={`/appliances/${key}.jpg`} alt="" class="size-12 mx-auto mb-1" />
-											{label}
-										</button>
-									{/snippet}
-									{#each Object.entries(recipeTools) as [key, label]}
-										{@render toolButton(key as RecipeToolKey, label)}
-									{/each}
-								</div>
-							</Card.Content>
-						</Card.Root> -->
-
 						<Card.Root>
 							<Card.Header>
 								<Card.Title>Instructions</Card.Title>
-								<Card.Description>
-									Step by step detailed instructions to make the recipe
+								<Card.Description class="text-amber-600 text-xs italic">
+									<!-- Step by step detailed instructions to make the recipe -->
+									Note: editing of per-step ingredients and timers coming soon.
 								</Card.Description>
 							</Card.Header>
 							<Card.Content class="grid gap-6">
@@ -1147,34 +1111,6 @@
 						<VoteForFeatures
 							title="Want nutrition facts, custom filters, tags, nested recipes, and more?"
 						/>
-
-						<!-- <Card.Root>
-							<Card.Header>
-								<Card.Title>Detected information</Card.Title>
-								<Card.Description>Based on ingredients</Card.Description>
-							</Card.Header>
-							<Card.Content>
-								<div class="grid gap-1.5 text-muted-foreground text-sm">
-									<div class="flex items-center gap-2">
-										<input type="checkbox" disabled />
-										<span>Nutrition categories (e.g. vegan)</span>
-									</div>
-									<div class="flex items-center gap-2">
-										<input type="checkbox" disabled />
-										<span>Nutrition stats (e.g. calories)</span>
-									</div>
-									<div class="flex items-center gap-2">
-										<input type="checkbox" disabled />
-										<span>(Recipe variants e.g. vegan version, web import, ratings & comments)</span
-										>
-									</div>
-								</div>
-							</Card.Content>
-						</Card.Root> -->
-
-						<!-- <div class="flex-1 gap-2 text-center text-xs text-muted-foreground">
-							<p>Recipe id: {pageRecipeId}</p>
-						</div> -->
 					</div>
 				</div>
 

@@ -152,9 +152,9 @@ export const unitUnregionizedSchema = z.union(
  * per-step ingredient hints so the LLM only sees one quantity shape.
  */
 export const ingredientQuantitySchema = z.object({
-	amount: z.number().describe('Numeric amount.'),
-	unitText: z.string().default('').describe('Unit as given by the recipe, empty if none.'),
-	unitKey: unitUnregionizedSchema.describe('Standardized unit key.')
+	amount: z.coerce.number().catch(1).describe('Numeric amount.'),
+	unitText: z.string().default('').catch('').describe('Unit as given by the recipe, empty if none.'),
+	unitKey: unitUnregionizedSchema.catch('whole').describe('Standardized unit key.')
 });
 
 export type IngredientQuantity = z.infer<typeof ingredientQuantitySchema>;

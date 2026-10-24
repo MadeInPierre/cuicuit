@@ -13,7 +13,7 @@
 // server callers import this core module directly, browser callers (none
 // today) keep using the remote. Server-only (Vercel AI SDK + private env
 // keys). Never import from `client.ts`.
-import { recipeStepSchema } from '$lib/features/recipes/models/recipe-step';
+import { normalizeRecipeSteps, recipeStepSchema } from '$lib/features/recipes/models/recipe-step';
 import { parsedSearchInputSchema } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
@@ -53,6 +53,8 @@ The main ingredient quantities must be the sum of all quantities set in steps fo
 
 # Steps
 
+You MUST output at least one step in recipe.steps. Never return an empty array; if the source has no explicit steps, reconstruct sensible steps from the instructions and ingredients.
+
 For each step (write at least one), also return structured hints:
 - ingredients: list every ingredient used in that step, following the above rules. Only set ingredients explicitely mentioned in the step, do not remind ingredients from previous steps. Fields per ingredient:
 	- stepSubstring: the exact substring of the step text that mentions this ingredient, copied verbatim so it can be highlighted. Only the ingredient name itself, not text around it.
@@ -77,36 +79,40 @@ Note: Only the "${Object.keys(CURATED_LANGUAGES).join(', ')}" languages are supp
 
 // Define the relevant recipe fields for enrichment once
 const relevantRecipeFieldsSchema = z.object({
-	title: publicRecipesRowSchema.shape.title.describe(
-		'Original title but without useless SEO text, e.g. "the best", "easy", etc.'
-	),
-	short_title: publicRecipesRowSchema.shape.short_title.describe(
-		'Shortest possible title for this recipe in 1 word.'
-	),
-	description: publicRecipesRowSchema.shape.description.describe('1-2 sentence short description.'),
-	servings: publicRecipesRowSchema.shape.servings,
-	time_prep_minutes: publicRecipesRowSchema.shape.time_prep_minutes,
-	time_cook_minutes: publicRecipesRowSchema.shape.time_cook_minutes,
-	time_rest_minutes: publicRecipesRowSchema.shape.time_rest_minutes,
-	cleanup_level: publicRecipesRowSchema.shape.cleanup_level,
-	cost_level: publicRecipesRowSchema.shape.cost_level,
-	skill_level: publicRecipesRowSchema.shape.skill_level,
-	effort_level: publicRecipesRowSchema.shape.effort_level,
-	courses: publicRecipesRowSchema.shape.courses,
-	cuisines: publicRecipesRowSchema.shape.cuisines,
-	times_of_day: publicRecipesRowSchema.shape.times_of_day,
-	tools: publicRecipesRowSchema.shape.tools,
+	title: publicRecipesRowSchema.shape.title
+		.catch('My Recipe')
+		.describe('Original title but without useless SEO text, e.g. "the best", "easy", etc.'),
+	short_title: publicRecipesRowSchema.shape.short_title
+		.catch('Recipe')
+		.describe('Shortest possible title for this recipe in 1 word.'),
+	description: publicRecipesRowSchema.shape.description
+		.catch(null)
+		.describe('1-2 sentence short description.'),
+	servings: z.coerce.number().catch(4),
+	time_prep_minutes: z.coerce.number().nullable().catch(null),
+	time_cook_minutes: z.coerce.number().nullable().catch(null),
+	time_rest_minutes: z.coerce.number().nullable().catch(null),
+	cleanup_level: publicRecipesRowSchema.shape.cleanup_level.catch('none'),
+	cost_level: publicRecipesRowSchema.shape.cost_level.catch('budget'),
+	skill_level: publicRecipesRowSchema.shape.skill_level.catch('beginner'),
+	effort_level: publicRecipesRowSchema.shape.effort_level.catch('low'),
+	courses: publicRecipesRowSchema.shape.courses.catch(['main']),
+	cuisines: publicRecipesRowSchema.shape.cuisines.catch([]),
+	times_of_day: publicRecipesRowSchema.shape.times_of_day.catch([]),
+	tools: publicRecipesRowSchema.shape.tools.catch([]),
 	steps: z
 		.array(recipeStepSchema)
 		.min(1, 'Recipe must have at least one step.')
+		.catch([])
 		.describe('The ordered recipe instructions.'),
-	notes: publicRecipesRowSchema.shape.notes
+	notes: publicRecipesRowSchema.shape.notes.catch(null)
 }) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
 
 const outputSchema = z.object({
-	lang: languageCodeSchema,
+	lang: languageCodeSchema.catch('en-US'),
 	ingredients: z
 		.array(parsedSearchInputSchema)
+		.catch([])
 		.describe(
 			'The list of ingredients. Each quantity is the total amount needed for the whole recipe.'
 		),
@@ -116,6 +122,7 @@ const outputSchema = z.object({
 	image: z
 		.string()
 		.nullable()
+		.catch(null)
 		.describe('The primary image URL in the raw content, or null if none found.')
 });
 
@@ -302,6 +309,19 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 				for (const [key, value] of Object.entries(parsed.recipe)) {
 					try {
+						// Steps need element-by-element recovery so a single bad
+						// step doesn't discard the rest (and their timers/hints).
+						if (key === 'steps') {
+							const recoveredSteps = normalizeRecipeSteps(value);
+							if (recoveredSteps.length > 0) {
+								partialRecipe.steps = recoveredSteps;
+								console.log(`✓ Recovered field: steps (${recoveredSteps.length})`);
+							} else {
+								console.warn('✗ Failed to recover field: steps');
+							}
+							continue;
+						}
+
 						// Try to validate individual fields using the schema shape
 						const fieldSchema =
 							relevantRecipeFieldsSchema.shape[
@@ -346,7 +366,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 			for (const ing of parsed.ingredients) {
 				const result = parsedSearchInputSchema.safeParse(ing);
-				if (result.success) {
+				if (result.success && result.data.ingredientText?.trim()) {
 					recoveredIngredients.push(result.data);
 					console.log(`✓ Recovered ingredient:`, result.data);
 				} else {
@@ -379,7 +399,11 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 						// Try to parse the partially recovered ingredient
 						const partialResult = parsedSearchInputSchema.partial().safeParse(partialIngredient);
-						if (partialResult.success && Object.keys(partialIngredient).length > 0) {
+						if (
+							partialResult.success &&
+							Object.keys(partialIngredient).length > 0 &&
+							partialResult.data.ingredientText?.trim()
+						) {
 							console.log(
 								`  ✓ Partially recovered ingredient with ${Object.keys(partialIngredient).length} fields`
 							);
