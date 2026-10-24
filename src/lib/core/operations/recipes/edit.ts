@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
+import { EMPTY_RECIPE_STEP_HINTS } from '$lib/features/recipes/models/recipe-step';
 import { createRecipeFormSchema } from '$lib/features/recipes/models/schemas';
-import type { Tables, TablesInsert } from '$lib/shared/db/supabase.types';
+import type { TablesInsert } from '$lib/shared/db/supabase.types';
 
 import { OpError } from '../errors.js';
 import { resolveLanguageId } from '../languages/resolve.js';
@@ -90,9 +91,13 @@ export const editRecipeOp = defineOp({
 				// Servings (ingredients will be inserted in another table)
 				servings: data.servings,
 
-				// Steps
-				steps: data.stepDescriptions
-			} as Tables<'recipes'>)
+				// Steps (keep enrichment hints where the form preserved them)
+				// TODO add UI to edit step hints
+				steps: data.stepDescriptions.map((text, i) => ({
+					text,
+					...(data.stepHints[i] ?? EMPTY_RECIPE_STEP_HINTS)
+				}))
+			} as TablesInsert<'recipes'>)
 			.select('id')
 			.single();
 

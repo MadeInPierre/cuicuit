@@ -18,13 +18,7 @@
 	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
-	import {
-		Apple,
-		Calendar,
-		ClipboardList,
-		RotateCcw,
-		ShoppingBasket
-	} from '@lucide/svelte';
+	import { Apple, Calendar, ClipboardList, RotateCcw, ShoppingBasket } from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import type { CombinedShoppingListItem } from './generate-shopping-list';

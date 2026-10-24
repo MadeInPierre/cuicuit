@@ -8,7 +8,12 @@ import { languageCodeSchema } from '$lib/shared/language.js';
 import { OpError } from '../errors.js';
 import { resolveLanguageId } from '../languages/resolve.js';
 import { defineOp } from '../registry.js';
-import { recipesDetailedQuery, type RecipeDetailedRow } from './list.js';
+import {
+	normalizeRecipeRow,
+	recipesDetailedQuery,
+	type RecipeDetailedRow,
+	type RecipeRowWithSteps
+} from './list.js';
 
 export const getRecipeInput = z.object({
 	recipeId: z.string().min(1),
@@ -30,7 +35,9 @@ export function recipeAuthorQuery(client: SupabaseClient<Database>, authorId: st
 
 export type RecipeAuthorRow = NonNullable<Awaited<ReturnType<typeof recipeAuthorQuery>>['data']>;
 
-export type GetRecipeOutput = RecipeDetailedRow & { author: RecipeAuthorRow };
+export type GetRecipeOutput = RecipeRowWithSteps<RecipeDetailedRow> & {
+	author: RecipeAuthorRow;
+};
 
 /**
  * Fetches a single detailed recipe plus its author's public profile.
@@ -67,6 +74,6 @@ export const getRecipeOp = defineOp({
 			throw new OpError('NOT_FOUND', 'Recipe author not found.', profileError);
 		}
 
-		return { ...data, author: authorProfile };
+		return { ...normalizeRecipeRow(data), author: authorProfile };
 	}
 });

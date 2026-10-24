@@ -5,14 +5,9 @@ import {
 	type ShoppingRecommendationsInput,
 	type ShoppingRecommendationsOutput
 } from '$lib/core/operations/plans/recommendations.js';
+import type { LanguageCodeCurated } from '$lib/shared/language.js';
 
-// Thin adapter over the `plans.recommendations` op. NOTE: the canonical operation
-// lives in `core/operations/plans/recommendations.ts` (plans domain); this file
-// stays in the spaces folder for history and re-exports its shape.
-
-import type { LanguageCode } from '$lib/shared/language.js';
-
-export async function getShoppingRecommendations(spaceId: string, lang: LanguageCode) {
+export async function getShoppingRecommendations(spaceId: string, lang: LanguageCodeCurated) {
 	if (!spaceId) return [];
 	return runOp<ShoppingRecommendationsInput, ShoppingRecommendationsOutput>(
 		shoppingRecommendationsOp.name,

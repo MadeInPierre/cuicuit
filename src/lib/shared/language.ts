@@ -18,7 +18,7 @@ import z from 'zod';
  */
 export type LanguageCode = string;
 
-export const DEFAULT_LANGUAGE: LanguageCode = 'en-US';
+export const DEFAULT_LANGUAGE: LanguageCodeCurated = 'en-US';
 
 const LANG_SHAPE = /^[a-z]{2}-[A-Z]{2}$/;
 
@@ -28,13 +28,13 @@ const LANG_SHAPE = /^[a-z]{2}-[A-Z]{2}$/;
  * Bare 2-letter codes (`'en'`) are rejected — they are ambiguous
  * (`pt` → `pt-BR` vs `pt-PT`), so callers must pass the full code.
  */
-export function normalizeLanguageCode(input: unknown): LanguageCode | null {
+export function normalizeLanguageCode(input: unknown): LanguageCodeCurated | null {
 	if (typeof input !== 'string') return null;
 	const cleaned = input.trim().replace('_', '-');
 	const match = /^([a-zA-Z]{2})-([a-zA-Z]{2})$/.exec(cleaned);
 	if (!match) return null;
 	const canonical = `${match[1].toLowerCase()}-${match[2].toUpperCase()}`;
-	return LANG_SHAPE.test(canonical) ? canonical : null;
+	return LANG_SHAPE.test(canonical) ? (canonical as LanguageCodeCurated) : null; // TODO improve type safety Curated vs Not curated
 }
 
 export function isLanguageCode(input: unknown): input is LanguageCode {
@@ -70,6 +70,8 @@ export const CURATED_LANGUAGES = {
 export const CURATED_LANGUAGE_CODES = Object.keys(
 	CURATED_LANGUAGES
 ) as (keyof typeof CURATED_LANGUAGES)[];
+
+export type LanguageCodeCurated = keyof typeof CURATED_LANGUAGES;
 
 /**
  * Zod schema for the officially supported language codes.

@@ -12,8 +12,8 @@
  * - "sugar" (no quantity)
  */
 import {
+	ingredientQuantitySchema,
 	unitAliases,
-	unitUnregionizedSchema,
 	type UnitUnregionized
 } from '$lib/shared/utils/quantity';
 import { z } from 'zod';
@@ -23,13 +23,7 @@ import { z } from 'zod';
  */
 export const parsedSearchInputSchema = z.object({
 	sourceText: z.string().describe('Original full text of the ingredient.'),
-	quantity: z
-		.object({
-			amount: z.number().describe('Numeric amount of the quantity.'),
-			unitText: z.string().describe('Unit as given by the recipe, empty if none.'),
-			unitKey: unitUnregionizedSchema.describe('Standardized unit key.')
-		})
-		.nullable(),
+	quantity: ingredientQuantitySchema.nullable(),
 	linkWord: z
 		.string()
 		.describe('Linking word used between quantity and ingredient, e.g. "of", "de", "d\'".')

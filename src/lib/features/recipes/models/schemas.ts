@@ -1,3 +1,4 @@
+import { recipeStepHintsSchema } from '$lib/features/recipes/models/recipe-step';
 import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
 import { DEFAULT_LANGUAGE, languageCodeSchema } from '$lib/shared/language.js';
 import { z } from 'zod';
@@ -118,7 +119,10 @@ export const createRecipeFormSchema = z
 					})
 			)
 			.min(1, { message: 'Please write at least one step.' })
-			.default([''])
+			.default(['']),
+
+		// Structured hints preserved from the enrichment; edited separately later.
+		stepHints: z.array(recipeStepHintsSchema).default([])
 	})
 	.refine((data) => {
 		const {

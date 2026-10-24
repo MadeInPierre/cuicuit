@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS "public"."recipes" (
     "cleanup_level" "public"."cleanup_level" NOT NULL,
     "cost_level" "public"."cost_level" NOT NULL,
     "servings" smallint NOT NULL,
-    "steps" "text" [],
+    "steps" "jsonb" DEFAULT '[]'::"jsonb",
     "times_of_day" "public"."time_of_day" [] NOT NULL,
     "courses" "public"."course" [] NOT NULL,
     "cuisines" "public"."cuisine" [] NOT NULL,

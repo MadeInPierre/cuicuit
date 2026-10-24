@@ -5,6 +5,7 @@
 	import { deleteMeal, updateMealServings } from '$lib/features/plans/actions/update-meal';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
+	import RecipeStep from '$lib/features/recipes/components/RecipeStep.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
 	import {
@@ -54,6 +55,7 @@
 	const pageRecipeId = $derived(page.params.id);
 	const space = getActiveSpaceState();
 	const userState = getUserState();
+	const recipeLang = $derived(normalizeLanguageCode(space.language?.lang));
 
 	let ingredientsView = createPersistentState<'grid' | 'list'>(
 		'view-recipe-ingredients-layout',
@@ -494,14 +496,14 @@
 		<h2 class="text-xl font-semibold">Steps</h2>
 
 		{#each recipe?.steps || [] as step, i (i)}
-			<div class="flex items-start min-h-12">
-				<span
-					class="text-md font-semibold text-primary bg-muted rounded-lg size-8 min-w-8 flex justify-center items-center"
-				>
-					{i + 1}
-				</span>
-				<span class="ml-4 pt-0.5 text-md">{step}</span>
-			</div>
+			<RecipeStep
+				{step}
+				index={i}
+				ingredients={recipe?.ingredients ?? []}
+				lang={recipeLang}
+				{displayServings}
+				recipeServings={recipe?.servings ?? 1}
+			/>
 		{/each}
 	</div>
 {/snippet}

@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
+import {
+	normalizeStoredRecipeSteps,
+	type RecipeStep
+} from '$lib/features/recipes/models/recipe-step';
 import type { Database } from '$lib/shared/db/supabase.types';
 import { languageCodeSchema } from '$lib/shared/language.js';
 
@@ -130,6 +134,15 @@ export function recipesDetailedQuery(
 export type RecipeDetailedRow = NonNullable<
 	Awaited<ReturnType<typeof recipesDetailedQuery>>['data']
 >[number];
+
+export type RecipeRowWithSteps<T extends { steps: unknown }> = Omit<T, 'steps'> & {
+	steps: RecipeStep[];
+};
+
+/** Converts the raw `jsonb` steps column into the app's structured step shape. */
+export function normalizeRecipeRow<T extends { steps: unknown }>(row: T): RecipeRowWithSteps<T> {
+	return { ...row, steps: normalizeStoredRecipeSteps(row.steps) };
+}
 
 /**
  * Applies the caller-chained list filters (`.limit()`, `.overlaps()`, `.in()`,

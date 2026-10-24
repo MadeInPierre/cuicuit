@@ -2,11 +2,10 @@ import { version } from '$app/environment';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { buildCustomIngredientName } from '$lib/features/ingredients/utils/ingredient-display';
+import { linkStepIngredients } from '$lib/features/recipes/models/recipe-step';
 import type { ParsedSearchInput } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
-import { enrichRawRecipe, enrichTextRecipe, type EnrichedRecipeOutput } from './enrich-helpers.js';
-import { scrapeRecipeUrl } from './scrape-helpers.js';
 import type {
 	ScrapeFormat,
 	ScrapeProviderStats,
@@ -19,14 +18,17 @@ import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import {
 	DEFAULT_LANGUAGE,
 	normalizeLanguageCode,
-	type LanguageCode
+	type LanguageCode,
+	type LanguageCodeCurated
 } from '$lib/shared/language.js';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
 import { youtubeThumbnailFallbacks, youtubeVideoId } from '$lib/shared/utils/youtube';
+import { enrichRawRecipe, enrichTextRecipe, type EnrichedRecipeOutput } from './enrich-helpers.js';
+import { scrapeRecipeUrl } from './scrape-helpers.js';
 
+import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
 import { resolveLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
-import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
 import { resizeToRecipeThumbnail, trimLetterboxBorders } from './image-resize.js';
 import { uploadImageToRecipe } from './upload-image-helper.js';
 
@@ -223,7 +225,7 @@ export function resolveRecipeMatchLang(llmLang: unknown, fallbackLang: LanguageC
 	if (!detected) {
 		console.warn(
 			`Import: unrecognized recipe language (${JSON.stringify(llmLang)}), ` +
-				`matching ingredients as "${fallbackLang}" instead — expect custom ingredients.`
+				`matching ingredients as "${fallbackLang}" instead, expect custom ingredients.`
 		);
 		return fallbackLang;
 	}
@@ -236,28 +238,41 @@ export function resolveRecipeMatchLang(llmLang: unknown, fallbackLang: LanguageC
 export async function processAndMatchIngredients(
 	supabase: SupabaseClient<Database>,
 	enrichedIngredients: ParsedSearchInput[],
-	lang: LanguageCode,
+	lang: LanguageCodeCurated,
 	userId: string
 ): Promise<IngredientProcessed[]> {
+	const eligible = enrichedIngredients.filter(
+		(p) => p.ingredientText && p.ingredientText.trim().length > 0
+	);
 	const matchData = await runOp<MatchIngredientsInput, MatchIngredientsResult>(
 		'ingredients.match',
 		{ supabase, admin: supabase, userId, source: 'app' },
 		{
-			ingredientStrings: enrichedIngredients
-				.filter((p) => p.ingredientText && p.ingredientText.trim().length > 0)
-				.map((p) => p.ingredientText || 'Unknown'),
+			ingredientStrings: eligible.map((p) => p.ingredientText),
 			lang: lang || DEFAULT_LANGUAGE
 		}
 	);
 
-	return enrichedIngredients.map(
-		(p, i) =>
-			({
-				sourceText: p.sourceText || 'Unknown',
-				parsed: p,
-				matches: (matchData.matches[i].bestMatches || []) as IngredientProcessed['matches']
-			}) satisfies IngredientProcessed
-	);
+	// Keep the results aligned with `enrichedIngredients`: only the eligible
+	// entries were matched, so walk the match list in that same order.
+	let matchIndex = 0;
+	return enrichedIngredients.map((p) => {
+		const isEligible = !!(p.ingredientText && p.ingredientText.trim().length > 0);
+		const matches = isEligible
+			? ((matchData.matches[matchIndex++]?.bestMatches || []) as IngredientProcessed['matches'])
+			: [];
+
+		return {
+			sourceText: p.sourceText || 'Unknown',
+			parsed: p,
+			matches
+		} satisfies IngredientProcessed;
+	});
+}
+
+/** The catalog ingredient id of each matched top-level ingredient (null = custom). */
+export function catalogIngredientIds(processed: IngredientProcessed[]): (string | null)[] {
+	return processed.map((p) => p.matches?.[0]?.id ?? null);
 }
 
 /**
@@ -266,7 +281,8 @@ export async function processAndMatchIngredients(
 export async function saveEnrichedRecipe(
 	supabase: SupabaseClient<Database>,
 	recipeId: string,
-	enrichedRecipe: EnrichedRecipeOutput
+	enrichedRecipe: EnrichedRecipeOutput,
+	ingredientIds: (string | null)[]
 ): Promise<void> {
 	// Get the recipe's language database ID
 	const { id: langId } = await resolveLanguageId(
@@ -298,7 +314,11 @@ export async function saveEnrichedRecipe(
 			cuisines: enrichedRecipe.recipe.cuisines,
 			times_of_day: enrichedRecipe.recipe.times_of_day,
 			tools: enrichedRecipe.recipe.tools,
-			steps: enrichedRecipe.recipe.steps,
+			steps: linkStepIngredients(
+				enrichedRecipe.recipe.steps,
+				enrichedRecipe.ingredients,
+				ingredientIds
+			),
 			notes: enrichedRecipe.recipe.notes,
 			updated_at: new Date().toISOString()
 		} satisfies Partial<PublicRecipesRow>)
@@ -378,6 +398,7 @@ export async function insertUserImportedRecipe(
 		sourceUrl: string;
 		cacheId: string;
 		enriched: EnrichedRecipeOutput;
+		ingredientIds: (string | null)[];
 	}
 ): Promise<string> {
 	// Get the recipe's language database ID
@@ -426,7 +447,11 @@ export async function insertUserImportedRecipe(
 			servings: input.enriched.recipe.servings,
 
 			// Steps
-			steps: input.enriched.recipe.steps,
+			steps: linkStepIngredients(
+				input.enriched.recipe.steps,
+				input.enriched.ingredients,
+				input.ingredientIds
+			),
 			language_id: langId
 		} satisfies Database['public']['Tables']['recipes']['Insert'])
 		.select('id')
@@ -550,29 +575,28 @@ export async function* importRecipeFromUrlCore(
 	// scraper couldn't (e.g. Geonode/Firecrawl returning raw markdown).
 	imageUrl = imageUrl || llmOutput.image || null;
 
-	// Step 2: Recognizing ingredients & units — create the user's recipe,
-	// then match its ingredients against the live catalog.
+	// Step 2: Recognize ingredients & units: match against the live catalog
 	yield 2;
+	const processedIngredients = await processAndMatchIngredients(
+		admin,
+		llmOutput.ingredients,
+		resolveRecipeMatchLang(llmOutput.lang, lang) as LanguageCodeCurated,
+		userId
+	);
+
 	const userRecipeId = await insertUserImportedRecipe(admin, {
 		authorId: userId,
 		sourceType: 'website',
 		sourceUrl,
 		cacheId: cacheId!,
-		enriched: llmOutput
+		enriched: llmOutput,
+		ingredientIds: catalogIngredientIds(processedIngredients)
 	});
 
 	try {
-		const processedIngredients = await processAndMatchIngredients(
-			admin,
-			llmOutput.ingredients,
-			resolveRecipeMatchLang(llmOutput.lang, lang),
-			userId
-		);
 		await insertRecipeIngredients(admin, userRecipeId, processedIngredients);
 	} catch (error) {
-		// Step 2 spans several statements: remove the half-built recipe so a
-		// retry starts clean instead of orphaning an ingredient-less row.
-		// (Scrape + LLM output stay cached, so the retry is cheap.)
+		// Remove the half-built recipe so a retry starts clean
 		await admin.from('recipes').delete().eq('id', userRecipeId);
 		throw error;
 	}
@@ -585,7 +609,7 @@ export async function* importRecipeFromUrlCore(
 			const imgResponse = await fetchRecipeImage(imageUrl, sourceUrl);
 			if (!imgResponse) throw new Error(`Could not download the image: ${imageUrl}`);
 			const blob = await imgResponse.blob();
-			let imageBytes = new Uint8Array(await blob.arrayBuffer());
+			let imageBytes: Uint8Array<ArrayBufferLike> = new Uint8Array(await blob.arrayBuffer());
 			// Remove black bars from YouTube thumbnails
 			if (youtubeVideoId(sourceUrl)) {
 				try {
@@ -594,7 +618,9 @@ export async function* importRecipeFromUrlCore(
 					console.warn('Failed to trim image letterbox bars, skipping:', trimError);
 				}
 			}
-			const file = new File([imageBytes], 'imported-image.jpg', { type: blob.type });
+			const file = new File([imageBytes.slice().buffer as ArrayBuffer], 'imported-image.jpg', {
+				type: blob.type
+			});
 			// 480px WebP thumbnail for cards/lists (sharp, server-side). Null
 			// on failure — the import still succeeds, cards fall back to full.
 			let thumbnail: Uint8Array | null = null;
@@ -661,12 +687,17 @@ export async function* importRecipeFromTextCore(
 	const processedIngredients = await processAndMatchIngredients(
 		admin,
 		enrichedRecipe.ingredients,
-		resolveRecipeMatchLang(enrichedRecipe.lang, normalizedLang),
+		resolveRecipeMatchLang(enrichedRecipe.lang, normalizedLang) as LanguageCodeCurated,
 		context.userId
 	);
 	console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
 
-	await saveEnrichedRecipe(admin, recipeId, enrichedRecipe);
+	await saveEnrichedRecipe(
+		admin,
+		recipeId,
+		enrichedRecipe,
+		catalogIngredientIds(processedIngredients)
+	);
 	await insertRecipeIngredients(admin, recipeId, processedIngredients);
 
 	// TODO Complete is true hoping the recipe is good, but should do a last zod check

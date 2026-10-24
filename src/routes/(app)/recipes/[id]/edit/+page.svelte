@@ -16,6 +16,7 @@
 		type RecipeCuisineKey,
 		type RecipeTimeOfDayKey
 	} from '$lib/features/recipes/db/recipe-doc';
+	import { EMPTY_RECIPE_STEP_HINTS } from '$lib/features/recipes/models/recipe-step';
 	import {
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
@@ -107,78 +108,104 @@
 		if (isNewRecipe || !lang) return;
 
 		// Fetch the recipe from Supabase
-		getRecipeDetailed(pageRecipeId, lang).then(
-			({ data: recipeData, error: recipeError }) => {
-				console.log('Fetched recipe data:', recipeData, 'Error:', recipeError);
+		getRecipeDetailed(pageRecipeId, lang).then(({ data: recipeData, error: recipeError }) => {
+			console.log('Fetched recipe data:', recipeData, 'Error:', recipeError);
 
-				if (recipeError || !recipeData) {
-					console.error('Error fetching recipe:', recipeError);
-					return;
-				}
-
-				formData.update(
-					(f) => {
-						// General info
-						f.lang = normalizeLanguageCode(recipeData.language?.lang) ?? DEFAULT_LANGUAGE;
-						f.title = recipeData.title || 'New recipe';
-						f.short_title = recipeData.short_title || 'New';
-						f.description = recipeData.description || 'Delicious new recipe';
-
-						// Source
-						f.source_type = recipeData.source_type || 'user-manual';
-						f.source_url = recipeData.source_url;
-
-						// Images
-						f.imageIds = recipeData.image_ids || [];
-
-						// Filters
-						f.timesofday_ids = recipeData.times_of_day || [];
-						f.course_ids = recipeData.courses || [];
-						f.cuisine_ids = recipeData.cuisines || [];
-						// f.tag_ids = recipeData.tags || []; // TODO revisit later
-						f.tool_ids = recipeData.tools || [];
-
-						// Levels
-						f.effortLevel = recipeData.effort_level || 'low';
-						f.skillLevel = recipeData.skill_level || 'beginner';
-						f.cleanupLevel = recipeData.cleanup_level || 'none';
-						f.costLevel = recipeData.cost_level || 'budget';
-
-						// Cook times
-						f.timePrep = recipeData.time_prep_minutes || 0;
-						f.timeCook = recipeData.time_cook_minutes || 0;
-						f.timeRest = recipeData.time_rest_minutes || 0;
-
-						// Servings & Ingredients
-						f.servings = recipeData.servings || 4;
-						f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
-						f.ingredientCustomNames = recipeData.ingredients.map((ing) => ing.custom_name || null);
-						f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
-						f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
-						f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
-						f.ingredientRawInputs = recipeData.ingredients.map((ing) => ing.raw_input || '');
-						f.ingredientDetails = recipeData.ingredients.map((ing) => ing.details || '');
-						f.ingredientNotes = recipeData.ingredients.map((ing) => ing.notes || '');
-						f.ingredientPreparations = recipeData.ingredients.map((ing) => ing.preparation || '');
-
-						f.ingredientNames = recipeData.ingredients.map((ing) => {
-							const amount = ing.quantity || 1;
-							return resolveIngredientName(ing.ingredient?.translations, {
-								lang: recipeData.language?.lang,
-								plural: amount > 1,
-								customName: ing.custom_name
-							});
-						});
-
-						// Steps
-						f.stepDescriptions = recipeData.steps || [''];
-						return f;
-					},
-					{ taint: false }
-				);
+			if (recipeError || !recipeData) {
+				console.error('Error fetching recipe:', recipeError);
+				return;
 			}
-		);
+
+			formData.update(
+				(f) => {
+					// General info
+					f.lang = normalizeLanguageCode(recipeData.language?.lang) ?? DEFAULT_LANGUAGE;
+					f.title = recipeData.title || 'New recipe';
+					f.short_title = recipeData.short_title || 'New';
+					f.description = recipeData.description || 'Delicious new recipe';
+
+					// Source
+					f.source_type = recipeData.source_type || 'user-manual';
+					f.source_url = recipeData.source_url;
+
+					// Images
+					f.imageIds = recipeData.image_ids || [];
+
+					// Filters
+					f.timesofday_ids = recipeData.times_of_day || [];
+					f.course_ids = recipeData.courses || [];
+					f.cuisine_ids = recipeData.cuisines || [];
+					// f.tag_ids = recipeData.tags || []; // TODO revisit later
+					f.tool_ids = recipeData.tools || [];
+
+					// Levels
+					f.effortLevel = recipeData.effort_level || 'low';
+					f.skillLevel = recipeData.skill_level || 'beginner';
+					f.cleanupLevel = recipeData.cleanup_level || 'none';
+					f.costLevel = recipeData.cost_level || 'budget';
+
+					// Cook times
+					f.timePrep = recipeData.time_prep_minutes || 0;
+					f.timeCook = recipeData.time_cook_minutes || 0;
+					f.timeRest = recipeData.time_rest_minutes || 0;
+
+					// Servings & Ingredients
+					f.servings = recipeData.servings || 4;
+					f.ingredientIds = recipeData.ingredients.map((ing) => ing.ingredient_id);
+					f.ingredientCustomNames = recipeData.ingredients.map((ing) => ing.custom_name || null);
+					f.ingredientAmounts = recipeData.ingredients.map((ing) => ing.quantity || 1);
+					f.ingredientUnits = recipeData.ingredients.map((ing) => ing.unit || 'whole');
+					f.ingredientIsOptional = recipeData.ingredients.map((ing) => ing.is_optional || false);
+					f.ingredientRawInputs = recipeData.ingredients.map((ing) => ing.raw_input || '');
+					f.ingredientDetails = recipeData.ingredients.map((ing) => ing.details || '');
+					f.ingredientNotes = recipeData.ingredients.map((ing) => ing.notes || '');
+					f.ingredientPreparations = recipeData.ingredients.map((ing) => ing.preparation || '');
+
+					f.ingredientNames = recipeData.ingredients.map((ing) => {
+						const amount = ing.quantity || 1;
+						return resolveIngredientName(ing.ingredient?.translations, {
+							lang: recipeData.language?.lang,
+							plural: amount > 1,
+							customName: ing.custom_name
+						});
+					});
+
+					// Steps (keep the enrichment hints aligned with the editable text)
+					f.stepDescriptions = recipeData.steps?.map((step) => step.text) || [''];
+					f.stepHints =
+						recipeData.steps?.map((step) => ({
+							ingredients: step.ingredients,
+							timer_minutes: step.timer_minutes,
+							temperature_amount: step.temperature_amount,
+							temperature_unit: step.temperature_unit
+						})) || [];
+					return f;
+				},
+				{ taint: false }
+			);
+		});
 	});
+
+	/** Moves a step's text and its enrichment hints together. */
+	function moveStep(sourceIndex: number, targetIndex: number) {
+		const text = $formData.stepDescriptions[sourceIndex];
+		$formData.stepDescriptions[sourceIndex] = $formData.stepDescriptions[targetIndex];
+		$formData.stepDescriptions[targetIndex] = text;
+
+		const hints = $formData.stepHints[sourceIndex] ?? EMPTY_RECIPE_STEP_HINTS;
+		$formData.stepHints[sourceIndex] = $formData.stepHints[targetIndex] ?? EMPTY_RECIPE_STEP_HINTS;
+		$formData.stepHints[targetIndex] = hints;
+	}
+
+	function removeStep(index: number) {
+		$formData.stepDescriptions = $formData.stepDescriptions.filter((_, i) => i !== index);
+		$formData.stepHints = $formData.stepHints.filter((_, i) => i !== index);
+	}
+
+	function addStep() {
+		$formData.stepDescriptions = [...$formData.stepDescriptions, ''];
+		$formData.stepHints = [...$formData.stepHints, EMPTY_RECIPE_STEP_HINTS];
+	}
 
 	function onAddIngredient(
 		ingredientProcessed: IngredientProcessed | null,
@@ -693,12 +720,7 @@
 																	variant="ghost"
 																	size="icon"
 																	class="size-6"
-																	onclick={() => {
-																		const temp = $formData.stepDescriptions[i];
-																		$formData.stepDescriptions[i] =
-																			$formData.stepDescriptions[i - 1];
-																		$formData.stepDescriptions[i - 1] = temp;
-																	}}
+																	onclick={() => moveStep(i, i - 1)}
 																>
 																	<ChevronUp class="size-4" />
 																	<span class="sr-only">Move up</span>
@@ -709,12 +731,7 @@
 																	variant="ghost"
 																	size="icon"
 																	class="size-6 ml-2"
-																	onclick={() => {
-																		const temp = $formData.stepDescriptions[i];
-																		$formData.stepDescriptions[i] =
-																			$formData.stepDescriptions[i + 1];
-																		$formData.stepDescriptions[i + 1] = temp;
-																	}}
+																	onclick={() => moveStep(i, i + 1)}
 																>
 																	<ChevronDown class="size-4" />
 																	<span class="sr-only">Move down</span>
@@ -725,10 +742,7 @@
 																	variant="ghost"
 																	size="icon"
 																	class="size-6 ml-2"
-																	onclick={() =>
-																		($formData.stepDescriptions = $formData.stepDescriptions.filter(
-																			(_, j) => j !== i
-																		))}
+																	onclick={() => removeStep(i)}
 																>
 																	<X class="size-4" />
 																	<span class="sr-only">Delete</span>
@@ -810,7 +824,7 @@
 									size="sm"
 									variant="ghost"
 									class="gap-1"
-									onclick={() => ($formData.stepDescriptions = [...$formData.stepDescriptions, ''])}
+									onclick={addStep}
 									disabled={$formData.stepDescriptions.length >= 10}
 								>
 									<CirclePlus class="h-3.5 w-3.5" />

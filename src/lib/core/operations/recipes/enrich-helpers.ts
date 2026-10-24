@@ -13,6 +13,7 @@
 // server callers import this core module directly, browser callers (none
 // today) keep using the remote. Server-only (Vercel AI SDK + private env
 // keys). Never import from `client.ts`.
+import { recipeStepSchema } from '$lib/features/recipes/models/recipe-step';
 import { parsedSearchInputSchema } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
@@ -24,33 +25,54 @@ import z from 'zod';
 
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe parser. The user will provide you with a draft or incomplete recipe.
 
+# Main task
+
 Your task is to enrich the recipe by inferring missing details (null/incomplete values) and correcting any inconsistencies:
 - Restructure, remove, or add steps for clarity. Only improve where necessary, preserving good steps.
-	- Steps must strictly reference only ingredients from the ingredient list.
-- Infer cooking times, temperatures, filters, enums, and serving suggestions if missing or incorrect.
-- Replace vague, ambiguous, or inconsistent information with precise, accurate details (enums, filters, times, description, steps).
-- Update description to match the recipe if vague, unclear, or inconsistent.
+	- Steps must only reference ingredients from the main ingredient list.
+- Infer cooking times, temperatures, filters, and serving suggestions if missing or incorrect.
 - Ensure filters and criteria align with the recipe title (ground truth):
 	- Example: "Brigadeiros" missing "Dessert" course → add it.
-	- Example: "Pancakes" with "Greek" cuisine but clearly American → change to "American".
-	- Note: "prep" course is for small recipes meant to be combined with other dishes (sauces, quick sides). Standalone dishes should not use "prep".
+	- Example: "Pancakes" with "Greek" cuisine but obviously American → change to "American".
 - ALL filters must have at least one value and be correct.
-- If ingredients have no or unclear quantities, suggest realistic quantities.
-- Set spices, salt, pepper, and other not-so-important ingredients as optional.
 
-Also provide a cleaned, enriched ingredient list, inferring missing details (quantity, unit, description).
-If an ingredient string is actually describing multiple ingredients, split it into multiple ingredients with correct details.
-Do not add ingredients or details not in the original recipe.
+# Ingredients
+
+General rules:
+- If an ingredient string describes multiple ingredients, split it into multiple ingredients with correct details.
+- If ingredients have no or unclear quantities, always suggest realistic quantities, leave no quantities unset.
+- Make sure the ingredientText is as simple and short as possible, just as it may appear in a search index.
+- Set spices (e.g. salt, pepper) and other not-so-important ingredients as optional.
+- Do not add ingredients or details not in the original recipe.
+
+The output expects ingredients at two places:
+1. The main ingredients list (the main recipe ingredients) with inferred total quantities and units.
+2. One ingredient list per step, with the quantity used in that step (or null if not measurable). The step ingredient list must reference the main ingredients list exactly (ingredientText must match). 
+
+The main ingredient quantities must be the sum of all quantities set in steps for that ingredient.
+
+# Steps
+
+For each step (write at least one), also return structured hints:
+- ingredients: list every ingredient used in that step, following the above rules. Only set ingredients explicitely mentioned in the step, do not remind ingredients from previous steps. Fields per ingredient:
+	- stepSubstring: the exact substring of the step text that mentions this ingredient, copied verbatim so it can be highlighted. Only the ingredient name itself, not text around it.
+	- ingredientText: must match an ingredientText value from the main ingredients list.
+	- quantity: the quantity used in that step. Only use null if the quantity is really  not measurable (e.g. "to taste").
+- timer_minutes: number of minutes if the step mentions a time, otherwise null.
+- temperature_amount: the temperature number if the step mentions a temperature, otherwise null.
+- temperature_unit: "C" or "F" matching what the step says, otherwise null.
+
+# Languages
 
 Note: Only the "${Object.keys(CURATED_LANGUAGES).join(', ')}" languages are supported, so:
 - If the input recipe is in a supported language, keep all text fields in that language including ingredientText.
 - If the input recipe is in another unsupported language, set the recipe language to "en-US" and translate the ingredients (i.e. ingredientText fields) to English, but output everything else in the original language.
 
-Requirements:
+# Output requirements
+
 - Return enriched/corrected recipe in JSON format, strictly following the schema.
 - Only improve what needs improvement; preserve good existing information.
-- Maintain the same language as input for all text fields.
-- NO FIELD SHALL BE NULL OR EMPTY; infer or guess reasonable values.
+- NO FIELD SHALL BE NULL OR EMPTY (except steps details); infer or guess reasonable values.
 - RESPOND ONLY WITH RAW JSON. STRICTLY FOLLOW THE SCHEMA. NO EXTRA TEXT.`;
 
 // Define the relevant recipe fields for enrichment once
@@ -74,20 +96,23 @@ const relevantRecipeFieldsSchema = z.object({
 	cuisines: publicRecipesRowSchema.shape.cuisines,
 	times_of_day: publicRecipesRowSchema.shape.times_of_day,
 	tools: publicRecipesRowSchema.shape.tools,
-	steps: publicRecipesRowSchema.shape.steps,
+	steps: z
+		.array(recipeStepSchema)
+		.min(1, 'Recipe must have at least one step.')
+		.describe('The ordered recipe instructions.'),
 	notes: publicRecipesRowSchema.shape.notes
 }) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
 
 const outputSchema = z.object({
-	lang: languageCodeSchema.describe(
-		"The input recipe's written language as BCP47 (e.g. en-US, fr-FR, de-DE, es-ES, pt-BR, pt-PT, it-IT, nl-NL — or any other xx-YY code, never a bare 2-letter code)."
-	),
+	lang: languageCodeSchema,
+	ingredients: z
+		.array(parsedSearchInputSchema)
+		.describe(
+			'The list of ingredients. Each quantity is the total amount needed for the whole recipe.'
+		),
 	recipe: relevantRecipeFieldsSchema.describe(
 		'The main enriched recipe object with inferred details.'
 	),
-	ingredients: z
-		.array(parsedSearchInputSchema)
-		.describe('The list of ingredients, cleaned and enriched with inferred details.'),
 	image: z
 		.string()
 		.nullable()

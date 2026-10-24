@@ -1,3 +1,4 @@
+import { normalizeRecipeSteps } from '$lib/features/recipes/models/recipe-step';
 import type { EnrichedRecipeOutput } from './enrich-recipe.remote';
 
 // Fields of the enriched recipe that map to NOT NULL `recipes` columns.
@@ -58,7 +59,8 @@ export function sanitizeEnrichedRecipeOutput(output: EnrichedRecipeOutput): Enri
 		...output,
 		recipe: {
 			...output.recipe,
-			...sanitizeRecipeFields(output.recipe)
+			...sanitizeRecipeFields(output.recipe),
+			steps: normalizeRecipeSteps(output.recipe.steps)
 		}
 	};
 }

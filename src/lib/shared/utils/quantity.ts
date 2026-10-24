@@ -147,6 +147,18 @@ export const unitUnregionizedSchema = z.union(
 	Object.keys(unitLabels).map((k) => z.literal(k as keyof typeof unitLabels))
 );
 
+/**
+ * A structured amount, shared by the main recipe ingredient list and by the
+ * per-step ingredient hints so the LLM only sees one quantity shape.
+ */
+export const ingredientQuantitySchema = z.object({
+	amount: z.number().describe('Numeric amount.'),
+	unitText: z.string().default('').describe('Unit as given by the recipe, empty if none.'),
+	unitKey: unitUnregionizedSchema.describe('Standardized unit key.')
+});
+
+export type IngredientQuantity = z.infer<typeof ingredientQuantitySchema>;
+
 export const mapUnitUnregionizedToRegionized = {
 	// Metric
 	ml: 'ml',

@@ -361,7 +361,7 @@ export type Database = {
           slug: string;
           source_type: Database["public"]["Enums"]["recipe_source_type"];
           source_url: string | null;
-          steps: string[] | null;
+          steps: Json | null;
           time_cook_minutes: number | null;
           time_prep_minutes: number | null;
           time_rest_minutes: number | null;
@@ -394,7 +394,7 @@ export type Database = {
           slug: string;
           source_type: Database["public"]["Enums"]["recipe_source_type"];
           source_url?: string | null;
-          steps?: string[] | null;
+          steps?: Json | null;
           time_cook_minutes?: number | null;
           time_prep_minutes?: number | null;
           time_rest_minutes?: number | null;
@@ -426,7 +426,7 @@ export type Database = {
           slug?: string;
           source_type?: Database["public"]["Enums"]["recipe_source_type"];
           source_url?: string | null;
-          steps?: string[] | null;
+          steps?: Json | null;
           time_cook_minutes?: number | null;
           time_prep_minutes?: number | null;
           time_rest_minutes?: number | null;
@@ -843,35 +843,35 @@ export type Database = {
     Views: {
       recipes_randomized: {
         Row: {
-          author_id: string | null;
-          cleanup_level: Database["public"]["Enums"]["cleanup_level"] | null;
-          cost_level: Database["public"]["Enums"]["cost_level"] | null;
-          courses: Database["public"]["Enums"]["course"][] | null;
-          created_at: string | null;
-          cuisines: Database["public"]["Enums"]["cuisine"][] | null;
+          author_id: string;
+          cleanup_level: Database["public"]["Enums"]["cleanup_level"];
+          cost_level: Database["public"]["Enums"]["cost_level"];
+          courses: Database["public"]["Enums"]["course"][];
+          created_at: string;
+          cuisines: Database["public"]["Enums"]["cuisine"][];
           deleted_at: string | null;
           description: string | null;
-          effort_level: Database["public"]["Enums"]["effort_level"] | null;
-          id: string | null;
+          effort_level: Database["public"]["Enums"]["effort_level"];
+          id: string;
           image_ids: string[] | null;
-          language_id: number | null;
+          language_id: number;
           notes: string | null;
           search_term: string | null;
-          servings: number | null;
-          short_title: string | null;
-          skill_level: Database["public"]["Enums"]["skill_level"] | null;
-          slug: string | null;
-          source_type: Database["public"]["Enums"]["recipe_source_type"] | null;
+          servings: number;
+          short_title: string;
+          skill_level: Database["public"]["Enums"]["skill_level"];
+          slug: string;
+          source_type: Database["public"]["Enums"]["recipe_source_type"];
           source_url: string | null;
-          steps: string[] | null;
+          steps: Json | null;
           time_cook_minutes: number | null;
           time_prep_minutes: number | null;
           time_rest_minutes: number | null;
           time_total_minutes: number | null;
-          times_of_day: Database["public"]["Enums"]["time_of_day"][] | null;
-          title: string | null;
-          tools: Database["public"]["Enums"]["recipe_tool"][] | null;
-          updated_at: string | null;
+          times_of_day: Database["public"]["Enums"]["time_of_day"][];
+          title: string;
+          tools: Database["public"]["Enums"]["recipe_tool"][];
+          updated_at: string;
         };
         ComputedFields: never;
         Insert: {
@@ -895,7 +895,7 @@ export type Database = {
           slug?: string | null;
           source_type?: Database["public"]["Enums"]["recipe_source_type"] | null;
           source_url?: string | null;
-          steps?: string[] | null;
+          steps?: Json | null;
           time_cook_minutes?: number | null;
           time_prep_minutes?: number | null;
           time_rest_minutes?: number | null;
@@ -926,7 +926,7 @@ export type Database = {
           slug?: string | null;
           source_type?: Database["public"]["Enums"]["recipe_source_type"] | null;
           source_url?: string | null;
-          steps?: string[] | null;
+          steps?: Json | null;
           time_cook_minutes?: number | null;
           time_prep_minutes?: number | null;
           time_rest_minutes?: number | null;
