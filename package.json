@@ -17,6 +17,7 @@
 		"organize-imports": "npx organize-imports-cli tsconfig[.*].json",
 		"test:integration": "playwright test",
 		"test:unit": "vitest run",
+		"test:match-benchmark": "vitest run src/lib/core/operations/ingredients/match-benchmark.test.ts --reporter=verbose",
 		"backfill:thumbnails": "node scripts/backfill-thumbnails/backfill.ts",
 		"marketing:cards": "node scripts/marketing/generate.ts",
 		"db:start": "npx --yes supabase start  # Start supabase locally",

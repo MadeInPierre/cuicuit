@@ -311,16 +311,20 @@ DECLARE
     prefix_query tsquery;
     fts_query TEXT;
 BEGIN
+    -- Unknown language: nothing to match.
     SELECT id INTO target_lang_id FROM public.languages WHERE lang = lang_code;
     IF target_lang_id IS NULL THEN RETURN; END IF;
 
     ts_config := public.ts_config_for_language(lang_code);
+    -- Normalise once: lowercase, accent-free and trimmed.
     clean_query := lower(trim(unaccent(query_text)));
 
+    -- Raw imports may start with a quantity ("4 oeufs", "1/2 cup"); drop it.
     IF is_raw_import THEN
         clean_query := regexp_replace(clean_query, '^[0-9\xbc-\xbe/\.,\s]+', '');
     END IF;
 
+    -- Companion singular/plural form, so "oeuf" and "oeufs" rank together.
     alt_query := clean_query;
     IF right(clean_query, 1) = 's' AND length(clean_query) > 2 THEN
         alt_query := left(clean_query, length(clean_query) - 1);
@@ -330,6 +334,8 @@ BEGIN
         alt_query := clean_query || 's';
     END IF;
 
+    -- Split the query into words, then turn each word into a prefix query.
+    -- Example: "fresh milk" becomes "fresh:* & milk:*".
     fts_query := regexp_replace(clean_query, '[^a-z0-9\s]', ' ', 'g');
     fts_query := regexp_replace(fts_query, '\s+', ' ', 'g');
     fts_query := trim(fts_query);
@@ -340,6 +346,8 @@ BEGIN
     END IF;
 
     RETURN QUERY
+    -- Load translations for the requested language only. MATERIALIZED keeps
+    -- the table scan and the synonym unnesting to a single pass.
     WITH translations AS MATERIALIZED (
         SELECT
             it.ingredient_id,
@@ -355,20 +363,22 @@ BEGIN
         FROM public.ingredient_translations it
         WHERE it.language_id = target_lang_id
     ),
+    -- Score every candidate. Higher is better.
     scored_matches AS (
         SELECT
             t.ingredient_id,
+            -- Score tiers: exact name > general name > synonym > prefix > fuzzy.
             CASE
-                WHEN t.ns IN (clean_query, alt_query) THEN 120
-                WHEN t.ng IN (clean_query, alt_query) THEN 100
-                WHEN clean_query = ANY (t.syns) THEN 98
-                WHEN t.ns LIKE (clean_query || '%') OR t.ns LIKE (alt_query || '%') THEN 85
-                WHEN t.ng LIKE (clean_query || '%') OR t.ng LIKE (alt_query || '%') THEN 72
+                WHEN t.ns IN (clean_query, alt_query) THEN 120 -- exact name
+                WHEN t.ng IN (clean_query, alt_query) THEN 100 -- exact general name
+                WHEN clean_query = ANY (t.syns) THEN 98 -- exact synonym
+                WHEN t.ns LIKE (clean_query || '%') OR t.ns LIKE (alt_query || '%') THEN 85 -- name prefix
+                WHEN t.ng LIKE (clean_query || '%') OR t.ng LIKE (alt_query || '%') THEN 72 -- general-name prefix
                 WHEN EXISTS (
                     SELECT 1 FROM unnest(t.syns) AS s
                     WHERE s LIKE (clean_query || '%') OR s LIKE (alt_query || '%')
-                ) THEN 78
-                WHEN t.fts @@ prefix_query THEN 50 + (ts_rank(t.fts, prefix_query) * 10)
+                ) THEN 78 -- synonym prefix
+                WHEN t.fts @@ prefix_query THEN 50 + (ts_rank(t.fts, prefix_query) * 10) -- all words present
                 ELSE GREATEST(
                     similarity(t.ng, clean_query) * 0.90,
                     similarity(t.ng, alt_query) * 0.90,
@@ -384,6 +394,7 @@ BEGIN
                     ), 0::real)
                 ) * 40
             END AS relevance_score,
+            -- Tie-breakers, used only when two candidates score the same.
             length(t.name_singular) AS name_length,
             CASE t.commonly_used
                 WHEN 'daily' THEN 0
@@ -393,8 +404,15 @@ BEGIN
                 WHEN 'never' THEN 4
                 ELSE 2
             END AS usage_rank,
-            CASE WHEN clean_query LIKE '%' || t.ns || '%' THEN 0 ELSE 1 END AS contained_rank
+            CASE WHEN clean_query LIKE '%' || t.ns || '%' THEN 0 ELSE 1 END AS contained_rank,
+            -- Specificity tie-breaker: when several ingredients share the same
+            -- exact synonym (e.g. "lamb leg" is listed on every lamb cut), prefer
+            -- the one whose own name covers the query terms ("Leg of lamb" over
+            -- the generic "Lamb"). It never overrides the relevance score.
+            ts_rank(to_tsvector(ts_config, t.ns), prefix_query) AS name_rank
         FROM translations t
+        -- Keep only rows with a plausible textual link to the query: exact
+        -- names, prefixes, synonyms, full-text hits, substrings or fuzzy hits.
         WHERE
             t.ns IN (clean_query, alt_query)
             OR t.ng IN (clean_query, alt_query)
@@ -423,11 +441,15 @@ BEGIN
                 word_similarity(t.ns, clean_query)
             ) > 0.3
     )
+    -- Return the full ingredient rows, best match first.
     SELECT i.*
     FROM scored_matches sm
     JOIN public.ingredients i ON i.id = sm.ingredient_id
+    -- Relevance wins; name_rank then prefers the most specific matching name
+    -- (e.g. "Leg of lamb" over the generic "Lamb" for "lamb leg").
     ORDER BY
         sm.relevance_score DESC,
+        sm.name_rank DESC NULLS LAST,
         sm.contained_rank ASC,
         sm.usage_rank ASC,
         sm.name_length ASC,

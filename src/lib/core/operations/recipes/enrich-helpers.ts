@@ -42,7 +42,7 @@ General rules:
 - If an ingredient string describes multiple ingredients, split it into multiple ingredients with correct details.
 - If ingredients have no or unclear quantities, always suggest realistic quantities, leave no quantities unset.
 - Make sure the ingredientText is as simple and short as possible, just as it may appear in a search index.
-- Set spices (e.g. salt, pepper) and other not-so-important ingredients as optional.
+- Set spices (e.g. salt, pepper) and other flavor-enhancing-only ingredients as optional.
 - Do not add ingredients or details not in the original recipe.
 
 The output expects ingredients at two places:

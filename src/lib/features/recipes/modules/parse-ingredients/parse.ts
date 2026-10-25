@@ -64,7 +64,18 @@ export type ParsedSearchInput = z.infer<typeof parsedSearchInputSchema>;
  * Common words that link a quantity and an ingredient.
  * This list can be expanded to support multiple languages.
  */
-const linkWords = ['of', 'de', "d'", 'de', 'du', 'de la', 'des'];
+const linkWords = ['of', 'de la', 'de', 'du', 'des', "d'"];
+
+/**
+ * Make d' a special case to tolerate being glued to the ingredient name, while refusing
+ * for other link words like "of,de,la" to be glued to avoid cutting words.
+ */
+const linkWordPattern = new RegExp(
+	`^(?:(?:${linkWords.filter((word) => !word.endsWith("'")).join('|')})\\s+|${linkWords
+		.filter((word) => word.endsWith("'"))
+		.join('|')})`,
+	'i'
+);
 
 /** Common aliases indicating an optional ingredient.
  * This list can be expanded to support multiple languages.
@@ -105,7 +116,7 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 	}
 
 	// Match the quantity and unit at the beginning of the string.
-	const quantityRegex = /^(?<amount>[\d\.\/\s-]+)\s*(?<unit>[a-zA-Z]+)?/i;
+	const quantityRegex = /^(?<amount>[\d./\s-]+)\s*(?<unit>[a-zA-Z]+)?/i;
 	const quantityMatch = input.match(quantityRegex);
 
 	let amount: number | null = null;
@@ -157,11 +168,10 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 	}
 
 	// Detect and remove any linking words from the ingredient text.
-	const linkWord = linkWords.find((word) =>
-		ingredientText.toLowerCase().startsWith(word.toLowerCase())
-	);
-	if (linkWord) {
-		ingredientText = ingredientText.slice(linkWord.length).trim();
+	const linkWordMatch = ingredientText.match(linkWordPattern);
+	const linkWord = linkWordMatch?.[0].trim();
+	if (linkWordMatch) {
+		ingredientText = ingredientText.slice(linkWordMatch[0].length).trim();
 	}
 
 	return {
