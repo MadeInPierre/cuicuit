@@ -128,10 +128,7 @@ function safeDetails(details: unknown): string {
 }
 
 /**
- * Verbose technical fields that bloat tool outputs for agents (repeated
- * author objects, embeddings, search vectors) without ever informing an
- * action. Stripped recursively from successful MCP results only — the app
- * and REST paths are untouched.
+ * Remove internal fields to reduce egress and MCP token usage.
  */
 const MCP_STRIP_KEYS = new Set([
 	'author_profile',

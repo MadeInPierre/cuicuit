@@ -15,9 +15,7 @@ export const listMealsInput = z.object({
 
 export type ListMealsInput = z.infer<typeof listMealsInput>;
 
-// Narrow projections (not `*`): `ingredients.embedding` (≈4KB/row) and
-// `ingredient_translations.fts` are never read by the app; `author_profile` is
-// only read as `.user_name`; language joins fetch just `lang`.
+// Only select needed columns, e.g. `ingredient_translations.fts` is never read by the app
 const MEALS_SELECT = `*,
 				recipe:recipes(
 					*,

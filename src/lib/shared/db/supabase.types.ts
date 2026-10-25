@@ -162,6 +162,7 @@ export type Database = {
           name_general: string;
           name_plural: string | null;
           name_singular: string | null;
+          synonyms: string[];
         };
         ComputedFields: never;
         Insert: {
@@ -172,6 +173,7 @@ export type Database = {
           name_general: string;
           name_plural?: string | null;
           name_singular?: string | null;
+          synonyms?: string[];
         };
         Update: {
           commonly_used?: Database["public"]["Enums"]["commonly_used_level"];
@@ -181,6 +183,7 @@ export type Database = {
           name_general?: string;
           name_plural?: string | null;
           name_singular?: string | null;
+          synonyms?: string[];
         };
         Relationships: [
           {
@@ -203,7 +206,6 @@ export type Database = {
         Row: {
           aisle: Database["public"]["Enums"]["supermarket_aisle"] | null;
           base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
-          embedding: string | null;
           g_per_ml: number | null;
           g_per_unit: Json | null;
           hierarchy: string[];
@@ -216,7 +218,6 @@ export type Database = {
         Insert: {
           aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null;
           base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
-          embedding?: string | null;
           g_per_ml?: number | null;
           g_per_unit?: Json | null;
           hierarchy: string[];
@@ -228,7 +229,6 @@ export type Database = {
         Update: {
           aisle?: Database["public"]["Enums"]["supermarket_aisle"] | null;
           base_unit?: Database["public"]["Enums"]["ingredient_base_unit"];
-          embedding?: string | null;
           g_per_ml?: number | null;
           g_per_unit?: Json | null;
           hierarchy?: string[];
@@ -991,7 +991,6 @@ export type Database = {
         Returns: {
           aisle: Database["public"]["Enums"]["supermarket_aisle"] | null;
           base_unit: Database["public"]["Enums"]["ingredient_base_unit"];
-          embedding: string | null;
           g_per_ml: number | null;
           g_per_unit: Json | null;
           hierarchy: string[];

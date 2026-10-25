@@ -87,11 +87,7 @@ export const listRecipesInput = z.object({
 
 export type ListRecipesInput = z.infer<typeof listRecipesInput>;
 
-// Narrow projections (not `*`): `ingredients.embedding` (1024-dim vector ≈ 4KB/row
-// — already excluded from the ingredient list below) and
-// `ingredient_translations.fts` (tsvector) are never read by the app, and
-// `languages` is only ever read as `.lang` here — fetching them on every
-// recipe × ingredient × translation row was the bulk of Supabase egress.
+// Only select needed columns, e.g. `ingredient_translations.fts` is not used by the app
 const RECIPES_DETAILED_SELECT = `*,
 			language:languages(lang),
 			ingredients:recipe_ingredients(

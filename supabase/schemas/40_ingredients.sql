@@ -71,7 +71,6 @@ CREATE TABLE IF NOT EXISTS "public"."ingredients" (
     "unit_frequencies" "jsonb",
     "g_per_unit" "jsonb",
     "g_per_ml" real,
-    "embedding" "extensions"."vector" (1024),
     CONSTRAINT "ingredients_check" CHECK (
         (
             (("slug")::"text" ~ '^[a-z0-9-]+$'::"text")
@@ -113,6 +112,7 @@ CREATE TABLE IF NOT EXISTS "public"."ingredient_translations" (
     "name_singular" character varying(255),
     "name_plural" character varying(255),
     "name_general" character varying(255) NOT NULL,
+    "synonyms" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
     "commonly_used" "public"."commonly_used_level" DEFAULT 'occasionally'::"public"."commonly_used_level" NOT NULL,
     "fts" "tsvector",
     CONSTRAINT "ingredient_translations_check" CHECK (
@@ -252,7 +252,8 @@ BEGIN
     NEW.fts := to_tsvector(public.ts_config_for_language(lang_code),
         coalesce(NEW.name_singular, '') || ' ' ||
         coalesce(NEW.name_plural, '') || ' ' ||
-        coalesce(NEW.name_general, '')
+        coalesce(NEW.name_general, '') || ' ' ||
+        coalesce(array_to_string(NEW.synonyms, ' '), '')
     );
     RETURN NEW;
 END;
@@ -306,26 +307,20 @@ DECLARE
     target_lang_id INTEGER;
     ts_config regconfig;
     clean_query TEXT;
-    alt_query TEXT; -- plural/singular companion form
+    alt_query TEXT;
     prefix_query tsquery;
-    fts_query TEXT; -- New variable for sanitized FTS input
+    fts_query TEXT;
 BEGIN
-    -- 1. Setup Language
     SELECT id INTO target_lang_id FROM public.languages WHERE lang = lang_code;
     IF target_lang_id IS NULL THEN RETURN; END IF;
 
     ts_config := public.ts_config_for_language(lang_code);
-
-    -- 2. Pre-processing: unaccent, lowercase, trim whitespace
     clean_query := lower(trim(unaccent(query_text)));
 
-    -- 3. Naive Entity Extraction (For Raw Imports like "4 oeufs")
-    -- Strips leading numbers, decimals, fractions, and spaces.
     IF is_raw_import THEN
-        clean_query := regexp_replace(clean_query, '^[0-9\xbc-\xbe\/\.,\s]+', '');
+        clean_query := regexp_replace(clean_query, '^[0-9\xbc-\xbe/\.,\s]+', '');
     END IF;
 
-    -- Build a singular/plural companion query for ranking stability (e.g. oeuf <-> oeufs)
     alt_query := clean_query;
     IF right(clean_query, 1) = 's' AND length(clean_query) > 2 THEN
         alt_query := left(clean_query, length(clean_query) - 1);
@@ -335,10 +330,6 @@ BEGIN
         alt_query := clean_query || 's';
     END IF;
 
-    -- 4. Prepare FTS Prefix Query (e.g., 'oeuf:*' or 'creme:* & fraiche:*')
-    -- This solves the "jumping around" issue by matching partial words as you type.
-    
-    -- Strip all non-alphanumeric characters (except spaces) to prevent to_tsquery syntax errors
     fts_query := regexp_replace(clean_query, '[^a-z0-9\s]', ' ', 'g');
     fts_query := regexp_replace(fts_query, '\s+', ' ', 'g');
     fts_query := trim(fts_query);
@@ -349,58 +340,102 @@ BEGIN
     END IF;
 
     RETURN QUERY
-    WITH scored_matches AS (
-        SELECT 
+    WITH translations AS MATERIALIZED (
+        SELECT
             it.ingredient_id,
-            CASE
-                -- Exact match: favor singular/plural-facing names over general names
-                WHEN unaccent(lower(name_singular)) IN (clean_query, alt_query) THEN 110
-                WHEN unaccent(lower(name_general)) IN (clean_query, alt_query) THEN 95
-
-                -- Prefix match: favor singular/plural-facing names over general names
-                WHEN unaccent(lower(name_singular)) LIKE (clean_query || '%')
-                  OR unaccent(lower(name_singular)) LIKE (alt_query || '%') THEN 85
-                WHEN unaccent(lower(name_general)) LIKE (clean_query || '%')
-                  OR unaccent(lower(name_general)) LIKE (alt_query || '%') THEN 72
-
-                WHEN fts @@ prefix_query THEN 50 + (ts_rank(fts, prefix_query) * 10)
-
-                ELSE GREATEST(
-                    -- Slight penalty on name_general similarity so singular/plural wins ties
-                    similarity(unaccent(lower(name_general)), clean_query) * 0.90,
-                    similarity(unaccent(lower(name_general)), alt_query) * 0.90,
-                    similarity(unaccent(lower(name_singular)), clean_query),
-                    similarity(unaccent(lower(name_singular)), alt_query)
-                ) * 40
-            END as relevance_score,
-            length(name_singular) as name_length
+            it.fts,
+            it.commonly_used,
+            it.name_singular,
+            unaccent(lower(it.name_singular)) AS ns,
+            unaccent(lower(it.name_general)) AS ng,
+            ARRAY(
+                SELECT unaccent(lower(x))
+                FROM unnest(COALESCE(it.synonyms, '{}'::text[])) AS x
+            ) AS syns
         FROM public.ingredient_translations it
-        WHERE language_id = target_lang_id
-          AND (
-            unaccent(lower(name_general)) LIKE (clean_query || '%')
-            OR unaccent(lower(name_general)) LIKE (alt_query || '%')
-            OR unaccent(lower(name_singular)) LIKE (clean_query || '%')
-            OR unaccent(lower(name_singular)) LIKE (alt_query || '%')
-            OR fts @@ prefix_query
+        WHERE it.language_id = target_lang_id
+    ),
+    scored_matches AS (
+        SELECT
+            t.ingredient_id,
+            CASE
+                WHEN t.ns IN (clean_query, alt_query) THEN 120
+                WHEN t.ng IN (clean_query, alt_query) THEN 100
+                WHEN clean_query = ANY (t.syns) THEN 98
+                WHEN t.ns LIKE (clean_query || '%') OR t.ns LIKE (alt_query || '%') THEN 85
+                WHEN t.ng LIKE (clean_query || '%') OR t.ng LIKE (alt_query || '%') THEN 72
+                WHEN EXISTS (
+                    SELECT 1 FROM unnest(t.syns) AS s
+                    WHERE s LIKE (clean_query || '%') OR s LIKE (alt_query || '%')
+                ) THEN 78
+                WHEN t.fts @@ prefix_query THEN 50 + (ts_rank(t.fts, prefix_query) * 10)
+                ELSE GREATEST(
+                    similarity(t.ng, clean_query) * 0.90,
+                    similarity(t.ng, alt_query) * 0.90,
+                    similarity(t.ns, clean_query),
+                    similarity(t.ns, alt_query),
+                    word_similarity(t.ng, clean_query),
+                    word_similarity(t.ns, clean_query),
+                    CASE WHEN clean_query LIKE '%' || t.ns || '%' THEN 0.60::real ELSE 0::real END,
+                    CASE WHEN clean_query LIKE '%' || t.ng || '%' THEN 0.55::real ELSE 0::real END,
+                    COALESCE((
+                        SELECT max(CASE WHEN clean_query LIKE '%' || s || '%' THEN 0.62::real ELSE 0::real END)
+                        FROM unnest(t.syns) AS s
+                    ), 0::real)
+                ) * 40
+            END AS relevance_score,
+            length(t.name_singular) AS name_length,
+            CASE t.commonly_used
+                WHEN 'daily' THEN 0
+                WHEN 'common' THEN 1
+                WHEN 'occasionally' THEN 2
+                WHEN 'rare' THEN 3
+                WHEN 'never' THEN 4
+                ELSE 2
+            END AS usage_rank,
+            CASE WHEN clean_query LIKE '%' || t.ns || '%' THEN 0 ELSE 1 END AS contained_rank
+        FROM translations t
+        WHERE
+            t.ns IN (clean_query, alt_query)
+            OR t.ng IN (clean_query, alt_query)
+            OR clean_query = ANY (t.syns)
+            OR t.ns LIKE (clean_query || '%')
+            OR t.ns LIKE (alt_query || '%')
+            OR t.ng LIKE (clean_query || '%')
+            OR t.ng LIKE (alt_query || '%')
+            OR EXISTS (
+                SELECT 1 FROM unnest(t.syns) AS s
+                WHERE s LIKE (clean_query || '%') OR s LIKE (alt_query || '%')
+            )
+            OR t.fts @@ prefix_query
+            OR clean_query LIKE '%' || t.ns || '%'
+            OR clean_query LIKE '%' || t.ng || '%'
+            OR EXISTS (
+                SELECT 1 FROM unnest(t.syns) AS s
+                WHERE clean_query LIKE '%' || s || '%'
+            )
             OR GREATEST(
-                similarity(unaccent(lower(name_general)), clean_query) * 0.90,
-                similarity(unaccent(lower(name_general)), alt_query) * 0.90,
-                similarity(unaccent(lower(name_singular)), clean_query),
-                similarity(unaccent(lower(name_singular)), alt_query)
+                similarity(t.ng, clean_query) * 0.90,
+                similarity(t.ng, alt_query) * 0.90,
+                similarity(t.ns, clean_query),
+                similarity(t.ns, alt_query),
+                word_similarity(t.ng, clean_query),
+                word_similarity(t.ns, clean_query)
             ) > 0.3
-          )
     )
-    SELECT 
-        i.*
+    SELECT i.*
     FROM scored_matches sm
     JOIN public.ingredients i ON i.id = sm.ingredient_id
-    ORDER BY 
+    ORDER BY
         sm.relevance_score DESC,
+        sm.contained_rank ASC,
+        sm.usage_rank ASC,
         sm.name_length ASC,
         i.id ASC
     LIMIT n_matches;
 END;
 $function$;
+
 
 -- 2. Ownership
 ALTER FUNCTION "public"."match_ingredient" (

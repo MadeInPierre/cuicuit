@@ -5,7 +5,7 @@ import type {
 } from '$lib/core/operations/ingredients/match.js';
 import type { RecipeIngredientWithTranslations } from '$lib/features/recipes/queries/get-recipe-detailed';
 import type { Database } from '$lib/shared/db/supabase.types';
-import { DEFAULT_LANGUAGE, type LanguageCode } from '$lib/shared/language.js';
+import { DEFAULT_LANGUAGE, type LanguageCodeCurated } from '$lib/shared/language.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type MatchIngredientsResponse = {
@@ -26,7 +26,7 @@ export type MatchIngredientsResponse = {
 export async function matchIngredients(
 	supabase: SupabaseClient<Database>,
 	ingredientStrings: string[],
-	lang: LanguageCode
+	lang: LanguageCodeCurated
 ) {
 	try {
 		const data = await runOp<MatchIngredientsInput, MatchIngredientsResult>(

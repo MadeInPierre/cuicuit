@@ -314,6 +314,7 @@ export const publicIngredientTranslationsRowSchema = z.object({
   name_general: z.string(),
   name_plural: z.string().nullable(),
   name_singular: z.string().nullable(),
+  synonyms: z.array(z.string()),
 });
 
 export const publicIngredientTranslationsInsertSchema = z.object({
@@ -324,6 +325,7 @@ export const publicIngredientTranslationsInsertSchema = z.object({
   name_general: z.string(),
   name_plural: z.string().optional().nullable(),
   name_singular: z.string().optional().nullable(),
+  synonyms: z.array(z.string()).optional(),
 });
 
 export const publicIngredientTranslationsUpdateSchema = z.object({
@@ -334,6 +336,7 @@ export const publicIngredientTranslationsUpdateSchema = z.object({
   name_general: z.string().optional(),
   name_plural: z.string().optional().nullable(),
   name_singular: z.string().optional().nullable(),
+  synonyms: z.array(z.string()).optional(),
 });
 
 export const publicIngredientTranslationsRelationshipsSchema = z.tuple([
@@ -356,7 +359,6 @@ export const publicIngredientTranslationsRelationshipsSchema = z.tuple([
 export const publicIngredientsRowSchema = z.object({
   aisle: publicSupermarketAisleSchema.nullable(),
   base_unit: publicIngredientBaseUnitSchema,
-  embedding: z.string().nullable(),
   g_per_ml: z.number().nullable(),
   g_per_unit: jsonSchema.nullable(),
   hierarchy: z.array(z.string()),
@@ -369,7 +371,6 @@ export const publicIngredientsRowSchema = z.object({
 export const publicIngredientsInsertSchema = z.object({
   aisle: publicSupermarketAisleSchema.optional().nullable(),
   base_unit: publicIngredientBaseUnitSchema,
-  embedding: z.string().optional().nullable(),
   g_per_ml: z.number().optional().nullable(),
   g_per_unit: jsonSchema.optional().nullable(),
   hierarchy: z.array(z.string()),
@@ -382,7 +383,6 @@ export const publicIngredientsInsertSchema = z.object({
 export const publicIngredientsUpdateSchema = z.object({
   aisle: publicSupermarketAisleSchema.optional().nullable(),
   base_unit: publicIngredientBaseUnitSchema.optional(),
-  embedding: z.string().optional().nullable(),
   g_per_ml: z.number().optional().nullable(),
   g_per_unit: jsonSchema.optional().nullable(),
   hierarchy: z.array(z.string()).optional(),
@@ -1160,7 +1160,6 @@ export const publicMatchIngredientReturnsSchema = z.array(
   z.object({
     aisle: publicSupermarketAisleSchema.nullable(),
     base_unit: publicIngredientBaseUnitSchema,
-    embedding: z.string().nullable(),
     g_per_ml: z.number().nullable(),
     g_per_unit: jsonSchema.nullable(),
     hierarchy: z.array(z.string()),

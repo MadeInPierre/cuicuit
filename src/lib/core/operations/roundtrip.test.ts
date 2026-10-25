@@ -650,6 +650,14 @@ if ('ok' in dbResult) {
 			})) as { matches: Array<{ bestMatches: unknown[] }> };
 			expect(matched.matches).toHaveLength(2);
 			for (const m of matched.matches) expect(Array.isArray(m.bestMatches)).toBe(true);
+
+			// Check that "cooking oil" matches with `oil` first, before
+			// misleading text-similar ingredients such as "cookie".
+			const oil = (await runOp('ingredients.match', a.ctx, {
+				ingredientStrings: ['cooking oil'],
+				lang: LANG
+			})) as { matches: Array<{ bestMatches: Array<{ slug_general: string }> }> };
+			expect(oil.matches[0].bestMatches[0]?.slug_general).toBe('oil');
 		});
 
 		it('admin ingredients: non-admin is FORBIDDEN on every write op', async () => {

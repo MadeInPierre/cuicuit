@@ -13,8 +13,7 @@ export type GetIngredientInput = z.infer<typeof getIngredientInput>;
 async function getIngredientHandler(ctx: OpCtx, input: GetIngredientInput) {
 	const admin = await requireAdmin(ctx);
 
-	// Narrow projection: everything except `ingredients.embedding` (≈4KB/row),
-	// which the admin UI never reads.
+	// Select columns for only the fields the admin UI reads
 	const { data: ingredient, error: ingredientError } = await admin
 		.from('ingredients')
 		.select(
@@ -26,7 +25,7 @@ async function getIngredientHandler(ctx: OpCtx, input: GetIngredientInput) {
 		throw new OpError('NOT_FOUND', 'Ingredient not found.', ingredientError);
 	}
 
-	// Narrow projection: everything except `ingredient_translations.fts`, which
+	// Select columns for everything except `ingredient_translations.fts`, which
 	// nothing reads. The language join keeps `name_en` (shown next to each lang).
 	const { data: translations, error: translationsError } = await admin
 		.from('ingredient_translations')
@@ -71,7 +70,7 @@ export const getIngredientOp = defineOp({
 	docs: {
 		title: 'Get one ingredient (admin)',
 		description:
-			'Admin-only: loads a single ingredient with all translations and substitutions in both directions.',
+			'Admin-only: loads a single ingredient with all translations and substitutions in both directions.'
 	},
 	input: getIngredientInput,
 	internal: true,

@@ -11,9 +11,7 @@ export const listIngredientsInput = z.object({
 export type ListIngredientsInput = z.infer<typeof listIngredientsInput>;
 
 async function listIngredientsHandler(ctx: OpCtx, { start, end }: ListIngredientsInput) {
-	// Narrow projection: everything except `ingredients.embedding` (≈4KB/row) and
-	// `ingredient_translations.fts`, neither of which the admin UI reads. The
-	// language join keeps `name_en` (shown next to each translation's lang).
+	// Only select needed columns, e.g. `ingredient_translations.fts` is never used by the app
 	const { data, error } = await ctx.supabase
 		.from('ingredients')
 		.select(
