@@ -104,7 +104,7 @@ export const unitLabels = {
 	quart: 'quart',
 	gallon: 'gallon',
 	tsp: 'teaspoon',
-	dstsp: 'desert spoon',
+	dstsp: 'dessert spoon',
 	tbsp: 'tablespoon',
 	cup: 'cup',
 	floz: 'fluid ounce',
@@ -118,6 +118,41 @@ export const unitLabels = {
 	whole: 'whole',
 	pinch: 'pinch'
 } satisfies Record<UnitUnregionized, string>;
+
+/** Compact labels for dense pickers; the full label stays available in a tooltip. */
+export const unitShortLabels = {
+	// Volume
+	ml: 'mL',
+	cl: 'cL',
+	dl: 'dL',
+	l: 'L',
+	quart: 'qt',
+	gallon: 'gal',
+	tsp: 'tsp',
+	dstsp: 'dstsp',
+	tbsp: 'tbsp',
+	cup: 'cup',
+	floz: 'fl oz',
+	pint: 'pt',
+	// Weight
+	g: 'g',
+	kg: 'kg',
+	oz: 'oz',
+	lb: 'lb',
+	// Other
+	whole: 'whole',
+	pinch: 'pinch'
+} satisfies Record<UnitUnregionized, string>;
+
+/** Units grouped for the compact unit picker (one row per kind). */
+export const unitGroups = [
+	{ label: 'Weight', units: ['g', 'kg', 'oz', 'lb'] },
+	{
+		label: 'Volume',
+		units: ['ml', 'cl', 'dl', 'l', 'tsp', 'dstsp', 'tbsp', 'cup', 'floz', 'pint', 'quart', 'gallon']
+	},
+	{ label: 'Other', units: ['whole', 'pinch'] }
+] as const satisfies readonly { label: string; units: readonly UnitUnregionized[] }[];
 
 // Define a Zod schema for all unit keys
 export const unitRegionizedSchema = z
@@ -153,7 +188,11 @@ export const unitUnregionizedSchema = z.union(
  */
 export const ingredientQuantitySchema = z.object({
 	amount: z.coerce.number().catch(1).describe('Numeric amount.'),
-	unitText: z.string().default('').catch('').describe('Unit as given by the recipe, empty if none.'),
+	unitText: z
+		.string()
+		.default('')
+		.catch('')
+		.describe('Unit as given by the recipe, empty if none.'),
 	unitKey: unitUnregionizedSchema.catch('whole').describe('Standardized unit key.')
 });
 
@@ -212,6 +251,20 @@ export function unitToRegionized(unit: UnitUnregionized, region: UnitRegion): Un
 
 export function unitToUnregionized(unit: UnitRegionized): UnitUnregionized {
 	return mapUnitUnregionizedToRegionized[unit];
+}
+
+/**
+ * Accepts any stored unit (legacy regionized key or canonical unregionized key)
+ * and returns the canonical unregionized key used by the pickers and step hints.
+ */
+export function toUnregionizedUnit(unit: string | null | undefined): UnitUnregionized {
+	if (!unit) return 'whole';
+	const trimmed = unit.trim();
+	if (trimmed in unitLabels) return trimmed as UnitUnregionized;
+	return (
+		(mapUnitUnregionizedToRegionized as Record<string, UnitUnregionized | undefined>)[trimmed] ??
+		'whole'
+	);
 }
 
 /**

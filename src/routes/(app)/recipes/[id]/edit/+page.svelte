@@ -10,13 +10,11 @@
 	import { deleteRecipe } from '$lib/features/recipes/actions/delete-recipe';
 	import {
 		recipeCourses,
+		recipeCuisineGroups,
 		recipeCuisines,
-		recipeTimesOfDay,
-		type RecipeCourseKey,
-		type RecipeCuisineKey,
-		type RecipeTimeOfDayKey
+		recipeTimesOfDay
 	} from '$lib/features/recipes/db/recipe-doc';
-	import { EMPTY_RECIPE_STEP_HINTS } from '$lib/features/recipes/models/recipe-step';
+	import { emptyRecipeStepHints } from '$lib/features/recipes/models/recipe-step';
 	import {
 		createRecipeFormSchema,
 		type CreateRecipeFormSchema
@@ -24,6 +22,7 @@
 	import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 	import { getRecipeDetailed } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
+	import OptionPills from '$lib/shared/components/OptionPills.svelte';
 	import SearchResultsSidebar from '$lib/shared/components/search/SearchResultsSidebar.svelte';
 	import * as AlertDialog from '$lib/shared/components/ui/alert-dialog';
 	import { Badge } from '$lib/shared/components/ui/badge';
@@ -35,14 +34,13 @@
 	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { Textarea } from '$lib/shared/components/ui/textarea/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
-	import type { PublicRecipeSourceType } from '$lib/shared/db/supazod.schemas';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import {
 		CURATED_LANGUAGES,
 		DEFAULT_LANGUAGE,
 		normalizeLanguageCode
 	} from '$lib/shared/language.js';
-	import { capitalize, cn } from '$lib/utils';
+	import { cn } from '$lib/utils';
 	import {
 		ArrowUpDown,
 		ChevronDown,
@@ -64,6 +62,8 @@
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import ImgUploadButton from './ImgUploadButton.svelte';
 	import IngredientEditItem from './IngredientEditItem.svelte';
+	import { customOptionKey, type StepIngredientOption } from './step-hints';
+	import StepHintsEditor from './StepHintsEditor.svelte';
 
 	const pageRecipeId = page.params.id as string;
 	const isNewRecipe = pageRecipeId === 'new';
@@ -74,29 +74,44 @@
 	const activeSpace = getActiveSpaceState();
 
 	// Validate the form data using zod
-	const form = superForm(defaults(zod4(createRecipeFormSchema)), {
-		SPA: true,
-		validators: zod4(
-			createRecipeFormSchema.refine(
-				(s) => !(s.source_type === 'website' && !s.source_url),
-				'Recipes from websites must have a URL.'
-			)
-		),
-		resetForm: false,
-		taintedMessage: null,
-		async onUpdate({ form }) {
-			if (form.valid) {
-				await onSubmit(form.data);
-				toast.success('Recipe saved! 👨‍🍳');
-			} else {
-				console.error('Form validation failed:', form.errors);
-				toast.error('Please fix the errors in the form.');
+	const form = superForm(
+		defaults({ stepHints: [emptyRecipeStepHints()] }, zod4(createRecipeFormSchema)),
+		{
+			SPA: true,
+			dataType: 'json',
+			validators: zod4(createRecipeFormSchema),
+			resetForm: false,
+			taintedMessage: null,
+			async onUpdate({ form }) {
+				if (form.valid) {
+					await onSubmit(form.data);
+					toast.success('Recipe saved! 👨‍🍳');
+				} else {
+					console.error('Form validation failed:', form.errors);
+					toast.error('Please fix the errors in the form.');
+				}
 			}
 		}
-	});
+	);
 	const { form: formData, enhance, errors, tainted, isTainted, submit } = form;
 
 	let dirty = $derived(isTainted($tainted));
+
+	/** Top-level ingredients exposed to the per-step hint editor. */
+	const stepIngredientOptions = $derived.by(() =>
+		$formData.ingredientIds.map((id, index) => {
+			const customName = $formData.ingredientCustomNames[index] ?? null;
+			const name = $formData.ingredientNames[index] || customName || 'Ingredient';
+			return {
+				key: id ? `id:${id}` : customOptionKey(name),
+				ingredientId: id,
+				name,
+				customName,
+				amount: $formData.ingredientAmounts[index] ?? 1,
+				unit: $formData.ingredientUnits[index] || 'whole'
+			} satisfies StepIngredientOption;
+		})
+	);
 
 	// Update the form data with the recipe document data whenever it changes
 
@@ -123,7 +138,6 @@
 					f.description = recipeData.description || 'Delicious new recipe';
 
 					// Source
-					f.source_type = recipeData.source_type || 'user-manual';
 					f.source_url = recipeData.source_url;
 
 					// Images
@@ -190,8 +204,8 @@
 		$formData.stepDescriptions[sourceIndex] = $formData.stepDescriptions[targetIndex];
 		$formData.stepDescriptions[targetIndex] = text;
 
-		const hints = $formData.stepHints[sourceIndex] ?? EMPTY_RECIPE_STEP_HINTS;
-		$formData.stepHints[sourceIndex] = $formData.stepHints[targetIndex] ?? EMPTY_RECIPE_STEP_HINTS;
+		const hints = $formData.stepHints[sourceIndex] ?? emptyRecipeStepHints();
+		$formData.stepHints[sourceIndex] = $formData.stepHints[targetIndex] ?? emptyRecipeStepHints();
 		$formData.stepHints[targetIndex] = hints;
 	}
 
@@ -202,7 +216,7 @@
 
 	function addStep() {
 		$formData.stepDescriptions = [...$formData.stepDescriptions, ''];
-		$formData.stepHints = [...$formData.stepHints, EMPTY_RECIPE_STEP_HINTS];
+		$formData.stepHints = [...$formData.stepHints, emptyRecipeStepHints()];
 	}
 
 	function onAddIngredient(
@@ -312,8 +326,10 @@
 			);
 
 			// Go to the recipe view page
-			console.log('Created or edited recipe ID:', `/recipes/${id}`);
+			console.log('ONSUBMIT OK ID:', id);
+			console.log('GOTO DONE');
 			await goto(`/recipes/${id}`);
+			console.log('GOTO AFTER');
 		} catch (error) {
 			console.error('Error saving recipe:', error);
 			toast.error(error instanceof OpError ? error.message : 'Failed to save recipe.');
@@ -355,11 +371,6 @@
 
 	let showDismissDialog = $state(false);
 	let dismissDialogMode: 'discard' | 'delete' = $state('discard');
-
-	const sourceLabels = {
-		website: 'Website',
-		'user-manual': 'Manual'
-	} satisfies Record<PublicRecipeSourceType, string>;
 
 	const media = useMedia();
 </script>
@@ -483,36 +494,17 @@
 											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
-										<Form.Field {form} name="lang" class="grid">
+										<Form.Field {form} name="short_title" class="w-50 grid">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Language</Form.Label>
-
-													<Select.Root
+													<Form.Label>Short title</Form.Label>
+													<Input
+														disabled={loading}
 														{...props}
-														type="single"
-														name="lang"
-														bind:value={$formData.lang}
-													>
-														<Select.Trigger class="w-20 h-9">
-															{CURATED_LANGUAGES[$formData.lang]?.emoji || '?'}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Group>
-																<Select.GroupHeading>Recipe language</Select.GroupHeading>
-																{#each Object.entries(CURATED_LANGUAGES) as [value, lang] (value)}
-																	<Select.Item
-																		{value}
-																		label={lang.label}
-																		class="flex gap-2 items-center"
-																	>
-																		<span>{lang.emoji}</span>
-																		<span>{lang.label}</span>
-																	</Select.Item>
-																{/each}
-															</Select.Group>
-														</Select.Content>
-													</Select.Root>
+														bind:value={$formData.short_title}
+														placeholder="Cookies"
+														maxlength={40}
+													/>
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors class="text-red-600" />
@@ -528,7 +520,7 @@
 													{...props}
 													bind:value={$formData.description}
 													placeholder="A delicious recipe for chocolate cookies that will make your day! It is easy to make and will be ready in no time."
-													class="min-h-32 text-wrap"
+													class="min-h-24 text-wrap"
 												/>
 											{/snippet}
 										</Form.Control>
@@ -536,58 +528,51 @@
 									</Form.Field>
 
 									<div class="flex gap-4">
-										<Form.Field {form} name="source_type" class="grid">
+										<Form.Field {form} name="source_url" class="w-full grid">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Source</Form.Label>
-
-													<Select.Root
+													<Form.Label>Source URL (optional)</Form.Label>
+													<Input
+														disabled={loading}
 														{...props}
-														type="single"
-														name="source_type"
-														bind:value={$formData.source_type}
-													>
-														<Select.Trigger class="w-34 h-9">
-															{sourceLabels[
-																($formData.source_type as PublicRecipeSourceType) || 'user-manual'
-															] || '?'}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Group>
-																<Select.GroupHeading>Source type</Select.GroupHeading>
-																{#each ['website', 'user-manual'] as value (value)}
-																	<Select.Item
-																		{value}
-																		label={sourceLabels[
-																			(value as PublicRecipeSourceType) || 'user-manual'
-																		] || '?'}
-																		class="flex gap-2 items-center"
-																	>
-																		<span
-																			>{sourceLabels[
-																				(value as PublicRecipeSourceType) || 'user-manual'
-																			]}</span
-																		>
-																	</Select.Item>
-																{/each}
-															</Select.Group>
-														</Select.Content>
-													</Select.Root>
+														bind:value={$formData.source_url}
+														placeholder="https://... (leave empty for a manual recipe)"
+													/>
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors class="text-red-600" />
 										</Form.Field>
 
-										<Form.Field {form} name="source_url" class="w-full grid">
+										<Form.Field {form} name="lang" class="grid">
 											<Form.Control>
 												{#snippet children({ props })}
-													<Form.Label>Source URL</Form.Label>
-													<Input
-														disabled={loading || $formData.source_type !== 'website'}
+													<Form.Label>Language</Form.Label>
+													<Select.Root
 														{...props}
-														bind:value={$formData.source_url}
-														placeholder="e.g. https://..."
-													/>
+														type="single"
+														name="lang"
+														bind:value={$formData.lang}
+													>
+														<Select.Trigger class="h-9 w-24">
+															{CURATED_LANGUAGES[$formData.lang]?.emoji || '?'}
+														</Select.Trigger>
+														<Select.Content>
+															<Select.Group>
+																<Select.GroupHeading>Ingredient search language</Select.GroupHeading
+																>
+																{#each Object.entries(CURATED_LANGUAGES) as [value, lang] (value)}
+																	<Select.Item
+																		{value}
+																		label={lang.label}
+																		class="flex gap-2 items-center"
+																	>
+																		<span>{lang.emoji}</span>
+																		<span>{lang.label}</span>
+																	</Select.Item>
+																{/each}
+															</Select.Group>
+														</Select.Content>
+													</Select.Root>
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors class="text-red-600" />
@@ -642,7 +627,7 @@
 
 								<SearchResultsSidebar
 									onSelect={onAddIngredient}
-									class="mb-3"
+									class="mb-3 min-w-0 flex-1"
 									displayColumns={media.sm ? 5 : 3}
 									displayRows={media.sm ? 1 : 2}
 									display="ingredients"
@@ -660,13 +645,12 @@
 						<Card.Root>
 							<Card.Header>
 								<Card.Title>Instructions</Card.Title>
-								<Card.Description class="text-amber-600 text-xs italic">
-									<!-- Step by step detailed instructions to make the recipe -->
-									Note: editing of per-step ingredients and timers coming soon.
+								<Card.Description>
+									Add each step and link the ingredients, timer and temperature it mentions.
 								</Card.Description>
 							</Card.Header>
 							<Card.Content class="grid gap-6">
-								{#each $formData.stepDescriptions as desc, i (i)}
+								{#each $formData.stepDescriptions as _, i (i)}
 									<div animate:flip={{ duration: 200 }}>
 										<Form.Field {form} name="stepDescriptions" class="grid">
 											<Form.Control>
@@ -714,30 +698,19 @@
 															{/if}
 														</div>
 
-														<div class="flex gap-2 min-h-20">
-															<Textarea
-																{...props}
-																id="description"
-																placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
-																class="min-h-20 max-h-52"
-																bind:value={$formData.stepDescriptions[i]}
-															/>
+														<Textarea
+															{...props}
+															id="description"
+															placeholder="In a large bowl, cream together the butter, brown sugar, and white sugar until smooth."
+															class="min-h-20 max-h-52"
+															bind:value={$formData.stepDescriptions[i]}
+														/>
 
-															<!-- <label
-															class="h-24 aspect-square rounded-md border border-dashed cursor-pointer bg-muted flex items-center justify-center"
-														>
-															<Camera class="text-muted-foreground size-4" />
-														</label> -->
-														</div>
-
-														<!-- <div class="w-full grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-														<div class="bg-muted w-full aspect-square rounded-md"></div>
-														<div
-															class="border w-full aspect-square rounded-md flex flex-col justify-center items-center text-muted-foreground"
-														>
-															<Plus class="size-8 mb-1" />
-														</div>
-													</div> -->
+														<StepHintsEditor
+															bind:hints={$formData.stepHints[i]}
+															options={stepIngredientOptions}
+															disabled={loading}
+														/>
 
 														{#if $errors.stepDescriptions?.[i]}
 															<p class="text-destructive text-sm font-medium">
@@ -821,11 +794,11 @@
 											/>
 										{/each}
 									</div>
+									<p class="text-[11px] text-muted-foreground/80">
+										<strong>Tip:</strong>
+										YouTube recipes have their video thumbnail as default, upload to override.
+									</p>
 								</div>
-								<p class="text-xs text-muted-foreground/80">
-									<strong>Tip:</strong>
-									YouTube recipes have their thumbnail as default, upload another image to override.
-								</p>
 							</Card.Content>
 						</Card.Root>
 						<Card.Root>
@@ -835,113 +808,61 @@
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-3">
-									<div class="grid gap-3">
-										<Form.Field {form} name="skillLevel">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Skill needed</Form.Label>
-													<Select.Root
-														type="single"
-														bind:value={$formData.skillLevel}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{capitalize($formData.skillLevel).replace('_', ' ')}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Item value="beginner" label="Beginner" />
-															<Select.Item value="intermediate" label="Intermediate" />
-															<Select.Item value="advanced" label="Advanced" />
-															<Select.Item value="chef" label="Chef" />
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.skillLevel} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="skillLevel" class="grid gap-1.5">
+										<Label>Skill needed</Label>
+										<OptionPills
+											bind:value={$formData.skillLevel}
+											options={[
+												{ value: 'beginner', label: 'Beginner' },
+												{ value: 'intermediate', label: 'Intermediate' },
+												{ value: 'advanced', label: 'Advanced' },
+												{ value: 'chef', label: 'Chef' }
+											]}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+									</Form.Field>
 
-									<div class="grid gap-3">
-										<Form.Field {form} name="effortLevel">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Effort needed</Form.Label>
-													<Select.Root
-														type="single"
-														bind:value={$formData.effortLevel}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{capitalize($formData.effortLevel).replace('_', ' ')}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Item value="none" label="None" />
-															<Select.Item value="low" label="Low" />
-															<Select.Item value="medium" label="Medium" />
-															<Select.Item value="high" label="High" />
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.effortLevel} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="effortLevel" class="grid gap-1.5">
+										<Label>Effort needed</Label>
+										<OptionPills
+											bind:value={$formData.effortLevel}
+											options={[
+												{ value: 'none', label: 'None' },
+												{ value: 'low', label: 'Low' },
+												{ value: 'medium', label: 'Medium' },
+												{ value: 'high', label: 'High' }
+											]}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+									</Form.Field>
 
-									<div class="grid gap-3">
-										<Form.Field {form} name="costLevel">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Cost</Form.Label>
-													<Select.Root
-														type="single"
-														bind:value={$formData.costLevel}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{capitalize($formData.costLevel).replace('_', ' ')}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Item value="minimal" label="Minimal" />
-															<Select.Item value="budget" label="Budget" />
-															<Select.Item value="average" label="Average" />
-															<Select.Item value="premium" label="Premium" />
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.costLevel} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="costLevel" class="grid gap-1.5">
+										<Label>Cost</Label>
+										<OptionPills
+											bind:value={$formData.costLevel}
+											options={[
+												{ value: 'minimal', label: 'Minimal' },
+												{ value: 'budget', label: 'Budget' },
+												{ value: 'average', label: 'Average' },
+												{ value: 'premium', label: 'Premium' }
+											]}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+									</Form.Field>
 
-									<div class="grid gap-3">
-										<Form.Field {form} name="cleanupLevel">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Cleanup effort</Form.Label>
-													<Select.Root
-														type="single"
-														bind:value={$formData.cleanupLevel}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{capitalize($formData.cleanupLevel).replace('_', ' ')}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Item value="none" label="None" />
-															<Select.Item value="low" label="Low" />
-															<Select.Item value="medium" label="Medium" />
-															<Select.Item value="high" label="High" />
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.cleanupLevel} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="cleanupLevel" class="grid gap-1.5">
+										<Label>Cleanup effort</Label>
+										<OptionPills
+											bind:value={$formData.cleanupLevel}
+											options={[
+												{ value: 'none', label: 'None' },
+												{ value: 'low', label: 'Low' },
+												{ value: 'medium', label: 'Medium' },
+												{ value: 'high', label: 'High' }
+											]}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+									</Form.Field>
 
 									<div class="grid gap-2">
 										<Label>Time</Label>
@@ -1007,103 +928,51 @@
 							</Card.Header>
 							<Card.Content>
 								<div class="grid gap-6">
-									<div class="grid gap-3">
-										<Form.Field {form} name="timesofday_ids">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Time of day</Form.Label>
-													<Select.Root
-														type="multiple"
-														bind:value={$formData.timesofday_ids}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{#if $formData.timesofday_ids.length == 0}
-																<span class="text-muted-foreground">Select...</span>
-															{:else if $formData.timesofday_ids.length == 1}
-																{recipeTimesOfDay[
-																	$formData.timesofday_ids[0] as RecipeTimeOfDayKey
-																]}
-															{:else}
-																{$formData.timesofday_ids.length} selected
-															{/if}
-														</Select.Trigger>
-														<Select.Content>
-															{#each Object.entries(recipeTimesOfDay) as [key, label]}
-																<Select.Item value={key} {label} />
-															{/each}
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.timesofday_ids} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="timesofday_ids" class="grid gap-1.5">
+										<Label>Time of day</Label>
+										<OptionPills
+											multiple
+											bind:values={$formData.timesofday_ids}
+											options={Object.entries(recipeTimesOfDay).map(([value, label]) => ({
+												value,
+												label
+											}))}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+									</Form.Field>
 
-									<div class="grid gap-3">
-										<Form.Field {form} name="course_ids">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Courses</Form.Label>
-													<Select.Root
-														type="multiple"
-														bind:value={$formData.course_ids}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{#if $formData.course_ids.length == 0}
-																<span class="text-muted-foreground">Select...</span>
-															{:else if $formData.course_ids.length == 1}
-																{recipeCourses[$formData.course_ids[0] as RecipeCourseKey]}
-															{:else}
-																{$formData.course_ids.length} selected
-															{/if}
-														</Select.Trigger>
-														<Select.Content>
-															{#each Object.entries(recipeCourses) as [key, label]}
-																<Select.Item value={key} {label} />
-															{/each}
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.course_ids} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="course_ids" class="grid gap-1.5">
+										<Label>Courses</Label>
+										<OptionPills
+											multiple
+											bind:values={$formData.course_ids}
+											options={Object.entries(recipeCourses).map(([value, label]) => ({
+												value,
+												label
+											}))}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+									</Form.Field>
 
-									<div class="grid gap-3">
-										<Form.Field {form} name="cuisine_ids">
-											<Form.Control>
-												{#snippet children({ props })}
-													<Form.Label>Cuisines</Form.Label>
-													<Select.Root
-														type="multiple"
-														bind:value={$formData.cuisine_ids}
-														name={props.name}
-													>
-														<Select.Trigger {...props}>
-															{#if $formData.cuisine_ids.length == 0}
-																<span class="text-muted-foreground">Select...</span>
-															{:else if $formData.cuisine_ids.length == 1}
-																{recipeCuisines[$formData.cuisine_ids[0] as RecipeCuisineKey]}
-															{:else}
-																{$formData.cuisine_ids.length} selected
-															{/if}
-														</Select.Trigger>
-														<Select.Content>
-															{#each Object.entries(recipeCuisines) as [key, label]}
-																<Select.Item value={key} {label} />
-															{/each}
-														</Select.Content>
-													</Select.Root>
-													<input hidden bind:value={$formData.cuisine_ids} name={props.name} />
-												{/snippet}
-											</Form.Control>
-											<Form.FieldErrors class="text-red-600" />
-										</Form.Field>
-									</div>
+									<Form.Field {form} name="cuisine_ids" class="grid gap-1.5">
+										<Label>Cuisines</Label>
+										<OptionPills
+											multiple
+											bind:values={$formData.cuisine_ids}
+											groups={recipeCuisineGroups.map((group) => ({
+												label: group.label,
+												options: group.keys.map((key) => ({
+													value: key,
+													label: recipeCuisines[key]
+												}))
+											}))}
+										/>
+										<Form.FieldErrors class="text-red-600" />
+										<p class="text-[11px] text-muted-foreground/80">
+											<strong>Tip:</strong>
+											Ask for more options on Discord!
+										</p>
+									</Form.Field>
 								</div>
 							</Card.Content>
 						</Card.Root>
@@ -1177,7 +1046,6 @@
 		<IngredientEditItem
 			{form}
 			{id}
-			customName={$formData.ingredientCustomNames[idx]}
 			bind:name={$formData.ingredientNames[idx]}
 			bind:amount={$formData.ingredientAmounts[idx]}
 			bind:unit={$formData.ingredientUnits[idx]}

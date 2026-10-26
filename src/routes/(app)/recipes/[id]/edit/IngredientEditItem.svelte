@@ -1,26 +1,17 @@
 <script lang="ts">
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
-	import { Button } from '$lib/shared/components/ui/button';
+	import UnitPicker from '$lib/features/recipes/components/UnitPicker.svelte';
 	import { Badge } from '$lib/shared/components/ui/badge';
+	import { Button } from '$lib/shared/components/ui/button';
 	import * as Form from '$lib/shared/components/ui/form';
 	import { Input } from '$lib/shared/components/ui/input';
-	import * as Select from '$lib/shared/components/ui/select/index.js';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { formatQuantity } from '$lib/shared/utils/format-quantity';
-	import {
-		unitLabels,
-		unitToRegionized,
-		unitToUnregionized,
-		type UnitRegionized,
-		type UnitUnregionized
-	} from '$lib/shared/utils/quantity';
-	import { Pencil, Trash } from '@lucide/svelte';
-	import { ArrowUpDown, PencilOff } from '@lucide/svelte';
+	import { ArrowUpDown, Pencil, PencilOff, Trash } from '@lucide/svelte';
 
 	type Props = {
 		form: any; // TODO: specify form type
 		id: string | null; // null for custom ingredients not in the catalog
-		customName?: string | null;
 		name: string;
 		amount?: number;
 		unit?: string;
@@ -32,7 +23,6 @@
 	let {
 		form,
 		id,
-		customName = null,
 		name = $bindable(),
 		amount = $bindable(),
 		unit = $bindable(),
@@ -68,27 +58,11 @@
 					</Form.Control>
 				</Form.Field>
 
-				<Form.Field {form} name="ingredientUnits" class="space-y-0">
-					<Form.Control>
-						{#snippet children({ props })}
-							<Select.Root type="single" bind:value={unit} {...props} {disabled}>
-								<Select.Trigger class="gap-1 bg-muted/40 rounded-l-none max-[400px]:w-20 w-26 h-9">
-									{unit &&
-									Object.keys(unitLabels).includes(unitToUnregionized(unit as UnitRegionized))
-										? unitLabels[unitToUnregionized(unit as UnitRegionized)]
-										: '?'}
-								</Select.Trigger>
-								<Select.Content>
-									{#each Object.entries(unitLabels) as [key, label]}
-										<!-- TODO make unit region a user setting -->
-										<Select.Item value={unitToRegionized(key as UnitUnregionized, 'eu')} {label} />
-									{/each}
-								</Select.Content>
-							</Select.Root>
-						{/snippet}
-					</Form.Control>
-					<Form.FieldErrors class="text-red-600" />
-				</Form.Field>
+				<UnitPicker
+					bind:unit
+					{disabled}
+					class="w-20 rounded-l-none border-l-0 border-input max-[400px]:w-20"
+				/>
 			</div>
 
 			<span class="text-ellipsis line-clamp-1 max-[550px]:hidden">
@@ -109,21 +83,6 @@
 				<Badge variant="secondary" class="shrink-0">Custom</Badge>
 			{/if}
 		{/if}
-
-		<!-- <Form.Field {form} name="ingredientNames" class="space-y-0 w-full">
-				<Form.Control>
-					{#snippet children({ props })}
-						<Input
-							{...props}
-							{disabled}
-							name="ingredientNames"
-							type="text"
-							placeholder="Tomatoes, Flour, ..."
-							bind:value={name}
-						/>
-					{/snippet}
-				</Form.Control>
-			</Form.Field> -->
 
 		<div class="flex ml-auto">
 			{#if edit || media.sm}

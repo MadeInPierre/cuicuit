@@ -58,6 +58,11 @@ export const EMPTY_RECIPE_STEP_HINTS: RecipeStepHints = {
 	temperature_unit: null
 };
 
+/** Fresh hints object (never share one instance between steps). */
+export function emptyRecipeStepHints(): RecipeStepHints {
+	return { ...EMPTY_RECIPE_STEP_HINTS, ingredients: [] };
+}
+
 // Words that don't help tell two ingredient names apart, removed before comparing.
 const NAME_STOPWORDS = new Set([
 	'de',

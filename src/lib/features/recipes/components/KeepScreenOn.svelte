@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { MediaQuery } from 'svelte/reactivity';
 	import { Switch } from '$lib/shared/components/ui/switch/index.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
+	import { MediaQuery } from 'svelte/reactivity';
 
 	const supported = $derived(browser && 'wakeLock' in navigator);
 	const coarsePointer = new MediaQuery('(pointer: coarse)');
@@ -73,7 +73,7 @@
 
 {#if supported && isTouchDevice}
 	<div class="flex items-center justify-between rounded-md bg-sidebar px-3 py-2 text-sm">
-		<span class="text-muted-foreground">Keep screen on</span>
+		<span class="text-sidebar-foreground">Keep screen on</span>
 		<Switch bind:checked={keepScreenOn} />
 	</div>
 {/if}

@@ -1,5 +1,4 @@
 import { recipeStepHintsSchema } from '$lib/features/recipes/models/recipe-step';
-import { publicRecipeSourceTypeSchema } from '$lib/shared/db/supazod.schemas';
 import { DEFAULT_LANGUAGE, languageCodeSchema } from '$lib/shared/language.js';
 import { z } from 'zod';
 
@@ -15,7 +14,6 @@ export const createRecipeFormSchema = z
 		description: z.string().max(500, 'Sorry, description must be at most 500 characters long.'),
 
 		// Source
-		source_type: publicRecipeSourceTypeSchema,
 		source_url: z.url('Please enter a valid URL, like https://...').nullable().or(z.literal('')),
 
 		// Images

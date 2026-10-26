@@ -35,6 +35,7 @@ export const editRecipeOp = defineOp({
 	input: editRecipeInput,
 	handler: async (ctx, { recipeId, data }) => {
 		const { id: languageId } = await resolveLanguageId(ctx.supabase, data.lang);
+		const sourceUrl = data.source_url || null;
 
 		// Ownership pre-check on the update path: an upsert against a foreign id
 		// would otherwise fail with a confusing INTERNAL (or silently create for
@@ -57,9 +58,9 @@ export const editRecipeOp = defineOp({
 				// ID if we are updating an existing recipe
 				id: recipeId ?? undefined,
 
-				// Source
-				source_type: data.source_type,
-				source_url: data.source_type === 'user-manual' ? null : data.source_url,
+				// Source (inferred: a URL means the recipe came from a website)
+				source_type: sourceUrl ? 'website' : 'user-manual',
+				source_url: sourceUrl,
 
 				// General info
 				title: data.title,
@@ -91,8 +92,7 @@ export const editRecipeOp = defineOp({
 				// Servings (ingredients will be inserted in another table)
 				servings: data.servings,
 
-				// Steps (keep enrichment hints where the form preserved them)
-				// TODO add UI to edit step hints
+				// Steps with their per-step ingredient, timer and temperature hints
 				steps: data.stepDescriptions.map((text, i) => ({
 					text,
 					...(data.stepHints[i] ?? EMPTY_RECIPE_STEP_HINTS)

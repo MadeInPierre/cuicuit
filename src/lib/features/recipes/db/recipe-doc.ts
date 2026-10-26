@@ -1,4 +1,3 @@
-
 // Oven, Microwave, Stove, Fridge, Freezer, Blender, Mixer, Food processor, Toaster, Grill,
 // Pressure cooker, Slow cooker, Rice cooker, Steamer, Coffee maker, Kettle, Juicer, Scale,
 // Measuring cups, Measuring spoons, Cutting board, Knife, Peeler, Grater, Zester, Slicer,
@@ -67,3 +66,17 @@ export const recipeCuisines = {
 	african: 'African'
 } as const;
 export type RecipeCuisineKey = keyof typeof recipeCuisines;
+
+/** Cuisine pills grouped by continent so the picker stays easy to scan. */
+export const recipeCuisineGroups = [
+	{
+		label: 'Europe',
+		keys: ['italian', 'french', 'spanish', 'greek', 'british', 'mediterranean']
+	},
+	{ label: 'Americas', keys: ['mexican', 'american', 'brazilian', 'caribbean'] },
+	{
+		label: 'Asia & Middle East',
+		keys: ['indian', 'chinese', 'japanese', 'thai', 'korean', 'vietnamese', 'middleeast']
+	},
+	{ label: 'Africa', keys: ['african'] }
+] as const satisfies readonly { label: string; keys: readonly RecipeCuisineKey[] }[];
