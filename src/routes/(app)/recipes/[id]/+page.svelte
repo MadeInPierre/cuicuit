@@ -4,6 +4,7 @@
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { deleteMeal, updateMealServings } from '$lib/features/plans/actions/update-meal';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
+	import KeepScreenOn from '$lib/features/recipes/components/KeepScreenOn.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 	import RecipeStep from '$lib/features/recipes/components/RecipeStep.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
@@ -394,6 +395,8 @@
 								{/if}
 							</Button>
 						</div>
+
+						<KeepScreenOn />
 
 						<VoteForFeatures
 							title="Want nutrition facts, custom filters, tags, recipe variants, and more?"

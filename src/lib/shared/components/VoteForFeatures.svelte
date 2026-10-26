@@ -3,6 +3,7 @@
 	import { cn } from '$lib/utils';
 	import { ExternalLink, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
+	import { siteConfig } from '../config/site-config';
 	import { createPersistentState } from '../state/create-persistent-state.svelte';
 	import { Button } from './ui/button';
 
@@ -25,7 +26,12 @@
 	>
 		{title}
 
-		<Button variant="link" size="sm" class="w-full flex gap-2 items-center">
+		<Button
+			variant="link"
+			size="sm"
+			class="w-full flex gap-2 items-center"
+			href={siteConfig.links.githubFeatureRequests}
+		>
 			{buttonText}
 			<ExternalLink />
 		</Button>
