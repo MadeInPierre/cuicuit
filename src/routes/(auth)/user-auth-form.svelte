@@ -33,8 +33,16 @@
 
 	let { logMethod, class: className = undefined, ...restProps }: Props = $props();
 
+	// Autofill the seeded dev account only on local dev, for the login form, for dev convenience.
+	const devDefaults =
+		import.meta.env.DEV && logMethod === LogMethod.LOGIN
+			? { email: 'dev@cuicuit.app', password: '1SouffleAuFromage' } // gitleaks:allow
+			: undefined;
+
 	// Validate the form data using zod
-	const form = superForm(defaults(zod4(authSchema)), {
+	const form = superForm(
+		devDefaults ? defaults(devDefaults, zod4(authSchema)) : defaults(zod4(authSchema)),
+		{
 		SPA: true,
 		validators: zod4(authSchema),
 		clearOnSubmit: 'none',

@@ -190,7 +190,7 @@
 							timer_minutes: step.timer_minutes,
 							temperature_amount: step.temperature_amount,
 							temperature_unit: step.temperature_unit
-						})) || [];
+						})) || [emptyRecipeStepHints()];
 					return f;
 				},
 				{ taint: false }
@@ -326,10 +326,7 @@
 			);
 
 			// Go to the recipe view page
-			console.log('ONSUBMIT OK ID:', id);
-			console.log('GOTO DONE');
 			await goto(`/recipes/${id}`);
-			console.log('GOTO AFTER');
 		} catch (error) {
 			console.error('Error saving recipe:', error);
 			toast.error(error instanceof OpError ? error.message : 'Failed to save recipe.');
