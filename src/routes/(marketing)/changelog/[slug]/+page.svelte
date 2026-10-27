@@ -79,7 +79,7 @@
 	{#if post.excerpt}
 		<p class="mt-3 text-lg text-foreground/80">{post.excerpt}</p>
 	{/if}
-	<div class="mt-8">
+	<div class="mt-8 rounded-xl bg-card p-6 drop-shadow-xs sm:p-8">
 		<ChangelogPost {post} />
 	</div>
 </section>

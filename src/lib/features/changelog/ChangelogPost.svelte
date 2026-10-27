@@ -38,6 +38,7 @@
 		padding-top: 0.5rem;
 	}
 	.changelog-body :global(p) {
+		font-size: 0.95rem;
 		line-height: 1.65;
 	}
 	.changelog-body :global(ul) {
@@ -48,8 +49,11 @@
 		line-height: 1.6;
 	}
 	.changelog-body :global(img) {
-		border-radius: 1rem;
+		border-radius: 0.75rem;
 		max-width: 100%;
+		max-height: 60vh;
+		width: auto;
+		height: auto;
 	}
 	.changelog-body :global(a) {
 		text-decoration: underline;
