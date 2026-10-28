@@ -30,12 +30,24 @@ export const parsedSearchInputSchema = z.object({
 		.default(null)
 		.catch(null)
 		.describe('Linking word used between quantity and ingredient, e.g. "of", "de", "d\'".'),
-	ingredientText: z
+	ingredientName: z
 		.string()
 		.default('')
 		.catch('')
 		.describe(
-			'Name of ingredient. Must be edible and easy to find in a database of common ingredients.'
+			'Name of ingredient in the original recipe language. Must be edible and easy to find in a database of common ingredients.'
+		),
+	ingredientNameEn: z
+		.string()
+		.default('')
+		.catch('')
+		.describe('English translation of ingredientName.'),
+	ingredientNameEnGeneral: z
+		.string()
+		.default('')
+		.catch('')
+		.describe(
+			'A more general/common English name for the same ingredient.'
 		),
 	description: z
 		.string()
@@ -108,9 +120,9 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 	// Manual override for ingredient/description separation
 	const commaIndex = input.indexOf(',');
 	if (commaIndex !== -1) {
-		const ingredientText = input.slice(0, commaIndex).trim();
+		const ingredientName = input.slice(0, commaIndex).trim();
 		const description = input.slice(commaIndex + 1).trim();
-		const result = parseIngredientString(ingredientText);
+		const result = parseIngredientString(ingredientName);
 		result.description = description;
 		return result;
 	}
@@ -122,7 +134,7 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 	let amount: number | null = null;
 	let unitText = '';
 	let unitKey = 'whole';
-	let ingredientText = input;
+	let ingredientName = input;
 
 	if (quantityMatch && quantityMatch.groups) {
 		const { amount: amountStr, unit: possibleUnit = '' } = quantityMatch.groups;
@@ -143,7 +155,7 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 		if ((unitAliases.whole as unknown as string[]).includes(possibleUnit.toLowerCase())) {
 			unitText = possibleUnit;
 			unitKey = 'whole';
-			ingredientText = remainingText;
+			ingredientName = remainingText;
 			unitFound = true;
 		} else {
 			// Check for unit in unitAliases
@@ -152,7 +164,7 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 				if (allAliases.includes(possibleUnit.toLowerCase())) {
 					unitText = possibleUnit;
 					unitKey = key;
-					ingredientText = remainingText;
+					ingredientName = remainingText;
 					unitFound = true;
 					break;
 				}
@@ -160,25 +172,27 @@ export function parseIngredientString(input: string): ParsedSearchInput {
 		}
 
 		if (!unitFound) {
-			ingredientText = `${possibleUnit} ${remainingText}`.trim();
+			ingredientName = `${possibleUnit} ${remainingText}`.trim();
 		}
 	} else {
 		// If no quantity is found, the whole input is the ingredient text.
-		ingredientText = input;
+		ingredientName = input;
 	}
 
 	// Detect and remove any linking words from the ingredient text.
-	const linkWordMatch = ingredientText.match(linkWordPattern);
+	const linkWordMatch = ingredientName.match(linkWordPattern);
 	const linkWord = linkWordMatch?.[0].trim();
 	if (linkWordMatch) {
-		ingredientText = ingredientText.slice(linkWordMatch[0].length).trim();
+		ingredientName = ingredientName.slice(linkWordMatch[0].length).trim();
 	}
 
 	return {
 		sourceText: input,
 		quantity: amount !== null ? { amount, unitText, unitKey: unitKey as UnitUnregionized } : null,
 		linkWord: linkWord || '',
-		ingredientText,
+		ingredientName,
+		ingredientNameEn: '',
+		ingredientNameEnGeneral: '',
 		description: null,
 		preparation: null,
 		isOptional: optionalAliases.some((alias) => input.toLowerCase().includes(alias.toLowerCase()))

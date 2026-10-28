@@ -25,32 +25,21 @@ const LANG_SHAPE = /^[a-z]{2}-[A-Z]{2}$/;
 /**
  * Normalize forgiving user input (`'en-us'`, `'en_us'`, `' fr-FR '`) to
  * canonical `xx-YY` form. Returns `null` when the shape is unrecognized.
- * Bare 2-letter codes (`'en'`) are rejected — they are ambiguous
- * (`pt` → `pt-BR` vs `pt-PT`), so callers must pass the full code.
+ * Bare 2-letter codes (`'en'`) are rejected, they are ambiguous
+ * (`pt` = `pt-BR` vs `pt-PT`), so the full code is needed.
  */
-export function normalizeLanguageCode(input: unknown): LanguageCodeCurated | null {
+export function normalizeLanguageCode(input: unknown): LanguageCode | null {
 	if (typeof input !== 'string') return null;
 	const cleaned = input.trim().replace('_', '-');
 	const match = /^([a-zA-Z]{2})-([a-zA-Z]{2})$/.exec(cleaned);
 	if (!match) return null;
 	const canonical = `${match[1].toLowerCase()}-${match[2].toUpperCase()}`;
-	return LANG_SHAPE.test(canonical) ? (canonical as LanguageCodeCurated) : null; // TODO improve type safety Curated vs Not curated
+	return LANG_SHAPE.test(canonical) ? canonical : null;
 }
 
 export function isLanguageCode(input: unknown): input is LanguageCode {
 	return normalizeLanguageCode(input) !== null;
 }
-
-/**
- * Uniform public language field. Accepts canonical codes plus forgiving
- * variants (`'en-us'` → `'en-US'`) and normalizes to the canonical form.
- * Existence is validated against the DB by `resolveLanguageId`
- * (unknown-but-well-formed codes fail with NOT_FOUND, not here).
- */
-// export const languageCodeSchema = z.preprocess(
-// 	(v) => normalizeLanguageCode(v) ?? v,
-// 	z.string().regex(LANG_SHAPE, 'Expected a language code like en-US.')
-// );
 
 /**
  * Curated subset offered by the UI language pickers (label + emoji).
@@ -73,9 +62,16 @@ export const CURATED_LANGUAGE_CODES = Object.keys(
 
 export type LanguageCodeCurated = keyof typeof CURATED_LANGUAGES;
 
+/** Whether a code is fully supported (e.g. ingredient translations in database). */
+export function isCuratedLanguageCode(input: unknown): input is LanguageCodeCurated {
+	return typeof input === 'string' && (CURATED_LANGUAGE_CODES as readonly string[]).includes(input);
+}
+
 /**
- * Zod schema for the officially supported language codes.
+ * Zod schema for any well-formed BCP47 language code. Existence in the
+ * `languages` table is validated separately by `resolveLanguageId`.
  */
 export const languageCodeSchema = z
-	.enum(CURATED_LANGUAGE_CODES)
-	.describe('Language code (BCP47) like en-US, fr-FR, es-ES, pt-BR, de-DE, it-IT, nl-NL, pt-PT.');
+	.string()
+	.regex(LANG_SHAPE, 'Expected a language code like en-US.')
+	.describe('Language code (BCP47) like en-US or uk-UA.');

@@ -25,13 +25,13 @@ describe('normalizeRecipeSteps (LLM/cache)', () => {
 		]);
 	});
 
-	it('keeps ingredientText, stepSubstring, quantities and timings', () => {
+	it('keeps ingredientName, stepSubstring, quantities and timings', () => {
 		const steps = normalizeRecipeSteps([
 			{
 				text: 'Bake for 12 minutes at 180°C.',
 				ingredients: [
 					{
-						ingredientText: 'flour',
+						ingredientName: 'flour',
 						stepSubstring: 'flour',
 						quantity: { amount: 200, unitKey: 'g' }
 					}
@@ -44,7 +44,7 @@ describe('normalizeRecipeSteps (LLM/cache)', () => {
 
 		expect(steps[0].ingredients).toEqual([
 			{
-				ingredientText: 'flour',
+				ingredientName: 'flour',
 				stepSubstring: 'flour',
 				quantity: { amount: 200, unitText: '', unitKey: 'g' }
 			}
@@ -60,7 +60,7 @@ describe('normalizeRecipeSteps (LLM/cache)', () => {
 				'',
 				{
 					text: 'Cook.',
-					ingredients: [{ ingredientText: '' }, { nope: true }],
+					ingredients: [{ ingredientName: '' }, { nope: true }],
 					timer_minutes: 0,
 					temperature_amount: 0,
 					temperature_unit: 'C'
@@ -111,12 +111,12 @@ describe('linkStepIngredients', () => {
 	// Real-world pairs from a French hamburger import: the step names are
 	// simplified variants of the top-level ingredient names.
 	const ingredients = [
-		{ ingredientText: 'viande hachée de bœuf' },
-		{ ingredientText: 'pain à hamburger' },
-		{ ingredientText: 'beurre ou huile' },
-		{ ingredientText: 'cornichon' },
-		{ ingredientText: 'feuille de salade' },
-		{ ingredientText: 'sel' }
+		{ ingredientName: 'viande hachée de bœuf' },
+		{ ingredientName: 'pain à hamburger' },
+		{ ingredientName: 'beurre ou huile' },
+		{ ingredientName: 'cornichon' },
+		{ ingredientName: 'feuille de salade' },
+		{ ingredientName: 'sel' }
 	];
 	const ingredientIds = ['id-beef', 'id-bun', 'id-butter', 'id-cornichon', 'id-salad', 'id-salt'];
 
@@ -126,8 +126,8 @@ describe('linkStepIngredients', () => {
 				{
 					text: 'Assemble the burger.',
 					ingredients: ingredients.map((ingredient) => ({
-						ingredientText: ingredient.ingredientText,
-						stepSubstring: ingredient.ingredientText,
+						ingredientName: ingredient.ingredientName,
+						stepSubstring: ingredient.ingredientName,
 						quantity: null
 					})),
 					...EMPTY_TIMING
@@ -146,8 +146,8 @@ describe('linkStepIngredients', () => {
 				{
 					text: 'Add magic.',
 					ingredients: [
-						{ ingredientText: 'cornichon', stepSubstring: 'cornichons', quantity: null },
-						{ ingredientText: 'unknown thing', stepSubstring: 'it', quantity: null }
+						{ ingredientName: 'cornichon', stepSubstring: 'cornichons', quantity: null },
+						{ ingredientName: 'unknown thing', stepSubstring: 'it', quantity: null }
 					],
 					...EMPTY_TIMING
 				}

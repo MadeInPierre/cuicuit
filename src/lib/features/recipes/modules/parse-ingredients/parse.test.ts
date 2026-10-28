@@ -7,7 +7,7 @@ describe('parsedSearchInputSchema', () => {
 			sourceText: '2 tbsp butter',
 			quantity: { amount: 2, unitKey: 'tbsp' },
 			linkWord: null,
-			ingredientText: 'butter',
+			ingredientName: 'butter',
 			description: null,
 			preparation: null,
 			isOptional: false
@@ -25,7 +25,7 @@ describe('parseIngredientString', () => {
 		'does not treat the start of "%s" as a link word',
 		(input) => {
 			const parsed = parseIngredientString(input);
-			expect(parsed.ingredientText).toBe(input);
+			expect(parsed.ingredientName).toBe(input);
 			expect(parsed.linkWord).toBe('');
 		}
 	);
@@ -35,9 +35,9 @@ describe('parseIngredientString', () => {
 		['1 kg de farine', 'farine', 'de'],
 		['de la farine', 'farine', 'de la'],
 		["d'agneau", 'agneau', "d'"]
-	])('strips a real link word from "%s"', (input, ingredientText, linkWord) => {
+	])('strips a real link word from "%s"', (input, ingredientName, linkWord) => {
 		const parsed = parseIngredientString(input);
-		expect(parsed.ingredientText).toBe(ingredientText);
+		expect(parsed.ingredientName).toBe(ingredientName);
 		expect(parsed.linkWord).toBe(linkWord);
 	});
 });

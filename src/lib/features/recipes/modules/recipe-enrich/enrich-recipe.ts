@@ -49,6 +49,21 @@ function sanitizeRecipeFields(recipe: EnrichedRecipeOutput['recipe']): RecipeNot
 }
 
 /**
+ * Missing English fallbacks are filled from the closest available name so
+ * matching always has candidates.
+ */
+function sanitizeIngredients(
+	ingredients: EnrichedRecipeOutput['ingredients']
+): EnrichedRecipeOutput['ingredients'] {
+	return ingredients.map((ingredient) => {
+		const ingredientName = ingredient.ingredientName?.trim() || '';
+		const ingredientNameEn = ingredient.ingredientNameEn?.trim() || ingredientName;
+		const ingredientNameEnGeneral = ingredient.ingredientNameEnGeneral?.trim() || ingredientNameEn;
+		return { ...ingredient, ingredientName, ingredientNameEn, ingredientNameEnGeneral };
+	});
+}
+
+/**
  * Returns a recipe object fully compliant with the DB's NOT NULL constraints,
  * no matter what the LLM returned. Applied by the enrich module on fresh output
  * and by the import cache when reading previously-cached (maybe partially
@@ -57,6 +72,7 @@ function sanitizeRecipeFields(recipe: EnrichedRecipeOutput['recipe']): RecipeNot
 export function sanitizeEnrichedRecipeOutput(output: EnrichedRecipeOutput): EnrichedRecipeOutput {
 	return {
 		...output,
+		ingredients: sanitizeIngredients(output.ingredients),
 		recipe: {
 			...output.recipe,
 			...sanitizeRecipeFields(output.recipe),

@@ -9,7 +9,7 @@ import type {
 	ListRecipesInput,
 	ListRecipesOutput
 } from '$lib/core/operations/recipes/list.js';
-import type { LanguageCodeCurated } from '$lib/shared/language.js';
+import type { LanguageCode } from '$lib/shared/language.js';
 
 /**
  * M2: thin client adapters over the `recipes.list` / `recipes.get` core ops.
@@ -19,7 +19,7 @@ import type { LanguageCodeCurated } from '$lib/shared/language.js';
  * pass those filters through `opts` instead (see `ListRecipesInput`).
  */
 export async function getRecipesDetailed(
-	lang: LanguageCodeCurated,
+	lang: LanguageCode,
 	searchText?: string,
 	opts?: {
 		limit?: number;
@@ -59,7 +59,7 @@ export async function getRecipesDetailed(
  */
 export async function getRecipeDetailed(
 	recipeId: string,
-	lang: LanguageCodeCurated
+	lang: LanguageCode
 ): Promise<{ data: GetRecipeOutput | null; error: unknown }> {
 	try {
 		const data = await runOp<GetRecipeInput, GetRecipeOutput>('recipes.get', await getClientCtx(), {
@@ -79,7 +79,7 @@ export async function getRecipeDetailed(
  * `getRecipeDetailed` when a dedicated page needs the full recipe.
  */
 export async function getRecipeCards(
-	lang: LanguageCodeCurated,
+	lang: LanguageCode,
 	searchText?: string,
 	opts?: {
 		limit?: number;

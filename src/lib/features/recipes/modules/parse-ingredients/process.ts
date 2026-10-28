@@ -28,7 +28,7 @@ export async function processIngredientStrings(
 	// Match the parsed ingredient names against the ingredient database
 	const { data: matchData, error: matchError } = await matchIngredients(
 		supabase,
-		parsed.map((p, i) => p.ingredientText || eligibleStrings[i]),
+		parsed.map((p, i) => p.ingredientName || eligibleStrings[i]),
 		lang
 	);
 

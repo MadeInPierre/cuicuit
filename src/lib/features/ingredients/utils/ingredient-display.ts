@@ -24,7 +24,7 @@ export function buildCustomIngredientName(rawText: string | null | undefined): s
 export function resolveIngredientName(
 	translations: IngredientTranslationLike[] | null | undefined,
 	opts?: {
-		lang?: LanguageCode | string | null;
+		lang?: LanguageCode | null;
 		plural?: boolean;
 		customName?: string | null;
 	}

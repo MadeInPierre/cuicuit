@@ -17,7 +17,7 @@ import { normalizeRecipeSteps, recipeStepSchema } from '$lib/features/recipes/mo
 import { parsedSearchInputSchema } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
 import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
-import { CURATED_LANGUAGES, languageCodeSchema } from '$lib/shared/language.js';
+import { languageCodeSchema } from '$lib/shared/language.js';
 import { withLlmFailover } from '$lib/shared/llm/fallback';
 import type { LlmProvider } from '$lib/shared/llm/providers';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
@@ -41,24 +41,29 @@ Your task is to enrich the recipe by inferring missing details (null/incomplete 
 General rules:
 - If an ingredient string describes multiple ingredients, split it into multiple ingredients with correct details.
 - If ingredients have no or unclear quantities, always suggest realistic quantities, leave no quantities unset.
-- Make sure the ingredientText is as simple and short as possible, just as it may appear in a search index.
+- Make sure the ingredientName is as simple and short as possible, just as it may appear in a search index.
 - Set spices (e.g. salt, pepper) and other flavor-enhancing-only ingredients as optional.
 - Do not add ingredients or details not in the original recipe.
 
+Each ingredient has three names:
+- ingredientName: the name in the original recipe language.
+- ingredientNameEn: the same ingredient translated to English.
+- ingredientNameEnGeneral: a more general/common English name for the same ingredient, must be easy to find in an ingredient database (e.g. "chicken breast" -> "chicken", "cèpe" -> "mushroom").
+
 The output expects ingredients at two places:
 1. The main ingredients list (the main recipe ingredients) with inferred total quantities and units.
-2. One ingredient list per step, with the quantity used in that step (or null if not measurable). The step ingredient list must reference the main ingredients list exactly (ingredientText must match). 
+2. One ingredient list per step, with the quantity used in that step (or null if not measurable). The step ingredient list must reference the main ingredients list exactly (ingredientName must match).
 
 The main ingredient quantities must be the sum of all quantities set in steps for that ingredient.
 
 # Steps
 
-You MUST output at least one step in recipe.steps. Never return an empty array; if the source has no explicit steps, reconstruct sensible steps from the instructions and ingredients.
+You MUST output at least one step in recipe.steps. Never return an empty array; if the source has no explicit steps, reconstruct sensible steps yourself.
 
 For each step (write at least one), also return structured hints:
 - ingredients: list every ingredient used in that step, following the above rules. Only set ingredients explicitely mentioned in the step, do not remind ingredients from previous steps. Fields per ingredient:
 	- stepSubstring: the exact substring of the step text that mentions this ingredient, copied verbatim so it can be highlighted. Only the ingredient name itself, not text around it.
-	- ingredientText: must match an ingredientText value from the main ingredients list.
+	- ingredientName: must match an ingredientName value from the main ingredients list.
 	- quantity: the quantity used in that step. Only use null if the quantity is really  not measurable (e.g. "to taste").
 - timer_minutes: number of minutes if the step mentions a time, otherwise null.
 - temperature_amount: the temperature number if the step mentions a temperature, otherwise null.
@@ -66,9 +71,9 @@ For each step (write at least one), also return structured hints:
 
 # Languages
 
-Note: Only the "${Object.keys(CURATED_LANGUAGES).join(', ')}" languages are supported, so:
-- If the input recipe is in a supported language, keep all text fields in that language including ingredientText.
-- If the input recipe is in another unsupported language, set the recipe language to "en-US" and translate the ingredients (i.e. ingredientText fields) to English, but output everything else in the original language.
+- Detect the recipe's language and output its BCP47 code in the lang field (e.g. "en-US", "fr-FR", "uk-UA").
+- Keep all recipe text fields (title, description, steps, notes) in the original recipe language.
+- Ingredient names follow the three-field rule above: original language, English, and general English.
 
 # Output requirements
 
@@ -366,7 +371,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 			for (const ing of parsed.ingredients) {
 				const result = parsedSearchInputSchema.safeParse(ing);
-				if (result.success && result.data.ingredientText?.trim()) {
+				if (result.success && result.data.ingredientName?.trim()) {
 					recoveredIngredients.push(result.data);
 					console.log(`✓ Recovered ingredient:`, result.data);
 				} else {
@@ -402,7 +407,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 						if (
 							partialResult.success &&
 							Object.keys(partialIngredient).length > 0 &&
-							partialResult.data.ingredientText?.trim()
+							partialResult.data.ingredientName?.trim()
 						) {
 							console.log(
 								`  ✓ Partially recovered ingredient with ${Object.keys(partialIngredient).length} fields`
@@ -437,8 +442,10 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 		// Recover the language if present
 		if (parsed.lang && typeof parsed.lang === 'string') {
 			const langResult = languageCodeSchema.safeParse(parsed.lang);
-			recovered.lang = langResult.data;
-			console.log(`Recovered language: ${recovered.lang}`);
+			if (langResult.success) {
+				recovered.lang = langResult.data;
+				console.log(`Recovered language: ${recovered.lang}`);
+			}
 		}
 
 		// If we recovered some valid data, return it

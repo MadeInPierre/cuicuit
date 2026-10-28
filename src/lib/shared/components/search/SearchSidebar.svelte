@@ -23,7 +23,7 @@
 		if (!ingredient) return;
 		const quantity = ingredient.parsed.quantity?.amount ?? null;
 		const unit = ingredient.parsed.quantity?.unitKey ?? null;
-		const name = ingredient.parsed.ingredientText ?? '';
+		const name = ingredient.parsed.ingredientName ?? '';
 		const ingredientId = index !== null ? (ingredient.matches[index]?.id ?? null) : null;
 
 		// Add the item to the shopping list

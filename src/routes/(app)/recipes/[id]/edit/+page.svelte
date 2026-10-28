@@ -38,6 +38,7 @@
 	import {
 		CURATED_LANGUAGES,
 		DEFAULT_LANGUAGE,
+		isCuratedLanguageCode,
 		normalizeLanguageCode
 	} from '$lib/shared/language.js';
 	import { cn } from '$lib/utils';
@@ -72,6 +73,10 @@
 	let openBanner = $state(banner ? true : false);
 
 	const activeSpace = getActiveSpaceState();
+
+	// Curated languages use the picker; unknown languages fall back to a free
+	// text input. Decided once when the recipe data loads.
+	let useLanguageInput = $state(false);
 
 	// Validate the form data using zod
 	const form = superForm(
@@ -129,10 +134,13 @@
 				return;
 			}
 
+			const recipeLang = normalizeLanguageCode(recipeData.language?.lang);
+			useLanguageInput = !!recipeLang && !isCuratedLanguageCode(recipeLang);
+
 			formData.update(
 				(f) => {
 					// General info
-					f.lang = normalizeLanguageCode(recipeData.language?.lang) ?? DEFAULT_LANGUAGE;
+					f.lang = recipeLang ?? DEFAULT_LANGUAGE;
 					f.title = recipeData.title || 'New recipe';
 					f.short_title = recipeData.short_title || 'New';
 					f.description = recipeData.description || 'Delicious new recipe';
@@ -184,13 +192,12 @@
 
 					// Steps (keep the enrichment hints aligned with the editable text)
 					f.stepDescriptions = recipeData.steps?.map((step) => step.text) || [''];
-					f.stepHints =
-						recipeData.steps?.map((step) => ({
-							ingredients: step.ingredients,
-							timer_minutes: step.timer_minutes,
-							temperature_amount: step.temperature_amount,
-							temperature_unit: step.temperature_unit
-						})) || [emptyRecipeStepHints()];
+					f.stepHints = recipeData.steps?.map((step) => ({
+						ingredients: step.ingredients,
+						timer_minutes: step.timer_minutes,
+						temperature_amount: step.temperature_amount,
+						temperature_unit: step.temperature_unit
+					})) || [emptyRecipeStepHints()];
 					return f;
 				},
 				{ taint: false }
@@ -234,7 +241,7 @@
 
 		// Custom ingredient (not in the catalog): no match selected
 		if (chosenMatchIndex === null) {
-			const customName = buildCustomIngredientName(ingredientProcessed.parsed.ingredientText);
+			const customName = buildCustomIngredientName(ingredientProcessed.parsed.ingredientName);
 			if (!customName) {
 				toast.error('Failed to add ingredient. Please try again.');
 				return;
@@ -544,32 +551,42 @@
 											<Form.Control>
 												{#snippet children({ props })}
 													<Form.Label>Language</Form.Label>
-													<Select.Root
-														{...props}
-														type="single"
-														name="lang"
-														bind:value={$formData.lang}
-													>
-														<Select.Trigger class="h-9 w-24">
-															{CURATED_LANGUAGES[$formData.lang]?.emoji || '?'}
-														</Select.Trigger>
-														<Select.Content>
-															<Select.Group>
-																<Select.GroupHeading>Ingredient search language</Select.GroupHeading
-																>
-																{#each Object.entries(CURATED_LANGUAGES) as [value, lang] (value)}
-																	<Select.Item
-																		{value}
-																		label={lang.label}
-																		class="flex gap-2 items-center"
-																	>
-																		<span>{lang.emoji}</span>
-																		<span>{lang.label}</span>
-																	</Select.Item>
-																{/each}
-															</Select.Group>
-														</Select.Content>
-													</Select.Root>
+													{#if useLanguageInput}
+														<Input
+															disabled={loading}
+															{...props}
+															bind:value={$formData.lang}
+															placeholder="xx-XX"
+														/>
+													{:else}
+														<Select.Root
+															{...props}
+															type="single"
+															name="lang"
+															bind:value={$formData.lang}
+														>
+															<Select.Trigger class="h-9 w-24">
+																{isCuratedLanguageCode($formData.lang)
+																	? CURATED_LANGUAGES[$formData.lang].emoji
+																	: '?'}
+															</Select.Trigger>
+															<Select.Content>
+																<Select.Group>
+																	<Select.GroupHeading>Recipe language</Select.GroupHeading>
+																	{#each Object.entries(CURATED_LANGUAGES) as [value, lang] (value)}
+																		<Select.Item
+																			{value}
+																			label={lang.label}
+																			class="flex gap-2 items-center"
+																		>
+																			<span>{lang.emoji}</span>
+																			<span>{lang.label}</span>
+																		</Select.Item>
+																	{/each}
+																</Select.Group>
+															</Select.Content>
+														</Select.Root>
+													{/if}
 												{/snippet}
 											</Form.Control>
 											<Form.FieldErrors class="text-red-600" />

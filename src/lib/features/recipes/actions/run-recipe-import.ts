@@ -2,7 +2,7 @@ import { goto } from '$app/navigation';
 import type { ImportRecipeFromTextOutput } from '$lib/core/operations/recipes/import-from-text.js';
 import type { ImportRecipeFromUrlOutput } from '$lib/core/operations/recipes/import-from-url.js';
 import type { UserState } from '$lib/features/auth/state/user-state.svelte';
-import type { LanguageCodeCurated } from '$lib/shared/language.js';
+import type { LanguageCode } from '$lib/shared/language.js';
 import posthog from 'posthog-js';
 import { toast } from 'svelte-sonner';
 import { importRecipeFromText, importRecipeFromUrl } from './import-from-url.remote.js';
@@ -47,7 +47,7 @@ async function collectStream<T>(
 
 /** Runs the URL import op, forwarding progress steps to the caller. */
 export function runUrlImport(
-	input: { spaceId: string; url: string; lang: LanguageCodeCurated },
+	input: { spaceId: string; url: string; lang: LanguageCode },
 	onStep?: (step: number) => void
 ): Promise<ImportRecipeFromUrlOutput> {
 	return collectStream(importRecipeFromUrl(input), onStep);
@@ -55,7 +55,7 @@ export function runUrlImport(
 
 /** Runs the text import op, forwarding progress steps to the caller. */
 export function runTextImport(
-	input: { spaceId: string; text: string; lang: LanguageCodeCurated },
+	input: { spaceId: string; text: string; lang: LanguageCode },
 	onStep?: (step: number) => void
 ): Promise<ImportRecipeFromTextOutput> {
 	return collectStream(importRecipeFromText(input), onStep);

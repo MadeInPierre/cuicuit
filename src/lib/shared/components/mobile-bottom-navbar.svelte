@@ -166,7 +166,7 @@
 		if (!searchResults?.processedIngredient) return;
 		const quantity = searchResults.processedIngredient.parsed.quantity?.amount ?? null;
 		const unit = searchResults.processedIngredient.parsed.quantity?.unitKey ?? null;
-		const name = searchResults.processedIngredient.parsed.ingredientText ?? '';
+		const name = searchResults.processedIngredient.parsed.ingredientName ?? '';
 		const ingredientId =
 			chosenIndex !== null
 				? (searchResults.processedIngredient.matches[chosenIndex]?.id ?? null)

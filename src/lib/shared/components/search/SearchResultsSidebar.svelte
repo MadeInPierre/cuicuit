@@ -192,7 +192,7 @@
 						<ShoppingItemCard
 							ingredient={undefined}
 							name={buildCustomIngredientName(
-								searchResults.processedIngredient.parsed.ingredientText
+								searchResults.processedIngredient.parsed.ingredientName
 							)}
 							description={formatProcessedIngredientDescription(searchResults.processedIngredient)}
 							onclick={(e) => {

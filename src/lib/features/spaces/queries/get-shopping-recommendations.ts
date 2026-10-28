@@ -5,9 +5,9 @@ import {
 	type ShoppingRecommendationsInput,
 	type ShoppingRecommendationsOutput
 } from '$lib/core/operations/plans/recommendations.js';
-import type { LanguageCodeCurated } from '$lib/shared/language.js';
+import type { LanguageCode } from '$lib/shared/language.js';
 
-export async function getShoppingRecommendations(spaceId: string, lang: LanguageCodeCurated) {
+export async function getShoppingRecommendations(spaceId: string, lang: LanguageCode) {
 	if (!spaceId) return [];
 	return runOp<ShoppingRecommendationsInput, ShoppingRecommendationsOutput>(
 		shoppingRecommendationsOp.name,

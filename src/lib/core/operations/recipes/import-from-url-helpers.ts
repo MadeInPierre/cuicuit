@@ -18,8 +18,7 @@ import type { PublicRecipesRow } from '$lib/shared/db/supazod.schemas';
 import {
 	DEFAULT_LANGUAGE,
 	normalizeLanguageCode,
-	type LanguageCode,
-	type LanguageCodeCurated
+	type LanguageCode
 } from '$lib/shared/language.js';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
 import { youtubeThumbnailFallbacks, youtubeVideoId } from '$lib/shared/utils/youtube';
@@ -27,7 +26,8 @@ import { enrichRawRecipe, enrichTextRecipe, type EnrichedRecipeOutput } from './
 import { scrapeRecipeUrl } from './scrape-helpers.js';
 
 import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
-import { resolveLanguageId } from '../languages/resolve.js';
+import { matchIngredientNames } from '../ingredients/match-fallback.js';
+import { resolveLanguageId, resolveOrCreateLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
 import { resizeToRecipeThumbnail, trimLetterboxBorders } from './image-resize.js';
 import { uploadImageToRecipe } from './upload-image-helper.js';
@@ -238,36 +238,32 @@ export function resolveRecipeMatchLang(llmLang: unknown, fallbackLang: LanguageC
 export async function processAndMatchIngredients(
 	supabase: SupabaseClient<Database>,
 	enrichedIngredients: ParsedSearchInput[],
-	lang: LanguageCodeCurated,
+	lang: LanguageCode,
 	userId: string
 ): Promise<IngredientProcessed[]> {
-	const eligible = enrichedIngredients.filter(
-		(p) => p.ingredientText && p.ingredientText.trim().length > 0
-	);
-	const matchData = await runOp<MatchIngredientsInput, MatchIngredientsResult>(
-		'ingredients.match',
-		{ supabase, admin: supabase, userId, source: 'app' },
-		{
-			ingredientStrings: eligible.map((p) => p.ingredientText),
-			lang: lang || DEFAULT_LANGUAGE
+	const matches = await matchIngredientNames(
+		enrichedIngredients,
+		lang || DEFAULT_LANGUAGE,
+		async (ingredientStrings, matchLang) => {
+			const data = await runOp<MatchIngredientsInput, MatchIngredientsResult>(
+				'ingredients.match',
+				{ supabase, admin: supabase, userId, source: 'app' },
+				{ ingredientStrings, lang: matchLang }
+			);
+			return data.matches.map(
+				(match) => (match.bestMatches || []) as IngredientProcessed['matches']
+			);
 		}
 	);
 
-	// Keep the results aligned with `enrichedIngredients`: only the eligible
-	// entries were matched, so walk the match list in that same order.
-	let matchIndex = 0;
-	return enrichedIngredients.map((p) => {
-		const isEligible = !!(p.ingredientText && p.ingredientText.trim().length > 0);
-		const matches = isEligible
-			? ((matchData.matches[matchIndex++]?.bestMatches || []) as IngredientProcessed['matches'])
-			: [];
-
-		return {
-			sourceText: p.sourceText || 'Unknown',
-			parsed: p,
-			matches
-		} satisfies IngredientProcessed;
-	});
+	return enrichedIngredients.map(
+		(parsed, index) =>
+			({
+				sourceText: parsed.sourceText || 'Unknown',
+				parsed,
+				matches: matches[index]
+			}) satisfies IngredientProcessed
+	);
 }
 
 /** The catalog ingredient id of each matched top-level ingredient (null = custom). */
@@ -285,7 +281,7 @@ export async function saveEnrichedRecipe(
 	ingredientIds: (string | null)[]
 ): Promise<void> {
 	// Get the recipe's language database ID
-	const { id: langId } = await resolveLanguageId(
+	const { id: langId } = await resolveOrCreateLanguageId(
 		supabase,
 		normalizeLanguageCode(enrichedRecipe.lang) ?? DEFAULT_LANGUAGE
 	);
@@ -353,7 +349,11 @@ export async function insertRecipeIngredients(
 		// instead of dropping it, so imports never silently lose ingredients.
 		const customName = bestMatch
 			? null
-			: buildCustomIngredientName(processed.parsed.ingredientText);
+			: buildCustomIngredientName(
+					processed.parsed.ingredientName ||
+						processed.parsed.ingredientNameEn ||
+						processed.parsed.ingredientNameEnGeneral
+				);
 
 		const { data: ingredientInsertData, error: ingredientInsertError } = await supabase
 			.from('recipe_ingredients')
@@ -402,7 +402,7 @@ export async function insertUserImportedRecipe(
 	}
 ): Promise<string> {
 	// Get the recipe's language database ID
-	const { id: langId } = await resolveLanguageId(
+	const { id: langId } = await resolveOrCreateLanguageId(
 		supabase,
 		normalizeLanguageCode(input.enriched.lang) ?? DEFAULT_LANGUAGE
 	);
@@ -580,7 +580,7 @@ export async function* importRecipeFromUrlCore(
 	const processedIngredients = await processAndMatchIngredients(
 		admin,
 		llmOutput.ingredients,
-		resolveRecipeMatchLang(llmOutput.lang, lang) as LanguageCodeCurated,
+		resolveRecipeMatchLang(llmOutput.lang, lang),
 		userId
 	);
 
@@ -691,7 +691,7 @@ export async function* importRecipeFromTextCore(
 	const processedIngredients = await processAndMatchIngredients(
 		admin,
 		enrichedRecipe.ingredients,
-		resolveRecipeMatchLang(enrichedRecipe.lang, normalizedLang) as LanguageCodeCurated,
+		resolveRecipeMatchLang(enrichedRecipe.lang, normalizedLang),
 		context.userId
 	);
 	console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);

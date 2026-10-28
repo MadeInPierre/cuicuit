@@ -3,11 +3,11 @@ import { z } from 'zod';
 
 /** The step ingredient shape the LLM produces. */
 export const llmStepIngredientSchema = z.object({
-	ingredientText: z
+	ingredientName: z
 		.string()
 		.default('')
 		.catch('')
-		.describe('Must match an ingredientText from the top-level ingredients list.'),
+		.describe('Must match an ingredientName from the top-level ingredients list.'),
 	stepSubstring: z
 		.string()
 		.default('')
@@ -20,7 +20,7 @@ export const llmStepIngredientSchema = z.object({
 
 /**
  * The persisted step ingredient in the database. `ingredientId` is the database id,
- * which replaces the LLM's `ingredientText` as it's cleaner to store.
+ * which replaces the LLM's `ingredientName` as it's cleaner to store.
  */
 export const stepIngredientSchema = z.object({
 	ingredientId: z.string().nullable().default(null),
@@ -172,17 +172,17 @@ function normalizeStepTiming(step: Record<string, unknown>): StepTiming {
 }
 
 /**
- * Matches each step ingredient to a top-level ingredient (via `ingredientText`)
+ * Matches each step ingredient to a top-level ingredient (via `ingredientName`)
  * and stores the matching `ingredientId`, so the client never has to
  * match ingredient names again.
  */
 export function linkStepIngredients(
 	steps: readonly EnrichedRecipeStep[],
-	ingredients: readonly { ingredientText: string }[],
+	ingredients: readonly { ingredientName: string }[],
 	ingredientIds: readonly (string | null)[]
 ): RecipeStep[] {
 	const candidates = ingredients.map((ingredient, index) => ({
-		name: ingredient.ingredientText,
+		name: ingredient.ingredientName,
 		id: ingredientIds[index] ?? null
 	}));
 
@@ -197,7 +197,7 @@ export function linkStepIngredients(
 				let best: { id: string | null; score: number } | null = null;
 
 				for (const candidate of candidates) {
-					const score = ingredientNameScore(stepIngredient.ingredientText, candidate.name);
+					const score = ingredientNameScore(stepIngredient.ingredientName, candidate.name);
 					if (score >= INGREDIENT_NAME_MATCH_THRESHOLD && (!best || score > best.score)) {
 						best = { id: candidate.id, score };
 					}
@@ -205,7 +205,7 @@ export function linkStepIngredients(
 
 				return {
 					ingredientId: best?.id ?? null,
-					stepSubstring: stepIngredient.stepSubstring || stepIngredient.ingredientText,
+					stepSubstring: stepIngredient.stepSubstring || stepIngredient.ingredientName,
 					quantity: stepIngredient.quantity
 				};
 			})
@@ -215,14 +215,14 @@ export function linkStepIngredients(
 
 /**
  * Normalizes steps coming from the LLM or from a cached LLM output. Keeps
- * `ingredientText` so the import can still resolve catalog ids on a cache hit.
+ * `ingredientName` so the import can still resolve catalog ids on a cache hit.
  */
 export function normalizeRecipeSteps(value: unknown): EnrichedRecipeStep[] {
 	return normalizeSteps(value, (rawIngredient) => {
 		const parsed = llmStepIngredientSchema.safeParse(rawIngredient);
 		if (!parsed.success) return null;
-		const ingredientText = parsed.data.ingredientText.trim();
-		return ingredientText ? { ...parsed.data, ingredientText } : null;
+		const ingredientName = parsed.data.ingredientName.trim();
+		return ingredientName ? { ...parsed.data, ingredientName } : null;
 	});
 }
 

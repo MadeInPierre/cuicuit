@@ -61,7 +61,7 @@
 				<ShoppingItemCard
 					ingredient={undefined}
 					description={buildCustomIngredientName(
-						searchResults.processedIngredient.parsed.ingredientText
+						searchResults.processedIngredient.parsed.ingredientName
 					)}
 					onclick={(e) => {
 						e.preventDefault(); // Avoid submitting the form
