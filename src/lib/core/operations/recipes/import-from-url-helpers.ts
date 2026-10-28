@@ -602,12 +602,15 @@ export async function* importRecipeFromUrlCore(
 	}
 	console.log('Imported recipe for user:', userRecipeId);
 
-	// Step 3: Upload the recipe image to the user's copy
+	// Step 3: Upload the recipe image to the user's copy. Try the scraper's image first
 	yield 3;
-	if (imageUrl) {
+	const imageCandidates = [
+		...new Set([imageUrl, llmOutput.image || null].filter((u): u is string => Boolean(u)))
+	];
+	for (const candidate of imageCandidates) {
 		try {
-			const imgResponse = await fetchRecipeImage(imageUrl, sourceUrl);
-			if (!imgResponse) throw new Error(`Could not download the image: ${imageUrl}`);
+			const imgResponse = await fetchRecipeImage(candidate, sourceUrl);
+			if (!imgResponse) throw new Error(`Could not download the image: ${candidate}`);
 			const blob = await imgResponse.blob();
 			let imageBytes: Uint8Array<ArrayBufferLike> = new Uint8Array(await blob.arrayBuffer());
 			// Remove black bars from YouTube thumbnails
@@ -630,6 +633,7 @@ export async function* importRecipeFromUrlCore(
 				console.warn('Failed to resize imported image, skipping thumbnail:', thumbError);
 			}
 			await uploadImageToRecipe(admin, file, userRecipeId, [], thumbnail);
+			break;
 		} catch (error) {
 			console.warn('Failed to download & upload the image, skipping:', error);
 		}

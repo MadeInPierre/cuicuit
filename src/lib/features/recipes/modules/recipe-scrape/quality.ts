@@ -90,31 +90,46 @@ export function passesQualityGate(format: ScrapeFormat, content: string): boolea
 /** Digits: no trailing \b — digit→letter ("200g") has no word boundary. */
 const DIGIT_PATTERN = '\\d+(?:[.,/]\\d+)*'; // 200, 1.5, 1,5 (fr), 1/2
 
+/**
+ * Plural suffixes: 's' (en/fr/es/pt), 'x' (fr), 'i' (it), 'n' (de/nl).
+ */
+const PLURAL_SUFFIX = '(?:s|x|i|n)?';
+
 const NUMBER_WORDS = [
     'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
     'eleven', 'twelve', 'half', 'dozen',
     'un', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six',
     'uno', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis',
-    'a', 'an' // "a cup of flour", "a pinch of salt"
+    'um', 'uma',
+    'a', 'an'
 ];
 
 const QUANTITY_UNITS = [
-    // Metric / imperial (en)
-    'g', 'kg', 'mg', 'ml', 'l', 'dl', 'cl', 'oz', 'lb', 'cup', 'tbsp', 'tsp',
-    'pinch', 'dash', 'clove', 'can', 'slice', 'scoop', 'handful', 'bunch', 'sprig',
-    'stick', 'pack', 'packet', 'bottle', 'piece', 'cube', 'strip', 'stalk', 'fillet',
-    // Common countable foods (en)
-    'egg', 'onion', 'potato', 'tomato', 'avocado', 'lemon', 'lime', 'carrot',
+    // common
+    'g', 'kg', 'mg', 'gr', 'gram', 'ml', 'l', 'dl', 'cl', 'oz', 'lb', 'min',
+    // en
+    'cup', 'tbsp', 'tsp', 'pinch', 'dash', 'clove', 'can', 'slice', 'scoop',
+    'handful', 'bunch', 'sprig', 'stick', 'pack', 'packet', 'bottle', 'piece',
+    'cube', 'strip', 'stalk', 'fillet',
     // fr
-    'cuillère', 'tasse', 'gousse', 'pincée', 'tranche', 'boîte', 'sachet', 'morceau',
-    'oeuf', 'œuf', 'oignon',
+    'cuillère', 'tasse', 'gousse', 'pincée', 'tranche', 'boîte', 'sachet',
+    'morceau', 'oeuf', 'œuf', 'oignon', 'filet', 'verre',
     // es
     'taza', 'cucharada', 'cucharadita', 'diente', 'pizca', 'lata', 'rebanada',
-    'huevo', 'cebolla'
+    'vaso', 'huevo', 'cebolla',
+    // pt
+    'colher', 'xícara', 'xicara', 'fatia', 'pitada',
+    // it
+    'cucchiaio', 'cucchiai', 'cucchiaino', 'cucchiaini', 'tazza', 'spicchio',
+    'spicchi', 'pizzico',
+    // de
+    'esslöffel', 'teelöffel', 'tasse', 'prise',
+    // nl
+    'eetlepel', 'theelepel', 'snufje', 'teentje', 'kopje'
 ];
 
 const QUANTITY_RE = new RegExp(
-    `(?:${DIGIT_PATTERN}|\\b(?:${NUMBER_WORDS.join('|')})\\b)[\\s-]*(?:a\\s+)?(${QUANTITY_UNITS.join('|')})s?\\b`,
+    `(?:${DIGIT_PATTERN}|\\b(?:${NUMBER_WORDS.join('|')})\\b)[\\s-]*(?:a\\s+)?(${QUANTITY_UNITS.join('|')})${PLURAL_SUFFIX}\\b`,
     'gi'
 );
 

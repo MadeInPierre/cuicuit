@@ -142,7 +142,8 @@ describe('scrapeCreatorsStrategy', () => {
                     data: {
                         xdt_shortcode_media: {
                             owner: { username: 'cook' },
-                            display_url: 'https://cdninstagram.com/pic.jpg',
+                            display_url: 'https://cdninstagram.com/display.jpg',
+                            thumbnail_src: 'https://cdninstagram.com/thumb.jpg',
                             edge_media_to_caption: {
                                 edges: [{ node: { text: '200g flour, 2 eggs, 100ml milk, a pinch of salt' } }]
                             }
@@ -157,7 +158,8 @@ describe('scrapeCreatorsStrategy', () => {
         expect(result.status).toBe('ok');
         expect(result.content).toContain('Author: cook');
         expect(result.content).toContain('200g flour');
-        expect(result.image).toBe('https://cdninstagram.com/pic.jpg');
+        // Instagram's selected cover frame wins over display_url.
+        expect(result.image).toBe('https://cdninstagram.com/thumb.jpg');
         expect(result.providerStats?.calls[0].cached).toBe(true);
         expect(result.providerStats?.totalCredits).toBe(0);
     });

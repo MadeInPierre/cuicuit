@@ -24,8 +24,11 @@ import { buildSocialMarkdown } from './social-markdown';
 import { isSocialUrl, socialPlatform, type SocialPlatform } from './social-urls';
 
 const API_BASE = 'https://api.scrapecreators.com';
-/** Whole-strategy budget (info + transcript). */
-const TIMEOUT_MS = 30_000;
+/**
+ * E2E timeout (info + transcript). Generous on purpose as Instagram can really take
+ * >30s, and the provider completes + charges the request anyway so better get it.
+ */
+const TIMEOUT_MS = 60_000;
 /** Provider-side cache window: repeat hits (any customer) cost 0 credits. */
 const CACHE_MAX_AGE = '30d';
 
@@ -139,7 +142,9 @@ function normalizeInfo(platform: SocialPlatform, json: Record<string, unknown>):
             return {
                 caption: str(captionNode.text),
                 author: str(owner.username),
-                image: str(media?.display_url) ?? str(media?.thumbnail_src)
+                // thumbnail_src is Instagram's selected cover frame (looks nicer
+                // than display_url on video posts) keep display_url as fallback
+                image: str(media?.thumbnail_src) ?? str(media?.display_url)
             };
         }
         case 'twitter': {
@@ -215,10 +220,25 @@ async function scrapeCreatorsGet(
 ): Promise<{ json: Record<string, unknown>; callIndex: number }> {
     const query = new URLSearchParams({ ...params, cache_max_age: CACHE_MAX_AGE }).toString();
     const startedAt = performance.now();
-    const response = await fetch(`${API_BASE}${path}?${query}`, {
-        headers: { 'x-api-key': apiKey },
-        signal
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${API_BASE}${path}?${query}`, {
+            headers: { 'x-api-key': apiKey },
+            signal
+        });
+    } catch (error) {
+        // Network-level failure (not an abort): record the call to log a credit spent
+        if (!isAbort(error)) {
+            calls.push({
+                ...meta,
+                httpStatus: null,
+                credits: null,
+                latencyMs: Math.round(performance.now() - startedAt),
+                chars: 0
+            });
+        }
+        throw error;
+    }
     const latencyMs = Math.round(performance.now() - startedAt);
     if (!response.ok) {
         calls.push({ ...meta, httpStatus: response.status, credits: null, latencyMs, chars: 0 });
@@ -242,7 +262,9 @@ async function scrapeCreatorsGet(
 }
 
 function toStrategyError(error: unknown) {
-    if (isAbort(error)) return failed('timeout', 'ScrapeCreators timed out (30s budget exceeded)');
+    if (isAbort(error)) {
+        return failed('timeout', `ScrapeCreators timed out (${TIMEOUT_MS / 1000}s budget exceeded)`);
+    }
     if (error instanceof ScrapeCreatorsHttpError) {
         // Rejected/restricted/removed posts: let the next provider try.
         if (error.status === 400 || error.status === 403 || error.status === 404) {
