@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.2.0](https://github.com/MadeInPierre/cuicuit/compare/v0.1.0...v0.2.0) (2026-10-28)
+
+
+### Features
+
+* **app:** offline image cache, notification banner, disabled online=only buttons ([e362f07](https://github.com/MadeInPierre/cuicuit/commit/e362f07747242b4c64771a26b379c26363e8a5ad))
+* **app:** offline support for app shell ([d255afd](https://github.com/MadeInPierre/cuicuit/commit/d255afd293c1882085e96db4ced22194f7683943))
+* **match:** better accuracy thanks to LLM-generated ingredient synonyms and hybrid text search ranking ([637822f](https://github.com/MadeInPierre/cuicuit/commit/637822f914450364ddfb201bc2d2a6cf205df641))
+* **recipe:** keep screen on toggle ([d679045](https://github.com/MadeInPierre/cuicuit/commit/d679045480118049af48eae520a1ce3e6ef46daa)), closes [#89](https://github.com/MadeInPierre/cuicuit/issues/89)
+* **recipe:** new recipe hint ingredients and timers ([ad3f866](https://github.com/MadeInPierre/cuicuit/commit/ad3f866431532c5d8955e75133c4060e69831be2))
+* **recipe:** step hints editor (WIP) ([dc4725b](https://github.com/MadeInPierre/cuicuit/commit/dc4725b7925a189eaeede7f17772cb12e34e15c5))
+
+
+### Bug Fixes
+
+* **changelog:** show new changelog badge on mobile ([c72536f](https://github.com/MadeInPierre/cuicuit/commit/c72536fbb5a070329232fd954e52966a20737a64))
+* **import:** attempt to fix import dialog dynamic height ([22af3df](https://github.com/MadeInPierre/cuicuit/commit/22af3df99cfd419c88bdd431bfbcc9c160f2cd63))
+* **import:** better multi-language LLM instructions ([5ae7344](https://github.com/MadeInPierre/cuicuit/commit/5ae7344100923893156577b9c489ef1165fe7e30))
+* **import:** fallback to English for unsupported languages ([70c02bf](https://github.com/MadeInPierre/cuicuit/commit/70c02bf82b2f5f2210a642ad9a5cd4c663d89df8))
+* **import:** loosen up LLM schema requirements, attempt to repair hints before failing ([ea7f131](https://github.com/MadeInPierre/cuicuit/commit/ea7f13137311754ad88f4de8c7332b43efbbb64a))
+* **landing:** landing & support design refinements ([344fb62](https://github.com/MadeInPierre/cuicuit/commit/344fb623c71d3e8ef17dc8bf343760246f7b960b))
+* **match:** link words were cutting words off, matching accuracy improved + new match benchmark ([8cbcf61](https://github.com/MadeInPierre/cuicuit/commit/8cbcf61f4e63ca56d8fa0c4548f78ac1f2d6c30e))
+* **offline:** support offline expired JWTs to laod the app anyway ([12e2f83](https://github.com/MadeInPierre/cuicuit/commit/12e2f832600b87354716c8fd797f0af79789c600))
+* **youtube:** crop thumbnail black bars ([d988d62](https://github.com/MadeInPierre/cuicuit/commit/d988d62b7aa6524d2af3b3558952657f605ebb6f))
+* **youtube:** more robust thumbnail image download & fallback ([95ea585](https://github.com/MadeInPierre/cuicuit/commit/95ea585a7bae29ba0ac25ec95bb524d21b804b7b))
+
+
+### Performance Improvements
+
+* **app:** make loading splash appear less ([a0d5d02](https://github.com/MadeInPierre/cuicuit/commit/a0d5d0272f76f686ce1cccfc060a7b792e9e2c50))
+
 ## 0.1.0 (2026-10-11)
 
 
