@@ -145,7 +145,7 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		tag: TAGS.recipes,
 		summary: 'Import a recipe from a URL (SSE, costs 1 seed)',
 		description:
-			'Streams progress numbers, then the final `{ id, isComplete, usage }`. Insufficient seeds → `event: error` with code INSUFFICIENT_SEEDS and no side effects.',
+			"Streams `{ kind: 'step', step }` frames, a `{ kind: 'draft', recipeId, title }` frame once the recipe id exists, an `{ kind: 'image', imageId }` frame as soon as the source image is uploaded, `{ kind: 'partial', patch }` frames while the LLM streams (metadata → ingredients → steps, with a `matched` patch once catalog matching completes), then the final `{ id, isComplete, usage }`. Insufficient seeds → `event: error` with code INSUFFICIENT_SEEDS and no side effects.",
 		body: 'json',
 		sse: true
 	},
@@ -155,6 +155,8 @@ export const API_ROUTES: ApiRouteEntry[] = [
 		op: 'recipes.import-from-text',
 		tag: TAGS.recipes,
 		summary: 'Import a recipe from free text (SSE, costs 1 seed)',
+		description:
+			"Streams `{ kind: 'step', step }`, a `{ kind: 'draft', recipeId, title }` frame once the draft row exists, `{ kind: 'partial', patch }` frames while the LLM streams (metadata → ingredients → steps, with a `matched` patch once catalog matching completes), then the final `{ id, isComplete, usage }`. No `image` frame: a text-provided image URL is attached at the end.",
 		body: 'json',
 		sse: true
 	},
@@ -496,7 +498,7 @@ function opDocs(op: string | null): { title?: string; description?: string; hint
 	return { title: def.docs.title, description: def.docs.description, hints: def.docs.hints ?? [] };
 }
 
-/** Tag intro derived from the titles of its operations — never hand-maintained. */
+/** Tag intro derived from the titles of its operations, never hand-maintained. */
 function tagDescription(tag: string): string {
 	const titles = [
 		...new Set(

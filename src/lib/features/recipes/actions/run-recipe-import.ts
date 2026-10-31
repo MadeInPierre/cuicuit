@@ -1,73 +1,129 @@
-import { goto } from '$app/navigation';
+import {
+	isImportProgress,
+	type ImportDraft,
+	type ImportPartialPatch
+} from '$lib/core/operations/recipes/import-events.js';
 import type { ImportRecipeFromTextOutput } from '$lib/core/operations/recipes/import-from-text.js';
 import type { ImportRecipeFromUrlOutput } from '$lib/core/operations/recipes/import-from-url.js';
 import type { UserState } from '$lib/features/auth/state/user-state.svelte';
+import { supabase } from '$lib/shared/db/supabase-client.svelte';
 import type { LanguageCode } from '$lib/shared/language.js';
+import { readSseFrames } from '$lib/shared/utils/sse';
 import posthog from 'posthog-js';
-import { toast } from 'svelte-sonner';
-import { importRecipeFromText, importRecipeFromUrl } from './import-from-url.remote.js';
 
 /**
  * Shared frontend consumption of the core recipe-import ops.
  *
- * The import logic itself lives in core (`recipes.import-from-url` /
- * `recipes.import-from-text` ops, charged 1 seed after success); this module
- * only holds what every UI entry point (paste dialog forms, share-target
- * receiver page) would otherwise duplicate: step labels, the streaming loop,
- * and the success UX (refresh → analytics → toast → redirect).
+ * Both imports stream over a plain SSE fetch (not `query.live`) because the
+ * import is non-idempotent and the draft event must never be coalesced or
+ * replayed, the caller navigates to the recipe page on it.
  */
 
-export const URL_IMPORT_STEPS = [
-	'Finding the recipe',
-	'Guessing filters and missing details',
-	'Recognizing ingredients & units',
-	'Uploading the recipe image'
-];
-
-export const TEXT_IMPORT_STEPS = [
-	'Warming up',
-	'Organizing your recipe',
-	'Saving ingredients & units'
+export const IMPORT_STEPS = [
+	'Reading your recipe',
+	'Guessing missing details',
+	'Recognizing ingredients',
+	'Writing the steps'
 ];
 
 export type RecipeImportResult = ImportRecipeFromUrlOutput | ImportRecipeFromTextOutput;
 
-async function collectStream<T>(
-	stream: AsyncIterable<number | T>,
-	onStep?: (step: number) => void
-): Promise<T> {
-	let result: T | undefined;
-	for await (const value of stream) {
-		if (typeof value === 'number') onStep?.(value);
-		else result = value;
+export type UrlImportInput = { spaceId: string; url: string; lang: LanguageCode };
+export type TextImportInput = { spaceId: string; text: string; lang: LanguageCode };
+
+export type ImportHandlers = {
+	onStep?: (step: number) => void;
+	onDraft?: (draft: ImportDraft) => void;
+	onImage?: (imageId: string) => void;
+	onPartial?: (patch: ImportPartialPatch) => void;
+};
+
+class ImportStreamError extends Error {
+	constructor(
+		message: string,
+		readonly code?: string
+	) {
+		super(message);
+		this.name = 'ImportStreamError';
 	}
-	if (!result) throw new Error('Import did not complete.');
+}
+
+/** Runs one import op over SSE, forwarding progress events to the caller. */
+async function streamImport(
+	endpoint: string,
+	input: UrlImportInput | TextImportInput,
+	handlers: ImportHandlers
+): Promise<RecipeImportResult> {
+	const token = await getAccessToken();
+	const response = await fetch(endpoint, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`
+		},
+		body: JSON.stringify(input)
+	});
+
+	if (!response.ok) throw await readApiError(response);
+	if (!response.body) throw new ImportStreamError('Import stream unavailable.');
+
+	let result: RecipeImportResult | undefined;
+	for await (const frame of readSseFrames(response.body)) {
+		if (frame.event === 'error') throw readStreamError(frame.data);
+
+		let value: unknown;
+		try {
+			value = JSON.parse(frame.data);
+		} catch {
+			throw new ImportStreamError('Invalid import response.');
+		}
+
+		if (isImportProgress(value)) {
+			if (value.kind === 'step') handlers.onStep?.(value.step);
+			else if (value.kind === 'draft') handlers.onDraft?.(value);
+			else if (value.kind === 'image') handlers.onImage?.(value.imageId);
+			else handlers.onPartial?.(value.patch);
+		} else {
+			result = value as RecipeImportResult;
+		}
+	}
+
+	if (!result) throw new ImportStreamError('Import did not complete.');
 	return result;
 }
 
-/** Runs the URL import op, forwarding progress steps to the caller. */
+/** Runs the URL import op over SSE, forwarding progress events to the caller. */
 export function runUrlImport(
-	input: { spaceId: string; url: string; lang: LanguageCode },
-	onStep?: (step: number) => void
+	input: UrlImportInput,
+	handlers: ImportHandlers = {}
 ): Promise<ImportRecipeFromUrlOutput> {
-	return collectStream(importRecipeFromUrl(input), onStep);
+	return streamImport(
+		'/api/v1/recipes/import-url',
+		input,
+		handlers
+	) as Promise<ImportRecipeFromUrlOutput>;
 }
 
-/** Runs the text import op, forwarding progress steps to the caller. */
+/** Runs the text import op over SSE, forwarding progress events to the caller. */
 export function runTextImport(
-	input: { spaceId: string; text: string; lang: LanguageCode },
-	onStep?: (step: number) => void
+	input: TextImportInput,
+	handlers: ImportHandlers = {}
 ): Promise<ImportRecipeFromTextOutput> {
-	return collectStream(importRecipeFromText(input), onStep);
+	return streamImport(
+		'/api/v1/recipes/import-text',
+		input,
+		handlers
+	) as Promise<ImportRecipeFromTextOutput>;
 }
 
 /**
- * Success UX shared by all import entries: refresh credits, track, toast,
- * and land on the recipe (or its editor when fields are missing).
+ * Success side effects shared by all import entries: refresh credits and track.
+ * Navigation stays with the caller because imports already navigated early
+ * (at the draft event).
  */
-export function completeRecipeImport(
+export function finalizeRecipeImport(
 	userState: UserState,
-	result: RecipeImportResult,
+	result: { isComplete: boolean },
 	sourceType: 'url' | 'text'
 ): void {
 	userState.refresh();
@@ -75,11 +131,35 @@ export function completeRecipeImport(
 		source_type: sourceType,
 		is_complete: result.isComplete
 	});
+}
 
-	if (result.isComplete) {
-		goto(`/recipes/${result.id}`);
-	} else {
-		toast.warning('Some fields are missing, please complete the recipe.');
-		goto(`/recipes/${result.id}/edit?banner=import-incomplete`);
+async function getAccessToken(): Promise<string> {
+	const client = supabase.client;
+	if (!client) throw new ImportStreamError('You must be signed in to import a recipe.');
+
+	const { data, error } = await client.auth.getSession();
+	const token = data.session?.access_token;
+	if (error || !token) {
+		throw new ImportStreamError('You must be signed in to import a recipe.');
+	}
+	return token;
+}
+
+async function readApiError(response: Response): Promise<ImportStreamError> {
+	const payload = (await response.json().catch(() => null)) as {
+		error?: { code?: string; message?: string };
+	} | null;
+	return new ImportStreamError(
+		payload?.error?.message ?? 'Failed to import recipe.',
+		payload?.error?.code
+	);
+}
+
+function readStreamError(data: string): ImportStreamError {
+	try {
+		const payload = JSON.parse(data) as { code?: string; message?: string };
+		return new ImportStreamError(payload.message ?? 'Failed to import recipe.', payload.code);
+	} catch {
+		return new ImportStreamError('Failed to import recipe.');
 	}
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/shared/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils';
-	import NumberFlow from '@number-flow/svelte';
 	import { Minus, Plus, Trash, User, Users } from '@lucide/svelte';
+	import NumberFlow from '@number-flow/svelte';
 
 	type Props = {
 		value: number;
@@ -11,6 +11,7 @@
 		variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
 		allowDelete?: boolean; // If true, show a trash icon on the minus button when counter is 1
 		class?: string;
+		disabled?: boolean;
 
 		onChange?: (newValue: number) => void;
 		onIncrement?: (newValue: number) => void;
@@ -25,6 +26,7 @@
 		variant = 'secondary',
 		class: className = '',
 		allowDelete = false,
+		disabled = false,
 
 		onChange = () => {},
 		onIncrement = () => {},
@@ -119,7 +121,7 @@
 {/snippet}
 
 <div class={cn('flex items-center', currentVariant.mainDiv, className)}>
-	{@render button(Minus, onButtonDecrement, value <= 1, allowDelete && value <= 1)}
+	{@render button(Minus, onButtonDecrement, disabled || value <= 1, allowDelete && value <= 1)}
 
 	<div class={cn('flex', currentVariant.counterDiv)}>
 		<NumberFlow
@@ -135,5 +137,5 @@
 		{/if}
 	</div>
 
-	{@render button(Plus, onButtonIncrement)}
+	{@render button(Plus, onButtonIncrement, disabled)}
 </div>

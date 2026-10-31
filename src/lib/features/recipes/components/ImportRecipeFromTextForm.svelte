@@ -11,12 +11,9 @@
 	import { cn } from '$lib/utils';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
-	import {
-		completeRecipeImport,
-		runTextImport,
-		TEXT_IMPORT_STEPS
-	} from '../actions/run-recipe-import';
+	import { IMPORT_STEPS } from '../actions/run-recipe-import';
 	import { importRecipeTextSchema } from '../models/schemas';
+	import { recipeImportState } from '../state/recipe-import.svelte';
 	import { toastImportError } from './import-error-toast';
 	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
 
@@ -31,40 +28,39 @@
 	let text = $state('');
 	let textError = $state<string | null>(null);
 	let loading = $state(false);
-	let currentStep = $state(-1);
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
 	async function onSubmit() {
-		if (loading) throw new Error('A text import is already ongoing, aborting.');
+		if (loading || recipeImportState.isImporting) {
+			toast.info('A recipe import is already in progress.');
+			return;
+		}
 		if (!(await requireOnline('Recipe import'))) return;
 
 		loading = true;
-		currentStep = -1;
 		try {
 			if (!userState.user?.id) {
 				toast.error('You must be logged in to import a recipe.');
-				loading = false;
 				return;
 			}
 
 			if (!space.activeSpace) throw new Error('No active space');
 			if (!space.language) throw new Error('No active language');
 
-			const result = await runTextImport(
-				{ spaceId: space.activeSpace.id, text, lang: space.language.lang },
-				(step) => (currentStep = step)
-			);
-
+			await recipeImportState.startText({
+				spaceId: space.activeSpace.id,
+				text,
+				lang: space.language.lang
+			});
 			openDialog = false;
-			completeRecipeImport(userState, result, 'text');
 		} catch (error) {
 			console.error(error);
 			toastImportError(error);
+		} finally {
+			loading = false;
 		}
-		loading = false;
-		currentStep = -1;
 	}
 
 	function onClick() {
@@ -81,7 +77,7 @@
 <div class="w-full space-y-4">
 	{#if loading}
 		<div class="flex justify-center" transition:slide={{ duration: 300 }}>
-			<ImportRecipeStepper steps={TEXT_IMPORT_STEPS} {currentStep} />
+			<ImportRecipeStepper steps={IMPORT_STEPS} currentStep={recipeImportState.currentStep} />
 		</div>
 	{:else}
 		<div class="space-y-2" transition:slide={{ duration: 300 }}>

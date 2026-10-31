@@ -6,6 +6,10 @@ import { linkStepIngredients } from '$lib/features/recipes/models/recipe-step';
 import type { ParsedSearchInput } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import type { IngredientProcessed } from '$lib/features/recipes/modules/parse-ingredients/process';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
+import {
+	extractScrapedTitle,
+	truncateRecipeTitle
+} from '$lib/features/recipes/modules/recipe-scrape/title';
 import type {
 	ScrapeFormat,
 	ScrapeProviderStats,
@@ -22,27 +26,22 @@ import {
 } from '$lib/shared/language.js';
 import { unitToRegionized } from '$lib/shared/utils/quantity';
 import { youtubeThumbnailFallbacks, youtubeVideoId } from '$lib/shared/utils/youtube';
-import { enrichRawRecipe, enrichTextRecipe, type EnrichedRecipeOutput } from './enrich-helpers.js';
+import {
+	enrichRecipeLlmStream,
+	type EnrichedRecipeOutput,
+	type EnrichedRecipeResult
+} from './enrich-helpers.js';
+import type { ImportIngredientPreview, ImportProgress } from './import-events.js';
 import { scrapeRecipeUrl } from './scrape-helpers.js';
 
-import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
 import { matchIngredientNames } from '../ingredients/match-fallback.js';
+import type { MatchIngredientsInput, MatchIngredientsResult } from '../ingredients/match.js';
 import { resolveLanguageId, resolveOrCreateLanguageId } from '../languages/resolve.js';
 import { runOp, type OpCtx } from '../registry.js';
 import { resizeToRecipeThumbnail, trimLetterboxBorders } from './image-resize.js';
-import { uploadImageToRecipe } from './upload-image-helper.js';
+import { uploadRecipeImageFiles } from './upload-image-helper.js';
 
-// M2: co-located helpers for the `recipes.import-from-url` /
-// `recipes.import-from-text` / `recipes.add-examples` ops. Contents:
-// 1. a COPY of `features/recipes/modules/recipe-cache/import-cache.ts` (the original
-//    stays in place — other importers may use it);
-// 2. the credit-free import logic moved from `features/recipes/actions/import-recipe.ts`
-//    (that module is deleted once the remotes are thinned — verified zero importers).
-// 3. (Phase 1d) the scrape orchestration + LLM enrichment pipeline, folded here
-//    from the `*.remote.ts` modules as `./scrape-helpers.ts` /
-//    `./enrich-helpers.ts` (plain helpers, not ops). Those remotes are now thin
-//    shims delegating to core; this server-only module imports core directly.
-// Server-only (scrape/enrich helpers, admin writes). Not an op.
+// Helpers for the recipe import ops. Server-only.
 
 // ==========================================
 // 1. Import cache (canonical implementation; former features/... copy deleted)
@@ -190,7 +189,7 @@ export function getLlmOutput(row: CacheRow | null): EnrichedRecipeOutput | null 
 }
 
 // ==========================================
-// 2. Reusable import helpers (moved from import-recipe.ts)
+// 2. Reusable import helpers
 // ==========================================
 
 export type ImportUrlResult = { id: string; isComplete: boolean };
@@ -213,12 +212,7 @@ export type ImportTextContext = {
 
 /**
  * Which language the ingredient catalog is matched against during an import.
- *
- * Always the recipe's own written language as reported by the LLM — never the
- * importer's space language (a French user can import a German recipe). When
- * the LLM output has no usable language, falls back to the space language
- * with a loud warning: matching in the wrong language silently produces
- * custom (unlinked) ingredients.
+ * A French user can import a German recipe, so prefer the LLM detected lang.
  */
 export function resolveRecipeMatchLang(llmLang: unknown, fallbackLang: LanguageCode): LanguageCode {
 	const detected = normalizeLanguageCode(llmLang);
@@ -286,10 +280,7 @@ export async function saveEnrichedRecipe(
 		normalizeLanguageCode(enrichedRecipe.lang) ?? DEFAULT_LANGUAGE
 	);
 
-	const title =
-		enrichedRecipe.recipe.title.length >= 47
-			? `${enrichedRecipe.recipe.title.slice(0, 47)}...`
-			: enrichedRecipe.recipe.title;
+	const title = truncateRecipeTitle(enrichedRecipe.recipe.title);
 
 	const { data: enrichedInsertData, error: enrichedInsertError } = await supabase
 		.from('recipes')
@@ -310,11 +301,7 @@ export async function saveEnrichedRecipe(
 			cuisines: enrichedRecipe.recipe.cuisines,
 			times_of_day: enrichedRecipe.recipe.times_of_day,
 			tools: enrichedRecipe.recipe.tools,
-			steps: linkStepIngredients(
-				enrichedRecipe.recipe.steps,
-				enrichedRecipe.ingredients,
-				ingredientIds
-			),
+			steps: linkStepIngredients(enrichedRecipe.steps, enrichedRecipe.ingredients, ingredientIds),
 			notes: enrichedRecipe.recipe.notes,
 			updated_at: new Date().toISOString()
 		} satisfies Partial<PublicRecipesRow>)
@@ -393,10 +380,12 @@ export async function insertRecipeIngredients(
 export async function insertUserImportedRecipe(
 	supabase: SupabaseClient<Database>,
 	input: {
+		id: string;
 		authorId: string;
 		sourceType: Database['public']['Tables']['recipes']['Row']['source_type'];
 		sourceUrl: string;
 		cacheId: string;
+		imageIds: string[];
 		enriched: EnrichedRecipeOutput;
 		ingredientIds: (string | null)[];
 	}
@@ -407,14 +396,12 @@ export async function insertUserImportedRecipe(
 		normalizeLanguageCode(input.enriched.lang) ?? DEFAULT_LANGUAGE
 	);
 
-	const title =
-		input.enriched.recipe.title.length >= 47
-			? `${input.enriched.recipe.title.slice(0, 47)}...`
-			: input.enriched.recipe.title;
+	const title = truncateRecipeTitle(input.enriched.recipe.title);
 
 	const { data, error } = await supabase
 		.from('recipes')
 		.insert({
+			id: input.id,
 			author_id: input.authorId,
 			cache_id: input.cacheId,
 			source_type: input.sourceType,
@@ -423,7 +410,7 @@ export async function insertUserImportedRecipe(
 			short_title: input.enriched.recipe.short_title,
 			description: input.enriched.recipe.description,
 			notes: input.enriched.recipe.notes,
-			image_ids: [],
+			image_ids: input.imageIds,
 			slug: '', // Will be generated by a db trigger
 
 			// Filters (single select enums)
@@ -448,7 +435,7 @@ export async function insertUserImportedRecipe(
 
 			// Steps
 			steps: linkStepIngredients(
-				input.enriched.recipe.steps,
+				input.enriched.steps,
 				input.enriched.ingredients,
 				input.ingredientIds
 			),
@@ -468,16 +455,13 @@ export async function insertUserImportedRecipe(
 // ==========================================
 // 3. Core import logic (credit-free)
 //
-// The actual scraping/enriching/matching work. Never touches credits
-// (no afford check, no `consume_credits` call) — the import ops apply the
-// credit gate around these generators, and `recipes.add-examples` reuses the
-// URL core without charging.
+// The actual scraping/enriching/matching work.
 // ==========================================
 
 /**
  * Downloads the recipe image, falling back to lower-quality YouTube thumbnails
  * when the provider's `maxresdefault` URL doesn't exist (low-res uploads return
- * a 404 with a 120×90 placeholder image, which must never be stored).
+ * a 404 with a 120x90 placeholder image, which must never be stored).
  */
 async function fetchRecipeImage(imageUrl: string, sourceUrl: string): Promise<Response | null> {
 	for (const url of [imageUrl, ...youtubeThumbnailFallbacks(sourceUrl)]) {
@@ -488,23 +472,200 @@ async function fetchRecipeImage(imageUrl: string, sourceUrl: string): Promise<Re
 }
 
 /**
+ * Callback to generator bridge: a detached producer pushes events (LLM patches,
+ * concurrent matching results) while the op generator relays them to the
+ * client in order.
+ */
+function createEventQueue<T>() {
+	const pending: T[] = [];
+	let notify: (() => void) | null = null;
+	let closed = false;
+	return {
+		push(event: T): void {
+			pending.push(event);
+			notify?.();
+		},
+		close(): void {
+			closed = true;
+			notify?.();
+		},
+		async *stream(): AsyncGenerator<T> {
+			try {
+				while (true) {
+					while (pending.length) yield pending.shift()!;
+					if (closed) return;
+					await new Promise<void>((resolve) => (notify = resolve));
+				}
+			} finally {
+				closed = true;
+			}
+		}
+	};
+}
+
+type ImportEventQueue = ReturnType<typeof createEventQueue<ImportProgress>>;
+
+/** Options for the shared streamed-enrichment phase (URL and text cores). */
+type StreamEnrichOptions = {
+	recipeInput: object;
+	fallbackLang: LanguageCode;
+	userId: string;
+	match: (ingredients: ParsedSearchInput[], lang: LanguageCode) => Promise<IngredientProcessed[]>;
+};
+
+/**
+ * Streams the LLM enrichment, relaying chunky section patches to the queue,
+ * and starts catalog matching as soon as the ingredients section completes
+ * while the LLM is still generating the steps. Resolves once both finish.
+ */
+async function streamEnrichAndMatch(
+	queue: ImportEventQueue,
+	options: StreamEnrichOptions
+): Promise<{ llmResult: EnrichedRecipeResult; processedIngredients: IngredientProcessed[] }> {
+	try {
+		const enrichIt = enrichRecipeLlmStream(options.recipeInput, options.userId);
+		let matchPromise: Promise<IngredientProcessed[]> | null = null;
+		let matchLang = options.fallbackLang;
+
+		while (true) {
+			const { value: patch, done } = await enrichIt.next();
+			if (done) {
+				const processedIngredients = await (matchPromise ?? options.match([], matchLang));
+				return { llmResult: patch, processedIngredients };
+			}
+			if (patch.section === 'metadata') {
+				matchLang = resolveRecipeMatchLang(patch.lang, options.fallbackLang);
+				queue.push({ kind: 'step', step: 2 });
+				queue.push({
+					kind: 'partial',
+					patch: { section: 'metadata', lang: patch.lang, metadata: patch.metadata }
+				});
+			} else if (patch.section === 'ingredients') {
+				queue.push({
+					kind: 'partial',
+					patch: { section: 'ingredients', ingredients: toRawIngredientPreviews(patch.ingredients) }
+				});
+				if (!matchPromise && patch.ingredients.length > 0) {
+					// Matching runs while the LLM keeps streaming the steps.
+					matchPromise = options.match(patch.ingredients, matchLang);
+					// Rejection surfaces below via `await matchPromise`; the no-op
+					// catch avoids an unhandled rejection while steps keep streaming.
+					matchPromise.catch(() => {});
+					void matchPromise.then((processed) => {
+						queue.push({
+							kind: 'partial',
+							patch: { section: 'matched', ingredients: toMatchedIngredientPreviews(processed) }
+						});
+					});
+				}
+			} else {
+				queue.push({ kind: 'step', step: 3 });
+				queue.push({ kind: 'partial', patch: { section: 'steps', steps: patch.steps } });
+			}
+		}
+	} finally {
+		queue.close();
+	}
+}
+
+/** Raw LLM ingredient names, shown until catalog matching completes. */
+function toRawIngredientPreviews(ingredients: ParsedSearchInput[]): ImportIngredientPreview[] {
+	return ingredients.map((parsed) => ({
+		name: parsed.ingredientName || parsed.ingredientNameEn || parsed.ingredientNameEnGeneral,
+		amount: parsed.quantity?.amount || 1,
+		unit: unitToRegionized(parsed.quantity?.unitKey || 'whole', 'eu'),
+		isOptional: parsed.isOptional || false,
+		ingredientId: null
+	}));
+}
+
+/** Matched ingredient names/ids, same shape the saved recipe will show. */
+function toMatchedIngredientPreviews(processed: IngredientProcessed[]): ImportIngredientPreview[] {
+	return processed.map((p) => {
+		const best = p.matches?.[0];
+		const fallbackName =
+			p.parsed.ingredientName || p.parsed.ingredientNameEn || p.parsed.ingredientNameEnGeneral;
+		return {
+			name: best
+				? best.translations?.[0]?.name_singular ||
+					best.translations?.[0]?.name_plural ||
+					fallbackName
+				: buildCustomIngredientName(fallbackName),
+			amount: p.parsed.quantity?.amount || 1,
+			unit: unitToRegionized(p.parsed.quantity?.unitKey || 'whole', 'eu'),
+			isOptional: p.parsed.isOptional || false,
+			ingredientId: best?.id ?? null
+		};
+	});
+}
+
+/**
+ * Downloads the first working image candidate, trims/resizes it, and uploads
+ * it to storage under the recipe's path without touching the recipes row,
+ * so it works before the row exists. Callers decide how `image_ids` is set.
+ * Returns the image id, or null when no candidate could be uploaded.
+ */
+async function importRecipeImage(
+	admin: SupabaseClient<Database>,
+	recipeId: string,
+	candidates: (string | null)[],
+	sourceUrl: string
+): Promise<string | null> {
+	for (const candidate of [...new Set(candidates.filter((u): u is string => Boolean(u)))]) {
+		try {
+			const imgResponse = await fetchRecipeImage(candidate, sourceUrl);
+			if (!imgResponse) throw new Error(`Could not download the image: ${candidate}`);
+			const blob = await imgResponse.blob();
+			let imageBytes = new Uint8Array(await blob.arrayBuffer());
+			// Remove black bars from YouTube thumbnails
+			if (youtubeVideoId(sourceUrl)) {
+				try {
+					imageBytes = new Uint8Array(await trimLetterboxBorders(imageBytes));
+				} catch (trimError) {
+					console.warn('Failed to trim image letterbox bars, skipping:', trimError);
+				}
+			}
+			const file = new File([imageBytes.slice().buffer as ArrayBuffer], 'imported-image.jpg', {
+				type: blob.type
+			});
+			// 480px WebP thumbnail for cards/lists (sharp, server-side). Null
+			// on failure, the import still succeeds, cards fall back to full.
+			let thumbnail: Uint8Array | null = null;
+			try {
+				thumbnail = await resizeToRecipeThumbnail(imageBytes);
+			} catch (thumbError) {
+				console.warn('Failed to resize imported image, skipping thumbnail:', thumbError);
+			}
+			return await uploadRecipeImageFiles(admin, recipeId, file, thumbnail);
+		} catch (error) {
+			console.warn('Failed to download & upload the image, skipping:', error);
+		}
+	}
+	return null;
+}
+
+/**
  * Imports a recipe from a URL, reusing the shared scrape + LLM cache so a
  * recipe is only ever scraped and enriched once. Ingredient matching re-runs
- * per import against the live catalog. Yields progress steps (numbers) and
- * finally the resulting recipe id.
+ * per import against the live catalog. Yields progress events (including
+ * chunky streaming patches), then the resulting recipe id.
  */
 export async function* importRecipeFromUrlCore(
 	context: ImportUrlContext
-): AsyncGenerator<number | ImportUrlResult> {
+): AsyncGenerator<ImportProgress | ImportUrlResult> {
 	const { admin, userId, url, lang } = context;
+
+	// Generated before scraping so the UI can navigate to the recipe page as
+	// soon as scraping succeeds. The full row is inserted later with this id.
+	const recipeId = crypto.randomUUID();
 
 	// The cache lives outside the user's RLS reach, so all cache writes go
 	// through the server-side admin client. The user's recipe rows are written
 	// through it too, with ownership set to the requesting user so their own
 	// client can read them.
 
-	// Step 0: Finding the recipe — reuse the cached scrape, or scrape & persist it.
-	yield 0;
+	// Step 0: Finding the recipe, reuse the cached scrape, or scrape & persist it.
+	yield { kind: 'step', step: 0 };
 	const cacheKey = await buildImportCacheKey(url);
 	const cache = await getCachedImport(admin, cacheKey);
 	let cacheId = cache?.id ?? null;
@@ -538,125 +699,176 @@ export async function* importRecipeFromUrlCore(
 		});
 	}
 
-	// Step 1: Guessing filters and missing details — reuse the cached LLM
+	// The page can now be shown. Prefer the scraped title; on a cache hit the
+	// cached LLM title is also free to read.
+	const cachedLlmOutput = getLlmOutput(cache);
+	const draftTitle =
+		extractScrapedTitle(scrapeStats.format, scrapeOutput) ?? cachedLlmOutput?.recipe.title ?? null;
+
+	// Step 1: Guessing filters and missing details. Reuse the cached LLM
 	// output, or enrich & persist it (so a failed LLM is retried on next import).
-	yield 1;
-	let llmOutput = getLlmOutput(cache);
-	if (!llmOutput) {
-		try {
-			const enriched = await enrichRawRecipe(
-				{
-					content: scrapeOutput,
-					format: scrapeStats.format
-				},
-				userId
-			);
-			llmOutput = enriched.output;
-			if (cacheId) {
-				await saveImportLlm(admin, cacheId, llmOutput, {
-					provider: enriched.stats.provider,
-					fallback_used: enriched.stats.fallbackUsed,
-					usage: {
-						input_tokens: enriched.stats.inputTokens,
-						output_tokens: enriched.stats.outputTokens
-					}
-				});
-			}
-		} catch (error) {
-			console.error('Failed to parse scraped recipe with the LLM:', error);
-			// The scrape is already cached — the LLM will be retried next time.
-			throw new Error(
-				'Failed to parse the scraped recipe with the LLM. Please try again — the recipe was saved.'
-			);
-		}
+	yield { kind: 'step', step: 1 };
+	yield {
+		kind: 'draft',
+		recipeId,
+		title: draftTitle ? truncateRecipeTitle(draftTitle) : null
+	};
+
+	// Cache hit: everything is already known
+	if (cachedLlmOutput) {
+		yield { kind: 'step', step: 2 };
+		const processedIngredients = await processAndMatchIngredients(
+			admin,
+			cachedLlmOutput.ingredients,
+			resolveRecipeMatchLang(cachedLlmOutput.lang, lang),
+			userId
+		);
+		const imageId = await importRecipeImage(
+			admin,
+			recipeId,
+			[imageUrl, cachedLlmOutput.image || null],
+			sourceUrl
+		);
+		yield {
+			id: await saveImportedRecipe(
+				admin,
+				recipeId,
+				userId,
+				sourceUrl,
+				cacheId!,
+				cachedLlmOutput,
+				processedIngredients,
+				imageId
+			),
+			isComplete: true
+		};
+		return;
 	}
 
-	// The LLM may have extracted an image URL from the raw content when the
-	// scraper couldn't (e.g. Geonode/Firecrawl returning raw markdown).
-	imageUrl = imageUrl || llmOutput.image || null;
+	// Streaming path: the enrichment is one streamed LLM completion. The source
+	// image uploads in parallel (blurred preview on the client), ingredient
+	// matching starts as soon as the ingredients section finishes streaming.
+	const queue = createEventQueue<ImportProgress>();
+	const imagePromise: Promise<string | null> = imageUrl
+		? importRecipeImage(admin, recipeId, [imageUrl], sourceUrl)
+				.then((imageId) => {
+					if (imageId) queue.push({ kind: 'image', imageId });
+					return imageId;
+				})
+				.catch((error) => {
+					console.warn('Early image upload failed:', error);
+					return null;
+				})
+		: Promise.resolve(null);
 
-	// Step 2: Recognize ingredients & units: match against the live catalog
-	yield 2;
-	const processedIngredients = await processAndMatchIngredients(
-		admin,
-		llmOutput.ingredients,
-		resolveRecipeMatchLang(llmOutput.lang, lang),
-		userId
-	);
+	const producer = streamEnrichAndMatch(queue, {
+		recipeInput: { source_format: scrapeStats.format, raw_content: scrapeOutput },
+		fallbackLang: lang,
+		userId,
+		match: (ingredients, matchLang) =>
+			processAndMatchIngredients(admin, ingredients, matchLang, userId)
+	});
+	// If the client disconnects mid-stream, this generator is closed before the
+	// await below: mark the producer handled so the rejection stays unobserved.
+	producer.catch(() => {});
 
-	const userRecipeId = await insertUserImportedRecipe(admin, {
+	let llmResult: EnrichedRecipeResult;
+	let processedIngredients: IngredientProcessed[];
+	try {
+		for await (const event of queue.stream()) yield event;
+		({ llmResult, processedIngredients } = await producer);
+		if (cacheId) {
+			await saveImportLlm(admin, cacheId, llmResult.output, {
+				provider: llmResult.stats.provider,
+				fallback_used: llmResult.stats.fallbackUsed,
+				usage: {
+					input_tokens: llmResult.stats.inputTokens,
+					output_tokens: llmResult.stats.outputTokens
+				}
+			});
+		}
+	} catch (error) {
+		console.error('Failed to parse scraped recipe with the LLM:', error);
+		// The scrape is already cached, the LLM will be retried next time.
+		throw new Error(
+			'Failed to parse the scraped recipe with the LLM. Please try again — the recipe was saved.'
+		);
+	}
+
+	// Prefer the early-uploaded image; retry with the LLM's own candidate if it
+	// failed or the scraper found none.
+	const earlyImageId = await imagePromise;
+	const imageId = earlyImageId
+		? earlyImageId
+		: llmResult.output.image
+			? await importRecipeImage(admin, recipeId, [llmResult.output.image], sourceUrl)
+			: null;
+
+	yield {
+		id: await saveImportedRecipe(
+			admin,
+			recipeId,
+			userId,
+			sourceUrl,
+			cacheId!,
+			llmResult.output,
+			processedIngredients,
+			imageId
+		),
+		isComplete: true
+	};
+}
+
+/** Inserts the recipe row + its ingredients, cleaning up on failure. */
+async function saveImportedRecipe(
+	admin: SupabaseClient<Database>,
+	recipeId: string,
+	userId: string,
+	sourceUrl: string,
+	cacheId: string,
+	enriched: EnrichedRecipeOutput,
+	processedIngredients: IngredientProcessed[],
+	imageId: string | null
+): Promise<string> {
+	const insertedId = await insertUserImportedRecipe(admin, {
+		id: recipeId,
 		authorId: userId,
 		sourceType: 'website',
 		sourceUrl,
-		cacheId: cacheId!,
-		enriched: llmOutput,
+		cacheId,
+		imageIds: imageId ? [imageId] : [],
+		enriched,
 		ingredientIds: catalogIngredientIds(processedIngredients)
 	});
+	if (insertedId !== recipeId) {
+		throw new Error('Imported recipe id mismatch.');
+	}
 
 	try {
-		await insertRecipeIngredients(admin, userRecipeId, processedIngredients);
+		await insertRecipeIngredients(admin, recipeId, processedIngredients);
 	} catch (error) {
 		// Remove the half-built recipe so a retry starts clean
-		await admin.from('recipes').delete().eq('id', userRecipeId);
+		await admin.from('recipes').delete().eq('id', recipeId);
 		throw error;
 	}
-	console.log('Imported recipe for user:', userRecipeId);
-
-	// Step 3: Upload the recipe image to the user's copy. Try the scraper's image first
-	yield 3;
-	const imageCandidates = [
-		...new Set([imageUrl, llmOutput.image || null].filter((u): u is string => Boolean(u)))
-	];
-	for (const candidate of imageCandidates) {
-		try {
-			const imgResponse = await fetchRecipeImage(candidate, sourceUrl);
-			if (!imgResponse) throw new Error(`Could not download the image: ${candidate}`);
-			const blob = await imgResponse.blob();
-			let imageBytes: Uint8Array<ArrayBufferLike> = new Uint8Array(await blob.arrayBuffer());
-			// Remove black bars from YouTube thumbnails
-			if (youtubeVideoId(sourceUrl)) {
-				try {
-					imageBytes = await trimLetterboxBorders(imageBytes);
-				} catch (trimError) {
-					console.warn('Failed to trim image letterbox bars, skipping:', trimError);
-				}
-			}
-			const file = new File([imageBytes.slice().buffer as ArrayBuffer], 'imported-image.jpg', {
-				type: blob.type
-			});
-			// 480px WebP thumbnail for cards/lists (sharp, server-side). Null
-			// on failure — the import still succeeds, cards fall back to full.
-			let thumbnail: Uint8Array | null = null;
-			try {
-				thumbnail = await resizeToRecipeThumbnail(imageBytes);
-			} catch (thumbError) {
-				console.warn('Failed to resize imported image, skipping thumbnail:', thumbError);
-			}
-			await uploadImageToRecipe(admin, file, userRecipeId, [], thumbnail);
-			break;
-		} catch (error) {
-			console.warn('Failed to download & upload the image, skipping:', error);
-		}
-	}
-
-	// TODO Complete is true hoping the recipe is good, but should do a last zod check
-	yield { id: userRecipeId, isComplete: true };
+	console.log('Imported recipe for user:', recipeId);
+	return recipeId;
 }
 
 /**
- * Imports a recipe from free-form text. Creates a draft recipe, enriches it
- * with the LLM, then saves the enriched data + ingredients. Returns with
- * `isComplete: false` so the user reviews the imported data.
+ * Imports a recipe from free-form text. Creates a draft recipe, streams the
+ * LLM enrichment (chunky patches + concurrent ingredient matching), then saves
+ * the enriched data + ingredients.
  */
 export async function* importRecipeFromTextCore(
 	context: ImportTextContext
-): AsyncGenerator<number | ImportUrlResult> {
+): AsyncGenerator<ImportProgress | ImportUrlResult> {
 	const { supabase, admin, text, lang } = context;
 
 	// The draft recipe and its data are written through the admin client so that
 	// consume_credits (only callable by service_role) can be used and the recipe
 	// writes don't depend on client-side RLS.
-	yield 0;
+	yield { kind: 'step', step: 0 };
 	const { lang: normalizedLang } = await resolveLanguageId(supabase, lang);
 
 	// Draft creation goes through the core op (same validation + confirmed-email
@@ -676,33 +888,49 @@ export async function* importRecipeFromTextCore(
 		throw new Error('Failed to create draft recipe.');
 	}
 
-	// Step 1: Organizing your recipe
-	yield 1;
-	let enrichedRecipe: EnrichedRecipeOutput;
+	// Step 1: Organizing your recipe, the page can be shown while the LLM streams.
+	yield { kind: 'step', step: 1 };
+	yield { kind: 'draft', recipeId, title: null };
+
+	const queue = createEventQueue<ImportProgress>();
+	const producer = streamEnrichAndMatch(queue, {
+		recipeInput: { text },
+		fallbackLang: normalizedLang,
+		userId: context.userId,
+		match: (ingredients, matchLang) =>
+			processAndMatchIngredients(admin, ingredients, matchLang, context.userId)
+	});
+	// See the URL core: keep client disconnects from producing unhandled rejections.
+	producer.catch(() => {});
+
+	let llmResult: EnrichedRecipeResult;
+	let processedIngredients: IngredientProcessed[];
 	try {
-		const result = await enrichTextRecipe({ text }, context.userId);
-		enrichedRecipe = result.output;
+		for await (const event of queue.stream()) yield event;
+		({ llmResult, processedIngredients } = await producer);
 	} catch {
 		throw new Error('LLM errored, cannot import text recipe without LLM');
 	}
-
-	// Step 2: Finding ingredients & units
-	yield 2;
-	const processedIngredients = await processAndMatchIngredients(
-		admin,
-		enrichedRecipe.ingredients,
-		resolveRecipeMatchLang(enrichedRecipe.lang, normalizedLang),
-		context.userId
-	);
-	console.log('Enriched recipe from LLM:', enrichedRecipe, processedIngredients);
+	console.log('Enriched recipe from LLM:', llmResult.output, processedIngredients);
 
 	await saveEnrichedRecipe(
 		admin,
 		recipeId,
-		enrichedRecipe,
+		llmResult.output,
 		catalogIngredientIds(processedIngredients)
 	);
 	await insertRecipeIngredients(admin, recipeId, processedIngredients);
+
+	// The LLM may have extracted an image URL from the text (e.g. a photo link).
+	if (llmResult.output.image) {
+		const imageId = await importRecipeImage(admin, recipeId, [llmResult.output.image], '');
+		if (imageId) {
+			await admin
+				.from('recipes')
+				.update({ image_ids: [imageId] })
+				.eq('id', recipeId);
+		}
+	}
 
 	// TODO Complete is true hoping the recipe is good, but should do a last zod check
 	yield { id: recipeId, isComplete: true };

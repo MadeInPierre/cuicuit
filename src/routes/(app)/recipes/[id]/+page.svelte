@@ -1,28 +1,31 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+	import { getRecipeImageUrl } from '$lib/core/operations/recipes/image-shared.js';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
 	import { addRecipeToActivePlan } from '$lib/features/plans/actions/add-recipe-to-plan';
 	import { deleteMeal, updateMealServings } from '$lib/features/plans/actions/update-meal';
 	import MealCard from '$lib/features/plans/components/MealCard.svelte';
+	import { IMPORT_STEPS } from '$lib/features/recipes/actions/run-recipe-import';
+	import ImportRecipeStepper from '$lib/features/recipes/components/ImportRecipeStepper.svelte';
 	import KeepScreenOn from '$lib/features/recipes/components/KeepScreenOn.svelte';
+	import RecipeFiltersGrid from '$lib/features/recipes/components/RecipeFiltersGrid.svelte';
 	import RecipeImage from '$lib/features/recipes/components/RecipeImage.svelte';
 	import RecipeStep from '$lib/features/recipes/components/RecipeStep.svelte';
+	import RecipeTimesBar from '$lib/features/recipes/components/RecipeTimesBar.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
 	import ShoppingItemCard from '$lib/features/recipes/components/ShoppingItemCard.svelte';
-	import {
-		recipeCourses,
-		recipeCuisines,
-		recipeTimesOfDay
-	} from '$lib/features/recipes/db/recipe-doc';
 	import {
 		getRecipeDetailed,
 		type RecipeDetailedWithAuthor,
 		type RecipeIngredientDetailed
 	} from '$lib/features/recipes/queries/get-recipe-detailed';
+	import { recipeImportState } from '$lib/features/recipes/state/recipe-import.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import UserAvatar from '$lib/features/user-settings/components/UserAvatar.svelte';
 	import { Button } from '$lib/shared/components/ui/button/index.js';
 	import * as Carousel from '$lib/shared/components/ui/carousel/index.js';
+	import { Skeleton } from '$lib/shared/components/ui/skeleton/index.js';
 	import VoteForFeatures from '$lib/shared/components/VoteForFeatures.svelte';
 	import { useMedia } from '$lib/shared/hooks/use-media.svelte';
 	import { normalizeLanguageCode } from '$lib/shared/language.js';
@@ -32,28 +35,20 @@
 		youtubeUrlToThumbnailUrl,
 		youtubeWidescreenThumbnailFallbacks
 	} from '$lib/shared/utils/youtube';
-	import { capitalize } from '$lib/utils';
 	import {
 		ArrowUpRight,
-		BatteryFull,
-		BicepsFlexed,
 		CalendarPlus,
 		Camera,
-		Equal,
-		Globe,
 		Grid3x3,
-		HandCoins,
 		List,
 		Pencil,
-		Plus,
-		RotateCcw,
-		Salad,
-		Utensils
+		RotateCcw
 	} from '@lucide/svelte';
 	import posthog from 'posthog-js';
 	import SeparatorZigZag from '../../shopping-list/SeparatorZigZag.svelte';
 
 	const pageRecipeId = $derived(page.params.id);
+	const importing = $derived(!!pageRecipeId && recipeImportState.isImportingRecipe(pageRecipeId));
 	const space = getActiveSpaceState();
 	const userState = getUserState();
 	const recipeLang = $derived(normalizeLanguageCode(space.language?.lang));
@@ -66,14 +61,14 @@
 	async function getRecipe(id: string) {
 		const lang = normalizeLanguageCode(space.language?.lang);
 		if (!lang) {
-			console.error('No active space found');
-			return null;
+			// Active space not ready yet (e.g. hard reload); retry once it loads.
+			return undefined;
 		}
 
-		const { data: recipeData, error: recipeError } = await getRecipeDetailed(id, lang);
+		const { data: recipeData, error } = await getRecipeDetailed(id, lang);
 
-		if (recipeError) {
-			console.error('Error fetching recipe:', recipeError);
+		if (error) {
+			console.error('Error fetching recipe:', error);
 			return null;
 		}
 
@@ -81,50 +76,109 @@
 	}
 
 	let recipe: RecipeDetailedWithAuthor | undefined | null = $state(undefined);
+	let recipeError = $state<string | null>(null);
 
 	let displayServings = $state(1);
 	let ytFallbackStep = $state(0);
 
-	// Fetch the recipe from Supabase when the component mounts or when the pageRecipeId changes
+	let fetchId = 0;
 	$effect(() => {
 		if (!pageRecipeId) {
 			console.error('No recipe ID found in page parameters');
 			return;
 		}
 
+		if (importing) {
+			fetchId++;
+			recipe = undefined;
+			recipeError = null;
+			return;
+		}
+
+		const currentFetch = ++fetchId;
+		recipeError = null;
 		getRecipe(pageRecipeId).then((result) => {
+			if (currentFetch !== fetchId) return;
 			recipe = result;
-			displayServings = recipe?.servings || 1;
+			recipeError =
+				result === null ? 'This recipe may still be importing, or the link is invalid.' : null;
+			displayServings = result?.servings || 1;
 			ytFallbackStep = 0;
 		});
 	});
 
-	async function addRecipeToPlan() {
-		if (!recipe?.id) return;
+	$effect(() => {
+		if (importing) {
+			const s = recipeImportState.preview.metadata?.servings;
+			if (s) displayServings = s;
+		}
+	});
 
-		await addRecipeToActivePlan(space, recipe.id, displayServings);
+	async function addRecipeToPlan() {
+		if (!recipe!.id) return;
+
+		await addRecipeToActivePlan(space, recipe!.id, displayServings);
 		posthog.capture('recipe_added_to_plan', {
 			servings: displayServings
 		});
 	}
 
 	const media = useMedia();
+
+	const loading = $derived(!importing && recipe === undefined && !recipeError);
+
+	const previewIngredients = $derived(
+		recipeImportState.preview.matched ?? recipeImportState.preview.ingredients
+	);
 </script>
 
-{#if recipe}
+{#if recipeError && !importing}
+	<div class="w-full flex flex-col items-center justify-center h-screen gap-4 px-4 text-center">
+		<h1 class="text-2xl font-bold">Recipe not found</h1>
+		<p class="max-w-md text-muted-foreground">{recipeError}</p>
+		<Button href="/recipes">Back to recipes</Button>
+	</div>
+{:else}
 	<div class="w-full flex flex-col mb-20">
 		<main class="grid flex-1 items-start gap-4 md:gap-8">
 			<div class="mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
 				<div class="grid gap-12 lg:grid-cols-[1fr_250px] xl:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-						{#if (recipe?.image_ids?.length || 0) > 0}
+						{#if importing}
+							<div class="relative w-full aspect-[1.618] overflow-hidden rounded-md bg-muted">
+								{#if recipeImportState.imageId && recipeImportState.recipeId}
+									<img
+										src={getRecipeImageUrl(
+											PUBLIC_SUPABASE_URL,
+											recipeImportState.recipeId,
+											recipeImportState.imageId,
+											'full'
+										)}
+										alt="Recipe"
+										class="size-full object-cover blur-sm scale-110"
+									/>
+								{/if}
+								
+								<div
+									class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-max grid place-items-center gap-2 p-4 rounded-lg bg-white/90"
+								>
+									<span class="font-medium">Importing...</span>
+									<ImportRecipeStepper
+										steps={IMPORT_STEPS}
+										currentStep={recipeImportState.currentStep}
+									/>
+								</div>
+							</div>
+						{:else if loading}
+							<Skeleton class="w-full aspect-[1.618] rounded-md" />
+						{:else if recipe && (recipe.image_ids?.length || 0) > 0}
 							<Carousel.Root class="w-full relative">
 								<Carousel.Content>
-									{#each recipe.image_ids || [] as imgId, i (imgId)}
+									{#each recipe!.image_ids || [] as imgId (imgId)}
 										<Carousel.Item class="w-full">
 											<RecipeImage
 												{recipe}
-												ingredients={recipe.ingredients}
+												ingredients={recipe!.ingredients}
 												variant="full"
 												class="w-full aspect-[1.618] object-cover rounded-md size-auto"
 											/>
@@ -135,143 +189,153 @@
 								<div
 									class="absolute top-4 right-4 bg-black/40 text-white flex items-center px-2 py-0.5 rounded-sm"
 								>
-									{recipe?.image_ids?.length || 1}
+									{recipe!.image_ids?.length || 1}
 									<Camera class="size-4 ml-1.5" />
 								</div>
 
-								{#if (recipe?.image_ids?.length || 1) > 1}
+								{#if (recipe!.image_ids?.length || 1) > 1}
 									<Carousel.Previous class="absolute left-4" />
 									<Carousel.Next class="absolute right-4" />
 								{/if}
 							</Carousel.Root>
-						{:else if recipe.source_url?.includes('youtu')}
+						{:else if recipe && recipe.source_url?.includes('youtu')}
 							<img
-								src={youtubeUrlToThumbnailUrl(recipe.source_url)}
+								src={youtubeUrlToThumbnailUrl(recipe!.source_url)}
 								class="w-full aspect-[1.618] object-cover rounded-md"
 								alt="Youtube Thumbnail"
 								onerror={(e) => {
-									const fallback = youtubeWidescreenThumbnailFallbacks(recipe?.source_url ?? '')[
+									const fallback = youtubeWidescreenThumbnailFallbacks(recipe!.source_url ?? '')[
 										ytFallbackStep++
 									];
 									if (fallback) (e.currentTarget as HTMLImageElement).src = fallback;
 								}}
 							/>
+						{:else}
+							<!-- no image -->
 						{/if}
 
-						<div class="space-y-2">
-							<h1 class="text-3xl font-bold">{recipe?.title || 'Loading...'}</h1>
-							<h3 class="text-sm sm:text-base text-muted-foreground text-justify">
-								{recipe?.description || ''}
-							</h3>
+						{#if importing}
+							{#if recipeImportState.preview.metadata}
+								{@const metadata = recipeImportState.preview.metadata}
+								<div class="space-y-2">
+									<h1 class="text-3xl font-bold">{recipeImportState.title}</h1>
+									<h3 class="text-sm sm:text-base text-muted-foreground text-justify">
+										{metadata.description || ''}
+									</h3>
 
-							<div class="flex">
-								<div class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm">
-									<UserAvatar profile={recipe.author} class="ml-auto size-5" />
-									<span>
-										{recipe.source_url ? 'Imported' : 'Created'}
-										by {'@' + recipe.author.user_name}
-									</span>
-								</div>
-								{#if recipe.source_url}
-									<Button
-										class="p-0 gap-1"
-										variant="link"
-										href={recipe.source_url}
-										target="_blank"
-										rel="noopener"
-									>
-										View on {new URL(recipe.source_url).hostname.replace(/^www\./, '')}
-										<ArrowUpRight class="size-4 inline-block ml-1" />
-									</Button>
-								{/if}
-							</div>
-						</div>
-
-						<div class="rounded-lg bg-muted flex items-center p-2">
-							<div class="w-full flex flex-col">
-								<span class="text-[7pt] text-muted-foreground text-center font-bold"> PREP </span>
-								<div class="flex justify-center items-center text-center text-xl font-bold h-6">
-									{recipe.time_prep_minutes || 0}
-									<span class="font-normal text-muted-foreground text-xs ml-1">min</span>
-								</div>
-							</div>
-							<Plus class="min-w-4 size-4 text-muted-foreground" />
-							<div class="w-full flex flex-col">
-								<span class="text-[7pt] text-muted-foreground text-center font-bold"> COOK </span>
-								<div class="flex justify-center items-center text-center text-xl font-bold h-6">
-									{recipe.time_cook_minutes || 0}
-									<span class="font-normal text-muted-foreground text-xs ml-1">min</span>
-								</div>
-							</div>
-							<Plus class="min-w-4 size-4 text-muted-foreground" />
-							<div class="w-full flex flex-col">
-								<span class="text-[7pt] text-muted-foreground text-center font-bold"> REST </span>
-								<div class="flex justify-center items-center text-center text-xl font-bold h-6">
-									{recipe.time_rest_minutes || 0}
-									<span class="font-normal text-muted-foreground text-xs ml-1">min</span>
-								</div>
-							</div>
-							<Equal class="min-w-4 size-4" />
-							<div class="w-full flex flex-col">
-								<span class="text-[7pt] text-muted-foreground text-center font-bold"> TOTAL </span>
-								<div class="flex justify-center items-center text-center text-xl font-bold h-6">
-									{recipe.time_total_minutes || 0}
-									<span class="font-normal text-muted-foreground text-xs ml-1">min</span>
-								</div>
-							</div>
-						</div>
-
-						<div class="grid grid-cols-2 mx-auto lg:grid-cols-3 lg:mx-0 gap-6 justify-items-center">
-							{#snippet recipeFilter(Icon: any, title: string, values: string[])}
-								<div class="flex gap-4 w-40">
-									<div class="min-w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-										<Icon class="size-5" />
-									</div>
-									<div class="w-full flex flex-col gap-0.5">
-										<span class="w-full text-xs text-muted-foreground">{title}</span>
-										<div class="flex flex-col">
-											{#each values as value}
-												<span class="text-sm font-semibold">{value}</span>
-											{/each}
+									<div class="flex">
+										<div
+											class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm text-muted-foreground"
+										>
+											<Skeleton class="size-5 rounded-full" />
+											<span>Importing…</span>
 										</div>
 									</div>
 								</div>
-							{/snippet}
 
-							{@render recipeFilter(BatteryFull, 'Effort', [capitalize(recipe.effort_level)])}
-							{@render recipeFilter(HandCoins, 'Cleanup', [capitalize(recipe.cleanup_level)])}
-							{@render recipeFilter(BicepsFlexed, 'Skill', [capitalize(recipe.skill_level)])}
-							<!-- {@render recipeFilter(BicepsFlexed, 'Cost', capitalize(recipe.cost_level))} -->
+								<RecipeTimesBar
+									prep={metadata.time_prep_minutes}
+									cook={metadata.time_cook_minutes}
+									rest={metadata.time_rest_minutes}
+									total={(metadata.time_prep_minutes || 0) +
+										(metadata.time_cook_minutes || 0) +
+										(metadata.time_rest_minutes || 0)}
+								/>
 
-							{@render recipeFilter(
-								Utensils,
-								recipe.times_of_day && recipe.times_of_day.length > 1
-									? 'Times of Day'
-									: 'Time of Day',
-								recipe.times_of_day?.map(
-									(t) => recipeTimesOfDay[t as keyof typeof recipeTimesOfDay]
-								) || ['Unknown']
-							)}
+								<RecipeFiltersGrid
+									effortLevel={metadata.effort_level}
+									cleanupLevel={metadata.cleanup_level}
+									skillLevel={metadata.skill_level}
+									timesOfDay={metadata.times_of_day}
+									cuisines={metadata.cuisines}
+									courses={metadata.courses}
+								/>
+							{:else}
+								<div class="space-y-2">
+									<Skeleton class="h-9 w-2/3" />
+									<Skeleton class="h-4 w-full" />
+									<Skeleton class="h-4 w-5/6" />
+									<Skeleton class="h-5 w-40" />
+								</div>
 
-							{@render recipeFilter(
-								Salad,
-								'Cuisine',
-								recipe.cuisines?.map((c) => recipeCuisines[c as keyof typeof recipeCuisines]) || [
-									'Unknown'
-								]
-							)}
+								<RecipeTimesBar prep={null} cook={null} rest={null} total={null} />
 
-							{@render recipeFilter(
-								Globe,
-								'Course',
-								recipe.courses?.map((c) => recipeCourses[c as keyof typeof recipeCourses]) || [
-									'Unknown'
-								]
-							)}
-						</div>
+								<RecipeFiltersGrid
+									effortLevel={null}
+									cleanupLevel={null}
+									skillLevel={null}
+									timesOfDay={null}
+									cuisines={null}
+									courses={null}
+								/>
+							{/if}
+						{:else if loading}
+							<div class="space-y-2">
+								<Skeleton class="h-9 w-2/3" />
+								<Skeleton class="h-4 w-full" />
+								<Skeleton class="h-4 w-5/6" />
+								<Skeleton class="h-5 w-40" />
+							</div>
+
+							<RecipeTimesBar prep={null} cook={null} rest={null} total={null} />
+
+							<RecipeFiltersGrid
+								effortLevel={null}
+								cleanupLevel={null}
+								skillLevel={null}
+								timesOfDay={null}
+								cuisines={null}
+								courses={null}
+							/>
+						{:else if recipe}
+							<div class="space-y-2">
+								<h1 class="text-3xl font-bold">{recipe!.title || 'Loading...'}</h1>
+								<h3 class="text-sm sm:text-base text-muted-foreground text-justify">
+									{recipe!.description || ''}
+								</h3>
+
+								<div class="flex">
+									<div class="mr-auto flex items-center gap-2 p-1 rounded-sm text-sm">
+										<UserAvatar profile={recipe!.author} class="ml-auto size-5" />
+										<span>
+											{recipe!.source_url ? 'Imported' : 'Created'}
+											by {'@' + recipe!.author.user_name}
+										</span>
+									</div>
+									{#if recipe!.source_url}
+										<Button
+											class="p-0 gap-1"
+											variant="link"
+											href={recipe!.source_url}
+											target="_blank"
+											rel="noopener"
+										>
+											View on {new URL(recipe!.source_url).hostname.replace(/^www\./, '')}
+											<ArrowUpRight class="size-4 inline-block ml-1" />
+										</Button>
+									{/if}
+								</div>
+							</div>
+
+							<RecipeTimesBar
+								prep={recipe!.time_prep_minutes}
+								cook={recipe!.time_cook_minutes}
+								rest={recipe!.time_rest_minutes}
+								total={recipe!.time_total_minutes || 0}
+							/>
+
+							<RecipeFiltersGrid
+								effortLevel={recipe!.effort_level}
+								cleanupLevel={recipe!.cleanup_level}
+								skillLevel={recipe!.skill_level}
+								timesOfDay={recipe!.times_of_day}
+								cuisines={recipe!.cuisines}
+								courses={recipe!.courses}
+							/>
+						{/if}
 
 						{#if media.md}
-							{@render steps()}
+							{@render stepsSection()}
 						{/if}
 					</div>
 
@@ -280,51 +344,59 @@
 							<div class="flex gap-2 items-center">
 								<h2 class="text-xl font-semibold">Your plan</h2>
 
-								<Button size="sm" type="submit" class="flex ml-auto" onclick={addRecipeToPlan}>
-									<CalendarPlus class="size-4" />
+								{#if importing || loading}
+									<Skeleton class="h-8 w-24 ml-auto" />
+								{:else if recipe}
+									<Button size="sm" type="submit" class="flex ml-auto" onclick={addRecipeToPlan}>
+										<CalendarPlus class="size-4" />
 
-									<div class="flex items-center gap-0.5">Add to plan</div>
-								</Button>
+										<div class="flex items-center gap-0.5">Add to plan</div>
+									</Button>
+								{/if}
 							</div>
 
-							{#each (space.activePlanMeals || []).filter((m) => recipe && m.recipe_id === recipe.id) as meal (meal.id)}
-								<MealCard
-									{meal}
-									showExpandedButtons
-									expandable={false}
-									size={media.md ? 'md' : 'lg'}
-								>
-									{#snippet cardEndSnippet()}
-										<ServingsPlusMinus
-											value={meal.servings}
-											variant="ghost"
-											size="xs"
-											allowDelete
-											onChange={async (newServings) => {
-												await updateMealServings(space, meal, newServings);
-											}}
-											onDelete={async () => {
-												await deleteMeal(space, meal.id);
-											}}
-										/>
-									{/snippet}
-								</MealCard>
-							{:else}
-								<div
-									class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
-								>
-									<span>This recipe is not in your plan yet.</span>
-								</div>
-							{/each}
+							{#if importing || loading}
+								<Skeleton class="h-24 w-full rounded-md" />
+							{:else if recipe}
+								{#each (space.activePlanMeals || []).filter((m) => m.recipe_id === recipe!.id) as meal (meal.id)}
+									<MealCard
+										{meal}
+										showExpandedButtons
+										expandable={false}
+										size={media.md ? 'md' : 'lg'}
+									>
+										{#snippet cardEndSnippet()}
+											<ServingsPlusMinus
+												value={meal.servings}
+												variant="ghost"
+												size="xs"
+												allowDelete
+												onChange={async (newServings) => {
+													await updateMealServings(space, meal, newServings);
+												}}
+												onDelete={async () => {
+													await deleteMeal(space, meal.id);
+												}}
+											/>
+										{/snippet}
+									</MealCard>
+								{:else}
+									<div
+										class="flex flex-col space-y-2 items-center justify-center text-muted-foreground text-sm p-4 rounded-md border"
+									>
+										<span>This recipe is not in your plan yet.</span>
+									</div>
+								{/each}
+							{/if}
 						</div>
 
 						<div class="grid space-y-4">
 							<div class="text-xl font-semibold flex items-center gap-3">
 								<span>Cook for</span>
 
-								<ServingsPlusMinus bind:value={displayServings} size="sm" />
+								<ServingsPlusMinus bind:value={displayServings} size="sm" disabled={loading} />
 
-								{#if displayServings !== recipe.servings}
+								{#if recipe && displayServings !== recipe!.servings}
 									<Button
 										variant="ghost"
 										size="icon"
@@ -353,65 +425,174 @@
 								</Button>
 							</div>
 
-							{@render displayIngredients(
-								recipe.ingredients,
-								ingredientsView.value || 'grid',
-								false
-							)}
+							{#if importing}
+								{#if previewIngredients}
+									{@render displayImportIngredients(
+										previewIngredients,
+										ingredientsView.value || 'grid',
+										false
+									)}
+									{#if previewIngredients.filter((i) => i.isOptional).length > 0}
+										<div
+											class="flex gap-2 items-center text-sm text-muted-foreground uppercase font-medium tracking-wide"
+										>
+											<SeparatorZigZag />
+											<span>Optional</span>
+											<SeparatorZigZag />
+										</div>
 
-							{#if recipe.ingredients.filter((i) => i.is_optional).length > 0}
-								<div
-									class="flex gap-2 items-center text-sm text-muted-foreground uppercase font-medium tracking-wide"
-								>
-									<SeparatorZigZag />
-									<span>Optional</span>
-									<SeparatorZigZag />
-								</div>
-
+										{@render displayImportIngredients(
+											previewIngredients,
+											ingredientsView.value || 'grid',
+											true
+										)}
+									{/if}
+								{:else}
+									{@render ingredientsSkeleton(ingredientsView.value || 'grid')}
+								{/if}
+							{:else if loading}
+								{@render ingredientsSkeleton(ingredientsView.value || 'grid')}
+							{:else if recipe}
 								{@render displayIngredients(
-									recipe.ingredients,
+									recipe!.ingredients,
 									ingredientsView.value || 'grid',
-									true
+									false
 								)}
+
+								{#if recipe!.ingredients.filter((i) => i.is_optional).length > 0}
+									<div
+										class="flex gap-2 items-center text-sm text-muted-foreground uppercase font-medium tracking-wide"
+									>
+										<SeparatorZigZag />
+										<span>Optional</span>
+										<SeparatorZigZag />
+									</div>
+
+									{@render displayIngredients(
+										recipe!.ingredients,
+										ingredientsView.value || 'grid',
+										true
+									)}
+								{/if}
 							{/if}
 						</div>
 
 						{#if !media.md}
-							{@render steps()}
+							{@render stepsSection()}
 						{/if}
 
-						<div class="grid space-y-4">
-							<Button
-								variant="outline"
-								href={'/recipes/' + pageRecipeId + '/edit'}
-								class="w-full"
-								disabled={recipe.author_id !== userState.user?.id}
-							>
-								<Pencil class="size-4" />
-								{#if recipe.author_id === userState.user?.id}
-									Edit
-								{:else}
-									Editable by @{recipe.author.user_name}
-								{/if}
-							</Button>
-						</div>
+						{#if importing || loading}
+							<Skeleton class="h-10 w-full rounded-lg" />
+						{:else if recipe}
+							<div class="grid space-y-4">
+								<Button
+									variant="outline"
+									href={'/recipes/' + pageRecipeId + '/edit'}
+									class="w-full"
+									disabled={recipe!.author_id !== userState.user?.id}
+								>
+									<Pencil class="size-4" />
+									{#if recipe!.author_id === userState.user?.id}
+										Edit
+									{:else}
+										Editable by @{recipe!.author.user_name}
+									{/if}
+								</Button>
+							</div>
+						{/if}
 
-						<KeepScreenOn />
+						{#if !(importing || loading)}
+							<KeepScreenOn />
 
-						<VoteForFeatures
-							title="Want nutrition facts, custom filters, tags, recipe variants, and more?"
-						/>
+							<VoteForFeatures
+								title="Want nutrition facts, custom filters, tags, recipe variants, and more?"
+							/>
+						{/if}
 					</div>
 				</div>
 			</div>
 		</main>
 	</div>
-{:else}
-	<div class="w-full flex flex-col items-center justify-center h-screen">
-		<h1 class="text-2xl font-bold">Loading recipe...</h1>
-		<p class="text-muted-foreground">Please wait while we fetch the recipe details.</p>
-	</div>
 {/if}
+
+{#snippet stepsSection()}
+	<div class="grid space-y-6">
+		<h2 class="text-xl font-semibold">Steps</h2>
+
+		{#if importing}
+			{#if recipeImportState.preview.steps}
+				{#each recipeImportState.preview.steps as step, i (i)}
+					<RecipeStep
+						step={{ ...step, ingredients: [] }}
+						index={i}
+						ingredients={[]}
+						lang={normalizeLanguageCode(recipeImportState.preview.lang)}
+						{displayServings}
+						recipeServings={displayServings}
+					/>
+				{/each}
+			{:else}
+				<Skeleton class="h-6 w-16" />
+				{#each [0, 1, 2] as i (i)}
+					<Skeleton class="h-16 w-full rounded-lg" />
+				{/each}
+			{/if}
+		{:else if loading}
+			<Skeleton class="h-6 w-16" />
+			{#each [0, 1, 2] as i (i)}
+				<Skeleton class="h-16 w-full rounded-lg" />
+			{/each}
+		{:else if recipe}
+			{#each recipe!.steps || [] as step, i (i)}
+				<RecipeStep
+					{step}
+					index={i}
+					ingredients={recipe!.ingredients ?? []}
+					lang={recipeLang}
+					{displayServings}
+					recipeServings={recipe!.servings ?? 1}
+				/>
+			{/each}
+		{/if}
+	</div>
+{/snippet}
+
+{#snippet ingredientsSkeleton(view: 'grid' | 'list')}
+	<div class="w-full grid gap-2" class:grid-cols-3={view === 'grid'}>
+		{#each [0, 1, 2, 3, 4, 5] as i (i)}
+			{#if view === 'grid'}
+				<Skeleton class="h-28 w-full rounded-lg" />
+			{:else}
+				<Skeleton class="h-16 w-full rounded-lg" />
+			{/if}
+		{/each}
+	</div>
+{/snippet}
+
+{#snippet displayImportIngredients(
+	ingredients: typeof previewIngredients,
+	view: 'grid' | 'list',
+	optional: boolean
+)}
+	<div class="w-full grid gap-2" class:grid-cols-3={view === 'grid'}>
+		{#each (ingredients ?? [])
+			.filter((i) => i.isOptional === optional)
+			.sort((a, b) => (b.amount || 0) - (a.amount || 0)) as ing, i (i)}
+			{@const amount =
+				(ing.amount || 0) * (displayServings / (recipeImportState.preview.metadata?.servings || 1))}
+			<ShoppingItemCard
+				layout={view}
+				name={ing.name}
+				description={formatQuantity(amount, ing.unit, true)}
+				checkable={false}
+			>
+				{#if view === 'list'}
+					<span class="text-xs text-muted-foreground/80 line-clamp-2"></span>
+				{/if}
+			</ShoppingItemCard>
+		{/each}
+	</div>
+{/snippet}
 
 {#snippet displayIngredients(
 	ingredients: RecipeIngredientDetailed[],
@@ -422,7 +603,7 @@
 		{#each ingredients
 			.filter((i) => i.is_optional === optional)
 			.sort((a, b) => (b.quantity || 0) - (a.quantity || 0)) || [] as ing (ing.id)}
-			{@const amount = (ing.quantity || 0) * (displayServings / (recipe?.servings || 1))}
+			{@const amount = (ing.quantity || 0) * (displayServings / (recipe!.servings || 1))}
 
 			<ShoppingItemCard
 				layout={view}
@@ -436,29 +617,8 @@
 					<span class="text-xs text-muted-foreground/80 line-clamp-2">
 						{ing.preparation}{ing.preparation && ing.details ? ', ' : ''}{ing.details}
 					</span>
-
-					<!-- {#if ing.is_optional}
-						<span class="text-xs text-muted-foreground/80"> Optional </span>
-					{/if} -->
 				{/if}
 			</ShoppingItemCard>
-		{/each}
-	</div>
-{/snippet}
-
-{#snippet steps()}
-	<div class="grid space-y-6">
-		<h2 class="text-xl font-semibold">Steps</h2>
-
-		{#each recipe?.steps || [] as step, i (i)}
-			<RecipeStep
-				{step}
-				index={i}
-				ingredients={recipe?.ingredients ?? []}
-				lang={recipeLang}
-				{displayServings}
-				recipeServings={recipe?.servings ?? 1}
-			/>
 		{/each}
 	</div>
 {/snippet}

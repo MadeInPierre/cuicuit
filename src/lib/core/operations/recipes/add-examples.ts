@@ -5,6 +5,7 @@ import { DEFAULT_LANGUAGE, languageCodeSchema, type LanguageCode } from '$lib/sh
 
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
+import { isImportProgress } from './import-events.js';
 import { importRecipeFromUrlCore, type ImportUrlResult } from './import-from-url-helpers.js';
 
 export const addExampleRecipesInput = z.object({
@@ -17,7 +18,6 @@ export type AddExampleRecipesInput = z.infer<typeof addExampleRecipesInput>;
  * Imports the curated example recipes into the user's library. Reuses the
  * cached scrape + LLM output like a normal URL import, but never charges
  * credits. Ingredient matching re-runs against the live catalog.
- * Moved from `features/recipes/actions/add-example-recipes.remote.ts`.
  */
 export const addExampleRecipesOp = defineOp({
 	name: 'recipes.add-examples',
@@ -49,7 +49,7 @@ export const addExampleRecipesOp = defineOp({
 				url,
 				lang: lang as LanguageCode
 			})) {
-				if (typeof value !== 'number') result = value;
+				if (!isImportProgress(value)) result = value;
 			}
 			if (result) results.push(result);
 		}

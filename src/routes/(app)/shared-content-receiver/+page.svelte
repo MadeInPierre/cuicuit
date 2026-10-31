@@ -2,17 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getUserState } from '$lib/features/auth/state/user-state.svelte';
-	import {
-		completeRecipeImport,
-		runTextImport,
-		runUrlImport,
-		TEXT_IMPORT_STEPS,
-		URL_IMPORT_STEPS
-	} from '$lib/features/recipes/actions/run-recipe-import';
+	import { IMPORT_STEPS } from '$lib/features/recipes/actions/run-recipe-import';
 	import ImportRecipeDialog from '$lib/features/recipes/components/ImportRecipeDialog.svelte';
 	import ImportRecipeStepper from '$lib/features/recipes/components/ImportRecipeStepper.svelte';
 	import { toastImportError } from '$lib/features/recipes/components/import-error-toast';
 	import { parseSharedContent } from '$lib/features/recipes/share/parse-shared-content';
+	import { recipeImportState } from '$lib/features/recipes/state/recipe-import.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { connectivity } from '$lib/shared/state/connectivity.svelte';
@@ -22,11 +17,11 @@
 	 * Web Share Target receiver (`share_target` action in `vite.config.ts`).
 	 * The OS launches `GET /shared-content-receiver/?url=…&text=…&title=…`
 	 * when the user shares to Cuicuit; the import starts automatically and
-	 * lands on the recipe — no paste needed. Auth/onboarding guards come free
+	 * lands on the recipe ,  no paste needed. Auth/onboarding guards come free
 	 * from the `(app)` layout (logged-out sharers land on signup).
 	 *
 	 * Classification lives in `parse-shared-content.ts`, the import work in
-	 * the core ops via `run-recipe-import.ts` — this page is only glue + states.
+	 * the core ops via `run-recipe-import.ts`,  this page is only glue + state.
 	 */
 
 	const userState = getUserState();
@@ -40,12 +35,11 @@
 		})
 	);
 
-	const steps = $derived(shared.kind === 'text' ? TEXT_IMPORT_STEPS : URL_IMPORT_STEPS);
+	const steps = $derived(IMPORT_STEPS);
 
 	let started = $state(false);
 	let loading = $state(false);
 	let failed = $state(false);
-	let currentStep = $state(-1);
 
 	const ready = $derived(!!userState.user?.id && !!space.activeSpace?.id && !!space.language?.lang);
 	const offline = $derived(!connectivity.online);
@@ -57,11 +51,11 @@
 		(async () => {
 			try {
 				const base = { spaceId: space.activeSpace!.id, lang: space.language!.lang };
-				const result =
-					shared.kind === 'text'
-						? await runTextImport({ ...base, text: shared.text }, (s) => (currentStep = s))
-						: await runUrlImport({ ...base, url: shared.url }, (s) => (currentStep = s));
-				completeRecipeImport(userState, result, shared.kind);
+				if (shared.kind === 'text') {
+					await recipeImportState.startText({ ...base, text: shared.text });
+				} else {
+					await recipeImportState.startUrl({ ...base, url: shared.url });
+				}
 			} catch (error) {
 				console.error(error);
 				toastImportError(error);
@@ -74,7 +68,6 @@
 	function retry() {
 		started = false;
 		failed = false;
-		currentStep = -1;
 	}
 
 	function goBack() {
@@ -110,7 +103,8 @@
 		</div>
 	{:else if failed}
 		<div class="w-full space-y-4 rounded-lg bg-sidebar p-6 text-center md:p-8">
-			<h1 class="text-xl font-bold tracking-tight">Import failed</h1>			<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+			<h1 class="text-xl font-bold tracking-tight">Import failed</h1>
+			<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
 				{#if shared.kind === 'url'}
 					<Link2 class="size-4 shrink-0" />
 					<span class="max-w-full truncate">{shared.url}</span>
@@ -132,14 +126,13 @@
 		</div>
 	{:else if offline}
 		<!-- Offline: the shared link/text can't be imported without network.
-		     Nothing is lost — the URL stays in the address bar, retry when back. -->
+		     Nothing is lost, the URL stays in the address bar, retry when back. -->
 		<div class="w-full space-y-4 rounded-lg bg-sidebar p-6 text-center md:p-8">
 			<WifiOff class="mx-auto size-12 text-muted-foreground" />
 			<h1 class="text-xl font-bold tracking-tight">You're offline</h1>
 			{#if shared.kind === 'url'}
 				<p class="text-sm text-muted-foreground">
-					Shared link saved — it will import when you reconnect. Keep this tab open or copy
-					the link:
+					Shared link saved, it will import when you reconnect. Keep this tab open or copy the link:
 				</p>
 				<p class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
 					<Link2 class="size-4 shrink-0" />
@@ -179,7 +172,7 @@
 				</p>
 			</div>
 			<div class="flex justify-center">
-				<ImportRecipeStepper {steps} {currentStep} />
+				<ImportRecipeStepper {steps} currentStep={recipeImportState.currentStep} />
 			</div>
 			{#if !ready}
 				<p class="text-center text-xs text-muted-foreground">Getting your kitchen ready…</p>

@@ -12,12 +12,9 @@
 	import { ArrowRight, Loader2, X } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { slide } from 'svelte/transition';
-	import {
-		completeRecipeImport,
-		runUrlImport,
-		URL_IMPORT_STEPS
-	} from '../actions/run-recipe-import';
+	import { IMPORT_STEPS } from '../actions/run-recipe-import';
 	import { importRecipeUrlSchema } from '../models/schemas';
+	import { recipeImportState } from '../state/recipe-import.svelte';
 	import { toastImportError } from './import-error-toast';
 	import ImportRecipeStepper from './ImportRecipeStepper.svelte';
 	import SupportedSources from './SupportedSources.svelte';
@@ -43,41 +40,40 @@
 
 	let url = $state('');
 	let urlError = $state<string | null>(null);
-	let currentStep = $state(-1);
 	let inputEl: HTMLInputElement | null = $state(null);
 
 	const space = getActiveSpaceState();
 	const media = useMedia();
 
 	async function onSubmit() {
-		if (loading) throw new Error('A web import is already ongoing, aborting.');
+		if (loading || recipeImportState.isImporting) {
+			toast.info('A recipe import is already in progress.');
+			return;
+		}
 		if (!(await requireOnline('Recipe import'))) return;
 
 		loading = true;
-		currentStep = -1;
 		try {
 			if (!userState.user?.id) {
 				toast.error('You must be logged in to import a recipe.');
-				loading = false;
 				return;
 			}
 
 			if (!space.activeSpace) throw new Error('No active space');
 			if (!space.language) throw new Error('No active language');
 
-			const result = await runUrlImport(
-				{ spaceId: space.activeSpace.id, url, lang: space.language.lang },
-				(step) => (currentStep = step)
-			);
-
+			await recipeImportState.startUrl({
+				spaceId: space.activeSpace.id,
+				url,
+				lang: space.language.lang
+			});
 			openDialog = false;
-			completeRecipeImport(userState, result, 'url');
 		} catch (error) {
 			console.error(error);
 			toastImportError(error);
+		} finally {
+			loading = false;
 		}
-		loading = false;
-		currentStep = -1;
 	}
 
 	function onClick() {
@@ -104,7 +100,7 @@
 		{/if}
 		{#if loading}
 			<div class="flex justify-center" transition:slide={{ duration: 300 }}>
-				<ImportRecipeStepper steps={URL_IMPORT_STEPS} {currentStep} />
+				<ImportRecipeStepper steps={IMPORT_STEPS} currentStep={recipeImportState.currentStep} />
 			</div>
 		{:else}
 			<div class="flex gap-2 py-2 mt-4" transition:slide={{ duration: 300 }}>
@@ -157,7 +153,7 @@
 		{/if}
 	{:else if loading}
 		<div class="flex justify-center" transition:slide={{ duration: 300 }}>
-			<ImportRecipeStepper steps={URL_IMPORT_STEPS} {currentStep} />
+			<ImportRecipeStepper steps={IMPORT_STEPS} currentStep={recipeImportState.currentStep} />
 		</div>
 	{:else}
 		<SupportedSources />

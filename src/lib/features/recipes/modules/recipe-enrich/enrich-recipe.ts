@@ -73,10 +73,10 @@ export function sanitizeEnrichedRecipeOutput(output: EnrichedRecipeOutput): Enri
 	return {
 		...output,
 		ingredients: sanitizeIngredients(output.ingredients),
+		steps: normalizeRecipeSteps(output.steps),
 		recipe: {
 			...output.recipe,
-			...sanitizeRecipeFields(output.recipe),
-			steps: normalizeRecipeSteps(output.recipe.steps)
+			...sanitizeRecipeFields(output.recipe)
 		}
 	};
 }

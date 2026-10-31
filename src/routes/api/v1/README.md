@@ -10,7 +10,7 @@ Base URL: `<origin>/api/v1`. Machine-readable spec: [`./openapi.json`](./openapi
 The API lets you do everything the web app does, from a terminal or script.
 You only need `curl` and an account.
 
-**Setup** — point these at your instance (local dev shown; for the hosted
+**Setup** - point these at your instance (local dev shown; for the hosted
 version use its URL instead):
 
 ```bash
@@ -55,6 +55,7 @@ curl -X POST $BASE/auth/tokens -H "Authorization: Bearer $JWT" \
   -H 'Content-Type: application/json' -d '{"name":"my-laptop"}'
 # → {"id":"...","secret":"cui_..."}
 ```
+
 </details>
 
 **Copy the secret now, it is shown only once** and can't be recovered
@@ -72,6 +73,7 @@ If you want to manage PATs from the CLI, here is an example (needs the JWT, PATs
 curl $BASE/auth/tokens -H "Authorization: Bearer $JWT"        # list
 curl -X DELETE $BASE/auth/tokens/<id> -H "Authorization: Bearer $JWT"  # revoke
 ```
+
 </details>
 
 ### 3. Typical usage examples
@@ -111,7 +113,8 @@ Import a recipe from a blog URL with AI (costs 1 seed, streams progress updates)
 
 ```bash
 curl -N -X POST $BASE/recipes/import-url -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' -d '{"url":"https://example.com/recipe"}'
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://example.com/recipe","spaceId":"<space-id>","lang":"en-US"}'
 ```
 
 ### 4. When something fails
@@ -173,7 +176,8 @@ SSE (recipe import from URL, costs 1 seed):
 
 ```bash
 curl -N -X POST $BASE/recipes/import-url -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' -d '{"url":"https://example.com/recipe"}'
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://example.com/recipe","spaceId":"<space-id>","lang":"en-US"}'
 ```
 
 Progress arrives as `data: <json>` frames, then the final result. Failures arrive as an `event: error` frame (HTTP status stays 200 — clients must watch for it).

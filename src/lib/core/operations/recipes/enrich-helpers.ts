@@ -1,26 +1,15 @@
-// Phase 1d: LLM enrichment pipeline lives in core as plain (non-op) helpers.
-// Folded verbatim from
-// `features/recipes/modules/recipe-enrich/enrich-recipe.remote.ts` so all
-// DB-touching/LLM orchestration lives behind `recipes.import-from-url` /
-// `recipes.import-from-text`.
-//
-// NOT new ops (no `defineOp`): LLM calls only, no UI-callable DB writes.
-// Called server-side by `import-from-url-helpers.ts`, which passes the op's
-// `userId` as `distinctId` (PostHog attribution) — previously read inside the
-// remote via `getRequestEvent().locals.supabase.auth.getUser()`, i.e. the same
-// authenticated user, now threaded as a plain dep instead of transport. The
-// old `*.remote.ts` module is now a thin `query()` shim delegating here —
-// server callers import this core module directly, browser callers (none
-// today) keep using the remote. Server-only (Vercel AI SDK + private env
-// keys). Never import from `client.ts`.
+// LLM enrichment helpers used by the import ops. Server-only.
 import { normalizeRecipeSteps, recipeStepSchema } from '$lib/features/recipes/models/recipe-step';
+import { truncateRecipeTitle } from '$lib/features/recipes/modules/recipe-scrape/title';
 import { parsedSearchInputSchema } from '$lib/features/recipes/modules/parse-ingredients/parse';
 import { sanitizeEnrichedRecipeOutput } from '$lib/features/recipes/modules/recipe-enrich/enrich-recipe';
-import { publicRecipesRowSchema } from '$lib/shared/db/supazod.schemas';
+import { importMetadataSchema, type ImportStepPreview } from './import-events.js';
 import { languageCodeSchema } from '$lib/shared/language.js';
-import { withLlmFailover } from '$lib/shared/llm/fallback';
+import { withLlmStreamFailover } from '$lib/shared/llm/fallback';
+import type { LlmCallIdentity } from '$lib/shared/llm/providers';
 import type { LlmProvider } from '$lib/shared/llm/providers';
-import { generateText, NoObjectGeneratedError, Output } from 'ai';
+import type { DeepPartial } from 'ai';
+import { NoObjectGeneratedError, streamObject } from 'ai';
 import z from 'zod';
 
 const RECIPE_ENRICHMENT_SYSTEM_PROMPT = `You are an expert cooking chef and recipe parser. The user will provide you with a draft or incomplete recipe.
@@ -58,7 +47,7 @@ The main ingredient quantities must be the sum of all quantities set in steps fo
 
 # Steps
 
-You MUST output at least one step in recipe.steps. Never return an empty array; if the source has no explicit steps, reconstruct sensible steps yourself.
+You MUST output at least one step in the steps field. Never return an empty array; if the source has no explicit steps, reconstruct sensible steps yourself.
 
 For each step (write at least one), also return structured hints:
 - ingredients: list every ingredient used in that step, following the above rules. Only set ingredients explicitely mentioned in the step, do not remind ingredients from previous steps. Fields per ingredient:
@@ -77,61 +66,38 @@ For each step (write at least one), also return structured hints:
 
 # Output requirements
 
-- Return enriched/corrected recipe in JSON format, strictly following the schema.
+- Return enriched/corrected recipe in JSON format, strictly following the schema, with the top-level fields in this exact order: lang, image, recipe (metadata without steps), ingredients, steps.
 - Only improve what needs improvement; preserve good existing information.
 - NO FIELD SHALL BE NULL OR EMPTY (except steps details); infer or guess reasonable values.
 - RESPOND ONLY WITH RAW JSON. STRICTLY FOLLOW THE SCHEMA. NO EXTRA TEXT.`;
 
-// Define the relevant recipe fields for enrichment once
-const relevantRecipeFieldsSchema = z.object({
-	title: publicRecipesRowSchema.shape.title
-		.catch('My Recipe')
-		.describe('Original title but without useless SEO text, e.g. "the best", "easy", etc.'),
-	short_title: publicRecipesRowSchema.shape.short_title
-		.catch('Recipe')
-		.describe('Shortest possible title for this recipe in 1 word.'),
-	description: publicRecipesRowSchema.shape.description
-		.catch(null)
-		.describe('1-2 sentence short description.'),
-	servings: z.coerce.number().catch(4),
-	time_prep_minutes: z.coerce.number().nullable().catch(null),
-	time_cook_minutes: z.coerce.number().nullable().catch(null),
-	time_rest_minutes: z.coerce.number().nullable().catch(null),
-	cleanup_level: publicRecipesRowSchema.shape.cleanup_level.catch('none'),
-	cost_level: publicRecipesRowSchema.shape.cost_level.catch('budget'),
-	skill_level: publicRecipesRowSchema.shape.skill_level.catch('beginner'),
-	effort_level: publicRecipesRowSchema.shape.effort_level.catch('low'),
-	courses: publicRecipesRowSchema.shape.courses.catch(['main']),
-	cuisines: publicRecipesRowSchema.shape.cuisines.catch([]),
-	times_of_day: publicRecipesRowSchema.shape.times_of_day.catch([]),
-	tools: publicRecipesRowSchema.shape.tools.catch([]),
-	steps: z
-		.array(recipeStepSchema)
-		.min(1, 'Recipe must have at least one step.')
-		.catch([])
-		.describe('The ordered recipe instructions.'),
-	notes: publicRecipesRowSchema.shape.notes.catch(null)
-}) satisfies z.ZodType<Partial<z.infer<typeof publicRecipesRowSchema>>>;
+// The steps schema is appended to the shared metadata schema below.
+const recipeStepsSchema = z
+	.array(recipeStepSchema)
+	.min(1, 'Recipe must have at least one step.')
+	.catch([])
+	.describe('The ordered recipe instructions.');
 
-const outputSchema = z.object({
+const streamOutputSchema = z.object({
 	lang: languageCodeSchema.catch('en-US'),
+	image: z
+		.string()
+		.nullable()
+		.catch(null)
+		.describe('The primary image URL, or null if none found.'),
+	recipe: importMetadataSchema.describe(
+		'The main enriched recipe metadata with inferred details.'
+	),
 	ingredients: z
 		.array(parsedSearchInputSchema)
 		.catch([])
 		.describe(
 			'The list of ingredients. Each quantity is the total amount needed for the whole recipe.'
 		),
-	recipe: relevantRecipeFieldsSchema.describe(
-		'The main enriched recipe object with inferred details.'
-	),
-	image: z
-		.string()
-		.nullable()
-		.catch(null)
-		.describe('The primary image URL in the raw content, or null if none found.')
+	steps: recipeStepsSchema
 });
 
-export type EnrichedRecipeOutput = z.infer<typeof outputSchema>;
+export type EnrichedRecipeOutput = z.infer<typeof streamOutputSchema>;
 
 export type EnrichedRecipeResult = {
 	output: EnrichedRecipeOutput;
@@ -143,7 +109,19 @@ export type EnrichedRecipeResult = {
 	};
 };
 
-/** Validation previously done by the `query()` wrappers — kept in core. */
+/** One chunky section of the streamed enrichment, in generation order. */
+export type EnrichSectionPatch =
+	| { section: 'metadata'; lang: string | null; metadata: z.infer<typeof importMetadataSchema> }
+	| { section: 'ingredients'; ingredients: EnrichedRecipeOutput['ingredients'] }
+	| { section: 'steps'; steps: ImportStepPreview[] };
+
+type EnrichStreamChunk =
+	| { partial: DeepPartial<z.infer<typeof streamOutputSchema>> }
+	| { final: { output: EnrichedRecipeOutput; usage: EnrichUsage | null } };
+
+type EnrichUsage = { inputTokens?: number; outputTokens?: number } | null;
+
+/** Input validation for the enrichment helpers. */
 export const enrichRawRecipeInput = z.object({
 	content: z.string().min(1).max(200_000, 'Scraped content too long, refusing to call enrich LLM.'),
 	format: z.enum(['ldjson', 'recipe-json', 'markdown'])
@@ -159,19 +137,15 @@ export const enrichTextRecipeInput = z.object({
  * Parses raw scraped content (JSON-LD, recipe JSON, or cleaned Markdown) into a
  * structured, enriched recipe using the LLM. The scraping pipeline passes the
  * raw content through as-is; this is where all parsing into the app schema
- * happens.
+ * happens. Non-streaming convenience wrapper over `enrichRecipeLlmStream`.
  */
 export async function enrichRawRecipe(
 	input: z.infer<typeof enrichRawRecipeInput>,
 	distinctId?: string
 ): Promise<EnrichedRecipeResult> {
 	const { content, format } = enrichRawRecipeInput.parse(input);
-	return enrichRecipeLlm(
-		{
-			source_format: format,
-			raw_content: content
-		},
-		distinctId
+	return drainEnrichStream(
+		enrichRecipeLlmStream({ source_format: format, raw_content: content }, distinctId)
 	);
 }
 
@@ -188,78 +162,159 @@ export async function enrichTextRecipe(
 	distinctId?: string
 ): Promise<EnrichedRecipeResult> {
 	const parsed = enrichTextRecipeInput.parse(input);
-	return enrichRecipeLlm(parsed, distinctId);
+	return drainEnrichStream(enrichRecipeLlmStream(parsed, distinctId));
+}
+
+/** Awaits the section generator's return value (the final enriched result). */
+async function drainEnrichStream(
+	generator: AsyncGenerator<EnrichSectionPatch, EnrichedRecipeResult, unknown>
+): Promise<EnrichedRecipeResult> {
+	let next = await generator.next();
+	while (!next.done) next = await generator.next();
+	return next.value;
 }
 
 /* ------------- PRIVATE --------------- */
 
-async function enrichRecipeLlm(
+/**
+ * Streams one enrichment through a single LLM completion, yielding chunky
+ * section patches (metadata -> ingredients -> steps) as they are generated and
+ * returning the composed, sanitized final result. Failover only retries the
+ * next provider before the first token; after that the stream is committed.
+ */
+export async function* enrichRecipeLlmStream(
 	recipeInput: object,
 	distinctId?: string
-): Promise<EnrichedRecipeResult> {
+): AsyncGenerator<EnrichSectionPatch, EnrichedRecipeResult, unknown> {
 	const inputSize = JSON.stringify(recipeInput).length;
-	console.log(`[llm] Enriching recipe (${inputSize} bytes input).`);
+	console.log(`[llm] Enriching recipe (${inputSize} bytes input, streaming).`);
 
 	// PostHog: One enrichment call is one turn; there's no multi-turn conversation here, so the
 	// same id groups it as both the PostHog trace and session.
 	const traceId = crypto.randomUUID();
-	const identity = { traceId, sessionId: traceId, distinctId };
+	const identity: LlmCallIdentity = { traceId, sessionId: traceId, distinctId };
 
-	// Call the LLM to enrich the recipe, failing over across providers in priority order.
-	return withLlmFailover(
-		(provider) => enrichRecipeWithProvider(provider, recipeInput),
+	const { provider, fallbackUsed, stream } = await withLlmStreamFailover(
+		(p) => enrichRecipeWithProviderStream(p, recipeInput),
 		identity
-	).then(({ provider, fallbackUsed, value }) => {
-		console.log(
-			`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${value.output.lang}", title="${value.output.recipe.title ?? ''}", ${value.output.ingredients?.length ?? 0} ingredients.`,
-			JSON.stringify(value.output)
-		);
-		return {
-			output: sanitizeEnrichedRecipeOutput(value.output satisfies EnrichedRecipeOutput),
-			stats: {
-				provider,
-				fallbackUsed,
-				inputTokens: value.usage?.inputTokens ?? null,
-				outputTokens: value.usage?.outputTokens ?? null
+	);
+
+	const metadataKeys = Object.keys(importMetadataSchema.shape);
+	let metadataSent = false;
+	let ingredientsSent = false;
+
+	for await (const chunk of stream) {
+		if ('partial' in chunk) {
+			const partial = chunk.partial;
+			const partialRecipe = partial.recipe as Record<string, unknown> | undefined;
+			if (
+				!metadataSent &&
+				partialRecipe &&
+				metadataKeys.every((key) => partialRecipe[key] !== undefined)
+			) {
+				const parsed = importMetadataSchema.safeParse(partialRecipe);
+				if (parsed.success) {
+					metadataSent = true;
+					yield {
+						section: 'metadata',
+						lang: typeof partial.lang === 'string' ? partial.lang : null,
+						metadata: { ...parsed.data, title: truncateRecipeTitle(parsed.data.title) }
+					};
+				}
 			}
-		};
-	});
+			// The schema orders ingredients before steps, so the first `steps`
+			// token means the ingredients section just completed.
+			if (!ingredientsSent && partial.steps !== undefined) {
+				ingredientsSent = true;
+				const parsedIngredients = await parsePartialIngredients(partial.ingredients);
+				yield { section: 'ingredients', ingredients: parsedIngredients };
+			}
+		} else {
+			const output = chunk.final.output;
+			// Defensive: a stream that ended without streaming the steps section.
+			if (!ingredientsSent) {
+				ingredientsSent = true;
+				yield { section: 'ingredients', ingredients: output.ingredients };
+			}
+			yield { section: 'steps', steps: toStepPreviews(output.steps) };
+
+			console.log(
+				`[llm] Recipe enriched by ${provider}${fallbackUsed ? ' (after failover)' : ''}: lang="${output.lang}", title="${output.recipe.title ?? ''}", ${output.ingredients?.length ?? 0} ingredients.`
+			);
+			return {
+				output: sanitizeEnrichedRecipeOutput(output satisfies EnrichedRecipeOutput),
+				stats: {
+					provider,
+					fallbackUsed,
+					inputTokens: chunk.final.usage?.inputTokens ?? null,
+					outputTokens: chunk.final.usage?.outputTokens ?? null
+				}
+			};
+		}
+	}
+
+	throw new Error('LLM stream ended without a final object.');
 }
 
-async function enrichRecipeWithProvider(
+/** Validates a streamed ingredients array element-wise, keeping the parseable ones. */
+function parsePartialIngredients(partial: unknown): EnrichedRecipeOutput['ingredients'] {
+	if (!Array.isArray(partial)) return [];
+	return partial
+		.map((item) => parsedSearchInputSchema.safeParse(item))
+		.filter((r) => r.success)
+		.map((r) => r.data);
+}
+
+/** Maps sanitized steps to the client-safe preview shape (text + timer only). */
+function toStepPreviews(steps: EnrichedRecipeOutput['steps']): ImportStepPreview[] {
+	return steps.map((step) => ({
+		text: step.text,
+		timer_minutes: step.timer_minutes,
+		temperature_amount: step.temperature_amount,
+		temperature_unit:
+			step.temperature_unit === 'C' || step.temperature_unit === 'F' ? step.temperature_unit : null
+	}));
+}
+
+function enrichRecipeWithProviderStream(
 	provider: LlmProvider,
 	recipeInput: object
-): Promise<{
-	output: EnrichedRecipeOutput;
-	usage: { inputTokens: number | undefined; outputTokens: number | undefined } | null;
-}> {
-	try {
-		const response = await generateText({
-			model: provider.model,
-			output: Output.object({
-				schema: outputSchema,
-				description: 'The same recipe as received, but enriched and/or corrected.'
-			}),
-			messages: [
-				{
-					role: 'system',
-					content: RECIPE_ENRICHMENT_SYSTEM_PROMPT
-				},
-				{
-					role: 'user',
-					content: JSON.stringify(recipeInput, null, 2)
-				}
-			],
-			temperature: 0
-		});
+): AsyncGenerator<EnrichStreamChunk> {
+	const result = streamObject({
+		model: provider.model,
+		schema: streamOutputSchema,
+		schemaDescription: 'The same recipe as received, but enriched and/or corrected.',
+		messages: [
+			{
+				role: 'system',
+				content: RECIPE_ENRICHMENT_SYSTEM_PROMPT
+			},
+			{
+				role: 'user',
+				content: JSON.stringify(recipeInput, null, 2)
+			}
+		],
+		temperature: 0
+	});
 
-		console.log(
-			`[llm] ${provider.id}: ${response.usage?.inputTokens ?? '?'} input, ${response.usage?.outputTokens ?? '?'} output tokens.`
-		);
-		return {
-			output: response.output satisfies EnrichedRecipeOutput,
-			usage: response.usage ?? null
-		};
+	return enrichProviderChunks(provider, result);
+}
+
+async function* enrichProviderChunks(
+	provider: LlmProvider,
+	result: {
+		partialObjectStream: AsyncIterable<unknown>;
+		object: Promise<z.infer<typeof streamOutputSchema>>;
+		usage: Promise<EnrichUsage>;
+	}
+): AsyncGenerator<EnrichStreamChunk> {
+	try {
+		for await (const partial of result.partialObjectStream) {
+			yield { partial: partial as DeepPartial<z.infer<typeof streamOutputSchema>> };
+		}
+		const final = await result.object;
+		const usage = await result.usage.catch(() => null);
+		yield { final: { output: final, usage } };
 	} catch (error) {
 		if (error instanceof NoObjectGeneratedError) {
 			console.error('LLM call failed due to:', error);
@@ -270,7 +325,9 @@ async function enrichRecipeWithProvider(
 				const repaired = repairLlmOutput(error.text);
 				if (repaired) {
 					console.log(`[llm] ${provider.id}: malformed output repaired successfully.`);
-					return { output: repaired, usage: error.usage || null };
+					const usage = await result.usage.catch(() => null);
+					yield { final: { output: repaired, usage } };
+					return;
 				}
 			}
 		} else {
@@ -281,15 +338,14 @@ async function enrichRecipeWithProvider(
 	}
 }
 
-// LLM-generated
 function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 	// Attempt to parse the malformed output as JSON
 	try {
 		console.log('Attempting to repair malformed LLM output...');
-		const parsed = JSON.parse(llmOutputText);
+		const parsed = JSON.parse(llmOutputText) as Record<string, unknown>;
 
 		// Validate and coerce the parsed data to match the schema as much as possible
-		const partialResult = outputSchema.safeParse(parsed);
+		const partialResult = streamOutputSchema.safeParse(parsed);
 
 		if (partialResult.success) {
 			console.log('Successfully recovered valid output from malformed response');
@@ -303,7 +359,7 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 		if (parsed.recipe) {
 			console.log('Attempting to recover recipe fields...');
-			const recipeResult = relevantRecipeFieldsSchema.safeParse(parsed.recipe);
+			const recipeResult = importMetadataSchema.safeParse(parsed.recipe);
 			if (recipeResult.success) {
 				console.log('Recipe validated successfully');
 				recovered.recipe = recipeResult.data;
@@ -314,24 +370,9 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 
 				for (const [key, value] of Object.entries(parsed.recipe)) {
 					try {
-						// Steps need element-by-element recovery so a single bad
-						// step doesn't discard the rest (and their timers/hints).
-						if (key === 'steps') {
-							const recoveredSteps = normalizeRecipeSteps(value);
-							if (recoveredSteps.length > 0) {
-								partialRecipe.steps = recoveredSteps;
-								console.log(`✓ Recovered field: steps (${recoveredSteps.length})`);
-							} else {
-								console.warn('✗ Failed to recover field: steps');
-							}
-							continue;
-						}
-
 						// Try to validate individual fields using the schema shape
 						const fieldSchema =
-							relevantRecipeFieldsSchema.shape[
-								key as keyof typeof relevantRecipeFieldsSchema.shape
-							];
+							importMetadataSchema.shape[key as keyof typeof importMetadataSchema.shape];
 						if (fieldSchema) {
 							const fieldResult = fieldSchema.safeParse(value);
 							if (fieldResult.success) {
@@ -355,10 +396,10 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 				console.log('Partially recovered recipe fields:', Object.keys(partialRecipe));
 
 				// Try to parse the partially recovered recipe
-				const partialRecipeResult = relevantRecipeFieldsSchema.partial().safeParse(partialRecipe);
+				const partialRecipeResult = importMetadataSchema.partial().safeParse(partialRecipe);
 				if (partialRecipeResult.success) {
 					console.log('Successfully parsed partial recipe');
-					recovered.recipe = partialRecipeResult.data as z.infer<typeof relevantRecipeFieldsSchema>;
+					recovered.recipe = partialRecipeResult.data as z.infer<typeof importMetadataSchema>;
 				} else {
 					console.error('Failed to parse partial recipe:', partialRecipeResult.error);
 				}
@@ -428,9 +469,18 @@ function repairLlmOutput(llmOutputText: string): EnrichedRecipeOutput | null {
 			}
 		}
 
+		// Recover the steps if present
+		if (parsed && typeof parsed === 'object' && 'steps' in parsed) {
+			const recoveredSteps = normalizeRecipeSteps(parsed.steps);
+			if (recoveredSteps.length > 0) {
+				recovered.steps = recoveredSteps;
+				console.log(`Recovered ${recoveredSteps.length} steps`);
+			}
+		}
+
 		// Recover the image URL if present
 		if (parsed && typeof parsed === 'object' && 'image' in parsed) {
-			const imageResult = outputSchema.shape.image.safeParse(parsed.image);
+			const imageResult = streamOutputSchema.shape.image.safeParse(parsed.image);
 			if (imageResult.success) {
 				recovered.image = imageResult.data;
 				console.log(`Recovered image: ${recovered.image}`);

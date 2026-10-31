@@ -6,6 +6,7 @@ import { FEATURE_COSTS } from '$lib/features/billing/consts.js';
 import { assertWithinWeeklyLimits, canAfford, consumeSeeds, type CreditUsage } from '../credits.js';
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
+import { isImportProgress } from './import-events.js';
 import { importRecipeFromTextCore, type ImportUrlResult } from './import-from-url-helpers.js';
 
 export const importRecipeFromTextInput = z.object({
@@ -20,12 +21,13 @@ export type ImportRecipeFromTextInput = z.infer<typeof importRecipeFromTextInput
 export type ImportRecipeFromTextOutput = ImportUrlResult & { usage: CreditUsage };
 
 /**
- * Imports a recipe from free-form text (draft → enrich → save), charging 1 seed.
- * Moved from `features/recipes/actions/import-from-url.remote.ts:importRecipeFromText`
- * + `features/recipes/actions/import-recipe.ts:importRecipeFromTextCore`.
+ * Imports a recipe from free-form text (draft -> enrich -> save), charging 1 seed.
  *
- * Streams progress numbers, then yields the final `{ id, isComplete, usage }`
- * (`isComplete: false` so the user reviews the imported data).
+ * Streams the same typed progress events as the URL import (draft event once
+ * the draft row exists, chunky `{ kind: 'partial' }` patches while the single
+ * LLM completion streams, concurrent ingredient matching), then the final
+ * `{ id, isComplete, usage }` (`isComplete: false` so the user reviews the
+ * imported data).
  */
 export const importRecipeFromTextOp = defineOp({
 	name: 'recipes.import-from-text',
@@ -60,7 +62,7 @@ export const importRecipeFromTextOp = defineOp({
 			text,
 			lang: lang as LanguageCode
 		})) {
-			if (typeof value === 'number') {
+			if (isImportProgress(value)) {
 				yield value;
 			} else {
 				result = value;

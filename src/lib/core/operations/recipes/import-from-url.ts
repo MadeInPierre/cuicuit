@@ -6,6 +6,7 @@ import { FEATURE_COSTS } from '$lib/features/billing/consts.js';
 import { assertWithinWeeklyLimits, canAfford, consumeSeeds, type CreditUsage } from '../credits.js';
 import { OpError } from '../errors.js';
 import { defineOp } from '../registry.js';
+import { isImportProgress } from './import-events.js';
 import {
 	buildImportCacheKey,
 	getCachedImport,
@@ -27,13 +28,15 @@ export type ImportRecipeFromUrlInput = z.infer<typeof importRecipeFromUrlInput>;
 export type ImportRecipeFromUrlOutput = ImportUrlResult & { usage: CreditUsage };
 
 /**
- * Imports a recipe from a URL (scrape → enrich → match), charging 1 seed.
- * Moved from `features/recipes/actions/import-from-url.remote.ts:importRecipeFromUrl`
- * + `features/recipes/actions/import-recipe.ts:importRecipeFromUrlCore`.
+ * Imports a recipe from a URL (scrape -> enrich -> match), charging 1 seed.
  *
- * Streams progress numbers, then yields the final `{ id, isComplete, usage }`.
+ * Streams typed progress events, steps, a draft event (recipe id + scraped
+ * title) once the page can be shown, an image event as soon as the source
+ * image is uploaded, and chunky `{ kind: 'partial' }` patches while the single
+ * LLM completion streams (metadata -> ingredients -> steps, with ingredient
+ * matching running concurrently), then the final `{ id, isComplete, usage }`.
  * The credit gate lives here (not in the adapter): afford-check first, consume
- * once after a successful import — same order as the old remote.
+ * once after a successful import.
  */
 export const importRecipeFromUrlOp = defineOp({
 	name: 'recipes.import-from-url',
@@ -68,7 +71,7 @@ export const importRecipeFromUrlOp = defineOp({
 			url,
 			lang: lang as LanguageCode
 		})) {
-			if (typeof value === 'number') {
+			if (isImportProgress(value)) {
 				yield value;
 			} else {
 				result = value;
@@ -84,7 +87,7 @@ export const importRecipeFromUrlOp = defineOp({
 		const scrapeStats = getScrapeStats(cache);
 
 		// Charged after success via the shared `consumeSeeds` helper (SECURITY
-		// DEFINER, service_role only → `ctx.admin`). Kept inline (not wrapped)
+		// DEFINER, service_role only -> `ctx.admin`). Kept inline (not wrapped)
 		// so import progress can stream.
 		const usage = await consumeSeeds(ctx, {
 			feature: 'import_recipe_from_website',
