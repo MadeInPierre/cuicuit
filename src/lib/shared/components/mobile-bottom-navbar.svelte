@@ -7,6 +7,7 @@
 	import { selectedMealIngredient } from '$lib/features/plans/state/hovered-meal-ingredient.svelte';
 	import type { RecipeSummary } from '$lib/features/recipes/queries/get-recipe-detailed';
 	import { recipesSearchState } from '$lib/features/recipes/state/recipes-search.svelte';
+	import { selectedShoppingMeal } from '$lib/features/shopping/state/selected-shopping-meal.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { cn } from '$lib/utils';
 	import {
@@ -54,6 +55,10 @@
 		!openChat &&
 			recipesSearchState.searchInput.trim().length > 0 &&
 			page.url.pathname.startsWith('/recipes')
+	);
+
+	const showShoppingMealFilter = $derived(
+		!openChat && !!selectedShoppingMeal.id && page.url.pathname.startsWith('/shopping-list')
 	);
 
 	// Focus without scrolling the page: focusing an input at the bottom of the
@@ -290,6 +295,7 @@
 		{#if showRecipeSearch}
 			<div
 				class="flex items-center gap-1 rounded-full border border-border/60 bg-white/90 dark:bg-background/90 backdrop-blur-md drop-shadow-md/5 py-1.5 pl-4 pr-1.5 text-sm"
+				transition:fade={{ duration: 75 }}
 			>
 				<button
 					class="flex min-w-0 flex-1 items-center gap-2 text-left"
@@ -305,6 +311,27 @@
 					class="size-7 shrink-0 rounded-full"
 					aria-label="Clear recipe search"
 					onclick={() => (recipesSearchState.searchInput = '')}
+				>
+					<X class="size-4" />
+				</Button>
+			</div>
+		{/if}
+
+		{#if showShoppingMealFilter}
+			<div
+				class="flex items-center gap-1 rounded-full border border-border/60 bg-white/90 dark:bg-background/90 backdrop-blur-md drop-shadow-md/5 py-1.5 pl-4 pr-1.5 text-sm"
+				transition:fade={{ duration: 75 }}
+			>
+				<span class="flex min-w-0 flex-1 items-center gap-2 text-left">
+					<ChefHat class="size-3.5 shrink-0 text-muted-foreground" />
+					<span class="truncate">{selectedShoppingMeal.title ?? 'Filtering by meal'}</span>
+				</span>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="size-7 shrink-0 rounded-full"
+					aria-label="Clear meal filter"
+					onclick={() => (selectedShoppingMeal.id = null)}
 				>
 					<X class="size-4" />
 				</Button>

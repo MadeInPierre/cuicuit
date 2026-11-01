@@ -11,9 +11,10 @@
 		onCheckedChange: (item: CombinedShoppingListItem, checked: boolean) => void;
 		/** Unique key for persisting this section's collapsed state (e.g. the aisle key) */
 		collapseKey: string;
+		selectedMealId?: string | null;
 	};
 
-	const { items, layout, onCheckedChange, collapseKey }: Props = $props();
+	const { items, layout, onCheckedChange, collapseKey, selectedMealId = null }: Props = $props();
 
 	let partitioned = $derived(partitionByOptionality(items));
 
@@ -34,7 +35,7 @@
 	);
 </script>
 
-<ShoppingItemsGrid items={partitioned.required} {layout} {onCheckedChange} />
+<ShoppingItemsGrid items={partitioned.required} {layout} {onCheckedChange} {selectedMealId} />
 
 {#if partitioned.optionalOnly.length > 0}
 	<div class="grid gap-2">
@@ -53,7 +54,7 @@
 
 		{#if !collapsed.value || partitioned.required.length === 0}
 			<!-- <div transition:slide> -->
-			<ShoppingItemsGrid items={partitioned.optionalOnly} {layout} {onCheckedChange} />
+			<ShoppingItemsGrid items={partitioned.optionalOnly} {layout} {onCheckedChange} {selectedMealId} />
 			<!-- </div> -->
 		{/if}
 	</div>

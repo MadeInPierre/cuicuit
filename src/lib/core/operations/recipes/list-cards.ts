@@ -16,7 +16,7 @@ export type ListRecipeCardsInput = ListRecipesInput;
 // exists only for the no-image mosaic (`RecipeImage` renders up to 6
 // ingredient thumbnails + names): just ids, quantities for sorting, and
 // display names in the user language.
-const RECIPES_CARD_SELECT = `id, title, servings, effort_level, time_total_minutes, image_ids, source_url, times_of_day, cuisines, courses,
+const RECIPES_CARD_SELECT = `id, title, short_title, servings, effort_level, time_total_minutes, image_ids, source_url, times_of_day, cuisines, courses,
 			ingredients:recipe_ingredients(
 				id, custom_name, quantity, is_optional,
 				ingredient:ingredients(

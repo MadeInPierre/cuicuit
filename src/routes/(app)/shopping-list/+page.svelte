@@ -6,6 +6,7 @@
 		resolveSupermarketAisleOrder,
 		supermarketAisleSectionHeaders
 	} from '$lib/features/recipes/components/consts';
+	import { selectedShoppingMeal } from '$lib/features/shopping/state/selected-shopping-meal.svelte';
 	import {
 		getShoppingRecommendations,
 		type ShoppingRecommendation
@@ -18,7 +19,14 @@
 	import { normalizeLanguageCode } from '$lib/shared/language.js';
 	import { createPersistentState } from '$lib/shared/state/create-persistent-state.svelte';
 	import { cn } from '$lib/utils';
-	import { Apple, Calendar, ClipboardList, RotateCcw, ShoppingBasket } from '@lucide/svelte';
+	import {
+		Apple,
+		Calendar,
+		ChefHat,
+		ClipboardList,
+		RotateCcw,
+		ShoppingBasket
+	} from '@lucide/svelte';
 	import { fade } from 'svelte/transition';
 	import DoneShoppingButton from './DoneShoppingButton.svelte';
 	import type { CombinedShoppingListItem } from './generate-shopping-list';
@@ -57,6 +65,17 @@
 
 	type ShoppingListFilterKey = 'all' | 'meals' | 'independent';
 	let shoppingListFilter = $state<ShoppingListFilterKey>('all');
+
+	function toggleMealFilter(mealId: string) {
+		if (selectedShoppingMeal.id === mealId) {
+			selectedShoppingMeal.id = null;
+			selectedShoppingMeal.title = null;
+		} else {
+			const meal = space.activePlanMeals?.find((m) => m.id === mealId);
+			selectedShoppingMeal.id = mealId;
+			selectedShoppingMeal.title = meal?.recipe.title ?? null;
+		}
+	}
 
 	/** Update an item from all its origins at once */
 	async function onItemCheckedChange(shoppingItem: CombinedShoppingListItem, newChecked: boolean) {
@@ -179,6 +198,34 @@
 
 	<SeparatorZigZag />
 
+	{#if space.activePlanMeals?.length}
+		<div class="grid md:hidden space-y-2">
+			<div class="flex items-center gap-2 text-sm font-semibold">
+				<ChefHat class="size-4" />
+				<span>Filter by meal</span>
+				<!-- <span class="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+					{space.activePlanMeals.length}
+				</span> -->
+			</div>
+
+			<div class="flex overflow-x-auto gap-3 scrollbar-none p-2">
+				{#each space.activePlanMeals as meal (meal.id)}
+					<MealCard
+						{meal}
+						expandable={false}
+						size="md"
+						class={cn(
+							'shrink-0 w-56',
+							selectedShoppingMeal.id === meal.id && 'border-ring ring-ring/50 ring-[3px]'
+						)}
+						onclick={() => toggleMealFilter(meal.id)}
+						shortTitle
+					/>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<Tabs.Root value="aisle">
 		<Tabs.Content value="aisle" class="mt-12">
 			<!-- <h3 class="text-xl font-semibold mb-6">Planned meals</h3> -->
@@ -261,6 +308,7 @@
 									layout={itemsLayout.value ?? 'grid'}
 									onCheckedChange={onItemCheckedChange}
 									collapseKey={aisleKey}
+									selectedMealId={selectedShoppingMeal.id}
 								/>
 							</div>
 						</section>
@@ -304,6 +352,7 @@
 											layout={itemsLayout.value ?? 'grid'}
 											onCheckedChange={onItemCheckedChange}
 											collapseKey="cart"
+											selectedMealId={selectedShoppingMeal.id}
 										/>
 									</div>
 								</div>

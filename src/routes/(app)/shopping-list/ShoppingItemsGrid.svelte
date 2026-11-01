@@ -17,9 +17,10 @@
 		items: CombinedShoppingListItem[];
 		layout: 'grid' | 'list';
 		onCheckedChange: (item: CombinedShoppingListItem, checked: boolean) => void;
+		selectedMealId?: string | null;
 	};
 
-	const { items, layout, onCheckedChange }: Props = $props();
+	const { items, layout, onCheckedChange, selectedMealId = null }: Props = $props();
 
 	const space = getActiveSpaceState();
 
@@ -73,10 +74,11 @@
 		style="grid-template-columns: repeat({columns}, minmax(0, 1fr));"
 	>
 		{#each items as item (item.ingredient?.id || item.name)}
+			{@const highlighted = !!selectedMealId && item.meals.some((m) => m.id === selectedMealId)}
+
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<div
-				class="flex group"
+				class={cn('flex group', highlighted && 'border-ring ring-ring/50 ring-[3px] rounded-lg')}
 				animate:flip={{ duration: 200 }}
 				onmouseenter={() => {
 					if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return;

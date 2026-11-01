@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import CookableStatus, {
 		type CookableStatusKey
 	} from '$lib/features/recipes/components/CookableStatus.svelte';
 	import IngredientImage from '$lib/features/recipes/components/IngredientImage.svelte';
 	import RecipeCard from '$lib/features/recipes/components/RecipeCard.svelte';
 	import ServingsPlusMinus from '$lib/features/recipes/components/ServingsPlusMinus.svelte';
+	import { selectedShoppingMeal } from '$lib/features/shopping/state/selected-shopping-meal.svelte';
 	import { getActiveSpaceState } from '$lib/features/spaces/state/active-space.svelte';
 	import { Button } from '$lib/shared/components/ui/button';
 	import { type Enums } from '$lib/shared/db/supabase.types';
@@ -14,6 +16,7 @@
 		ChevronRight,
 		CircleSlash,
 		Home,
+		Search,
 		ShoppingBasket,
 		ShoppingCart,
 		Trash
@@ -47,6 +50,8 @@
 		size?: 'md' | 'lg';
 		class?: string;
 		cardEndSnippet?: Snippet | null; // Additional content to show at the end of the meal card (e.g. for shopping list)
+		shortTitle?: boolean;
+		onclick?: Function;
 	}
 
 	let {
@@ -56,7 +61,9 @@
 		showExpandedButtons = false,
 		size = 'md',
 		class: className = '',
-		cardEndSnippet = null
+		cardEndSnippet = null,
+		shortTitle = false,
+		onclick = () => {}
 	}: Props = $props();
 
 	let activeId = $derived(
@@ -204,6 +211,9 @@
 			class={cn(
 				'transition-[color,box-shadow]',
 				hovered && !selected && 'border-ring ring-ring/50 ring-[3px]',
+				page.url.pathname.startsWith('/shopping-list') &&
+					selectedShoppingMeal.id === meal?.id &&
+					'border-ring ring-ring/50 ring-[3px]',
 				className
 			)}
 			onclick={(e: MouseEvent) => {
@@ -215,12 +225,14 @@
 				}
 
 				clickStart = null;
+				onclick?.(); // call parent
 			}}
 			onmousedown={(e: MouseEvent) => {
 				clickStart = { x: e.x, y: e.y };
 			}}
 			endSnippet={cardEndSnippet || (selected || hovered || expanded ? defaultEndSnippet : null)}
 			{belowSnippet}
+			{shortTitle}
 		/>
 
 		{#if expanded}
@@ -283,7 +295,7 @@
 						in:fade={{ duration: 100, delay: 300 }}
 						out:fade={{ duration: 100 }}
 					>
-						<div class="rounded-full p-1 bg-white border">
+						<div class="rounded-full p-1 bg-card border border-border">
 							<ServingsPlusMinus
 								value={meal.servings}
 								size="xs"
@@ -300,6 +312,30 @@
 								onDelete={() => deleteMeal(space, meal.id)}
 							/>
 						</div>
+
+						{#if page.url.pathname.startsWith('/shopping-list')}
+							<Button
+								variant="outline"
+								size="icon"
+								class={cn(
+									'bg-card size-8 rounded-full border border-border shadow-none',
+									page.url.pathname.startsWith('/shopping-list') &&
+										selectedShoppingMeal.id === meal?.id &&
+										'ring-ring/50 ring-[3px] border-0'
+								)}
+								onclick={() => {
+									if (selectedShoppingMeal.id === meal.id) {
+										selectedShoppingMeal.id = null;
+										selectedShoppingMeal.title = null;
+									} else {
+										selectedShoppingMeal.id = meal.id;
+										selectedShoppingMeal.title = meal.recipe.title;
+									}
+								}}
+							>
+								<Search class="size-3.5" />
+							</Button>
+						{/if}
 
 						<!-- <div class="rounded-full p-1 bg-white flex border">
 							<Button

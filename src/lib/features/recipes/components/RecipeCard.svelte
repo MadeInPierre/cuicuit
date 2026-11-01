@@ -21,6 +21,7 @@
 		belowSnippet?: Snippet | null; // Optional snippet to render below the title
 		size?: 'md' | 'lg';
 		class?: string;
+		shortTitle?: boolean;
 		[key: string]: any; // Allow additional props (e.g. on:click)
 	}
 
@@ -32,6 +33,7 @@
 		belowSnippet = null,
 		size = 'md',
 		class: className = '',
+		shortTitle = false,
 		...others
 	}: Props = $props();
 </script>
@@ -54,7 +56,7 @@
 					size == 'lg' && 'mb-1 text-sm'
 				)}
 			>
-				{recipe.title}
+				{shortTitle ? recipe.short_title || recipe.title : recipe.title || recipe.short_title}
 			</h3>
 
 			{#if belowSnippet}
@@ -62,10 +64,6 @@
 			{:else}
 				<CookableStatus status="cookable" />
 			{/if}
-			<!-- <span class="text-muted-foreground text-xs mr-auto flex items-center gap-1">
-				<Calendar class="size-3" />
-				No date
-			</span> -->
 		</div>
 
 		{#if endSnippet !== null}

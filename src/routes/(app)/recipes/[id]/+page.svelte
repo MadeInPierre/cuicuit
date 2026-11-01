@@ -125,7 +125,16 @@
 
 	const media = useMedia();
 
-	const loading = $derived(!importing && recipe === undefined && !recipeError);
+	const importingUI = $derived(
+		importing ||
+			(!!pageRecipeId &&
+				recipeImportState.recipeId === pageRecipeId &&
+				recipeImportState.phase === 'done' &&
+				recipe === undefined &&
+				!recipeError)
+	);
+
+	const loading = $derived(!importingUI && recipe === undefined && !recipeError);
 
 	const previewIngredients = $derived(
 		recipeImportState.preview.matched ?? recipeImportState.preview.ingredients
@@ -141,10 +150,10 @@
 {:else}
 	<div class="w-full flex flex-col mb-20">
 		<main class="grid flex-1 items-start gap-4 md:gap-8">
-			<div class="mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
-				<div class="grid gap-12 lg:grid-cols-[1fr_250px] xl:grid-cols-3 lg:gap-8">
+			<div class="md:mx-auto grid max-w-236 flex-1 auto-rows-max gap-4">
+				<div class="grid gap-12 xl:grid-cols-3 lg:gap-8">
 					<div class="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-						{#if importing}
+						{#if importingUI}
 							<div class="relative w-full aspect-[1.618] overflow-hidden rounded-md bg-muted">
 								{#if recipeImportState.imageId && recipeImportState.recipeId}
 									<img
@@ -158,7 +167,7 @@
 										class="size-full object-cover blur-sm scale-110"
 									/>
 								{/if}
-								
+
 								<div
 									class="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-max grid place-items-center gap-2 p-4 rounded-lg bg-white/90"
 								>
@@ -214,7 +223,7 @@
 							<!-- no image -->
 						{/if}
 
-						{#if importing}
+						{#if importingUI}
 							{#if recipeImportState.preview.metadata}
 								{@const metadata = recipeImportState.preview.metadata}
 								<div class="space-y-2">
@@ -252,9 +261,9 @@
 								/>
 							{:else}
 								<div class="space-y-2">
-									<Skeleton class="h-9 w-2/3" />
+									<Skeleton class="h-9 w-full" />
 									<Skeleton class="h-4 w-full" />
-									<Skeleton class="h-4 w-5/6" />
+									<Skeleton class="h-4 w-full" />
 									<Skeleton class="h-5 w-40" />
 								</div>
 
@@ -271,9 +280,9 @@
 							{/if}
 						{:else if loading}
 							<div class="space-y-2">
-								<Skeleton class="h-9 w-2/3" />
+								<Skeleton class="h-9 w-full" />
 								<Skeleton class="h-4 w-full" />
-								<Skeleton class="h-4 w-5/6" />
+								<Skeleton class="h-4 w-full" />
 								<Skeleton class="h-5 w-40" />
 							</div>
 
@@ -344,7 +353,7 @@
 							<div class="flex gap-2 items-center">
 								<h2 class="text-xl font-semibold">Your plan</h2>
 
-								{#if importing || loading}
+								{#if importingUI || loading}
 									<Skeleton class="h-8 w-24 ml-auto" />
 								{:else if recipe}
 									<Button size="sm" type="submit" class="flex ml-auto" onclick={addRecipeToPlan}>
@@ -355,7 +364,7 @@
 								{/if}
 							</div>
 
-							{#if importing || loading}
+							{#if importingUI || loading}
 								<Skeleton class="h-24 w-full rounded-md" />
 							{:else if recipe}
 								{#each (space.activePlanMeals || []).filter((m) => m.recipe_id === recipe!.id) as meal (meal.id)}
@@ -394,7 +403,11 @@
 							<div class="text-xl font-semibold flex items-center gap-3">
 								<span>Cook for</span>
 
-								<ServingsPlusMinus bind:value={displayServings} size="sm" disabled={loading} />
+								<ServingsPlusMinus
+									bind:value={displayServings}
+									size="sm"
+									disabled={loading || importingUI || !recipe}
+								/>
 
 								{#if recipe && displayServings !== recipe!.servings}
 									<Button
@@ -425,7 +438,7 @@
 								</Button>
 							</div>
 
-							{#if importing}
+							{#if importingUI}
 								{#if previewIngredients}
 									{@render displayImportIngredients(
 										previewIngredients,
@@ -481,7 +494,7 @@
 							{@render stepsSection()}
 						{/if}
 
-						{#if importing || loading}
+						{#if importingUI || loading}
 							<Skeleton class="h-10 w-full rounded-lg" />
 						{:else if recipe}
 							<div class="grid space-y-4">
@@ -501,7 +514,7 @@
 							</div>
 						{/if}
 
-						{#if !(importing || loading)}
+						{#if !(importingUI || loading)}
 							<KeepScreenOn />
 
 							<VoteForFeatures
@@ -519,7 +532,7 @@
 	<div class="grid space-y-6">
 		<h2 class="text-xl font-semibold">Steps</h2>
 
-		{#if importing}
+		{#if importingUI}
 			{#if recipeImportState.preview.steps}
 				{#each recipeImportState.preview.steps as step, i (i)}
 					<RecipeStep
