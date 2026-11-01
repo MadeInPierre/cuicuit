@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/MadeInPierre/cuicuit/compare/v0.2.0...v0.3.0) (2026-11-01)
+
+
+### Features
+
+* **import:** stream progressively the recipe while importing ([f8a0226](https://github.com/MadeInPierre/cuicuit/commit/f8a02267b1b07972a2c9b6226a66c622f1c4dae9))
+* **shopping:** meals horizontal bar + highlight per-meal ingredients ([029e8f4](https://github.com/MadeInPierre/cuicuit/commit/029e8f44a7166633a26af98e5fc5daa12ff8dc54))
+
+
+### Bug Fixes
+
+* **import:** better matching for unknown languages thanks to EN LLM fallback ([1415be0](https://github.com/MadeInPierre/cuicuit/commit/1415be08da695079eec8a98aacb79c0208bfa46d))
+* **import:** minor scrapecreators image & api fallback tweaks ([c4eaf34](https://github.com/MadeInPierre/cuicuit/commit/c4eaf341ad59624497e6fb77b5517641f519c591))
+
 ## [0.2.0](https://github.com/MadeInPierre/cuicuit/compare/v0.1.0...v0.2.0) (2026-10-28)
 
 
